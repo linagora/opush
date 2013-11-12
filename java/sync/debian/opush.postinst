@@ -86,6 +86,13 @@ cp "${TEMPLATE}" "${NEWFILE}"
 ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
 ucfr opush "${CONFIG}"
 
+NEWFILE=${TEMPDIR}/cassandra.ini
+CONFIG=/etc/opush/cassandra.ini
+TEMPLATE=/usr/share/o-push/debian-conf/cassandra.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
 [ ! -f /etc/opush/logback.xml ] && echo "<included/>" > /etc/opush/logback.xml
 
 invoke-rc.d jetty status 3>1

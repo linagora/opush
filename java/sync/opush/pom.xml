@@ -82,6 +82,7 @@
 		<module>push-dao</module>
 		<module>push-dao-jdbc</module>
 		<module>push-dao-ehcache</module>
+		<module>push-dao-cassandra</module>
 		<module>push-dao-mail</module>
 		<module>push-dao-testsuite</module>
 		<module>push-dao-ehcache-migrating</module>
@@ -257,6 +258,11 @@
 			<dependency>
 				<groupId>com.linagora.obm.opush</groupId>
 				<artifactId>push-dao</artifactId>
+				<version>${opush.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.linagora.obm.opush</groupId>
+				<artifactId>push-dao-cassandra</artifactId>
 				<version>${opush.version}</version>
 			</dependency>
 			<dependency>

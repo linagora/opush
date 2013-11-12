@@ -40,6 +40,7 @@ import org.obm.healthcheck.HealthCheckModule;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationImpl;
+import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.store.ehcache.EhCacheDaoModule;
 import org.obm.push.store.jdbc.JdbcDaoModule;
 import org.obm.push.store.jdbc.OpushDatabaseModule;
@@ -87,6 +88,7 @@ public class OpushModule extends AbstractModule {
 		install(new HealthCheckDefaultHandlersModule());
 		install(new EhCacheDaoModule());
 		install(new JdbcDaoModule(databaseModule));
+		install(new OpushCassandraModule());
 		bind(Boolean.class).annotatedWith(Names.named("enable-push")).toInstance(false);
  	}
 

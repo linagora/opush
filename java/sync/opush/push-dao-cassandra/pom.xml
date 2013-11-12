@@ -9,16 +9,22 @@
 		<version>2.6.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>push-servlet</artifactId>
+	<artifactId>push-dao-cassandra</artifactId>
 	<packaging>jar</packaging>
-	<name>OPush Servlet</name>
+	<name>OPush DAO Cassandra implementation</name>
 	<url>http://www.obm.org/</url>
+
+	<licenses>
+		<license>
+			<name>GNU AFFERO GENERAL PUBLIC LICENSE Version 3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.linagora</groupId>
-			<artifactId>crsh.shell.embed.guice</artifactId>
-			<version>0.3</version>
+			<groupId>com.linagora.obm</groupId>
+			<artifactId>annotations</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
@@ -27,49 +33,63 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
-			<artifactId>healthcheck-api</artifactId>
+			<artifactId>configuration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm</groupId>
+			<artifactId>configuration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm</groupId>
+			<artifactId>obm-domain-objects</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>obm-backend</artifactId>
+			<artifactId>push-bean</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-core</artifactId>
+			<artifactId>push-dao</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-dao-cassandra</artifactId>
+			<artifactId>push-dao-mail</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-dao-ehcache</artifactId>
+			<artifactId>push-dao-testsuite</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-dao-ehcache-migrating</artifactId>
+			<artifactId>push-interfaces</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-dao-jdbc</artifactId>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
+			<version>2.0.0-rc1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-mail</artifactId>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.crsh</groupId>
-			<artifactId>crsh.shell.ssh</artifactId>
-			<version>1.2.7</version>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 </project>
