@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,27 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
-import org.obm.push.configuration.CassandraConfiguration;
-import org.obm.push.configuration.CassandraConfigurationFileImpl;
-import org.obm.sync.LifecycleListener;
-
 import com.datastax.driver.core.Session;
-import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.Multibinder;
 
-public class OpushCassandraModule extends AbstractModule {
+public interface CassandraSessionSupplier {
+
+	Session get();
 	
-	@Override
-	protected void configure() {
-		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
-		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
-		bindSession();
-		
-		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);
-		lifecycleListeners.addBinding().to(CassandraSessionProvider.class);
-	}
-
-	private void bindSession() {
-		bind(Session.class).toProvider(CassandraSessionProvider.class);
-	}
+	boolean hasBeenSupplied();
 }

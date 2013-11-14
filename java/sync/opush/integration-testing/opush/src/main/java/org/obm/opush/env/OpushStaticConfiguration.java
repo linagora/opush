@@ -43,6 +43,7 @@ import org.obm.Configuration;
 import org.obm.StaticLocatorConfiguration;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.configuration.SyncPermsConfigurationService;
+import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
 import org.obm.push.store.ehcache.EhCacheConfiguration;
@@ -236,6 +237,35 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		@Override
 		public int statsSamplingTimeStopInMinutes() {
 			return configuration.statsSamplingTimeStopInMinutes;
+		}
+	}
+	
+	public static class Cassandra implements CassandraConfiguration {
+
+		private final OpushConfigurationFixture.Cassandra configuration;
+
+		public Cassandra(OpushConfigurationFixture.Cassandra configuration) {
+			this.configuration = configuration;
+		}
+		
+		@Override
+		public String seed() {
+			return configuration.seed;
+		}
+
+		@Override
+		public String keyspace() {
+			return configuration.keyspace;
+		}
+
+		@Override
+		public String user() {
+			return configuration.user;
+		}
+
+		@Override
+		public String password() {
+			return configuration.password;
 		}
 	}
 	

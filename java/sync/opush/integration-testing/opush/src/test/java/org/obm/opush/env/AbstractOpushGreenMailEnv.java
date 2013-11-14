@@ -47,6 +47,7 @@ public abstract class AbstractOpushGreenMailEnv extends AbstractOpushEnv {
 	protected Module overrideModule() throws Exception {
 		ImmutableList<AbstractOverrideModule> modules = ImmutableList.of( 
 				dao(),
+				cassandra(),
 				obmSync(),
 				backendsModule(),
 				greenMail(),

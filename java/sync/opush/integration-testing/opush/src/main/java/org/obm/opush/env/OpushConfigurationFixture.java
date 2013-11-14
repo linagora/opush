@@ -35,6 +35,13 @@ import org.obm.Configuration;
 
 public class OpushConfigurationFixture extends Configuration {
 	
+	public static class Cassandra {
+		public String seed = "localhost";
+		public String keyspace = "opush";
+		public String user = "cassandra";
+		public String password = "cassandra";
+	}
+
 	public static class EhCache {
 		public int maxMemoryInMB = 10;
 		public int timeToLiveInSeconds = 60;
@@ -69,5 +76,6 @@ public class OpushConfigurationFixture extends Configuration {
 	public Mail mail = new Mail();
 	public RemoteConsole remoteConsole = new RemoteConsole();
 	public EhCache ehCache = new EhCache();
+	public Cassandra cassandra = new Cassandra();
 	
 }

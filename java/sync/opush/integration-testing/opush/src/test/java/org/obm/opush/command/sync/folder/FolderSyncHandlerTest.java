@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.sync.folder;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationPushTestUtils.mockHierarchyChangesForMailboxes;
 import static org.obm.opush.IntegrationPushTestUtils.mockHierarchyChangesOnlyInbox;
 import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;

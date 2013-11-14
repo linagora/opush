@@ -93,6 +93,7 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 	protected Module overrideModule() throws Exception {
 		ImmutableList<AbstractOverrideModule> modules = ImmutableList.of( 
 			dao(),
+			cassandra(),
 			email(),
 			obmSync(),
 			backendsModule(),
@@ -122,6 +123,10 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 
 	protected DaoModule dao() {
 		return new DaoModule(mocksControl);
+	}
+
+	protected OpushCassandraModule cassandra() {
+		return new OpushCassandraModule(mocksControl);
 	}
 
 	@Override

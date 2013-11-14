@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -32,26 +32,44 @@
 package org.obm.push.cassandra;
 
 import org.obm.push.configuration.CassandraConfiguration;
-import org.obm.push.configuration.CassandraConfigurationFileImpl;
-import org.obm.sync.LifecycleListener;
 
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
-import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.Multibinder;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-public class OpushCassandraModule extends AbstractModule {
-	
-	@Override
-	protected void configure() {
-		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
-		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
-		bindSession();
-		
-		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);
-		lifecycleListeners.addBinding().to(CassandraSessionProvider.class);
+@Singleton
+public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
+
+	private Supplier<Session> sessionSupplier;
+	private boolean hasBeenSupplied = false;
+
+	@Inject
+	@VisibleForTesting CassandraSessionSupplierImpl(final CassandraConfiguration cassandraConfiguration) {
+		sessionSupplier = Suppliers.memoize(new Supplier<Session>() {
+
+			@Override
+			public Session get() {
+				hasBeenSupplied = true;
+				return Cluster.builder()
+						.addContactPoint(cassandraConfiguration.seed())
+						.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
+						.build()
+						.connect(cassandraConfiguration.keyspace());
+			}
+		});
 	}
 
-	private void bindSession() {
-		bind(Session.class).toProvider(CassandraSessionProvider.class);
+	@Override
+	public Session get() {
+		return sessionSupplier.get();
+	}
+
+	@Override
+	public boolean hasBeenSupplied() {
+		return hasBeenSupplied;
 	}
 }
