@@ -34,12 +34,14 @@ package org.obm.push.protocol.data;
 import java.util.List;
 
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncStatus;
@@ -164,15 +166,15 @@ public class SyncAnalyser {
 		return SyncCollectionOptions.defaultOptions();
 	}
 
-	private SyncCollectionCommands.Response analyseCommands(SyncCollectionCommands.Request requestCommands, PIMDataType dataType) {
-		SyncCollectionCommands.Response.Builder commandsResponseBuilder = SyncCollectionCommands.Response.builder();
-		List<SyncCollectionCommand.Request> commands = requestCommands.getCommands();
+	private SyncCollectionCommandsResponse analyseCommands(SyncCollectionCommandsRequest requestCommands, PIMDataType dataType) {
+		SyncCollectionCommandsResponse.Builder commandsResponseBuilder = SyncCollectionCommandsResponse.builder();
+		List<SyncCollectionCommandRequest> commands = requestCommands.getCommands();
 		if (commands != null) {
-			for (SyncCollectionCommand.Request command : commands) {
+			for (SyncCollectionCommandRequest command : commands) {
 				SyncCommand type = command.getType();
 				commandsResponseBuilder.addCommand(
-					SyncCollectionCommand.Response.builder()
-						.commandType(type)
+					SyncCollectionCommandResponse.builder()
+						.type(type)
 						.serverId(command.getServerId())
 						.clientId(command.getClientId())
 						.applicationData(decodeApplicationData(command.getApplicationData(), dataType, type))

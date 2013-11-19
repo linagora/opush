@@ -35,12 +35,15 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+@JsonDeserialize(builder=MSEmailHeader.Builder.class)
 public class MSEmailHeader implements Serializable {
 
 	public static final MSAddress DEFAULT_FROM_ADDRESS = new MSAddress("Empty From", "o-push@linagora.com");
@@ -173,6 +176,7 @@ public class MSEmailHeader implements Serializable {
 		return date;
 	}
 
+	@JsonIgnore
 	public MSAddress getDisplayTo() {
 		if (to != null && !to.isEmpty()) {
 			return Iterables.get(to, 0);

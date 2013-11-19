@@ -35,12 +35,54 @@ import java.io.Serializable;
 
 import org.obm.push.utils.UserEmailParserUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+@JsonDeserialize(builder=User.Builder.class)
 public class User implements Serializable {
 
+	public static Builder builder() {
+		return new Builder();
+	}
+	
+	
+	public static class Builder {
+		private String login;
+		private String domain;
+		private String email;
+		private String displayName;
+
+		private Builder() {
+		}
+		
+		public Builder login(String login) {
+			this.login = login;
+			return this; 
+		}
+		
+		public Builder domain(String domain) {
+			this.domain = domain;
+			return this; 
+		}
+		
+		public Builder email(String email) {
+			this.email = email;
+			return this; 
+		}
+		
+		public Builder displayName(String displayName) {
+			this.displayName = displayName;
+			return this; 
+		}
+		
+		public User build() {
+			return new User(login, domain, email, displayName);
+		}
+	}
+	
 	@Singleton
 	public static class Factory {
 
@@ -83,6 +125,7 @@ public class User implements Serializable {
 		this.displayName = displayName;
 	}
 	
+	@JsonIgnore
 	public String getLoginAtDomain() {
 		return getLogin() + "@" + getDomain();
 	}

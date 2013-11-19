@@ -34,7 +34,7 @@ package org.obm.push.protocol.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.client.SyncClientCommands;
@@ -66,7 +66,7 @@ public class SyncResponseTest {
 		SyncResponse syncResponse = SyncResponse.builder()
 				.addResponse(SyncCollectionResponse.builder()
 						.collectionId(1)
-						.responses(SyncCollectionCommands.Response.builder()
+						.responses(SyncCollectionCommandsResponse.builder()
 								.changes(ImmutableList.of(ItemChange.builder().serverId(serverId).build()), 
 										SyncClientCommands.builder()
 											.putAdd(new Add(clientId , serverId))

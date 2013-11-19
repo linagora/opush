@@ -45,11 +45,14 @@ import org.obm.push.bean.MSMessageClass;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
+@JsonDeserialize(builder=MSEmail.MSEmailBuilder.class)
 public class MSEmail implements IApplicationData, Serializable {
 
 	public static MSEmailBuilder builder() {
@@ -153,6 +156,7 @@ public class MSEmail implements IApplicationData, Serializable {
 	private static final long serialVersionUID = 3353216715438634538L;
 	
 	@Override
+	@JsonIgnore
 	public PIMDataType getType() {
 		return PIMDataType.EMAIL;
 	}
@@ -184,22 +188,27 @@ public class MSEmail implements IApplicationData, Serializable {
 		this.answered = answered;
 	}
 	
+	@JsonIgnore
 	public MSAddress getDisplayTo() {
 		return header.getDisplayTo();
 	}
 	
+	@JsonIgnore
 	public List<MSAddress> getFrom() {
 		return header.getFrom();
 	}
 
+	@JsonIgnore
 	public List<MSAddress> getTo() {
 		return header.getTo();
 	}
 
+	@JsonIgnore
 	public List<MSAddress> getCc() {
 		return header.getCc();
 	}
 
+	@JsonIgnore
 	public List<MSAddress> getReplyTo() {
 		return header.getReplyTo();
 	}
@@ -208,6 +217,7 @@ public class MSEmail implements IApplicationData, Serializable {
 		return subject;
 	}
 
+	@JsonIgnore
 	public Date getDate() {
 		return header.getDate();
 	}

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,48 +29,31 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean.msmeetingrequest;
+package org.obm.push.json;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.google.common.base.Strings;
 
+public class CharsetDeserializer extends JsonDeserializer<Charset> {
 
-public class MSMeetingRequestCategory implements Serializable {
-	
-	private  static final long serialVersionUID = -5737971365858507584L;
-	
-	private final String category;
-
-	@JsonCreator
-	public MSMeetingRequestCategory(@JsonProperty("category") String category) {
-		this.category = category;
-	}
-	
-	public String getCategory() {
-		return category;
+	@Override
+	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
+		return deserialize(jp, ctxt);
 	}
 
 	@Override
-	public final int hashCode(){
-		return Objects.hashCode(category);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof MSMeetingRequestCategory) {
-			MSMeetingRequestCategory that = (MSMeetingRequestCategory) object;
-			return Objects.equal(this.category, that.category);
+	public Charset deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+		String charsetName = jp.getValueAsString();
+		if (Strings.isNullOrEmpty(charsetName)) {
+			return null;
 		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("category", category)
-			.toString();
+		return Charset.forName(charsetName);
 	}
 }

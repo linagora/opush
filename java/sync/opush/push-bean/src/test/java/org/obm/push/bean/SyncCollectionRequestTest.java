@@ -139,8 +139,8 @@ public class SyncCollectionRequestTest {
 
 	@Test
 	public void testBuilderCommandsValid() {
-		SyncCollectionCommands.Request commands = SyncCollectionCommands.Request.builder()
-			.addCommand(SyncCollectionCommand.Request.builder().serverId("100").name("Delete").build())
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+			.addCommand(SyncCollectionCommandRequest.builder().serverId("100").name("Delete").build())
 			.build();
 		
 		SyncCollectionRequest syncRequestCollection = builderWithRequirement().commands(commands).build();

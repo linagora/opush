@@ -33,9 +33,7 @@ package org.obm.push.command
 
 import scala.collection.JavaConversions.asScalaSet
 import scala.collection.JavaConversions.collectionAsScalaIterable
-
 import org.obm.push.bean.MSEvent
-import org.obm.push.bean.SyncCollectionCommands
 import org.obm.push.bean.SyncCollectionRequest
 import org.obm.push.checks.Check
 import org.obm.push.context.User
@@ -43,8 +41,8 @@ import org.obm.push.encoder.GatlingEncoders.calendarEncoder
 import org.obm.push.protocol.bean.SyncResponse
 import org.obm.push.utils.DOMUtils
 import org.obm.push.wbxml.WBXMLTools
-
 import com.excilys.ebi.gatling.core.Predef.Session
+import org.obm.push.bean.SyncCollectionCommandsRequest
 
 abstract class AbstractInvitationCommand(invitation: InvitationContext, wbTools: WBXMLTools)
 		extends AbstractSyncCommand(invitation, wbTools) {
@@ -53,8 +51,8 @@ abstract class AbstractInvitationCommand(invitation: InvitationContext, wbTools:
 		SyncCollectionRequest.builder()
 				.collectionId(invitation.findCollectionId(session))
 				.syncKey(invitation.nextSyncKey(session))
-				.commands(SyncCollectionCommands.Request.builder()
-					.addCommand(org.obm.push.bean.SyncCollectionCommand.Request.builder()
+				.commands(SyncCollectionCommandsRequest.builder()
+					.addCommand(org.obm.push.bean.SyncCollectionCommandRequest.builder()
 							.name(collectionCommandName)
 							.clientId(clientId(session))
 							.serverId(serverId(session))

@@ -35,10 +35,8 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
@@ -49,113 +47,16 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 
 	private static final long serialVersionUID = 5403154747427044879L;
 
-	public static class Request extends SyncCollectionCommands<SyncCollectionCommand.Request> {
-		
-		private static final long serialVersionUID = 7346187155191351839L;
-
-		private Request(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommand.Request> commandsByType, 
-				List<SyncCollectionCommand.Request> commands) {
-			super(commandsByType, commands);
-		}
-		
-		public static Builder builder() {
-			return new Builder();
-		}
-
-		public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommand.Request, Request> {
-			
-			private Builder() {
-				super();
-			}
-			
-			@Override
-			protected Request buildImpl(
-					ImmutableListMultimap<SyncCommand, SyncCollectionCommand.Request> commandsByType,
-					List<SyncCollectionCommand.Request> commands) {
-				return new Request(commandsByType, commands);
-			}
-		}
-		
-	}
-	
-	public static class Response extends SyncCollectionCommands<SyncCollectionCommand.Response> {
-		
-		private static final long serialVersionUID = -6871877347639563687L;
-
-		private Response(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommand.Response> commandsByType, 
-				List<SyncCollectionCommand.Response> commands) {
-			super(commandsByType, commands);
-		}
-		
-		public static Builder builder() {
-			return new Builder();
-		}
-		
-		public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommand.Response, Response> {
-			
-			private Builder() {
-				super();
-			}
-			
-			@Override
-			protected Response buildImpl(
-					ImmutableListMultimap<SyncCommand, SyncCollectionCommand.Response> commandsByType, 
-					List<SyncCollectionCommand.Response> commands) {
-				return new Response(commandsByType, commands);
-			}
-			
-			public Builder changes(List<ItemChange> changes, SyncClientCommands clientCommands) {
-				for (ItemChange change: changes) {
-					String serverId = change.getServerId();
-					
-					SyncCollectionCommand.Response.Builder builder = SyncCollectionCommand.Response.builder();
-					builder.applicationData(change.getData())
-						.commandType(retrieveCommandType(change))
-						.serverId(serverId);
-					
-					if (clientCommands.hasAddWithServerId(serverId)){
-						builder.clientId(clientCommands.getAddWithServerId(serverId).get().getClientId());
-					}
-					addCommand(builder.build());
-				}
-				return this;
-			}
-
-			public Builder fetchs(List<ItemChange> fetchs) {
-				for (ItemChange fetch: fetchs) {
-					addCommand(
-							SyncCollectionCommand.Response.builder()
-								.applicationData(fetch.getData())
-								.commandType(SyncCommand.FETCH)
-								.serverId(fetch.getServerId())
-								.build());
-				}
-				return this;
-			}
-
-			private SyncCommand retrieveCommandType(ItemChange change) {
-				return change.isNew() ? SyncCommand.ADD : SyncCommand.CHANGE;
-			}
-
-			public Builder deletions(List<ItemDeletion> deletions) {
-				for (ItemDeletion deletion: deletions) {
-					addCommand(
-							SyncCollectionCommand.Response.builder()
-								.commandType(SyncCommand.DELETE)
-								.serverId(deletion.getServerId())
-								.build());
-				}
-				return this;
-			}
-		}
-	}
-	
 	public abstract static class Builder<T extends SyncCollectionCommand, C extends SyncCollectionCommands<?>> {
+		
+		@JsonIgnore
 		private final ImmutableList.Builder<T> commandsBuilder;
+		@JsonIgnore
+		private ImmutableList<T> commands;
+		@JsonIgnore
+ 		private ImmutableListMultimap<SyncCommand, T> commandsByType;
 
-		private Builder() {
+		protected Builder() {
 			super();
 			commandsBuilder = ImmutableList.builder();
 		}
@@ -165,10 +66,13 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 			return this;
 		}
 		
-		public C build() {
-			ImmutableList<T> commands = this.commandsBuilder.build();
-			return buildImpl(commandsByType(commands), commands);
+		public C abstractBuild() {
+			commands = this.commandsBuilder.build();
+			commandsByType = commandsByType(commands);
+			return buildImpl(commandsByType, commands);
 		}
+		
+		public abstract C build();
 		
 		protected abstract C buildImpl(
 			ImmutableListMultimap<SyncCommand, T> commandsByType, 
@@ -186,10 +90,12 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 		}
 	}
 	
+	@JsonIgnore
 	private final ImmutableListMultimap<SyncCommand, T> commandsByType;
+	@JsonIgnore
 	private final List<T> commands;
 	
-	private SyncCollectionCommands(
+	protected SyncCollectionCommands(
 		ImmutableListMultimap<SyncCommand, T> commandsByType, 
 		List<T> commands) {
 		

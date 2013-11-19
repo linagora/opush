@@ -34,10 +34,11 @@ package org.obm.push.bean;
 import java.io.Serializable;
 import java.util.List;
 
-import com.google.common.base.Function;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
+@JsonDeserialize(builder=SyncCollectionOptions.Builder.class)
 public class SyncCollectionOptions implements Serializable {
 	
 	private static final long serialVersionUID = 7306997586579565585L;

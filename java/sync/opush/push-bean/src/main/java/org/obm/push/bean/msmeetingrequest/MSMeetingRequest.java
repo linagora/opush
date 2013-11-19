@@ -40,11 +40,13 @@ import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.utils.UserEmailParserUtils;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
+@JsonDeserialize(builder=MSMeetingRequest.Builder.class)
 public class MSMeetingRequest implements Serializable {
 
 	public static Builder builder() {
@@ -165,7 +167,7 @@ public class MSMeetingRequest implements Serializable {
 				.categories(msMeetingRequest.getCategories())
 				.dtStamp(msMeetingRequest.getDtStamp())
 				.endTime(msMeetingRequest.getEndTime())
-				.msEventExtId(msMeetingRequest.getMSEventExtId())
+				.msEventExtId(msMeetingRequest.getMsEventExtId())
 				.instanceType(msMeetingRequest.getInstanceType())
 				.intDBusyStatus(msMeetingRequest.getIntDBusyStatus())
 				.location(msMeetingRequest.getLocation())
@@ -313,7 +315,7 @@ public class MSMeetingRequest implements Serializable {
 		return timeZone;
 	}
 	
-	public MSEventExtId getMSEventExtId() {
+	public MSEventExtId getMsEventExtId() {
 		return msEventExtId;
 	}
 

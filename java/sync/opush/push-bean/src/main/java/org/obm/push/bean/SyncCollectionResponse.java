@@ -34,7 +34,6 @@ package org.obm.push.bean;
 import java.io.Serializable;
 import java.util.List;
 
-import org.obm.push.bean.SyncCollectionCommands.Response;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -46,7 +45,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectionCommands.Response> implements Serializable {
+public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectionCommandsResponse> implements Serializable {
 
 	public static Builder builder() {
 		return new Builder();
@@ -58,7 +57,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		private Integer collectionId;
 		private SyncStatus status;
 		private boolean moreAvailable;
-		private SyncCollectionCommands.Response responses;
+		private SyncCollectionCommandsResponse responses;
 
 		private Builder() {
 			super();
@@ -89,7 +88,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 			return this;
 		}
 		
-		public Builder responses(SyncCollectionCommands.Response responses) {
+		public Builder responses(SyncCollectionCommandsResponse responses) {
 			this.responses = responses;
 			return this;
 		}
@@ -113,7 +112,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	private final boolean moreAvailable;
 	
 	private SyncCollectionResponse(PIMDataType dataType, SyncKey syncKey, int collectionId,
-			SyncStatus status, boolean moreAvailable, SyncCollectionCommands.Response responses) {
+			SyncStatus status, boolean moreAvailable, SyncCollectionCommandsResponse responses) {
 		super(dataType, syncKey, collectionId, responses);
 		this.status = status;
 		this.moreAvailable = moreAvailable;
@@ -127,12 +126,12 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return moreAvailable;
 	}
 
-	public SyncCollectionCommands.Response getResponses() {
+	public SyncCollectionCommandsResponse getResponses() {
 		return getCommands();
 	}
 
 	public List<ItemDeletion> getItemChangesDeletion() {
-		Response commands = getCommands();
+		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return FluentIterable.from(
 					commands.getCommandsForType(SyncCommand.DELETE))
@@ -148,13 +147,13 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 	
 	public List<ItemChange> getItemFetchs() {
-		Iterable<SyncCollectionCommand.Response> fetchs = getFetchs();
+		Iterable<SyncCollectionCommandResponse> fetchs = getFetchs();
 		if (fetchs != null) {
 			return FluentIterable.from(fetchs)
-					.transform(new Function<SyncCollectionCommand.Response, ItemChange>() {
+					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommand.Response fetch) {
+						public ItemChange apply(SyncCollectionCommandResponse fetch) {
 							return ItemChange.builder()
 									.serverId(fetch.getServerId())
 									.isNew(false)
@@ -166,8 +165,8 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommand.Response> getFetchs() {
-		Response commands = getCommands();
+	private Iterable<SyncCollectionCommandResponse> getFetchs() {
+		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return commands.getCommandsForType(SyncCommand.FETCH);
 		}
@@ -175,13 +174,13 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	public List<ItemChange> getItemChanges() {
-		Iterable<SyncCollectionCommand.Response> changes = getChanges();
+		Iterable<SyncCollectionCommandResponse> changes = getChanges();
 		if (changes != null) {
 			return FluentIterable.from(changes)
-					.transform(new Function<SyncCollectionCommand.Response, ItemChange>() {
+					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommand.Response change) {
+						public ItemChange apply(SyncCollectionCommandResponse change) {
 							return ItemChange.builder()
 									.serverId(change.getServerId())
 									.isNew(SyncCommand.ADD.equals(change.getType()))
@@ -193,8 +192,8 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommand.Response> getChanges() {
-		Response commands = getCommands();
+	private Iterable<SyncCollectionCommandResponse> getChanges() {
+		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return Iterables.concat(commands.getCommandsForType(SyncCommand.ADD),
 					commands.getCommandsForType(SyncCommand.CHANGE),

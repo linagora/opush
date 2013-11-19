@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.createMock;
@@ -39,7 +40,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.xml.transform.TransformerException;
 
@@ -52,16 +52,17 @@ import org.obm.guice.GuiceRunner;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -344,7 +345,7 @@ public class SyncProtocolTest {
 			.dataType(null)
 			.syncKey(new SyncKey(syncingCollectionSyncKey))
 			.windowSize(100)
-			.commands(SyncCollectionCommands.Request.builder().build())
+			.commands(SyncCollectionCommandsRequest.builder().build())
 			.options(null)
 			.build();
 		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
@@ -665,9 +666,9 @@ public class SyncProtocolTest {
 		expectedMSContact.setEmail1Address("opush@obm.org");
 		expectedMSContact.setFileAs("Dobney, JoLynn Julie");
 		expectedMSContact.setFirstName("JoLynn");
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId("13579")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
@@ -677,7 +678,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.CONTACTS, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.build());
 		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
@@ -734,9 +735,9 @@ public class SyncProtocolTest {
 		expectedMSContact.setEmail1Address("opush@obm.org");
 		expectedMSContact.setFileAs("Dobney, JoLynn Julie");
 		expectedMSContact.setFirstName("JoLynn");
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId("13579")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
@@ -745,9 +746,9 @@ public class SyncProtocolTest {
 		expectedMSContact2.setEmail1Address("opush2@obm.org");
 		expectedMSContact2.setFileAs("Dobney2, JoLynn Julie");
 		expectedMSContact2.setFirstName("JoLynn2");
-		SyncCollectionCommand.Response expectedSyncCollectionChange2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange2 = SyncCollectionCommandResponse.builder()
 				.clientId("02468")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.serverId("456")
 				.applicationData(expectedMSContact2)
 				.build();
@@ -757,7 +758,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.CONTACTS, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.addCommand(expectedSyncCollectionChange2)
 					.build());
@@ -807,9 +808,9 @@ public class SyncProtocolTest {
 		expectedMSContact.setEmail1Address("opush@obm.org");
 		expectedMSContact.setFileAs("Dobney, JoLynn Julie");
 		expectedMSContact.setFirstName("JoLynn");
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId("13579")
-				.commandType(SyncCommand.CHANGE)
+				.type(SyncCommand.CHANGE)
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
@@ -819,7 +820,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.CONTACTS, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.build());
 		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
@@ -876,9 +877,9 @@ public class SyncProtocolTest {
 		expectedMSContact.setEmail1Address("opush@obm.org");
 		expectedMSContact.setFileAs("Dobney, JoLynn Julie");
 		expectedMSContact.setFirstName("JoLynn");
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId("13579")
-				.commandType(SyncCommand.CHANGE)
+				.type(SyncCommand.CHANGE)
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
@@ -887,9 +888,9 @@ public class SyncProtocolTest {
 		expectedMSContact2.setEmail1Address("opush2@obm.org");
 		expectedMSContact2.setFileAs("Dobney2, JoLynn Julie");
 		expectedMSContact2.setFirstName("JoLynn2");
-		SyncCollectionCommand.Response expectedSyncCollectionChange2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange2 = SyncCollectionCommandResponse.builder()
 				.clientId("02468")
-				.commandType(SyncCommand.CHANGE)
+				.type(SyncCommand.CHANGE)
 				.serverId("456")
 				.applicationData(expectedMSContact2)
 				.build();
@@ -899,7 +900,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.CONTACTS, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.addCommand(expectedSyncCollectionChange2)
 					.build());
@@ -938,9 +939,9 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.FETCH)
+				.type(SyncCommand.FETCH)
 				.serverId("123")
 				.applicationData(null)
 				.build();
@@ -950,7 +951,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.EMAIL, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.build());
 		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
@@ -992,15 +993,15 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.FETCH)
+				.type(SyncCommand.FETCH)
 				.serverId("123")
 				.applicationData(null)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionChange2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange2 = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.FETCH)
+				.type(SyncCommand.FETCH)
 				.serverId("456")
 				.applicationData(null)
 				.build();
@@ -1010,7 +1011,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.EMAIL, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.addCommand(expectedSyncCollectionChange2)
 					.build());
@@ -1050,9 +1051,9 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.DELETE)
+				.type(SyncCommand.DELETE)
 				.serverId("123")
 				.applicationData(null)
 				.build();
@@ -1062,7 +1063,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.EMAIL, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.build());
 		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
@@ -1103,15 +1104,15 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.DELETE)
+				.type(SyncCommand.DELETE)
 				.serverId("123")
 				.applicationData(null)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionChange2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange2 = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.DELETE)
+				.type(SyncCommand.DELETE)
 				.serverId("456")
 				.applicationData(null)
 				.build();
@@ -1121,7 +1122,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.EMAIL, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionChange)
 					.addCommand(expectedSyncCollectionChange2)
 					.build());
@@ -1210,51 +1211,51 @@ public class SyncProtocolTest {
 		expectedMSContact.setFileAs("Dobney, JoLynn Julie");
 		expectedMSContact.setFirstName("JoLynn");
 
-		SyncCollectionCommand.Response expectedSyncCollectionAdd = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionAdd = SyncCollectionCommandResponse.builder()
 				.clientId("120")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.serverId("12")
 				.applicationData(expectedMSContact)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionAdd2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionAdd2 = SyncCollectionCommandResponse.builder()
 				.clientId("130")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.serverId("13")
 				.applicationData(expectedMSContact)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionChange = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange = SyncCollectionCommandResponse.builder()
 				.clientId("340")
-				.commandType(SyncCommand.CHANGE)
+				.type(SyncCommand.CHANGE)
 				.serverId("34")
 				.applicationData(expectedMSContact)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionChange2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionChange2 = SyncCollectionCommandResponse.builder()
 				.clientId("350")
-				.commandType(SyncCommand.CHANGE)
+				.type(SyncCommand.CHANGE)
 				.serverId("35")
 				.applicationData(expectedMSContact)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionFetch = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionFetch = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.FETCH)
+				.type(SyncCommand.FETCH)
 				.serverId("56")
 				.applicationData(null)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionFetch2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionFetch2 = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.FETCH)
+				.type(SyncCommand.FETCH)
 				.serverId("57")
 				.applicationData(null)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionDelete = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionDelete = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.DELETE)
+				.type(SyncCommand.DELETE)
 				.serverId("78")
 				.applicationData(null)
 				.build();
-		SyncCollectionCommand.Response expectedSyncCollectionDelete2 = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse expectedSyncCollectionDelete2 = SyncCollectionCommandResponse.builder()
 				.clientId(null)
-				.commandType(SyncCommand.DELETE)
+				.type(SyncCommand.DELETE)
 				.serverId("79")
 				.applicationData(null)
 				.build();
@@ -1264,7 +1265,7 @@ public class SyncProtocolTest {
 				syncingCollectionSyncKey, 
 				DEFAULT_WINDOW_SIZE, 
 				PIMDataType.CONTACTS, 
-				SyncCollectionCommands.Response.builder()
+				SyncCollectionCommandsResponse.builder()
 					.addCommand(expectedSyncCollectionAdd)
 					.addCommand(expectedSyncCollectionAdd2)
 					.addCommand(expectedSyncCollectionChange)
@@ -1402,10 +1403,10 @@ public class SyncProtocolTest {
 
 	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(int collectionId, String syncKey) {
 		return mockReadThenWriteSyncedCollectionCache(collectionId, syncKey, DEFAULT_WINDOW_SIZE, PIMDataType.EMAIL,
-				SyncCollectionCommands.Response.builder().build());
+				SyncCollectionCommandsResponse.builder().build());
 	}
 
-	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(int collectionId, String syncKey, Integer windowSize, PIMDataType dataType, SyncCollectionCommands.Response syncCollectionCommands) {
+	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(int collectionId, String syncKey, Integer windowSize, PIMDataType dataType, SyncCollectionCommandsResponse syncCollectionCommands) {
 		return mockReadThenWriteSyncedCollectionCache(collectionId,
 				AnalysedSyncCollection.builder()
 					.collectionId(collectionId)

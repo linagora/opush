@@ -124,16 +124,16 @@ public class BeansTest {
 		.prefabValue(ImmutableListMultimap.class, 
 				ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
 						SyncCommand.ADD,
-						SyncCollectionCommand.Request.builder()
+						SyncCollectionCommandRequest.builder()
 							.clientId("1")
-							.commandType(SyncCommand.ADD)
+							.type(SyncCommand.ADD)
 							.serverId("2")
 							.build()), 
 				ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
 						SyncCommand.CHANGE,
-						SyncCollectionCommand.Request.builder()
+						SyncCollectionCommandRequest.builder()
 							.clientId("3")
-							.commandType(SyncCommand.CHANGE)
+							.type(SyncCommand.CHANGE)
 							.serverId("4")
 							.build())) 
 		.verify();

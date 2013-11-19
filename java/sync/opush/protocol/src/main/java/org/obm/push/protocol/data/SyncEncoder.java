@@ -34,8 +34,8 @@ package org.obm.push.protocol.data;
 import java.util.Set;
 
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.protocol.bean.SyncRequest;
@@ -125,18 +125,18 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendBoolean(bodyPreferenceEl, SyncRequestFields.ALL_OR_NONE, bodyPreference.isAllOrNone());
 	}
 	
-	private void appendCommands(Element collectionElement, SyncCollectionCommands.Request commands) {
+	private void appendCommands(Element collectionElement, SyncCollectionCommandsRequest commands) {
 			
 		if (commands == null) {
 			return;
 		}
 		Element commandsElement = DOMUtils.createElement(collectionElement, SyncRequestFields.COMMANDS.getName());
-		for (SyncCollectionCommand.Request command : commands.getCommands()) {
+		for (SyncCollectionCommandRequest command : commands.getCommands()) {
 			appendCommand(commandsElement, command);
 		}
 	}
 
-	private void appendCommand(Element commandsElement, SyncCollectionCommand.Request command) {
+	private void appendCommand(Element commandsElement, SyncCollectionCommandRequest command) {
 		Element commandElement = DOMUtils.createElement(commandsElement, command.getType().asSpecificationValue());
 		appendString(commandElement, SyncRequestFields.SERVER_ID, command.getServerId());
 		appendString(commandElement, SyncRequestFields.CLIENT_ID, command.getClientId());

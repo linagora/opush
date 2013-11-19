@@ -36,9 +36,11 @@ import java.io.Serializable;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
-public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollectionCommands.Request> implements SyncDefaultValues, Serializable {
+@JsonDeserialize(builder=SyncCollectionRequest.Builder.class)
+public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollectionCommandsRequest> implements SyncDefaultValues, Serializable {
 
 	public static Builder builder() {
 		return new Builder();
@@ -52,7 +54,7 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private SyncCollectionCommands.Request commands;
+		private SyncCollectionCommandsRequest commands;
 
 		private Builder() {
 			options = SyncCollectionOptions.builder().build();
@@ -93,7 +95,7 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 			return this;
 		}
 		
-		public Builder commands(SyncCollectionCommands.Request commands) {
+		public Builder commands(SyncCollectionCommandsRequest commands) {
 			this.commands = commands;
 			return this;
 		}
@@ -126,7 +128,7 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 	
 	protected SyncCollectionRequest(PIMDataType dataType, SyncKey syncKey, int collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, SyncCollectionCommands.Request commands) {
+			SyncCollectionOptions options, SyncCollectionCommandsRequest commands) {
 		super(dataType, syncKey, collectionId, commands);
 		this.deletesAsMoves = deletesAsMoves;
 		this.changes = changes;

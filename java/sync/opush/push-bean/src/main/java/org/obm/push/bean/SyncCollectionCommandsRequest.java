@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,48 +29,46 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean.msmeetingrequest;
+package org.obm.push.bean;
 
-import java.io.Serializable;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
+import org.obm.push.bean.change.SyncCommand;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.ImmutableListMultimap;
 
-public class MSMeetingRequestCategory implements Serializable {
-	
-	private  static final long serialVersionUID = -5737971365858507584L;
-	
-	private final String category;
+@JsonDeserialize(builder=SyncCollectionCommandsRequest.Builder.class)
+public class SyncCollectionCommandsRequest extends SyncCollectionCommands<SyncCollectionCommandRequest> {
 
-	@JsonCreator
-	public MSMeetingRequestCategory(@JsonProperty("category") String category) {
-		this.category = category;
+	private static final long serialVersionUID = 7346187155191351839L;
+
+	private SyncCollectionCommandsRequest(
+			ImmutableListMultimap<SyncCommand, SyncCollectionCommandRequest> commandsByType, 
+			List<SyncCollectionCommandRequest> commands) {
+		super(commandsByType, commands);
 	}
 	
-	public String getCategory() {
-		return category;
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(category);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof MSMeetingRequestCategory) {
-			MSMeetingRequestCategory that = (MSMeetingRequestCategory) object;
-			return Objects.equal(this.category, that.category);
+	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommandRequest, SyncCollectionCommandsRequest> {
+		
+		private Builder() {
+			super();
 		}
-		return false;
-	}
+		
+		@Override
+		protected SyncCollectionCommandsRequest buildImpl(
+				ImmutableListMultimap<SyncCommand, SyncCollectionCommandRequest> commandsByType,
+				List<SyncCollectionCommandRequest> commands) {
+			return new SyncCollectionCommandsRequest(commandsByType, commands);
+		}
 
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("category", category)
-			.toString();
+		@Override
+		public SyncCollectionCommandsRequest build() {
+			return abstractBuild();
+		}
 	}
 }

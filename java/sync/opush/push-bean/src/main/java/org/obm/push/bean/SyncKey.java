@@ -33,6 +33,8 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 public class SyncKey implements Serializable {
@@ -43,7 +45,8 @@ public class SyncKey implements Serializable {
 	
 	private final String syncKey;
 
-	public SyncKey(String syncKey) {
+	@JsonCreator
+	public SyncKey(@JsonProperty("syncKey") String syncKey) {
 		this.syncKey = syncKey;
 	}
 	

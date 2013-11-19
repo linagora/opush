@@ -38,7 +38,7 @@ import org.obm.push.bean.ms.MSEmail
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest
 import scala.collection.mutable.MutableList
 import org.obm.push.bean.MSEvent
-import org.obm.push.bean.SyncCollectionCommand
+import org.obm.push.bean.SyncCollectionCommandResponse
 
 object SyncHelper {
 	
@@ -66,9 +66,9 @@ object SyncHelper {
 			.flatMap(_.getResponses().getCommands())
 	}
 	
-	def changeHasCalendarData(change: SyncCollectionCommand.Response) = 
+	def changeHasCalendarData(change: SyncCollectionCommandResponse) = 
 		change.getType() == CALENDAR && change.getApplicationData() != null
 	
-	def changeHasEmailData(change: SyncCollectionCommand.Response) = 
+	def changeHasEmailData(change: SyncCollectionCommandResponse) = 
 		change.getType() == EMAIL && change.getApplicationData() != null
 }

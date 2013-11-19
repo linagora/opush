@@ -33,6 +33,8 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 public class DeviceId implements Serializable {
@@ -41,7 +43,8 @@ public class DeviceId implements Serializable {
 	
 	private final String deviceId;
 
-	public DeviceId(String deviceId) {
+	@JsonCreator
+	public DeviceId(@JsonProperty("deviceId") String deviceId) {
 		this.deviceId = deviceId;
 	}
 	

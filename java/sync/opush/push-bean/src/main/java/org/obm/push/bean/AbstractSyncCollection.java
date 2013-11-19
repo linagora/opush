@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
@@ -59,6 +60,7 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>
 		return dataType;
 	}
 	
+	@JsonIgnore
 	public String getDataClass() {
 		if (dataType != null && dataType != PIMDataType.UNKNOWN) {
 			return dataType.asXmlValue();
@@ -78,6 +80,7 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>
 		return commands;
 	}
 
+	@JsonIgnore
 	public List<String> getFetchIds() {
 		if (commands == null) {
 			return ImmutableList.of();

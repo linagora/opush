@@ -94,13 +94,13 @@ public class SyncCollection implements Serializable {
 				.build();
 	}
 	
-	private SyncCollectionCommands.Response getCommands(Set<SyncCollectionChange> changes) {
-		SyncCollectionCommands.Response.Builder builder = SyncCollectionCommands.Response.builder();
+	private SyncCollectionCommandsResponse getCommands(Set<SyncCollectionChange> changes) {
+		SyncCollectionCommandsResponse.Builder builder = SyncCollectionCommandsResponse.builder();
 		for (SyncCollectionChange change : changes) {
-			builder.addCommand(SyncCollectionCommand.Response.builder()
+			builder.addCommand(SyncCollectionCommandResponse.builder()
 					.serverId(change.getServerId())
 					.clientId(change.getClientId())
-					.commandType(change.getCommand())
+					.type(change.getCommand())
 					.applicationData(change.getData())
 					.build());
 		}

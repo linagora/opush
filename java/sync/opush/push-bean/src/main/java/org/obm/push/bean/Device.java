@@ -44,6 +44,8 @@ import org.obm.push.ProtocolVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 public class Device implements Serializable {
@@ -112,7 +114,12 @@ public class Device implements Serializable {
 	private Integer databaseId;
 	private ProtocolVersion protocolVersion;
 	
-	public Device(Integer databaseId, String devType, DeviceId devId, Properties hints, ProtocolVersion protocolVersion) {
+	@JsonCreator
+	public Device(@JsonProperty("databaseId") Integer databaseId, 
+			@JsonProperty("devType") String devType, 
+			@JsonProperty("devId") DeviceId devId, 
+			@JsonProperty("hints") Properties hints, 
+			@JsonProperty("protocolVersion") ProtocolVersion protocolVersion) {
 		this.databaseId = databaseId;
 		this.devType = devType;
 		this.devId = devId;

@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -43,15 +43,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -287,7 +287,7 @@ public class SyncAnalyserTest {
 			.options(syncCollectionOptions)
 			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 			.status(SyncStatus.OK)
-			.commands(SyncCollectionCommands.Response.builder().build())
+			.commands(SyncCollectionCommandsResponse.builder().build())
 			.build();
 		
 		Document firstDoc = buildRequestWithOptions("0",
@@ -336,7 +336,7 @@ public class SyncAnalyserTest {
 				.options(syncCollectionOptions)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.status(SyncStatus.OK)
-				.commands(SyncCollectionCommands.Response.builder().build())
+				.commands(SyncCollectionCommandsResponse.builder().build())
 				.build();
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
@@ -372,7 +372,7 @@ public class SyncAnalyserTest {
 				.dataType(PIMDataType.EMAIL)
 				.syncKey(new SyncKey("1234"))
 				.status(SyncStatus.OK)
-				.commands(SyncCollectionCommands.Response.builder().build())
+				.commands(SyncCollectionCommandsResponse.builder().build())
 				.build();
 
 		Document requestWithoutOptions = DOMUtils.parse(
@@ -431,7 +431,7 @@ public class SyncAnalyserTest {
 			.options(options)
 			.syncKey(new SyncKey(syncKey))
 			.status(SyncStatus.OK)
-			.commands(SyncCollectionCommands.Response.builder().build())
+			.commands(SyncCollectionCommandsResponse.builder().build())
 			.build();
 	}
 

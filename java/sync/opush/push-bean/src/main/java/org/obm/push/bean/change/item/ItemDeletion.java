@@ -33,10 +33,12 @@ package org.obm.push.bean.change.item;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+@JsonDeserialize(builder=ItemDeletion.Builder.class)
 public class ItemDeletion implements ASItem, Serializable {
 	
 	public static Builder builder() {

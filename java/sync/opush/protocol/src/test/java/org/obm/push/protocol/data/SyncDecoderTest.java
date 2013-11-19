@@ -41,7 +41,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
@@ -545,7 +545,7 @@ public class SyncDecoderTest {
 	}
 
 	@Test
-	public void testCollectionOptionsFilterTypeIsNotRequired() throws Exception {
+	public void testCollectionOptionsFilterTypeDefaultValue() throws Exception {
 		Document request = DOMUtils.parse(
 				"<Collection>" +
 					"<SyncKey>ddcf2e35-9834-49de-96ff-09979c7e2aa0</SyncKey>" +
@@ -564,11 +564,11 @@ public class SyncDecoderTest {
 		
 		SyncCollectionRequest collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
-		assertThat(collection.getOptions().getFilterType()).isNull();
+		assertThat(collection.getOptions().getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
 	}
 
 	@Test
-	public void testCollectionOptionsConflictIsNotRequired() throws Exception {
+	public void testCollectionOptionsConflictDefaultValue() throws Exception {
 		Document request = DOMUtils.parse(
 				"<Collection>" +
 					"<SyncKey>ddcf2e35-9834-49de-96ff-09979c7e2aa0</SyncKey>" +
@@ -587,7 +587,7 @@ public class SyncDecoderTest {
 		
 		SyncCollectionRequest collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
-		assertThat(collection.getOptions().getConflict()).isNull();
+		assertThat(collection.getOptions().getConflict()).isEqualTo(1);
 	}
 
 	@Test
@@ -696,15 +696,15 @@ public class SyncDecoderTest {
 		Element changeDataElement = DOMUtils.getUniqueElement(changeElement, "ApplicationData");
 		
 		assertThat(collection.getCommands().getCommandsForType(SyncCommand.FETCH)).containsOnly(
-				SyncCollectionCommand.Request.builder().name("Fetch").serverId("56").build());
-		List<SyncCollectionCommand.Request> commands = collection.getCommands().getCommands();
+				SyncCollectionCommandRequest.builder().name("Fetch").serverId("56").build());
+		List<SyncCollectionCommandRequest> commands = collection.getCommands().getCommands();
 		assertThat(commands).containsOnly(
-				SyncCollectionCommand.Request.builder()
+				SyncCollectionCommandRequest.builder()
 					.name("Add").serverId("12").clientId("120").applicationData(addDataElement).build(),
-				SyncCollectionCommand.Request.builder()
+				SyncCollectionCommandRequest.builder()
 					.name("Change").serverId("35").clientId("350").applicationData(changeDataElement).build(),
-				SyncCollectionCommand.Request.builder().name("Fetch").serverId("56").build(),
-				SyncCollectionCommand.Request.builder().name("Delete").serverId("79").build());
+				SyncCollectionCommandRequest.builder().name("Fetch").serverId("56").build(),
+				SyncCollectionCommandRequest.builder().name("Delete").serverId("79").build());
 	}
 
 	@Test
@@ -723,7 +723,7 @@ public class SyncDecoderTest {
 		contact.setFileAs("Dobney, JoLynn Julie");
 		contact.setFirstName("JoLynn");
 		
-		SyncCollectionCommand.Request command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getServerId()).isNull();
 	}
@@ -744,7 +744,7 @@ public class SyncDecoderTest {
 		contact.setFileAs("Dobney, JoLynn Julie");
 		contact.setFirstName("JoLynn");
 		
-		SyncCollectionCommand.Request command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getClientId()).isNull();
 	}
@@ -757,7 +757,7 @@ public class SyncDecoderTest {
 							"<ClientId>120</ClientId>" +
 						"</Add>");
 		
-		SyncCollectionCommand.Request command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getApplicationData()).isNull();
 	}

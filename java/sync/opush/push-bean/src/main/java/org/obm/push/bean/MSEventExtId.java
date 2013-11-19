@@ -34,6 +34,8 @@ package org.obm.push.bean;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 public class MSEventExtId implements Serializable {
@@ -42,7 +44,8 @@ public class MSEventExtId implements Serializable {
 	
 	private final String uid;
 
-	public MSEventExtId(String uid) {
+	@JsonCreator
+	public MSEventExtId(@JsonProperty("uid") String uid) {
 		super();
 		this.uid = uid;
 	}

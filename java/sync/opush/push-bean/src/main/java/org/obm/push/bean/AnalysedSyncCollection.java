@@ -36,9 +36,11 @@ import java.io.Serializable;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
-public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectionCommands.Response> implements SyncDefaultValues, Serializable {
+@JsonDeserialize(builder=AnalysedSyncCollection.Builder.class)
+public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectionCommandsResponse> implements SyncDefaultValues, Serializable {
 	
 	private static final long serialVersionUID = 348968178554764052L;
 
@@ -66,7 +68,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private SyncCollectionCommands.Response commands;
+		private SyncCollectionCommandsResponse commands;
 		private SyncStatus status;
 
 		private Builder() {
@@ -113,7 +115,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 			return this;
 		}
 		
-		public Builder commands(SyncCollectionCommands.Response commands) {
+		public Builder commands(SyncCollectionCommandsResponse commands) {
 			this.commands = commands;
 			return this;
 		}
@@ -140,7 +142,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 			}
 			return new AnalysedSyncCollection(dataType, syncKey, collectionId, 
 					collectionPath, deletesAsMoves, changes, windowSize, options, 
-					Objects.firstNonNull(commands, SyncCollectionCommands.Response.builder().build()),
+					Objects.firstNonNull(commands, SyncCollectionCommandsResponse.builder().build()),
 					status);
 		}
 
@@ -155,7 +157,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 	
 	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, int collectionId,
 			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, SyncCollectionCommands.Response commands, SyncStatus status) {
+			SyncCollectionOptions options, SyncCollectionCommandsResponse commands, SyncStatus status) {
 		super(dataType, syncKey, collectionId, commands);
 		this.collectionPath = collectionPath;
 		this.deletesAsMoves = deletesAsMoves;

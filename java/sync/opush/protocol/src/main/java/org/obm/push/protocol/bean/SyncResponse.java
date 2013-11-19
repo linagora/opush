@@ -34,8 +34,8 @@ package org.obm.push.protocol.bean;
 import java.util.Collection;
 import java.util.Map;
 
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommands.Response;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncStatus;
 
@@ -79,9 +79,9 @@ public class SyncResponse {
 		private Map<String, String> buildProcessedClientIds(ImmutableList<SyncCollectionResponse> responses) {
 			ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 			for (SyncCollectionResponse response : responses) {
-				Response commands = response.getCommands();
+				SyncCollectionCommandsResponse commands = response.getCommands();
 				if (commands != null) {
-					for (SyncCollectionCommand.Response command : commands.getCommands()) {
+					for (SyncCollectionCommandResponse command : commands.getCommands()) {
 						if (!Strings.isNullOrEmpty(command.getClientId())) {
 							builder.put(command.getServerId(), command.getClientId());
 						}

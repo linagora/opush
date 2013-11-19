@@ -34,7 +34,6 @@ package org.obm.push.bean;
 import java.io.Serializable;
 
 import org.obm.push.bean.change.SyncCommand;
-import org.w3c.dom.Element;
 
 import com.google.common.base.Objects;
 
@@ -42,99 +41,21 @@ public abstract class SyncCollectionCommand implements Serializable {
 
 	private static final long serialVersionUID = 5244279911428703760L;
 
-	public static class Request extends SyncCollectionCommand {
-		
-		private static final long serialVersionUID = 6165838750984946199L;
-
-		public static Builder builder() {
-			return new Builder();
-		}
-
-		public static class Builder extends SyncCollectionCommand.Builder<Request> {
-			private Element data;
-			
-			private Builder() {
-				super();
-			}
-			
-			@Override
-			protected Builder applicationDataImpl(Object data) {
-				this.data = (Element) data;
-				return this;
-			}
-			
-			@Override
-			protected Request buildImpl(SyncCommand commandType, String serverId, String clientId) {
-				return new Request(commandType, serverId, clientId, data);
-			}
-		}
-		
-		private final Element data;
-		
-		private Request(SyncCommand commandType, String serverId, String clientId, Element data) {
-			super(commandType, serverId, clientId);
-			this.data = data;
-		}
-		
-		public Element getApplicationData() {
-			return data;
-		}
-	}
-	
-	public static class Response extends SyncCollectionCommand {
-		
-		private static final long serialVersionUID = -246587854210988404L;
-
-		public static Builder builder() {
-			return new Builder();
-		}
-
-		public static class Builder extends SyncCollectionCommand.Builder<Response> {
-			private IApplicationData data;
-			
-			private Builder() {
-				super();
-			}
-			
-			@Override
-			protected Builder applicationDataImpl(Object data) {
-				this.data = (IApplicationData) data;
-				return this;
-			}
-			
-			@Override
-			protected Response buildImpl(SyncCommand commandType, String serverId, String clientId) {
-				return new Response(commandType, serverId, clientId, data);
-			}
-		}
-		
-		private final IApplicationData data;
-		
-		private Response(SyncCommand commandType, String serverId, String clientId, IApplicationData data) {
-			super(commandType, serverId, clientId);
-			this.data = data;
-		}
-		
-		public IApplicationData getApplicationData() {
-			return data;
-		}
-	}
-	
 	public abstract static class Builder<T extends SyncCollectionCommand> {
 		
-		private SyncCommand commandType;
-		private String serverId;
-		private String clientId;
+		protected SyncCommand type;
+		protected String serverId;
+		protected String clientId;
 
-		private Builder() {}
+		protected Builder() {}
 		
 		public Builder<T> name(String commandType) {
-			this.commandType = SyncCommand.fromSpecificationValue(commandType);
+			this.type = SyncCommand.fromSpecificationValue(commandType);
 			return this;
 		}
 		
-		public Builder<T> commandType(SyncCommand commandtype) {
-			this.commandType = commandtype;
+		public Builder<T> type(SyncCommand commandtype) {
+			this.type = commandtype;
 			return this;
 		}
 		
@@ -148,24 +69,20 @@ public abstract class SyncCollectionCommand implements Serializable {
 			return this;
 		}
 
-		public Builder<T> applicationData(Object data) {
-			return applicationDataImpl(data);
+		public Builder<T> applicationData(Object applicationData) {
+			return applicationDataImpl(applicationData);
 		}
 		
-		protected abstract Builder<T> applicationDataImpl(Object data);
+		protected abstract Builder<T> applicationDataImpl(Object applicationData);
 		
-		public T build() {
-			return buildImpl(commandType, serverId, clientId);
-		}
-		
-		protected abstract T buildImpl(SyncCommand commandType, String serverId, String clientId);
+		public abstract T build();
 	}
 	
 	private final SyncCommand type;
 	private final String serverId;
 	private final String clientId;
 	
-	private SyncCollectionCommand(SyncCommand type, String serverId, String clientId) {
+	protected SyncCollectionCommand(SyncCommand type, String serverId, String clientId) {
 		this.type = type;
 		this.serverId = serverId;
 		this.clientId = clientId;

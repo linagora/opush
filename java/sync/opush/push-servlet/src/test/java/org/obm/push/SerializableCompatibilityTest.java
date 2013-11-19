@@ -78,8 +78,8 @@ import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.SyncCollection;
 import org.obm.push.bean.SyncCollectionChange;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncKeysKey;
@@ -387,14 +387,14 @@ public class SerializableCompatibilityTest {
 		syncCollection.setSyncKey(syncKey);
 		syncCollection.setWindowSize(24);
 		
-		SyncCollectionCommand.Response syncCollectionCommand = SyncCollectionCommand.Response.builder()
+		SyncCollectionCommandResponse syncCollectionCommand = SyncCollectionCommandResponse.builder()
 				.serverId("serverId")
 				.clientId("clientId")
-				.commandType(SyncCommand.ADD)
+				.type(SyncCommand.ADD)
 				.applicationData(msEmail)
 				.build();
 		
-		SyncCollectionCommands.Response syncCollectionCommands = SyncCollectionCommands.Response.builder()
+		SyncCollectionCommandsResponse syncCollectionCommands = SyncCollectionCommandsResponse.builder()
 				.addCommand(syncCollectionCommand)
 				.build();
 		
@@ -436,8 +436,8 @@ public class SerializableCompatibilityTest {
 						SyncKeysKey.builder().collectionId(456).deviceId(deviceId).build())
 				.put("org.obm.push.bean.Credentials", credentials)
 				.put("org.obm.push.bean.SyncCollection", analysedSyncCollection)
-				.put("org.obm.push.bean.SyncCollectionCommand.Response", syncCollectionCommand)
-				.put("org.obm.push.bean.SyncCollectionCommands.Response", syncCollectionCommands)
+				.put("org.obm.push.bean.SyncCollectionCommandResponse", syncCollectionCommand)
+				.put("org.obm.push.bean.SyncCollectionCommandsResponse", syncCollectionCommands)
 				.put("org.obm.push.bean.AnalysedSyncCollection", analysedSyncCollection)
 				.put("org.obm.push.bean.MSContact", contact)
 				.put("org.obm.push.bean.ms.MSEmail", msEmail) 

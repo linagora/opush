@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.obm.push.mail.bean.Email;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -49,6 +50,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 
+@JsonDeserialize(builder=EmailChanges.Builder.class)
 public class EmailChanges implements Serializable {
 	
 	public static EmailChanges empty() {

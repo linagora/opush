@@ -36,8 +36,11 @@ import java.util.Date;
 
 import org.obm.push.utils.index.Indexed;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
+@JsonDeserialize(builder=Email.Builder.class)
 public class Email implements Indexed<Long>, Serializable {
 
 	public static Builder builder() {
@@ -99,6 +102,7 @@ public class Email implements Indexed<Long>, Serializable {
 	}
 
 	@Override
+	@JsonIgnore
 	public Long getIndex() {
 		return getUid();
 	}
