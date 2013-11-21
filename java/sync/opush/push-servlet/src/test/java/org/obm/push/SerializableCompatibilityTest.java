@@ -86,7 +86,7 @@ import org.obm.push.bean.SyncKeysKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
+import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailMetadata;
@@ -447,10 +447,10 @@ public class SerializableCompatibilityTest {
 				.put("org.obm.push.bean.MSTask", task) 
 				.put("org.obm.push.bean.SyncCollectionOptions", options)
 				.put("org.obm.push.bean.change.item.ItemDeletion", ItemDeletion.builder().serverId("156").build()) 
-				.put("org.obm.push.bean.change.item.ItemChange", new ItemChangeBuilder()
+				.put("org.obm.push.bean.change.item.ItemChange", ItemChange.builder()
 						.serverId(":33")
-						.withNewFlag(true)
-						.withApplicationData(task)
+						.isNew(true)
+						.data(task)
 						.build())
 				.put("org.obm.push.store.ehcache.WindowingDaoEhcacheImpl$ChunkKey", WindowingDaoEhcacheImpl.chunkKey(windowingIndexKey, 514))
 				.put("org.obm.push.store.ehcache.WindowingDaoEhcacheImpl$WindowingIndex", WindowingDaoEhcacheImpl.windowingIndex(45, syncKey)) 

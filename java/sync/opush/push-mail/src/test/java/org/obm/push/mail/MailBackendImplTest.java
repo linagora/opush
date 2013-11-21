@@ -70,7 +70,6 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.MSEmail;
@@ -172,8 +171,8 @@ public class MailBackendImplTest {
 		Set<Email> actualEmailsInServer = ImmutableSet.of(email1, email2);
 		EmailChanges emailChanges = EmailChanges.builder().additions(actualEmailsInServer).build();
 
-		ItemChange itemChange1 = new ItemChangeBuilder().serverId(collectionId + ":" + 245).withNewFlag(true).withApplicationData(email1Data).build();
-		ItemChange itemChange2 = new ItemChangeBuilder().serverId(collectionId + ":" + 546).withNewFlag(true).withApplicationData(email2Data).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":" + 245).isNew(true).data(email1Data).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":" + 546).isNew(true).data(email2Data).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 			.changes(ImmutableList.of(itemChange1, itemChange2))
 			.build();
@@ -348,10 +347,10 @@ public class MailBackendImplTest {
 	}
 
 	private ImmutableList<ItemChange> itemChanges(Email modifiedEmail, Email newEmail) {
-		ItemChange changeItemChange = new ItemChangeBuilder()
+		ItemChange changeItemChange = ItemChange.builder()
 			.serverId(collectionPath + ":" + modifiedEmail.getUid())
 			.build();
-		ItemChange newItemChange = new ItemChangeBuilder()
+		ItemChange newItemChange = ItemChange.builder()
 			.serverId(collectionPath + ":" + newEmail.getUid())
 			.build();
 		ImmutableList<ItemChange> itemChanges = ImmutableList.<ItemChange> of(changeItemChange, newItemChange);
@@ -539,8 +538,8 @@ public class MailBackendImplTest {
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = new ItemChangeBuilder().serverId(collectionId + ":245").withApplicationData(itemChangeData1).build();
-		ItemChange itemChange2 = new ItemChangeBuilder().serverId(collectionId + ":546").withApplicationData(itemChangeData2).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":546").data(itemChangeData2).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
@@ -603,7 +602,7 @@ public class MailBackendImplTest {
 		expect(windowingService.popNextPendingElements(windowingKey, windowSize, newSyncKey)).andReturn(fittingChanges);
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = new ItemChangeBuilder().serverId(collectionId + ":245").withApplicationData(itemChangeData1).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();
@@ -653,8 +652,8 @@ public class MailBackendImplTest {
 
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = new ItemChangeBuilder().serverId(collectionId + ":245").withApplicationData(itemChangeData1).build();
-		ItemChange itemChange2 = new ItemChangeBuilder().serverId(collectionId + ":546").withApplicationData(itemChangeData2).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":546").data(itemChangeData2).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
@@ -699,7 +698,7 @@ public class MailBackendImplTest {
 		expect(windowingService.hasPendingElements(windowingKey, newSyncKey)).andReturn(true);
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = new ItemChangeBuilder().serverId(collectionId + ":245").withApplicationData(itemChangeData1).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();

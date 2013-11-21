@@ -104,7 +104,6 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
@@ -222,8 +221,8 @@ public class SyncHandlerTest {
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						new ItemChangeBuilder().serverId(syncEmailCollectionId + ":0")
-							.withApplicationData(applicationData))
+						ItemChange.builder().serverId(syncEmailCollectionId + ":0")
+							.data(applicationData))
 					.build())
 			.syncDate(new Date())
 			.syncKey(syncEmailSyncKey)
@@ -243,10 +242,10 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inbox.getCollectionId(), THREE_DAYS_BACK, 150);
 
 		checkMailFolderHasAddItems(syncEmailResponse, inbox.getCollectionId(),
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(syncEmailCollectionId + ":" + 0)
-					.withNewFlag(true)
-					.withApplicationData(applicationData)
+					.isNew(true)
+					.data(applicationData)
 					.build());
 	}
 
@@ -296,11 +295,11 @@ public class SyncHandlerTest {
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						new ItemChangeBuilder().serverId(syncEmailCollectionId + ":0")
-							.withApplicationData(applicationData))
+						ItemChange.builder().serverId(syncEmailCollectionId + ":0")
+							.data(applicationData))
 					.addItemChange(
-						new ItemChangeBuilder().serverId(syncEmailCollectionId + ":1")
-							.withApplicationData(applicationData))
+						ItemChange.builder().serverId(syncEmailCollectionId + ":1")
+							.data(applicationData))
 					.build())
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -320,14 +319,14 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inbox.getCollectionId(), THREE_DAYS_BACK, 150);
 
 		checkMailFolderHasAddItems(syncEmailResponse, inbox.getCollectionId(), 
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(syncEmailCollectionId + ":" + 0)
-					.withNewFlag(true)
-					.withApplicationData(applicationData)
+					.isNew(true)
+					.data(applicationData)
 					.build(),
-				new ItemChangeBuilder().serverId(syncEmailCollectionId + ":" + 1)
-					.withNewFlag(true)
-					.withApplicationData(applicationData)
+				ItemChange.builder().serverId(syncEmailCollectionId + ":" + 1)
+					.isNew(true)
+					.data(applicationData)
 					.build()); 
 	}
 
@@ -370,8 +369,8 @@ public class SyncHandlerTest {
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						new ItemChangeBuilder().serverId(syncEmailCollectionId + ":123")
-							.withApplicationData(applicationData))
+						ItemChange.builder().serverId(syncEmailCollectionId + ":123")
+							.data(applicationData))
 					.build())
 			.deletions(ImmutableList.of(
 					ItemDeletion.builder().serverId(syncEmailCollectionId + ":122").build()))
@@ -393,10 +392,10 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inbox.getCollectionId(), THREE_DAYS_BACK, 150);
 
 		checkMailFolderHasItems(syncEmailResponse, inbox.getCollectionId(), 
-				ImmutableSet.of(new ItemChangeBuilder()
+				ImmutableSet.of(ItemChange.builder()
 					.serverId(syncEmailCollectionId + ":123")
-					.withNewFlag(true)
-					.withApplicationData(applicationData)
+					.isNew(true)
+					.data(applicationData)
 					.build()),
 				ImmutableSet.of(ItemDeletion.builder().serverId(syncEmailCollectionId + ":122").build()));
 	}
@@ -410,8 +409,8 @@ public class SyncHandlerTest {
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		List<ItemChange> itemChanges = new ItemChangesBuilder()
 				.addItemChange(
-					new ItemChangeBuilder().serverId(serverId)
-						.withApplicationData(applicationData))
+					ItemChange.builder().serverId(serverId)
+						.data(applicationData))
 				.build();
 		DataDelta delta = DataDelta.builder()
 			.changes(itemChanges)
@@ -441,8 +440,8 @@ public class SyncHandlerTest {
 				syncEmailSyncKey, inbox.getCollectionId(), SyncCommand.FETCH, serverId);
 
 		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(),
-				new ItemChangeBuilder().serverId(syncEmailCollectionId + ":123")
-					.withNewFlag(false)
+				ItemChange.builder().serverId(syncEmailCollectionId + ":123")
+					.isNew(false)
 					.build());
 	}
 	

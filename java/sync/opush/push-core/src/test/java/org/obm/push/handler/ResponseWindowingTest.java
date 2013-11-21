@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,6 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.store.UnsynchronizedItemDao;
 
@@ -380,7 +379,7 @@ public class ResponseWindowingTest {
 		ArrayList<ItemChange> changes = Lists.newArrayList();
 		for (int i = 0; i < nbChanges; ++i) {
 			changes.add(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverIdPrefix + (i + offset))
 						.build()
 				);

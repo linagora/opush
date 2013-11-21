@@ -634,7 +634,7 @@ public class CalendarBackendTest {
 		mockControl.verify();
 		
 		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.of(new ItemChange("1:21"), new ItemChange("1:22")))
+				.changes(ImmutableList.of(ItemChange.builder().serverId("1:21").build(), ItemChange.builder().serverId("1:22").build()))
 				.deletions(ImmutableList.of(
 						ItemDeletion.builder().serverId("1:11").build(),
 						ItemDeletion.builder().serverId("1:12").build()))
@@ -678,7 +678,7 @@ public class CalendarBackendTest {
 		mockControl.verify();
 		
 		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.of(new ItemChange("1:21"), new ItemChange("1:22")))
+				.changes(ImmutableList.of(ItemChange.builder().serverId("1:21").build(), ItemChange.builder().serverId("1:22").build()))
 				.deletions(ImmutableList.<ItemDeletion> of())
 				.syncDate(currentDate)
 				.syncKey(syncKey)

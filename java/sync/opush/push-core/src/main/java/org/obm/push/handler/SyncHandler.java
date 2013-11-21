@@ -106,6 +106,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -488,12 +489,17 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private List<ItemChange> identifyNewItems(List<ItemChange> itemChanges, ItemSyncState st)
 			throws DaoException, InvalidServerId {
 
+		Builder<ItemChange> builder = ImmutableList.builder();
 		for (ItemChange change: itemChanges) {
 			boolean isItemAddition = st.getSyncKey().equals(SyncKey.INITIAL_FOLDER_SYNC_KEY) || 
 					!itemTrackingDao.isServerIdSynced(st, new ServerId(change.getServerId()));
-			change.setNew(isItemAddition);
+			builder.add(ItemChange.builder()
+					.serverId(change.getServerId())
+					.isNew(isItemAddition)
+					.data(change.getData())
+					.build());
 		}
-		return itemChanges;
+		return builder.build();
 	}
 	
 	private void sendError(Device device, Responder responder, SyncStatus errorStatus,

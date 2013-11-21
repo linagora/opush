@@ -97,7 +97,6 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.exception.DaoException;
@@ -334,21 +333,21 @@ public class SyncHandlerWithBackendTest {
 
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionId + ":2")
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionId + ":2")
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionId + ":1")
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 		
@@ -510,21 +509,21 @@ public class SyncHandlerWithBackendTest {
 
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverId)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverId)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverId2)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 	}
@@ -619,9 +618,9 @@ public class SyncHandlerWithBackendTest {
 
 		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverId)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		
 		SyncCollectionResponse secondCollectionResponse = getCollectionWithId(secondSyncResponse, inboxCollectionIdAsString);
@@ -1161,9 +1160,9 @@ public class SyncHandlerWithBackendTest {
 
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(serverId)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		assertEqualsWithoutApplicationData(updatedCollectionResponse.getItemChanges(), 
 				ImmutableList.<ItemChange> of());

@@ -61,7 +61,7 @@ public abstract class UnsynchronizedItemDaoTest {
 		assertThat(unsynchronizedItemDao.listItemsToAdd(syncKey))
 			.isNotNull()
 			.hasSize(1)
-			.containsOnly(new ItemChange("test 1"));
+			.containsOnly(ItemChange.builder().serverId("test 1").build());
 	}
 	
 	@Test
@@ -260,8 +260,6 @@ public abstract class UnsynchronizedItemDaoTest {
 	}
 	
 	private ItemChange buildItemChange(String displayName) {
-		ItemChange itemChange = new ItemChange();
-		itemChange.setServerId(displayName);
-		return itemChange;
+		return ItemChange.builder().serverId(displayName).build();
 	}
 }

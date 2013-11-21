@@ -31,13 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.push.TestUtils.getXml;
 
 import java.io.ByteArrayInputStream;
@@ -182,8 +182,11 @@ public class ItemOperationsProtocolTest {
 
 	@Test
 	public void testMailboxEncodingResponse() throws Exception {
-		ItemChange itemChange = new ItemChange("2", true);
-		itemChange.setData(msEmail("my message"));
+		ItemChange itemChange = ItemChange.builder()
+				.serverId("2")
+				.isNew(true)
+				.data(msEmail("my message"))
+				.build();
 
 		String fetchItemResultServerId = "1:2";
 		FetchItemResult fetchItemResult = new FetchItemResult();
@@ -227,8 +230,11 @@ public class ItemOperationsProtocolTest {
 
 	@Test
 	public void testMailboxServerErrorEncodingResponse() throws Exception {
-		ItemChange itemChange = new ItemChange("2", true);
-		itemChange.setData(msEmail("my message"));
+		ItemChange itemChange = ItemChange.builder()
+				.serverId("2")
+				.isNew(true)
+				.data(msEmail("my message"))
+				.build();
 
 		String fetchItemResultServerId = "1:2";
 		FetchItemResult fetchItemResult = new FetchItemResult();

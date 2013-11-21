@@ -155,10 +155,11 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	
 						@Override
 						public ItemChange apply(SyncCollectionCommand.Response fetch) {
-							ItemChange itemChange = new ItemChange(fetch.getServerId());
-							itemChange.setNew(false);
-							itemChange.setData(fetch.getApplicationData());
-							return itemChange;
+							return ItemChange.builder()
+									.serverId(fetch.getServerId())
+									.isNew(false)
+									.data(fetch.getApplicationData())
+									.build();
 						}
 					}).toList();
 		}
@@ -181,10 +182,11 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	
 						@Override
 						public ItemChange apply(SyncCollectionCommand.Response change) {
-							ItemChange itemChange = new ItemChange(change.getServerId());
-							itemChange.setNew(SyncCommand.ADD.equals(change.getType()));
-							itemChange.setData(change.getApplicationData());
-							return itemChange;
+							return ItemChange.builder()
+									.serverId(change.getServerId())
+									.isNew(SyncCommand.ADD.equals(change.getType()))
+									.data(change.getApplicationData())
+									.build();
 						}
 					}).toList();
 		}

@@ -67,7 +67,7 @@ public class SyncCollectionCommandsTest {
 	
 	@Test
 	public void testChangesAndDeletions() {
-		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(new ItemChange("123"));
+		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId("123").build());
 		ImmutableList<ItemDeletion> deletions = ImmutableList.<ItemDeletion> of(ItemDeletion.builder().serverId("234").build());
 		SyncCollectionCommands.Response commands = SyncCollectionCommands.Response.builder()
 				.changes(changes, SyncClientCommands.builder().build())
@@ -88,7 +88,7 @@ public class SyncCollectionCommandsTest {
 	public void testChangesWithClientId() {
 		String serverId = "123";
 		String clientId = "456";
-		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(new ItemChange(serverId));
+		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
 		SyncCollectionCommands.Response commands = SyncCollectionCommands.Response.builder()
 				.changes(changes, SyncClientCommands.builder()
 						.putAdd(new Add(clientId, serverId))

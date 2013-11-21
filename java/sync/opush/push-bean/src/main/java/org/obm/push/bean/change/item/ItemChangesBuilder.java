@@ -41,22 +41,22 @@ import com.google.common.collect.Lists;
 
 public class ItemChangesBuilder implements Builder<List<ItemChange>> {
 	
-	private final List<Builder<ItemChange>> builders;
+	private final List<ItemChange.Builder> builders;
 	
 	public ItemChangesBuilder() {
-		builders = new ArrayList<Builder<ItemChange>>();
+		builders = new ArrayList<ItemChange.Builder>();
 	}
 	
-	public ItemChangesBuilder addItemChange(ItemChangeBuilder itemChangeBuilder) {
+	public ItemChangesBuilder addItemChange(ItemChange.Builder itemChangeBuilder) {
 		builders.add(itemChangeBuilder);
 		return this;
 	}
 	
 	@Override
 	public List<ItemChange> build() {
-		return Lists.transform(builders, new Function<Builder<ItemChange>, ItemChange>() {
+		return Lists.transform(builders, new Function<ItemChange.Builder, ItemChange>() {
 			@Override
-			public ItemChange apply(Builder<ItemChange> input) {
+			public ItemChange apply(ItemChange.Builder input) {
 				return input.build();
 			}
 		});

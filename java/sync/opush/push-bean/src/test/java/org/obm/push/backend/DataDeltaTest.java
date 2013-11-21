@@ -69,12 +69,12 @@ public class DataDeltaTest {
 	@Test
 	public void testChangesWhenData() {
 		DataDelta dataDelta = DataDelta.builder()
-				.changes(ImmutableList.<ItemChange>of(new ItemChange("132")))
+				.changes(ImmutableList.<ItemChange>of(ItemChange.builder().serverId("132").build()))
 				.syncKey(new SyncKey("123"))
 				.syncDate(date("2012-01-01T10:22:33"))
 				.build();
 		
-		assertThat(dataDelta.getChanges()).containsOnly(new ItemChange("132"));
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("132").build());
 	}
 
 	@Test

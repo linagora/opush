@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
@@ -53,8 +53,8 @@ import javax.mail.Flags.Flag;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.easymock.IMocksControl;
 import org.assertj.core.api.Assertions;
+import org.easymock.IMocksControl;
 import org.fest.util.Files;
 import org.junit.After;
 import org.junit.Before;
@@ -75,7 +75,7 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
+import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.MailboxService;
@@ -218,13 +218,13 @@ public class MailBackendGetChangedTest {
 		assertThat(firstInboxResponse.getItemChanges()).isEmpty();
 		assertEqualsWithoutApplicationData(secondInboxResponse.getItemChanges(), 
 			ImmutableList.of(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(inboxCollectionIdAsString + emailId1)
-					.withNewFlag(true)
+					.isNew(true)
 					.build(),
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(inboxCollectionIdAsString + emailId2)
-					.withNewFlag(true)
+					.isNew(true)
 					.build()));
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
@@ -364,13 +364,13 @@ public class MailBackendGetChangedTest {
 		assertThat(firstInboxResponse.getItemChanges()).isEmpty();
 		assertEqualsWithoutApplicationData(secondInboxResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionIdAsString + emailId3)
-						.withNewFlag(true)
+						.isNew(true)
 						.build(),
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionIdAsString + emailId4)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 4);
@@ -431,9 +431,9 @@ public class MailBackendGetChangedTest {
 		assertThat(secondInboxResponse.getItemChangesDeletion()).isEmpty();
 		assertEqualsWithoutApplicationData(secondInboxResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionIdAsString + emailId2)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
@@ -771,9 +771,9 @@ public class MailBackendGetChangedTest {
 		assertThat(inboxResponse.getItemChangesDeletion()).isEmpty();
 		assertEqualsWithoutApplicationData(inboxResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionIdAsString + trashEmailId)
-						.withNewFlag(true)
+						.isNew(true)
 						.build()));
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
@@ -840,9 +840,9 @@ public class MailBackendGetChangedTest {
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
 		assertEqualsWithoutApplicationData(inboxResponse.getItemChanges(), 
 				ImmutableList.of(
-					new ItemChangeBuilder()
+					ItemChange.builder()
 						.serverId(inboxCollectionIdAsString + emailId)
-						.withNewFlag(false)
+						.isNew(false)
 						.build()));
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);

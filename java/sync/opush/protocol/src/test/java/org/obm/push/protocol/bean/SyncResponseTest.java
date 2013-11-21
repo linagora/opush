@@ -67,7 +67,7 @@ public class SyncResponseTest {
 				.addResponse(SyncCollectionResponse.builder()
 						.collectionId(1)
 						.responses(SyncCollectionCommands.Response.builder()
-								.changes(ImmutableList.of(new ItemChange(serverId)), 
+								.changes(ImmutableList.of(ItemChange.builder().serverId(serverId).build()), 
 										SyncClientCommands.builder()
 											.putAdd(new Add(clientId , serverId))
 											.build())

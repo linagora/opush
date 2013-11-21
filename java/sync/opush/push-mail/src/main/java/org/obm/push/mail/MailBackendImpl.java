@@ -410,9 +410,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 					msEmailFetcher.fetch(udr, collectionId, collectionPath, uids, bodyPreferences);
 			
 			for (final UidMSEmail email: emails) {
-				ItemChange ic = new ItemChange();
-				ic.setServerId(mappingService.getServerIdFor(collectionId, String.valueOf(email.getUid())));
-				ic.setData(email);
+				ItemChange ic = ItemChange.builder()
+					.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(email.getUid())))
+					.data(email)
+					.build();
 				ret.add(ic);
 			}
 			return ret.build();	

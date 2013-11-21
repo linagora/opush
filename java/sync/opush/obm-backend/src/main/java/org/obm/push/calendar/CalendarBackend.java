@@ -70,7 +70,6 @@ import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -412,11 +411,10 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 			throws DaoException, ConversionException {
 		
 		IApplicationData ev = eventService.convertEventToMSEvent(udr, event);
-		ItemChange ic = new ItemChangeBuilder()
+		return ItemChange.builder()
 			.serverId(serverId)
-			.withApplicationData(ev)
+			.data(ev)
 			.build();
-		return ic;
 	}
 
 	private String getServerIdFor(Integer collectionId, EventObmId uid) {

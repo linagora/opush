@@ -374,10 +374,10 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 	}
 	
 	private ItemChange convertContactToItemChange(Integer collectionId, Contact contact) {
-		ItemChange ic = new ItemChange();
-		ic.setServerId( mappingService.getServerIdFor(collectionId, String.valueOf(contact.getUid())) );
-		ic.setData( new ContactConverter().convert(contact) );
-		return ic;
+		return ItemChange.builder()
+			.serverId( mappingService.getServerIdFor(collectionId, String.valueOf(contact.getUid())))
+			.data( new ContactConverter().convert(contact))
+			.build();
 	}
 
 	@Override

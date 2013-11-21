@@ -72,10 +72,10 @@ public class UnsynchronizedItemDaoEhcacheMigrationImplTest extends StoreManagerC
 		Key_2_4_2_4 key2 = UnsynchronizedItemDaoEhcacheImpl.key(new SyncKey("456"), UnsynchronizedItemType.DELETE);
 		unsynchronizedItemDaoEhcacheMigrationImpl.store.put(new Element(
 				key, 
-				ImmutableSet.of(new ItemChange("1"))));
+				ImmutableSet.of(ItemChange.builder().serverId("1").build())));
 		unsynchronizedItemDaoEhcacheMigrationImpl.store.put(new Element(
 				key2, 
-				ImmutableSet.of(new ItemChange("2"))));
+				ImmutableSet.of(ItemChange.builder().serverId("2").build())));
 		
 		List<Object> keys = unsynchronizedItemDaoEhcacheMigrationImpl.getKeys();
 		assertThat(keys).containsOnly(key, key2);
@@ -85,7 +85,7 @@ public class UnsynchronizedItemDaoEhcacheMigrationImplTest extends StoreManagerC
 	public void testGet() {
 		Element element = new Element(
 				UnsynchronizedItemDaoEhcacheImpl.key(new SyncKey("123"), UnsynchronizedItemType.ADD), 
-				ImmutableSet.of(new ItemChange("1")));
+				ImmutableSet.of(ItemChange.builder().serverId("1").build()));
 		unsynchronizedItemDaoEhcacheMigrationImpl.store.put(element);
 		
 		Element value = unsynchronizedItemDaoEhcacheMigrationImpl.get(UnsynchronizedItemDaoEhcacheImpl.key(new SyncKey("123"), UnsynchronizedItemType.ADD));
@@ -97,7 +97,7 @@ public class UnsynchronizedItemDaoEhcacheMigrationImplTest extends StoreManagerC
 		Key_2_4_2_4 key = UnsynchronizedItemDaoEhcacheImpl.key(new SyncKey("123"), UnsynchronizedItemType.ADD);
 		unsynchronizedItemDaoEhcacheMigrationImpl.store.put(new Element(
 				key, 
-				ImmutableSet.of(new ItemChange("1"))));
+				ImmutableSet.of(ItemChange.builder().serverId("1").build())));
 		
 		unsynchronizedItemDaoEhcacheMigrationImpl.remove(key);
 		

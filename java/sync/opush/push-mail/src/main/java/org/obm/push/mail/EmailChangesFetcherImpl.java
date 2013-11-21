@@ -39,7 +39,6 @@ import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.MSEmailMetadata;
@@ -107,10 +106,10 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					@Override
 					public ItemChange apply(Email email) {
 						
-						return new ItemChangeBuilder()
+						return ItemChange.builder()
 								.serverId(ServerId.buildServerIdString(collectionId, email.getUid()))
-								.withApplicationData(uidToMSEmailMap.get(email.getUid()))
-								.withNewFlag(true)
+								.data(uidToMSEmailMap.get(email.getUid()))
+								.isNew(true)
 								.build();
 					}}
 				
@@ -125,10 +124,10 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					@Override
 					public ItemChange apply(Email email) {
 						
-						return new ItemChangeBuilder()
+						return ItemChange.builder()
 								.serverId(ServerId.buildServerIdString(collectionId, email.getUid()))
-								.withApplicationData(new MSEmailMetadata(email.isRead()))
-								.withNewFlag(false)
+								.data(new MSEmailMetadata(email.isRead()))
+								.isNew(false)
 								.build();
 					}}
 				

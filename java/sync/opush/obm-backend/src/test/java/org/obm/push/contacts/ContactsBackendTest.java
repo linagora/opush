@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.contacts;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Date;
@@ -74,7 +74,6 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -257,16 +256,16 @@ public class ContactsBackendTest {
 		MSContact msContact = new MSContact();
 		msContact.setFirstName(contact.getFirstname());
 		msContact.setFileAs(contact.getFirstname());
-		ItemChange expectedItemChange = new ItemChangeBuilder()
+		ItemChange expectedItemChange = ItemChange.builder()
 			.serverId("1:1")
-			.withApplicationData(msContact)
+			.data(msContact)
 			.build();
 		MSContact msContact2 = new MSContact();
 		msContact2.setFirstName(contact2.getFirstname());
 		msContact2.setFileAs(contact2.getFirstname());
-		ItemChange expectedItemChange2 = new ItemChangeBuilder()
+		ItemChange expectedItemChange2 = ItemChange.builder()
 			.serverId("1:2")
-			.withApplicationData(msContact2)
+			.data(msContact2)
 			.build();
 		
 		assertThat(dataDelta).isEqualTo(DataDelta.builder()
@@ -506,8 +505,11 @@ public class ContactsBackendTest {
 		List<ItemChange> itemChanges = contactsBackend.fetch(userDataRequest, targetcontactCollectionUid, ImmutableList.of(serverId), null, null);
 		mocks.verify();
 		
-		ItemChange itemChange = new ItemChange(serverId, false);
-		itemChange.setData(new ContactConverter().convert(contact));
+		ItemChange itemChange = ItemChange.builder()
+				.serverId(serverId)
+				.isNew(false)
+				.data(new ContactConverter().convert(contact))
+				.build();
 		
 		assertThat(itemChanges).hasSize(1);
 		assertThat(itemChanges).containsOnly(itemChange);

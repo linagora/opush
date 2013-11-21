@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import java.io.ByteArrayInputStream;
@@ -47,9 +47,9 @@ import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.item.MSEmailChanges;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
+import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.ms.MSEmailMetadata;
@@ -142,10 +142,10 @@ public class EmailChangesFetcherImplTest {
 		
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":33")
-					.withNewFlag(true)
-					.withApplicationData(emailChangesData)
+					.isNew(true)
+					.data(emailChangesData)
 					.build());
 	}
 
@@ -209,15 +209,15 @@ public class EmailChangesFetcherImplTest {
 		
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":33")
-					.withNewFlag(true)
-					.withApplicationData(email1ChangeData)
+					.isNew(true)
+					.data(email1ChangeData)
 					.build(),
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":156")
-					.withNewFlag(true)
-					.withApplicationData(email2ChangeData)
+					.isNew(true)
+					.data(email2ChangeData)
 					.build());
 	}
 
@@ -236,10 +236,10 @@ public class EmailChangesFetcherImplTest {
 		
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":33")
-					.withNewFlag(false)
-					.withApplicationData(new MSEmailMetadata(false))
+					.isNew(false)
+					.data(new MSEmailMetadata(false))
 					.build());
 	}
 
@@ -259,15 +259,15 @@ public class EmailChangesFetcherImplTest {
 		
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":33")
-					.withApplicationData(new MSEmailMetadata(false))
-					.withNewFlag(false)
+					.data(new MSEmailMetadata(false))
+					.isNew(false)
 					.build(),
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":156")
-					.withApplicationData(new MSEmailMetadata(true))
-					.withNewFlag(false)
+					.data(new MSEmailMetadata(true))
+					.isNew(false)
 					.build());
 	}
 
@@ -355,15 +355,15 @@ public class EmailChangesFetcherImplTest {
 		mocks.verify();
 		
 		assertThat(result.getItemChanges()).containsOnly(
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":33")
-					.withApplicationData(new MSEmailMetadata(false))
-					.withNewFlag(false)
+					.data(new MSEmailMetadata(false))
+					.isNew(false)
 					.build(),
-				new ItemChangeBuilder()
+				ItemChange.builder()
 					.serverId(collectionId + ":15")
-					.withNewFlag(true)
-					.withApplicationData(emailAddedData)
+					.isNew(true)
+					.data(emailAddedData)
 					.build());
 		assertThat(result.getItemDeletions()).containsOnly(
 				ItemDeletion.builder()

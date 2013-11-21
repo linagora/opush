@@ -42,20 +42,44 @@ public class ItemChange implements ASItem, Serializable {
 	
 	private static final long serialVersionUID = 4575240618131116466L;
 	
-	private IApplicationData data;
-	private String serverId;
-	private boolean isNew;
-
-	public ItemChange() {
-		this(null);
+	public static Builder builder() {
+		return new Builder();
 	}
 	
-	public ItemChange(String serverId) {
-		this(serverId, false);
+	public static class Builder {
+		private IApplicationData data;
+		private String serverId;
+		private boolean isNew;
+		
+		private Builder() {
+		}
+		
+		public Builder data(IApplicationData data) {
+			this.data = data;
+			return this;
+		}
+		
+		public Builder serverId(String serverId) {
+			this.serverId = serverId;
+			return this;
+		}
+		
+		public Builder isNew(boolean isNew) {
+			this.isNew = isNew;
+			return this;
+		}
+		
+		public ItemChange build() {
+			return new ItemChange(data, serverId, isNew);
+		}
 	}
+	
+	private final IApplicationData data;
+	private final String serverId;
+	private final boolean isNew;
 
-	public ItemChange(String serverId, boolean isNew) {
-		super();
+	private ItemChange(IApplicationData data, String serverId, boolean isNew) {
+		this.data = data;
 		this.serverId = serverId;
 		this.isNew = isNew;
 	}
@@ -65,24 +89,12 @@ public class ItemChange implements ASItem, Serializable {
 		return serverId;
 	}
 
-	public void setServerId(String serverId) {
-		this.serverId = serverId;
-	}
-
 	public IApplicationData getData() {
 		return data;
 	}
 
-	public void setData(IApplicationData data) {
-		this.data = data;
-	}
-
 	public boolean isNew() {
 		return isNew;
-	}
-
-	public void setNew(boolean isNew) {
-		this.isNew = isNew;
 	}
 
 	public boolean isMSEmail() {

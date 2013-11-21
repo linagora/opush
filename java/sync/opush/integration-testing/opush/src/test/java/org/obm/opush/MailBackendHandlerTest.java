@@ -72,7 +72,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.item.ItemChangeBuilder;
+import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
@@ -154,9 +154,9 @@ public class MailBackendHandlerTest {
 				.build();
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
-				.addItemChange(new ItemChangeBuilder()
+				.addItemChange(ItemChange.builder()
 					.serverId(serverId + syncEmailId)
-					.withApplicationData(applicationData("text", MSEmailBodyType.PlainText)))
+					.data(applicationData("text", MSEmailBodyType.PlainText)))
 				.build())
 			.syncDate(new Date())
 			.syncKey(syncState.getSyncKey())

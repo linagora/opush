@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import java.util.List;
@@ -215,7 +215,7 @@ public class BackendWindowingServiceImplTest {
 
 		expect(responseWindowingService.hasPendingResponse(syncKey)).andReturn(false);
 		
-		List<ItemChange> changes = ImmutableList.of(new ItemChange("1"), new ItemChange("2"));
+		List<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("1").build(), ItemChange.builder().serverId("2").build());
 		List<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId("3").build());
 		DataDelta backendDataDelta = DataDelta.builder()
 				.changes(changes)
@@ -236,7 +236,7 @@ public class BackendWindowingServiceImplTest {
 		
 		assertThat(dataDelta.getSyncDate()).isEqualTo(date("2012-05-04T12:22:53"));
 		assertThat(dataDelta.getSyncKey()).isEqualTo(allocatedSyncKey);
-		assertThat(dataDelta.getChanges()).containsOnly(new ItemChange("1"), new ItemChange("2"));
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("1").build(), ItemChange.builder().serverId("2").build());
 		assertThat(dataDelta.getDeletions()).containsOnly(ItemDeletion.builder().serverId("3").build());
 		assertThat(dataDelta.hasMoreAvailable()).isFalse();
 	}
@@ -262,7 +262,7 @@ public class BackendWindowingServiceImplTest {
 
 		expect(responseWindowingService.hasPendingResponse(syncKey)).andReturn(false);
 		
-		List<ItemChange> changes = ImmutableList.of(new ItemChange("1"), new ItemChange("2"));
+		List<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("1").build(), ItemChange.builder().serverId("2").build());
 		List<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId("3").build());
 		DataDelta backendDataDelta = DataDelta.builder()
 				.changes(changes)
@@ -274,7 +274,7 @@ public class BackendWindowingServiceImplTest {
 		BackendChangesProvider backendChangesProvider = mocks.createMock(BackendChangesProvider.class);
 		expect(backendChangesProvider.getAllChanges()).andReturn(backendDataDelta);
 		expect(responseWindowingService.windowChanges(syncCollection, allocatedSyncKey, backendDataDelta, clientCommands))
-			.andReturn(ImmutableList.of(new ItemChange("1")));
+			.andReturn(ImmutableList.of(ItemChange.builder().serverId("1").build()));
 		expect(responseWindowingService.windowDeletions(syncCollection, allocatedSyncKey, backendDataDelta, clientCommands))
 			.andReturn(ImmutableList.<ItemDeletion>of());
 		expect(responseWindowingService.hasPendingResponse(allocatedSyncKey)).andReturn(true);
@@ -285,7 +285,7 @@ public class BackendWindowingServiceImplTest {
 		
 		assertThat(dataDelta.getSyncDate()).isEqualTo(date("2012-05-04T12:22:53"));
 		assertThat(dataDelta.getSyncKey()).isEqualTo(allocatedSyncKey);
-		assertThat(dataDelta.getChanges()).containsOnly(new ItemChange("1"));
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("1").build());
 		assertThat(dataDelta.getDeletions()).isEmpty();
 		assertThat(dataDelta.hasMoreAvailable()).isTrue();
 	}
@@ -315,7 +315,7 @@ public class BackendWindowingServiceImplTest {
 		BackendChangesProvider backendChangesProvider = mocks.createMock(BackendChangesProvider.class);
 		
 		expect(responseWindowingService.windowChanges(syncCollection, allocatedSyncKey, continueWindowingDelta, clientCommands))
-			.andReturn(ImmutableList.of(new ItemChange("123")));
+			.andReturn(ImmutableList.of(ItemChange.builder().serverId("123").build()));
 		expect(responseWindowingService.windowDeletions(syncCollection, allocatedSyncKey, continueWindowingDelta, clientCommands))
 			.andReturn(ImmutableList.of(ItemDeletion.builder().serverId("456").build()));
 		expect(responseWindowingService.hasPendingResponse(allocatedSyncKey)).andReturn(false);
@@ -326,7 +326,7 @@ public class BackendWindowingServiceImplTest {
 		
 		assertThat(dataDelta.getSyncDate()).isEqualTo(itemSyncState.getSyncDate());
 		assertThat(dataDelta.getSyncKey()).isEqualTo(allocatedSyncKey);
-		assertThat(dataDelta.getChanges()).containsOnly(new ItemChange("123"));
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("123").build());
 		assertThat(dataDelta.getDeletions()).containsOnly(ItemDeletion.builder().serverId("456").build());
 		assertThat(dataDelta.hasMoreAvailable()).isFalse();
 	}
@@ -356,7 +356,7 @@ public class BackendWindowingServiceImplTest {
 		BackendChangesProvider backendChangesProvider = mocks.createMock(BackendChangesProvider.class);
 		
 		expect(responseWindowingService.windowChanges(syncCollection, allocatedSyncKey, continueWindowingDelta, clientCommands))
-			.andReturn(ImmutableList.of(new ItemChange("123")));
+			.andReturn(ImmutableList.of(ItemChange.builder().serverId("123").build()));
 		expect(responseWindowingService.windowDeletions(syncCollection, allocatedSyncKey, continueWindowingDelta, clientCommands))
 			.andReturn(ImmutableList.<ItemDeletion>of());
 		expect(responseWindowingService.hasPendingResponse(allocatedSyncKey)).andReturn(true);
@@ -367,7 +367,7 @@ public class BackendWindowingServiceImplTest {
 		
 		assertThat(dataDelta.getSyncDate()).isEqualTo(itemSyncState.getSyncDate());
 		assertThat(dataDelta.getSyncKey()).isEqualTo(allocatedSyncKey);
-		assertThat(dataDelta.getChanges()).containsOnly(new ItemChange("123"));
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("123").build());
 		assertThat(dataDelta.getDeletions()).isEmpty();
 		assertThat(dataDelta.hasMoreAvailable()).isTrue();
 	}
