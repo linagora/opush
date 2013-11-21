@@ -85,11 +85,11 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 	}
 
 	private SyncCollectionOptions buildOptions(String filterType) {
-		SyncCollectionOptions options = new SyncCollectionOptions();
+		SyncCollectionOptions.Builder builder = SyncCollectionOptions.builder();
 		if (filterType != null) {
-			options.setFilterType(FilterType.fromSpecificationValue(filterType));
+			builder.filterType(FilterType.fromSpecificationValue(filterType));
 		}
-		return options;
+		return builder.build();
 	}
 
 	@Override

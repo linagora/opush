@@ -367,13 +367,15 @@ public class SerializableCompatibilityTest {
 				.allOrNone(true)
 				.bodyType(MSEmailBodyType.MIME)
 				.truncationSize(5).build();
-		SyncCollectionOptions options = new SyncCollectionOptions(ImmutableList.of(bodyPreference));
-		options.setConflict(5);
-		options.setDeletesAsMoves(false);
-		options.setFilterType(FilterType.ONE_DAY_BACK);
-		options.setMimeSupport(6);
-		options.setMimeTruncation(400);
-		options.setTruncation(420);
+		SyncCollectionOptions options = SyncCollectionOptions.builder()
+				.conflict(5)
+				.deletesAsMoves(false)
+				.filterType(FilterType.ONE_DAY_BACK)
+				.mimeSupport(6)
+				.mimeTruncation(400)
+				.truncation(420)
+				.bodyPreferences((ImmutableList.of(bodyPreference)))
+				.build();
 		
 		SyncCollection syncCollection = new SyncCollection(15, "path");
 		syncCollection.addChange(new SyncCollectionChange("serverId", "clientId", SyncCommand.ADD, msEvent, PIMDataType.CALENDAR));

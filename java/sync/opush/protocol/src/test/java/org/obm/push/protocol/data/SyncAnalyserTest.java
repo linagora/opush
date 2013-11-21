@@ -126,23 +126,24 @@ public class SyncAnalyserTest {
 					"</BodyPreference>" +
 				"</Options>");
 		
-		SyncCollectionOptions requestOptionsToStore = new SyncCollectionOptions();
-		requestOptionsToStore.setFilterType(FilterType.THREE_DAYS_BACK);
-		requestOptionsToStore.setConflict(1);
-		requestOptionsToStore.setMimeSupport(1);
-		requestOptionsToStore.setMimeTruncation(100);
-		requestOptionsToStore.setBodyPreferences(ImmutableList.<BodyPreference> of(
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.PlainText)
-				.build(),
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.HTML)
-				.build(),
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.MIME)
-				.truncationSize(5120)
-				.build()
-			));
+		SyncCollectionOptions requestOptionsToStore = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.conflict(1)
+				.mimeSupport(1)
+				.mimeTruncation(100)
+				.bodyPreferences(ImmutableList.<BodyPreference> of(
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.PlainText)
+						.build(),
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.HTML)
+						.build(),
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.MIME)
+						.truncationSize(5120)
+						.build()
+					))
+				.build();
 		AnalysedSyncCollection requestSyncCollectionToStore = buildRequestCollectionWithOptions(requestOptionsToStore, "0");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
@@ -164,8 +165,9 @@ public class SyncAnalyserTest {
 					"<FilterType>2</FilterType>" +
 				"</Options>");
 		
-		SyncCollectionOptions requestOptionsToStore = new SyncCollectionOptions();
-		requestOptionsToStore.setFilterType(FilterType.THREE_DAYS_BACK);
+		SyncCollectionOptions requestOptionsToStore = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.build();
 
 		AnalysedSyncCollection requestSyncCollectionToStore = buildRequestCollectionWithOptions(requestOptionsToStore, "0");
 		
@@ -183,14 +185,13 @@ public class SyncAnalyserTest {
 	
 	@Test
 	public void testNoRequestOptionsTakeTheDefaultOneIfNoPrevious() throws Exception {
-		SyncCollectionOptions toStoreOptions = new SyncCollectionOptions();
-		toStoreOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
-		toStoreOptions.setConflict(1);
-		toStoreOptions.setDeletesAsMoves(true);
-		toStoreOptions.setFilterType(FilterType.THREE_DAYS_BACK);
-		toStoreOptions.setMimeSupport(null);
-		toStoreOptions.setMimeTruncation(null);
-		toStoreOptions.setTruncation(SyncCollectionOptions.SYNC_TRUNCATION_ALL);
+		SyncCollectionOptions toStoreOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.conflict(1)
+				.mimeSupport(null)
+				.mimeTruncation(null)
+				.deletesAsMoves(true)
+				.build();
 		AnalysedSyncCollection toStoreSyncCollection = buildRequestCollectionWithOptions(toStoreOptions, "156");
 
 		Document requestWithoutOptions = buildRequestWithoutOptions("156");
@@ -228,23 +229,24 @@ public class SyncAnalyserTest {
 				"</Options>");
 		Document secondRequest = buildRequestWithoutOptions("156");
 		
-		SyncCollectionOptions firstRequestOptionsToStore = new SyncCollectionOptions();
-		firstRequestOptionsToStore.setFilterType(FilterType.THREE_DAYS_BACK);
-		firstRequestOptionsToStore.setConflict(1);
-		firstRequestOptionsToStore.setMimeSupport(1);
-		firstRequestOptionsToStore.setMimeTruncation(100);
-		firstRequestOptionsToStore.setBodyPreferences(ImmutableList.<BodyPreference> of(
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.PlainText)
-				.build(),
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.HTML)
-				.build(),
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.MIME)
-				.truncationSize(5120)
-				.build()
-			));
+		SyncCollectionOptions firstRequestOptionsToStore = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.conflict(1)
+				.mimeSupport(1)
+				.mimeTruncation(100)
+				.bodyPreferences(ImmutableList.<BodyPreference> of(
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.PlainText)
+						.build(),
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.HTML)
+						.build(),
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.MIME)
+						.truncationSize(5120)
+						.build()
+					))
+				.build();
 		AnalysedSyncCollection firstSyncCollectionToStore = buildRequestCollectionWithOptions(firstRequestOptionsToStore, "0");
 		AnalysedSyncCollection secondSyncCollectionToStore = buildRequestCollectionWithOptions(firstRequestOptionsToStore, "156");
 		
@@ -267,16 +269,17 @@ public class SyncAnalyserTest {
 	
 	@Test
 	public void testZeroTruncationSizeMustNotBeInterpreted() throws Exception {
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.THREE_DAYS_BACK);
-		syncCollectionOptions.setMimeSupport(1);
-		syncCollectionOptions.setConflict(1);
-		syncCollectionOptions.setMimeTruncation(100);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference> of(
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.PlainText)
-				.build()
-			));
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.conflict(1)
+				.mimeSupport(1)
+				.mimeTruncation(100)
+				.bodyPreferences(ImmutableList.<BodyPreference> of(
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.PlainText)
+						.build()
+					))
+				.build();
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 			.collectionId(collectionId)
 			.collectionPath(collectionPath)
@@ -314,17 +317,18 @@ public class SyncAnalyserTest {
 	
 	@Test
 	public void testTruncationSizeMustBeInterpreted() throws Exception {
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.THREE_DAYS_BACK);
-		syncCollectionOptions.setMimeSupport(1);
-		syncCollectionOptions.setConflict(1);
-		syncCollectionOptions.setMimeTruncation(100);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference> of(
-			BodyPreference.builder()
-				.bodyType(MSEmailBodyType.PlainText)
-				.truncationSize(1000)
-				.build()
-			));
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.conflict(1)
+				.mimeSupport(1)
+				.mimeTruncation(100)
+				.bodyPreferences(ImmutableList.<BodyPreference> of(
+					BodyPreference.builder()
+						.bodyType(MSEmailBodyType.PlainText)
+						.truncationSize(1000)
+						.build()
+					))
+				.build();
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 				.collectionId(collectionId)
 				.collectionPath(collectionPath)

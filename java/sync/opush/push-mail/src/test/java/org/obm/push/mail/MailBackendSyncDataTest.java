@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import java.util.Collection;
@@ -46,7 +46,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
@@ -177,17 +176,15 @@ public class MailBackendSyncDataTest {
 	
 	@Test
 	public void testSearchEmailsToManagerIsByDateForNullWithoutEmails() throws FilterTypeChangedException {
-		SyncCollectionOptions options = new SyncCollectionOptions();
-		options.setFilterType(FilterType.ALL_ITEMS);
-		options.setBodyPreferences(ImmutableList.<BodyPreference>of());
-		Date fromDate = options.getFilterType().getFilteredDateTodayAtMidnight();
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
+		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		
 		Set<Email> emailsExpected = ImmutableSet.of();
 		expect(mailboxService.fetchEmails(udr, collectionPath, fromDate))
 			.andReturn(emailsExpected);
 
 		control.replay();
-		Collection<Email> result = testee.searchEmailsToManage(udr, collectionId, collectionPath, null, options, date("2004-10-14T22:00:00"), 0);
+		Collection<Email> result = testee.searchEmailsToManage(udr, collectionId, collectionPath, null, syncCollectionOptions, date("2004-10-14T22:00:00"), 0);
 		control.verify();
 		
 		assertThat(result).isEmpty();
@@ -195,10 +192,8 @@ public class MailBackendSyncDataTest {
 	
 	@Test
 	public void testSearchEmailsToManagerIsByDateForNullWithEmails() throws FilterTypeChangedException {
-		SyncCollectionOptions options = new SyncCollectionOptions();
-		options.setFilterType(FilterType.ALL_ITEMS);
-		options.setBodyPreferences(ImmutableList.<BodyPreference>of());
-		Date fromDate = options.getFilterType().getFilteredDateTodayAtMidnight();
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
+		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		
 		expect(mailboxService.fetchEmails(udr, collectionPath, fromDate))
 			.andReturn(ImmutableSet.of(
@@ -210,7 +205,7 @@ public class MailBackendSyncDataTest {
 					.build()));
 
 		control.replay();
-		Collection<Email> result = testee.searchEmailsToManage(udr, collectionId, collectionPath, null, options, date("2004-10-14T22:00:00"), 0);
+		Collection<Email> result = testee.searchEmailsToManage(udr, collectionId, collectionPath, null, syncCollectionOptions, date("2004-10-14T22:00:00"), 0);
 		control.verify();
 		
 		assertThat(result).containsOnly(
@@ -224,9 +219,7 @@ public class MailBackendSyncDataTest {
 	
 	@Test(expected=FilterTypeChangedException.class)
 	public void testSearchEmailsToManagerThrowExecptionWhenDifferentFolderType() throws FilterTypeChangedException {
-		SyncCollectionOptions options = new SyncCollectionOptions();
-		options.setFilterType(FilterType.ALL_ITEMS);
-		options.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Snapshot snapshot = Snapshot.builder()
 				.addEmail(Email.builder()
@@ -245,14 +238,12 @@ public class MailBackendSyncDataTest {
 		expectDeleteCollectionSnapshots();
 				
 		control.replay();
-		testee.searchEmailsToManage(udr, collectionId, collectionPath, snapshot, options, date("2004-10-14T22:00:00"), 0);
+		testee.searchEmailsToManage(udr, collectionId, collectionPath, snapshot, syncCollectionOptions, date("2004-10-14T22:00:00"), 0);
 	}
 	
 	@Test
 	public void testSearchEmailsToManagerIsByUIDsWhenPreviousSnapshot() throws FilterTypeChangedException {
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		long snapedEmailUID = 5;
 		long deletedEmailUID = 6;
@@ -312,9 +303,7 @@ public class MailBackendSyncDataTest {
 	public void testSyncByDateWhenFilterTypeChanged() throws Exception {
 		SyncKey syncKey = new SyncKey("1234");
 		long uidNext = 45612;
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Email email = Email.builder()
 				.uid(5)
@@ -357,9 +346,7 @@ public class MailBackendSyncDataTest {
 	public void testMailBackendSyncDataCreationInitialWhenNoChange() throws Exception {
 		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		long uidNext = 45612;
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Set<Email> previousEmailsInServer = ImmutableSet.of();
 		Set<Email> actualEmailsInServer = ImmutableSet.of();
@@ -392,9 +379,7 @@ public class MailBackendSyncDataTest {
 	public void testMailBackendSyncDataCreationInitialWhithChanges() throws Exception {
 		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		long uidNext = 45612;
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Email email1 = Email.builder().uid(245).read(false).date(date("2004-12-14T22:00:00")).build();
 		Email email2 = Email.builder().uid(546).read(true).date(date("2012-12-12T23:59:00")).build();
@@ -430,9 +415,7 @@ public class MailBackendSyncDataTest {
 	public void testMailBackendSyncDataCreationNoChange() throws Exception {
 		SyncKey syncKey = new SyncKey("1");
 		long uidNext = 10;
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Email email = Email.builder().uid(2).read(false).date(date("2004-12-14T22:00:00")).build();
 		Set<Email> emailsInServer = ImmutableSet.of(email);
@@ -479,9 +462,7 @@ public class MailBackendSyncDataTest {
 	public void testMailBackendSyncDataCreationWithChanges() throws Exception {
 		SyncKey syncKey = new SyncKey("1");
 		long uidNext = 10;
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions();
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
-		syncCollectionOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Email deletedEmail = Email.builder().uid(2).read(false).date(date("2004-12-14T22:00:00")).build();
 		Email modifiedEmail = Email.builder().uid(3).read(false).date(date("2004-12-14T22:00:00")).build();

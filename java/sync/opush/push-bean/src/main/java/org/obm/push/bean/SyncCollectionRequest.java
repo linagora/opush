@@ -55,7 +55,7 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 		private SyncCollectionCommands.Request commands;
 
 		private Builder() {
-			options = new SyncCollectionOptions();
+			options = SyncCollectionOptions.builder().build();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {

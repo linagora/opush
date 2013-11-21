@@ -31,12 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import java.io.ByteArrayInputStream;
@@ -150,7 +150,7 @@ public class MailboxBackendTest {
 		int collectionId = 1;
 		String serverId = collectionId + ":" + itemId;
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(bodyPreferences);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
 
 		expect(mailboxService.fetchEmailMetadata(udr, collectionPath, itemId)).andThrow(new ItemNotFoundException("failure"));
@@ -173,7 +173,7 @@ public class MailboxBackendTest {
 		int collectionId = 1;
 		String serverId = collectionId + ":" + itemId;
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(bodyPreferences);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
 
 		InputStream mailStream = loadEmail("SinglePartBase64.eml");
@@ -228,8 +228,9 @@ public class MailboxBackendTest {
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
 		
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(
-				ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()));
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.bodyPreferences(ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()))
+				.build();
 		
 		SyncKey previousSyncKey = new SyncKey("123");
 		ItemSyncState previousItemSyncState = ItemSyncState.builder()
@@ -288,8 +289,9 @@ public class MailboxBackendTest {
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
 		
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(
-				ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()));
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.bodyPreferences(ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()))
+				.build();
 		
 		SyncKey previousSyncKey = new SyncKey("123");
 		ItemSyncState previousItemSyncState = ItemSyncState.builder()

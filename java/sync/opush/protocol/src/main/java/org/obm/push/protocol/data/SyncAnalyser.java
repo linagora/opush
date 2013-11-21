@@ -161,7 +161,7 @@ public class SyncAnalyser {
 		} else if (requestCollection.hasOptions()) {
 			return SyncCollectionOptions.cloneOnlyByExistingFields(requestCollection.getOptions());
 		}
-		return new SyncCollectionOptions();
+		return SyncCollectionOptions.defaultOptions();
 	}
 
 	private SyncCollectionCommands.Response analyseCommands(SyncCollectionCommands.Request requestCommands, PIMDataType dataType) {

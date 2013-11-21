@@ -31,9 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
@@ -55,97 +56,117 @@ public class SyncCollectionOptionsTest {
 				.allOrNone(false)
 				.build());
 
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setConflict(1);
-		cloningFromOptions.setDeletesAsMoves(true);
-		cloningFromOptions.setFilterType(FilterType.ONE_MONTHS_BACK);
-		cloningFromOptions.setMimeSupport(5);
-		cloningFromOptions.setMimeTruncation(2);
-		cloningFromOptions.setTruncation(100);
-		cloningFromOptions.setBodyPreferences(bodyPreferences);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.conflict(1)
+				.deletesAsMoves(true)
+				.filterType(FilterType.ONE_MONTHS_BACK)
+				.mimeSupport(5)
+				.mimeTruncation(2)
+				.truncation(100)
+				.bodyPreferences(bodyPreferences)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned).isEqualTo(cloningFromOptions);
+		assertThat(cloned).isEqualTo(cloningFromOptions);
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoConflict() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setConflict(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.conflict(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getConflict()).isEqualTo(1);
+		assertThat(cloned.getConflict()).isEqualTo(1);
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoDeleteAsMoved() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setDeletesAsMoves(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.deletesAsMoves(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.isDeletesAsMoves()).isEqualTo(true);
+		assertThat(cloned.isDeletesAsMoves()).isEqualTo(true);
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoFilterType() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setFilterType(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.filterType(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
+		assertThat(cloned.getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoMimeSupport() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setMimeSupport(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.mimeSupport(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getMimeSupport()).isNull();
+		assertThat(cloned.getMimeSupport()).isNull();
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoMimeTruncation() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setMimeTruncation(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.mimeTruncation(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getMimeTruncation()).isNull();
+		assertThat(cloned.getMimeTruncation()).isNull();
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoTruncation() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setTruncation(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.truncation(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getTruncation()).isEqualTo(9);
+		assertThat(cloned.getTruncation()).isEqualTo(9);
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenNoBodyPreference() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setBodyPreferences(null);
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.bodyPreferences(null)
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getBodyPreferences()).isEmpty();
+		assertThat(cloned.getBodyPreferences()).isEmpty();
 	}
 
 	@Test
 	public void testCloneOnlyByExistingFieldsWhenEmptyBodyPreference() {
-		SyncCollectionOptions cloningFromOptions = new SyncCollectionOptions();
-		cloningFromOptions.setBodyPreferences(ImmutableList.<BodyPreference>of());
+		SyncCollectionOptions cloningFromOptions = SyncCollectionOptions.builder()
+				.bodyPreferences(ImmutableList.<BodyPreference>of())
+				.build();
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		Assertions.assertThat(cloned.getBodyPreferences()).isEmpty();
+		assertThat(cloned.getBodyPreferences()).isEmpty();
+	}
+	
+	@Test
+	public void testDefaultOptions() {
+		SyncCollectionOptions defaultOptions = SyncCollectionOptions.defaultOptions();
+		assertThat(defaultOptions.getConflict()).isEqualTo(1);
+		assertThat(defaultOptions.getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
+		assertThat(defaultOptions.getMimeSupport()).isNull();
+		assertThat(defaultOptions.getMimeTruncation()).isNull();
+		assertThat(defaultOptions.getTruncation()).isEqualTo(9);
+		assertThat(defaultOptions.getBodyPreferences()).isEmpty();
 	}
 }

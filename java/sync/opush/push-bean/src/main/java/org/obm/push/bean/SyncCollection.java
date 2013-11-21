@@ -74,7 +74,7 @@ public class SyncCollection implements Serializable {
 		super();
 		this.dataType = dataType;
 		this.fetchIds = fetchIds;
-		this.options = new SyncCollectionOptions(bodyPreferences);
+		this.options = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		this.moreAvailable = false;
 		this.windowSize = 100;
 		this.changes = new HashSet<SyncCollectionChange>();

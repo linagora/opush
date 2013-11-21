@@ -104,11 +104,12 @@ public class SyncCollectionRequestTest {
 
 	@Test
 	public void testBuilderOptionsValid() {
-		SyncCollectionOptions options = new SyncCollectionOptions();
-		options.setFilterType(FilterType.ONE_DAY_BACK);
-		options.setConflict(2);
-		options.setMimeTruncation(3);
-		options.setMimeSupport(4);
+		SyncCollectionOptions options = SyncCollectionOptions.builder()
+				.filterType(FilterType.ONE_DAY_BACK)
+				.conflict(2)
+				.mimeTruncation(3)
+				.mimeSupport(4)
+				.build();
 		
 		SyncCollectionRequest syncRequestCollection = builderWithRequirement().options(options).build();
 		
@@ -124,7 +125,7 @@ public class SyncCollectionRequestTest {
 
 	@Test
 	public void testHasOptionsWhenValid() {
-		SyncCollectionRequest syncRequestCollection = builderWithRequirement().options(new SyncCollectionOptions()).build();
+		SyncCollectionRequest syncRequestCollection = builderWithRequirement().options(SyncCollectionOptions.builder().build()).build();
 		
 		assertThat(syncRequestCollection.hasOptions()).isTrue();
 	}

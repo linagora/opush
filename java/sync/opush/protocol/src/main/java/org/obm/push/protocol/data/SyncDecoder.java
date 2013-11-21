@@ -127,20 +127,20 @@ public class SyncDecoder extends ActiveSyncDecoder {
 			return null;
 		}
 		
-		SyncCollectionOptions options = new SyncCollectionOptions();
-		options.setConflict(uniqueIntegerFieldValue(optionElement, SyncRequestFields.CONFLICT));
-		options.setMimeSupport(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_SUPPORT));
-		options.setMimeTruncation(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_TRUNCATION));
+		SyncCollectionOptions.Builder builder = SyncCollectionOptions.builder()
+			.conflict(uniqueIntegerFieldValue(optionElement, SyncRequestFields.CONFLICT))
+			.mimeSupport(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_SUPPORT))
+			.mimeTruncation(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_TRUNCATION));
 		
 		String filterType = uniqueStringFieldValue(optionElement, SyncRequestFields.FILTER_TYPE);
 		if (Strings.isNullOrEmpty(filterType)) {
-			options.setFilterType(null);
+			builder.filterType(null);
 		} else {
-			options.setFilterType(FilterType.fromSpecificationValue(filterType));
+			builder.filterType(FilterType.fromSpecificationValue(filterType));
 		}
 		
-		options.setBodyPreferences(getBodyPreferences(optionElement));
-		return options;
+		builder.bodyPreferences(getBodyPreferences(optionElement));
+		return builder.build();
 	}
 
 	@VisibleForTesting SyncCollectionCommands.Request getCommands(Element commandsElement) {

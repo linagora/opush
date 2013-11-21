@@ -488,9 +488,10 @@ public class SyncHandlerTest {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("13424");
 
-		SyncCollectionOptions toStoreOptions = new SyncCollectionOptions();
-		toStoreOptions.setFilterType(THREE_DAYS_BACK);
-		toStoreOptions.setConflict(1);
+		SyncCollectionOptions toStoreOptions = SyncCollectionOptions.builder()
+				.filterType(THREE_DAYS_BACK)
+				.conflict(1)
+				.build();
 		ItemSyncState secondRequestSyncState = ItemSyncState.builder()
 				.id(4)
 				.syncKey(secondSyncKey)

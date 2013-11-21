@@ -70,7 +70,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 		private SyncStatus status;
 
 		private Builder() {
-			options = new SyncCollectionOptions();
+			options = SyncCollectionOptions.builder().build();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {

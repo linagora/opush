@@ -75,8 +75,7 @@ public class SerializableTest {
 
 	@Test
 	public void testSyncCollectionOptions() throws IOException {
-		SyncCollectionOptions obj = new SyncCollectionOptions();
-		obj.setBodyPreferences(ImmutableList.of(BodyPreference.builder().build()));
+		SyncCollectionOptions obj = SyncCollectionOptions.builder().bodyPreferences(ImmutableList.of(BodyPreference.builder().build())).build();
 		objectOutputStream.writeObject(obj);
 	}
 	

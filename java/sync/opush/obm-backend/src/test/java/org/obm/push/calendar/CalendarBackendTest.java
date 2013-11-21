@@ -587,8 +587,10 @@ public class CalendarBackendTest {
 		
 		BodyPreference.Builder bodyPreferenceBuilder = BodyPreference.builder();
 		BodyPreference bodyPreference = bodyPreferenceBuilder.build();
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(ImmutableList.<BodyPreference> of(bodyPreference));
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.ALL_ITEMS)
+				.bodyPreferences(ImmutableList.of(bodyPreference))
+				.build();
 		
 		int itemEstimateSize = calendarBackend.getItemEstimateSize(userDataRequest, lastKnownState, collectionId, syncCollectionOptions);
 		
@@ -622,8 +624,10 @@ public class CalendarBackendTest {
 		
 		BodyPreference.Builder bodyPreferenceBuilder = BodyPreference.builder();
 		BodyPreference bodyPreference = bodyPreferenceBuilder.build();
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(ImmutableList.<BodyPreference> of(bodyPreference));
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.ALL_ITEMS)
+				.bodyPreferences(ImmutableList.of(bodyPreference))
+				.build();
 		
 		DataDelta dataDelta = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
 		
@@ -664,8 +668,10 @@ public class CalendarBackendTest {
 		
 		BodyPreference.Builder bodyPreferenceBuilder = BodyPreference.builder();
 		BodyPreference bodyPreference = bodyPreferenceBuilder.build();
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(ImmutableList.<BodyPreference> of(bodyPreference));
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.ALL_ITEMS)
+				.bodyPreferences(ImmutableList.of(bodyPreference))
+				.build();
 		
 		DataDelta dataDelta = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
 		
@@ -1302,8 +1308,10 @@ public class CalendarBackendTest {
 		
 		BodyPreference.Builder bodyPreferenceBuilder = BodyPreference.builder();
 		BodyPreference bodyPreference = bodyPreferenceBuilder.build();
-		SyncCollectionOptions syncCollectionOptions = new SyncCollectionOptions(ImmutableList.<BodyPreference> of(bodyPreference));
-		syncCollectionOptions.setFilterType(FilterType.ALL_ITEMS);
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.filterType(FilterType.ALL_ITEMS)
+				.bodyPreferences(ImmutableList.of(bodyPreference))
+				.build();
 		
 		DataDelta allChanges = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
 		assertThat(allChanges).isNull();
@@ -1602,7 +1610,7 @@ public class CalendarBackendTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void testAppendOrganizerIfNoneOnNullList() throws Exception {
+	public void testAppendOrganizerIfNoneOnNullList() {
 		Iterable<Event> events = null;
 		ICalendarEvent iCalendarEvent = mockControl.createMock(ICalendarEvent.class);
 		expect(iCalendarEvent.organizer()).andReturn("organizer@domain");
@@ -1630,7 +1638,7 @@ public class CalendarBackendTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void testAppendOrganizerIfNoneOnNullICalendarEvent() throws Exception {
+	public void testAppendOrganizerIfNoneOnNullICalendarEvent() {
 		Iterable<Event> events = ImmutableList.of();
 		ICalendarEvent iCalendarEvent = null;
 		

@@ -254,7 +254,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 							.build())
 					.build();
 				
-			List<ItemChange> itemChanges = contentsExporter.fetch(udr, syncCollectionResponse, new SyncCollectionOptions(bodyPreferences));
+			List<ItemChange> itemChanges = contentsExporter.fetch(udr, syncCollectionResponse, SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build());
 			
 			if (itemChanges.isEmpty()) {
 				fetchResult.setStatus(ItemOperationsStatus.DOCUMENT_LIBRARY_NOT_FOUND);

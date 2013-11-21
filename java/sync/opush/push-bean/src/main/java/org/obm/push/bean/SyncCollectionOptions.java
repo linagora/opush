@@ -36,126 +36,144 @@ import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 
 public class SyncCollectionOptions implements Serializable {
 	
 	private static final long serialVersionUID = 7306997586579565585L;
-	
 	public static final Integer SYNC_TRUNCATION_ALL = 9;
 	
-	private Integer truncation;
-	private Integer mimeSupport;
-	private Integer mimeTruncation;
-	private Integer conflict;
-	private Boolean deletesAsMoves;
-	private FilterType filterType;
-	private List<BodyPreference> bodyPreferences;
-	
-	public SyncCollectionOptions(List<BodyPreference> bodyPreferences) {
-		this.bodyPreferences = bodyPreferences;
-		this.conflict = 1;
-		this.truncation = SYNC_TRUNCATION_ALL;
-		this.deletesAsMoves = true;
-		this.filterType = FilterType.THREE_DAYS_BACK;
+	public static SyncCollectionOptions defaultOptions() {
+		return SyncCollectionOptions.builder().build();
+	}
+	public static Builder builder() {
+		return new Builder();
 	}
 	
-	public SyncCollectionOptions() {
-		this(Lists.<BodyPreference>newArrayList());
+	public static class Builder {
+		private Integer truncation;
+		private Integer mimeSupport;
+		private Integer mimeTruncation;
+		private Integer conflict;
+		private Boolean deletesAsMoves;
+		private FilterType filterType;
+		private List<BodyPreference> bodyPreferences;
+		
+		private Builder() {}
+		
+		public Builder truncation(Integer truncation) {
+			this.truncation = truncation;
+			return this;
+		}
+		
+		public Builder mimeSupport(Integer mimeSupport) {
+			this.mimeSupport = mimeSupport;
+			return this;
+		}
+		
+		public Builder mimeTruncation(Integer mimeTruncation) {
+			this.mimeTruncation = mimeTruncation;
+			return this;
+		}
+		
+		public Builder conflict(Integer conflict) {
+			this.conflict = conflict;
+			return this;
+		}
+		
+		public Builder deletesAsMoves(Boolean deletesAsMoves) {
+			this.deletesAsMoves = deletesAsMoves;
+			return this;
+		}
+		
+		public Builder filterType(FilterType filterType) {
+			this.filterType = filterType;
+			return this;
+		}
+		
+		public Builder bodyPreferences(List<BodyPreference> bodyPreferences) {
+			this.bodyPreferences = bodyPreferences;
+			return this;
+		}
+		
+		public SyncCollectionOptions build() {
+			return new SyncCollectionOptions(
+					Objects.firstNonNull(truncation, SYNC_TRUNCATION_ALL),
+					mimeSupport, mimeTruncation, 
+					Objects.firstNonNull(conflict, 1),
+					Objects.firstNonNull(deletesAsMoves, true), 
+					Objects.firstNonNull(filterType, FilterType.THREE_DAYS_BACK), 
+					Objects.firstNonNull(bodyPreferences, ImmutableList.<BodyPreference>of()));
+		}
+	}
+	
+	private final Integer truncation;
+	private final Integer mimeSupport;
+	private final Integer mimeTruncation;
+	private final Integer conflict;
+	private final Boolean deletesAsMoves;
+	private final FilterType filterType;
+	private final List<BodyPreference> bodyPreferences;
+	
+	private SyncCollectionOptions(Integer truncation, Integer mimeSupport, Integer mimeTruncation, Integer conflict, Boolean deletesAsMoves, FilterType filterType, List<BodyPreference> bodyPreferences) {
+		this.truncation = truncation;
+		this.mimeSupport = mimeSupport;
+		this.mimeTruncation = mimeTruncation;
+		this.conflict = conflict;
+		this.deletesAsMoves = deletesAsMoves;
+		this.filterType = filterType;
+		this.bodyPreferences = bodyPreferences;
 	}
 	
 	public Integer getConflict() {
 		return conflict;
-	}
-	public void setConflict(Integer conflict) {
-		this.conflict = conflict;
 	}
 
 	public Integer getTruncation() {
 		return truncation;
 	}
 
-	public void setTruncation(Integer truncation) {
-		this.truncation = truncation;
-	}
-
 	public Boolean isDeletesAsMoves() {
 		return deletesAsMoves;
-	}
-
-	public void setDeletesAsMoves(Boolean deletesAsMoves) {
-		if(deletesAsMoves != null){
-			this.deletesAsMoves = deletesAsMoves;
-		}
 	}
 
 	public FilterType getFilterType() {
 		return filterType;
 	}
 
-	public void setFilterType(FilterType filterType) {
-		this.filterType = filterType;
-	}
-	
 	public Integer getMimeSupport() {
 		return mimeSupport;
-	}
-
-	public void setMimeSupport(Integer mimeSupport) {
-		this.mimeSupport = mimeSupport;
 	}
 
 	public Integer getMimeTruncation() {
 		return mimeTruncation;
 	}
 
-	public void setMimeTruncation(Integer mimeTruncation) {
-		this.mimeTruncation = mimeTruncation;
-	}
-	
-	public void setBodyPreferences(List<BodyPreference> bodyPreferences) {
-		this.bodyPreferences = bodyPreferences;
-	}
-	
 	public List<BodyPreference> getBodyPreferences() {
 		return bodyPreferences;
 	}
-	
-	public void initTruncation() {
-		setTruncation(null);
-		Iterable<BodyPreference> bp = Iterables.transform(this.bodyPreferences, new Function<BodyPreference, BodyPreference>() {
-			@Override
-			public BodyPreference apply(BodyPreference input) {
-				return BodyPreference.builder()
-					.allOrNone(input.isAllOrNone())
-					.bodyType(input.getType()).build();
-			}
-		});
-		this.bodyPreferences = Lists.newArrayList(bp);
-	}
 
 	public static SyncCollectionOptions cloneOnlyByExistingFields(SyncCollectionOptions cloningFromOptions) {
-		SyncCollectionOptions cloned = new SyncCollectionOptions();
+		SyncCollectionOptions.Builder builder = SyncCollectionOptions.builder();
 		if (cloningFromOptions.getConflict() != null) {
-			cloned.setConflict(cloningFromOptions.getConflict());
+			builder.conflict(cloningFromOptions.getConflict());
 		}
 		if (cloningFromOptions.getFilterType() != null) {
-			cloned.setFilterType(cloningFromOptions.getFilterType());
+			builder.filterType(cloningFromOptions.getFilterType());
 		}
 		if (cloningFromOptions.getMimeSupport() != null) {
-			cloned.setMimeSupport(cloningFromOptions.getMimeSupport());
+			builder.mimeSupport(cloningFromOptions.getMimeSupport());
 		}
 		if (cloningFromOptions.getMimeTruncation() != null) {
-			cloned.setMimeTruncation(cloningFromOptions.getMimeTruncation());
+			builder.mimeTruncation(cloningFromOptions.getMimeTruncation());
 		}
 		if (cloningFromOptions.getTruncation() != null) {
-			cloned.setTruncation(cloningFromOptions.getTruncation());
+			builder.truncation(cloningFromOptions.getTruncation());
 		}
 		if (cloningFromOptions.getBodyPreferences() != null) {
-			cloned.setBodyPreferences(cloningFromOptions.getBodyPreferences());
+			builder.bodyPreferences(cloningFromOptions.getBodyPreferences());
 		}
-		return cloned;
+		return builder.build();
 	}
 	
 	@Override
