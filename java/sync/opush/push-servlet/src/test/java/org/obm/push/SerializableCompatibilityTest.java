@@ -37,11 +37,13 @@ import static org.obm.DateUtils.date;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import org.junit.Before;
@@ -435,7 +437,6 @@ public class SerializableCompatibilityTest {
 				.put("org.obm.push.bean.SyncKeysKey",
 						SyncKeysKey.builder().collectionId(456).deviceId(deviceId).build())
 				.put("org.obm.push.bean.Credentials", credentials)
-				.put("org.obm.push.bean.SyncCollection", analysedSyncCollection)
 				.put("org.obm.push.bean.SyncCollectionCommandResponse", syncCollectionCommand)
 				.put("org.obm.push.bean.SyncCollectionCommandsResponse", syncCollectionCommands)
 				.put("org.obm.push.bean.AnalysedSyncCollection", analysedSyncCollection)
@@ -505,10 +506,20 @@ public class SerializableCompatibilityTest {
 			InputStream serializedClassStream = ClassLoader.getSystemResourceAsStream(serializedClassFileName);
 			ObjectInputStream objectInputStream = new ObjectInputStream(serializedClassStream);
 			
-			assertThat(objectInputStream.readObject())
+			assertThat(extracted(classAndValue, objectInputStream))
 				.as("Type " + classAndValue.getKey())
 				.isEqualTo(classAndValue.getValue());
 		}
+	}
+
+	private Object extracted(Entry<String, Object> classAndValue, ObjectInputStream objectInputStream){
+		try {
+			return objectInputStream.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			System.out.println(classAndValue);
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	private File fileForClass(String className) {
