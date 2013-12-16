@@ -32,16 +32,23 @@
 package org.obm.push.cassandra;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
-import org.obm.push.json.JSONModule;
+import org.obm.push.json.CharsetDeserializer;
+import org.obm.push.json.CharsetSerializer;
+import org.obm.push.json.SerializableInputStreamDeserializer;
+import org.obm.push.json.SerializableInputStreamSerializer;
+import org.obm.push.utils.SerializableInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.core.json.PackageVersion;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.annotations.VisibleForTesting;
@@ -86,7 +93,13 @@ public class JSONService {
 		objectMapper.setVisibilityChecker(VisibilityChecker.Std.defaultInstance().withFieldVisibility(Visibility.ANY));
 		objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
 		objectMapper.registerModule(new GuavaModule());
-		objectMapper.registerModule(new JSONModule());
+		objectMapper.registerModule(new SimpleModule("OpushBeans", PackageVersion.VERSION)
+			.addSerializer(Charset.class, new CharsetSerializer())
+			.addDeserializer(Charset.class, new CharsetDeserializer())
+			.addSerializer(SerializableInputStream.class, new SerializableInputStreamSerializer())
+			.addDeserializer(SerializableInputStream.class, new SerializableInputStreamDeserializer())
+		);
+
 		return objectMapper;
 	}
 
