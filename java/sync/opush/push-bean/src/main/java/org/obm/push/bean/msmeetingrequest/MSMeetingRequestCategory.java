@@ -33,10 +33,7 @@ package org.obm.push.bean.msmeetingrequest;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-
 
 public class MSMeetingRequestCategory implements Serializable {
 	
@@ -44,8 +41,7 @@ public class MSMeetingRequestCategory implements Serializable {
 	
 	private final String category;
 
-	@JsonCreator
-	public MSMeetingRequestCategory(@JsonProperty("category") String category) {
+	public MSMeetingRequestCategory(String category) {
 		this.category = category;
 	}
 	

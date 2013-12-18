@@ -36,7 +36,6 @@ import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
@@ -49,11 +48,8 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 
 	public abstract static class Builder<T extends SyncCollectionCommand, C extends SyncCollectionCommands<?>> {
 		
-		@JsonIgnore
 		private final ImmutableList.Builder<T> commandsBuilder;
-		@JsonIgnore
 		private ImmutableList<T> commands;
-		@JsonIgnore
  		private ImmutableListMultimap<SyncCommand, T> commandsByType;
 
 		protected Builder() {
@@ -90,9 +86,7 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 		}
 	}
 	
-	@JsonIgnore
 	private final ImmutableListMultimap<SyncCommand, T> commandsByType;
-	@JsonIgnore
 	private final List<T> commands;
 	
 	protected SyncCollectionCommands(

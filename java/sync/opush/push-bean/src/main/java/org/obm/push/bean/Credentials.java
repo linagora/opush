@@ -33,8 +33,6 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 public class Credentials implements Serializable {
@@ -44,8 +42,7 @@ public class Credentials implements Serializable {
 	private final User user;
 	private final String password;
 
-	@JsonCreator
-	public Credentials(@JsonProperty("user") User user, @JsonProperty("password") String password) {
+	public Credentials(User user, String password) {
 		super();
 		this.user = user;
 		this.password = password;

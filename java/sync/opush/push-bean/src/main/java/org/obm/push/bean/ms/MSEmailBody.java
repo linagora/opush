@@ -40,11 +40,9 @@ import java.nio.charset.Charset;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.utils.SerializableInputStream;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 
-@JsonDeserialize(builder=MSEmailBody.Builder.class)
 public class MSEmailBody implements Serializable {
 
 	public static Builder builder() {

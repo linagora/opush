@@ -33,10 +33,8 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
-@JsonDeserialize(builder=BodyPreference.Builder.class)
 public final class BodyPreference implements Serializable {
 
 	public static Builder builder() {

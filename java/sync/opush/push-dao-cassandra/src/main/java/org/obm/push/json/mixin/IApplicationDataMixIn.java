@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,44 +29,31 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.mixin;
 
-import java.io.Serializable;
+import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.MSContact;
+import org.obm.push.bean.MSEvent;
+import org.obm.push.bean.MSTask;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ms.MSEmail;
 
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-public class DeviceId implements Serializable {
-	
-	private static final long serialVersionUID = -4097463369254130710L;
-	
-	private final String deviceId;
-
-	public DeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-	
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(deviceId);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof DeviceId) {
-			DeviceId that = (DeviceId) object;
-			return Objects.equal(this.deviceId, that.deviceId);
-		}
-		return false;
-	}
+@JsonTypeInfo(use=Id.NAME, property="type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value=MSEmail.class, name="EMAIL"),
+    @JsonSubTypes.Type(value=MSEvent.class, name="CALENDAR"),
+    @JsonSubTypes.Type(value=MSContact.class, name="CONTACTS"),
+    @JsonSubTypes.Type(value=MSTask.class, name="TASKS")
+})
+public interface IApplicationDataMixIn extends IApplicationData {
 
 	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("deviceId", deviceId)
-			.toString();
-	}
+	@JsonIgnore
+	public abstract PIMDataType getType();
+	
 }

@@ -29,31 +29,20 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.json;
+package org.obm.push.json.mixin;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import org.obm.push.bean.change.item.ItemChange;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public class CharsetDeserializer extends JsonDeserializer<Charset> {
+@JsonDeserialize(builder=ItemChange.Builder.class)
+public interface ItemChangeMixIn {
+	
+	@JsonProperty("isNew")
+	boolean isNew();
 
-	@Override
-	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
-		return deserialize(jp, ctxt);
-	}
-
-	@Override
-	public Charset deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-		String charsetName = jp.getValueAsString();
-		if (Strings.isNullOrEmpty(charsetName)) {
-			return null;
-		}
-		return Charset.forName(charsetName);
-	}
+	@JsonIgnore
+	boolean isMSEmail();
 }

@@ -31,19 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
-import org.obm.push.bean.ms.MSEmail;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-
-@JsonTypeInfo(use=Id.NAME, property="type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value=MSEmail.class, name="EMAIL"),
-    @JsonSubTypes.Type(value=MSEvent.class, name="CALENDAR"),
-    @JsonSubTypes.Type(value=MSContact.class, name="CONTACTS"),
-    @JsonSubTypes.Type(value=MSTask.class, name="TASKS")
-})
 public interface IApplicationData {
 
 	PIMDataType getType();

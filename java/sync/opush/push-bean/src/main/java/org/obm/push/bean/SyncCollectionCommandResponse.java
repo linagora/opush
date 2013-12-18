@@ -33,9 +33,6 @@ package org.obm.push.bean;
 
 import org.obm.push.bean.change.SyncCommand;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-@JsonDeserialize(builder=SyncCollectionCommandResponse.Builder.class)
 public class SyncCollectionCommandResponse extends SyncCollectionCommand {
 
 	private static final long serialVersionUID = -246587854210988404L;

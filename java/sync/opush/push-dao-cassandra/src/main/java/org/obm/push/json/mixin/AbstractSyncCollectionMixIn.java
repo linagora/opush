@@ -29,30 +29,18 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.json;
+package org.obm.push.json.mixin;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.util.List;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class CharsetSerializer extends JsonSerializer<Charset> {
+public interface AbstractSyncCollectionMixIn {
+	
+	@JsonIgnore
+	String getDataClass();
 
-	@Override
-	public void serializeWithType(Charset value, JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer) throws IOException, JsonProcessingException {
-		serialize(value, jgen, provider);
-	}
-
-	@Override
-	public void serialize(Charset value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-		if (value != null) {
-			provider.defaultSerializeValue(value.name(), jgen);
-		} else {
-			provider.defaultSerializeNull(jgen);
-		}
-	}
+	@JsonIgnore
+	List<String> getFetchIds();
+	
 }

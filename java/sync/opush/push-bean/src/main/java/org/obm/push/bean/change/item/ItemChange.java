@@ -36,12 +36,8 @@ import java.io.Serializable;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ms.MSEmail;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
-@JsonDeserialize(builder=ItemChange.Builder.class)
 public class ItemChange implements ASItem, Serializable {
 	
 	private static final long serialVersionUID = 4575240618131116466L;
@@ -97,12 +93,10 @@ public class ItemChange implements ASItem, Serializable {
 		return data;
 	}
 
-	@JsonProperty("isNew")
 	public boolean isNew() {
 		return isNew;
 	}
 
-	@JsonIgnore
 	public boolean isMSEmail() {
 		if (getData() instanceof MSEmail) {
 			return true;

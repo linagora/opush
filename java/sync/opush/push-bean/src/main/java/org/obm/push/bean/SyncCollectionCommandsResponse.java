@@ -38,10 +38,8 @@ import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableListMultimap;
 
-@JsonDeserialize(builder=SyncCollectionCommandsResponse.Builder.class)
 public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncCollectionCommandResponse> {
 
 	private static final long serialVersionUID = -6871877347639563687L;

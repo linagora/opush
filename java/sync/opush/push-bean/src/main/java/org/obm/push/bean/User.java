@@ -35,13 +35,10 @@ import java.io.Serializable;
 
 import org.obm.push.utils.UserEmailParserUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-@JsonDeserialize(builder=User.Builder.class)
 public class User implements Serializable {
 
 	public static Builder builder() {
@@ -125,7 +122,6 @@ public class User implements Serializable {
 		this.displayName = displayName;
 	}
 	
-	@JsonIgnore
 	public String getLoginAtDomain() {
 		return getLogin() + "@" + getDomain();
 	}

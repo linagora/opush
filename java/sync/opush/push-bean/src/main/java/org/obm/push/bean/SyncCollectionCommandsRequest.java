@@ -35,10 +35,8 @@ import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableListMultimap;
 
-@JsonDeserialize(builder=SyncCollectionCommandsRequest.Builder.class)
 public class SyncCollectionCommandsRequest extends SyncCollectionCommands<SyncCollectionCommandRequest> {
 
 	private static final long serialVersionUID = 7346187155191351839L;

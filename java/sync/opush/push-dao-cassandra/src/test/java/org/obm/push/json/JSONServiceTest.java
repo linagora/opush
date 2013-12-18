@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra;
+package org.obm.push.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
@@ -88,6 +88,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceDayOfWeek;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
+import org.obm.push.json.JSONService;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
@@ -1679,7 +1680,8 @@ public class JSONServiceTest {
 	@Test
 	public void testDeserializeItemChange() {
 		ItemChange itemChange = new JSONService().deserialize(ItemChange.class, 
-				"{\"data\":{" + 
+			"{\"data\":{" + 
+					"\"type\":\"TASKS\"," + 
 					"\"UtcDueDate\":1328264673000," + 
 					"\"categories\":[\"category\"]," + 
 					"\"complete\":true," + 
@@ -1687,25 +1689,24 @@ public class JSONServiceTest {
 					"\"description\":\"description\"," + 
 					"\"dueDate\":1328178453000," + 
 					"\"importance\":2," + 
-					"\"recurrence\":" + 
-						"{\"dayOfMonth\":2," + 
-							"\"dayOfWeek\":[\"FRIDAY\",\"SUNDAY\"]," + 
-							"\"deadOccur\":true," + 
-							"\"interval\":7," + 
-							"\"monthOfYear\":2," + 
-							"\"occurrences\":4," + 
-							"\"regenerate\":true," + 
-							"\"start\":1102767310000," + 
-							"\"type\":\"DAILY\"," + 
-							"\"until\":1102763710000," + 
-							"\"weekOfMonth\":4" + 
-						"}," + 
+					"\"recurrence\":{" + 
+						"\"dayOfMonth\":2," + 
+						"\"dayOfWeek\":[\"FRIDAY\",\"SUNDAY\"]," + 
+						"\"deadOccur\":true," + 
+						"\"interval\":7," + 
+						"\"monthOfYear\":2," + 
+						"\"occurrences\":4," + 
+						"\"regenerate\":true," + 
+						"\"start\":1102767310000," + 
+						"\"type\":\"DAILY\"," + 
+						"\"until\":1102763710000," + 
+						"\"weekOfMonth\":4" + 
+					"}," + 
 					"\"reminderSet\":true," + 
 					"\"reminderTime\":1328199753000," + 
 					"\"sensitivity\":\"PRIVATE\"," + 
 					"\"startDate\":1328163753000," + 
 					"\"subject\":\"subject\"," + 
-					"\"type\":\"TASKS\"," + 
 					"\"utcDueDate\":1328264673000," + 
 					"\"utcStartDate\":1328350953000" + 
 				"}," + 

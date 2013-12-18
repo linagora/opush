@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
 public class MSEvent implements IApplicationData, MSEventCommon, Serializable {
@@ -72,7 +70,6 @@ public class MSEvent implements IApplicationData, MSEventCommon, Serializable {
 	private Integer obmSequence;
 	private transient Set<String> attendeeEmails;
 	
-	@JsonCreator
 	public MSEvent(){
 		this.attendees = new HashSet<MSAttendee>();
 		this.attendeeEmails = new HashSet<String>();
@@ -130,7 +127,6 @@ public class MSEvent implements IApplicationData, MSEventCommon, Serializable {
 	}
 
 	@Override
-	@JsonIgnore
 	public PIMDataType getType() {
 		return PIMDataType.CALENDAR;
 	}

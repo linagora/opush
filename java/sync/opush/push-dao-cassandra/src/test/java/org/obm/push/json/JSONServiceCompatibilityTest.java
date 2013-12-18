@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra;
+package org.obm.push.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
@@ -91,6 +91,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceDayOfWeek;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
+import org.obm.push.json.JSONService;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;

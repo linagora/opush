@@ -35,7 +35,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
 public class MSTask implements IApplicationData, Serializable {
@@ -43,7 +42,6 @@ public class MSTask implements IApplicationData, Serializable {
 	private static final long serialVersionUID = -1618038440836867687L;
 	
 	@Override
-	@JsonIgnore
 	public PIMDataType getType() {
 		return PIMDataType.TASKS;
 	}

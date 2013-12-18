@@ -40,13 +40,10 @@ import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.utils.UserEmailParserUtils;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-
-@JsonDeserialize(builder=MSMeetingRequest.Builder.class)
 public class MSMeetingRequest implements Serializable {
 
 	public static Builder builder() {

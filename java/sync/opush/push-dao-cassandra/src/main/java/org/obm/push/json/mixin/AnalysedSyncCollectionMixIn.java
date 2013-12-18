@@ -29,33 +29,11 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.json;
+package org.obm.push.json.mixin;
 
-import java.io.IOException;
+import org.obm.push.bean.AnalysedSyncCollection;
 
-import org.obm.push.utils.FileUtils;
-import org.obm.push.utils.SerializableInputStream;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.google.common.base.Charsets;
-
-public class SerializableInputStreamSerializer extends JsonSerializer<SerializableInputStream> {
-
-	@Override
-	public void serializeWithType(SerializableInputStream value, JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer) throws IOException, JsonProcessingException {
-		serialize(value, jgen, provider);
-	}
-
-	@Override
-	public void serialize(SerializableInputStream value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-		if (value != null) {
-			provider.defaultSerializeValue(FileUtils.streamString(value, true, Charsets.UTF_8.toString()), jgen);
-		} else {
-			provider.defaultSerializeNull(jgen);
-		}
-	}
-}
+@JsonDeserialize(builder=AnalysedSyncCollection.Builder.class)
+public interface AnalysedSyncCollectionMixIn {}

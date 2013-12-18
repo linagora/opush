@@ -29,32 +29,16 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.json;
+package org.obm.push.json.mixin;
 
-import java.io.IOException;
+import org.obm.push.bean.User;
 
-import org.obm.push.utils.SerializableInputStream;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.google.common.base.Strings;
+@JsonDeserialize(builder=User.Builder.class)
+public abstract class UserMixIn {
 
-public class SerializableInputStreamDeserializer extends JsonDeserializer<SerializableInputStream> {
-
-	@Override
-	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
-		return deserialize(jp, ctxt);
-	}
-
-	@Override
-	public SerializableInputStream deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-		String bytes = jp.getValueAsString();
-		if (Strings.isNullOrEmpty(bytes)) {
-			return null;
-		}
-		return new SerializableInputStream(bytes);
-	}
+	@JsonIgnore
+	public abstract String getLoginAtDomain();
 }

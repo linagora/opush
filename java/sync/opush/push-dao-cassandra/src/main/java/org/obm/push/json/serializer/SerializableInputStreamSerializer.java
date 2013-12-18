@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,44 +29,33 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.serializer;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-import com.google.common.base.Objects;
+import org.obm.push.utils.FileUtils;
+import org.obm.push.utils.SerializableInputStream;
 
-public class DeviceId implements Serializable {
-	
-	private static final long serialVersionUID = -4097463369254130710L;
-	
-	private final String deviceId;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.google.common.base.Charsets;
 
-	public DeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-	
-	public String getDeviceId() {
-		return deviceId;
+public class SerializableInputStreamSerializer extends JsonSerializer<SerializableInputStream> {
+
+	@Override
+	public void serializeWithType(SerializableInputStream value, JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer) throws IOException, JsonProcessingException {
+		serialize(value, jgen, provider);
 	}
 
 	@Override
-	public final int hashCode(){
-		return Objects.hashCode(deviceId);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof DeviceId) {
-			DeviceId that = (DeviceId) object;
-			return Objects.equal(this.deviceId, that.deviceId);
+	public void serialize(SerializableInputStream value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+		if (value != null) {
+			provider.defaultSerializeValue(FileUtils.streamString(value, true, Charsets.UTF_8.toString()), jgen);
+		} else {
+			provider.defaultSerializeNull(jgen);
 		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("deviceId", deviceId)
-			.toString();
 	}
 }

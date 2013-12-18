@@ -33,8 +33,6 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 
@@ -49,8 +47,7 @@ public class MSAddress implements Serializable {
 		this(null, mail);
 	}
 	
-	@JsonCreator
-	public MSAddress(@JsonProperty("displayName") String displayName,@JsonProperty("mail")  String mail) {
+	public MSAddress(String displayName, String mail) {
 		super();
 		this.displayName = displayName;
 		this.mail = mail;

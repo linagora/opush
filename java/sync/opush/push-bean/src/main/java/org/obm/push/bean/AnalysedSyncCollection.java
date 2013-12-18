@@ -36,10 +36,8 @@ import java.io.Serializable;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
-@JsonDeserialize(builder=AnalysedSyncCollection.Builder.class)
 public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectionCommandsResponse> implements SyncDefaultValues, Serializable {
 	
 	private static final long serialVersionUID = 348968178554764052L;

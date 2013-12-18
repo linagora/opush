@@ -35,12 +35,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-@JsonDeserialize(builder=MSMeetingRequestRecurrence.Builder.class)
 public class MSMeetingRequestRecurrence implements Serializable {
 	
 	public static Builder builder() {

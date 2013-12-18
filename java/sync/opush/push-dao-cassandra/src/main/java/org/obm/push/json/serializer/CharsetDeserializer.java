@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,44 +29,31 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.serializer;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.google.common.base.Strings;
 
-public class DeviceId implements Serializable {
-	
-	private static final long serialVersionUID = -4097463369254130710L;
-	
-	private final String deviceId;
+public class CharsetDeserializer extends JsonDeserializer<Charset> {
 
-	public DeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-	
-	public String getDeviceId() {
-		return deviceId;
+	@Override
+	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
+		return deserialize(jp, ctxt);
 	}
 
 	@Override
-	public final int hashCode(){
-		return Objects.hashCode(deviceId);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof DeviceId) {
-			DeviceId that = (DeviceId) object;
-			return Objects.equal(this.deviceId, that.deviceId);
+	public Charset deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+		String charsetName = jp.getValueAsString();
+		if (Strings.isNullOrEmpty(charsetName)) {
+			return null;
 		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("deviceId", deviceId)
-			.toString();
+		return Charset.forName(charsetName);
 	}
 }
