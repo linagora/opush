@@ -43,7 +43,9 @@ import org.obm.Configuration;
 import org.obm.StaticLocatorConfiguration;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.configuration.SyncPermsConfigurationService;
+import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.configuration.DatabaseBackend;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
 import org.obm.push.store.ehcache.EhCacheConfiguration;
@@ -266,6 +268,20 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		@Override
 		public String password() {
 			return configuration.password;
+		}
+	}
+	
+	public static class Backend implements BackendConfiguration {
+
+		private final OpushConfigurationFixture.Backend configuration;
+
+		public Backend(OpushConfigurationFixture.Backend configuration) {
+			this.configuration = configuration;
+		}
+
+		@Override
+		public DatabaseBackend getDatabaseBackend() {
+			return DatabaseBackend.fromValue(configuration.databaseBackend);
 		}
 	}
 	

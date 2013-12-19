@@ -44,6 +44,6 @@ public class OpushCassandraModule extends AbstractOverrideModule {
 
 	@Override
 	protected void configureImpl() {
-		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);		
+		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
 	}
 }

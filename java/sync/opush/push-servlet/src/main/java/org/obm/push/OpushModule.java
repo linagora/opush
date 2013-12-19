@@ -41,6 +41,9 @@ import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationImpl;
 import org.obm.push.cassandra.OpushCassandraModule;
+import org.obm.push.configuration.BackendConfiguration;
+import org.obm.push.configuration.BackendConfigurationFileImpl;
+import org.obm.push.configuration.DatabaseBackend;
 import org.obm.push.store.ehcache.EhCacheDaoModule;
 import org.obm.push.store.jdbc.JdbcDaoModule;
 import org.obm.push.store.jdbc.OpushDatabaseModule;
@@ -48,20 +51,23 @@ import org.obm.push.store.jdbc.OpushDatabaseModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
+import com.google.inject.util.Modules;
 
 public class OpushModule extends AbstractModule {
 
 	private static final String APPLICATION_NAME = "opush";
 
 	private final GlobalAppConfiguration<OpushConfiguration> opushConfiguration;
+	private final BackendConfiguration backendConfiguration;
 	private Module databaseModule;
 	
 	public OpushModule() {
-		this(buildConfiguration(), new OpushDatabaseModule());
+		this(buildConfiguration(), backendConfiguration(), new OpushDatabaseModule());
 	}
-	
-	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration, Module databaseModule) {
+
+	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration, BackendConfiguration backendConfiguration, Module databaseModule) {
 		this.opushConfiguration = opushConfiguration;
+		this.backendConfiguration = backendConfiguration;
 		this.databaseModule = databaseModule;
 	}
 	
@@ -76,6 +82,10 @@ public class OpushModule extends AbstractModule {
 					.build();
 	}
 	
+	private static BackendConfiguration backendConfiguration() {
+		return new BackendConfigurationFileImpl.Factory().create();
+	}
+	
 	@Override
 	protected void configure() {
 		install(new LinagoraImapModule());
@@ -86,10 +96,21 @@ public class OpushModule extends AbstractModule {
 		install(new OpushCrashModule());
 		install(new HealthCheckModule());
 		install(new HealthCheckDefaultHandlersModule());
-		install(new EhCacheDaoModule());
+		opushDaoModule();
 		install(new JdbcDaoModule(databaseModule));
-		install(new OpushCassandraModule());
 		bind(Boolean.class).annotatedWith(Names.named("enable-push")).toInstance(false);
  	}
 
+	private void opushDaoModule() {
+		if (isCassandraBackendEnable()) {
+			install(Modules.override(new EhCacheDaoModule())
+					.with(new OpushCassandraModule()));
+		} else {
+			install(new EhCacheDaoModule());
+		}
+	}
+
+	private boolean isCassandraBackendEnable() {
+		return DatabaseBackend.CASSANDRA.equals(backendConfiguration.getDatabaseBackend());
+	}
 }

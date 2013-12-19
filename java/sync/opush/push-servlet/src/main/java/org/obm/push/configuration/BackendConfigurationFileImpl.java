@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2011-2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,58 +29,46 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env;
+package org.obm.push.configuration;
 
-import org.obm.Configuration;
+import org.obm.configuration.utils.IniFile;
 
-public class OpushConfigurationFixture extends Configuration {
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.google.inject.Singleton;
 
-	public static class Backend {
-		public String databaseBackend = "ehcache";
-	}
+@Singleton
+public class BackendConfigurationFileImpl implements BackendConfiguration {
 
-	public static class Cassandra {
-		public String seed = "localhost";
-		public String keyspace = "opush";
-		public String user = "cassandra";
-		public String password = "cassandra";
-	}
+	@VisibleForTesting static final String CONFIG_FILE_PATH = "/etc/opush/backends.ini";
+	
+	public static class Factory {
+		
+		protected IniFile.Factory iniFileFactory;
 
-	public static class EhCache {
-		public int maxMemoryInMB = 10;
-		public int timeToLiveInSeconds = 60;
-		public Integer percentageAllowedToCache = null;
-		public int statsSampleToRecordCount = 10;
-		public int statsShortSamplingTimeInSeconds = 1;
-		public int statsMediumSamplingTimeInSeconds = 10;
-		public int statsLongSamplingTimeInSeconds = 60;
-		public int statsSamplingTimeStopInMinutes = 10;
+		public Factory() {
+			iniFileFactory = new IniFile.Factory();
+		}
+		
+		public BackendConfigurationFileImpl create() {
+			return new BackendConfigurationFileImpl(iniFileFactory.build(CONFIG_FILE_PATH));
+		}
 	}
 	
-	public static class Mail {
-		public boolean activateTls = false;
-		public boolean loginWithDomain = true;
-		public int timeoutInMilliseconds = 5000;
-		public int imapPort = 143;
-		public int maxMessageSize = 1024;
-		public int fetchBlockSize = 1 << 20;
-	}	
+	private final IniFile iniFile;
 	
-	public static class RemoteConsole {
-		public boolean enable = true;
-		public int port = 0; //random
+	@VisibleForTesting static final String DATABASE = "database";
+	
+	public BackendConfigurationFileImpl(IniFile iniFile) {
+		this.iniFile = iniFile;
 	}
 
-	public static class SyncPerms {
-		public String blacklist = "";
-		public boolean allowUnknownDevice = true;
+	@Override
+	public DatabaseBackend getDatabaseBackend() {
+		String value = iniFile.getStringValue(DATABASE);
+		if (Strings.isNullOrEmpty(value)) {
+			return DatabaseBackend.EHCACHE;
+		}
+		return DatabaseBackend.fromValue(value);
 	}
-
-	public SyncPerms syncPerms = new SyncPerms();
-	public Mail mail = new Mail();
-	public RemoteConsole remoteConsole = new RemoteConsole();
-	public EhCache ehCache = new EhCache();
-	public Cassandra cassandra = new Cassandra();
-	public Backend backend = new Backend();
-	
 }
