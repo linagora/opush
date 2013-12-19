@@ -40,8 +40,6 @@ public interface SnapshotService {
 	Snapshot getSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId);
 	
 	void storeSnapshot(Snapshot snapshot);
-	
-	void deleteSnapshotAndSyncKeys(DeviceId deviceId, int collectionId);
 
 	void actualizeSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId, SyncKey newSyncKey);
 }

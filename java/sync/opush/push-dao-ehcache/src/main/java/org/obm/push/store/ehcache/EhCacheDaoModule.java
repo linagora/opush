@@ -34,7 +34,6 @@ package org.obm.push.store.ehcache;
 import org.obm.push.ContinuationTransactionMap;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.store.SnapshotDao;
-import org.obm.push.store.SyncKeysDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.store.UnsynchronizedItemDao;
 import org.obm.push.store.WindowingDao;
@@ -57,7 +56,6 @@ public class EhCacheDaoModule extends AbstractModule {
 		bind(ContinuationTransactionMap.class).to(ContinuationTransactionMapImpl.class);
 		bind(SnapshotDao.class).to(SnapshotDaoEhcacheImpl.class);
 		bind(WindowingDao.class).to(WindowingDaoEhcacheImpl.class);
-		bind(SyncKeysDao.class).to(SyncKeysDaoEhcacheImpl.class);
 		bind(CacheEvictionListener.class).to(CacheEvictionListenerImpl.class);
 
 		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);

@@ -108,7 +108,7 @@ public class MailBackendSyncData {
 				Snapshot previousStateSnapshot, SyncCollectionOptions actualOptions,
 				Date dataDeltaDate, long currentUIDNext) throws FilterTypeChangedException {
 			
-			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions, collectionId, udr);
+			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions, collectionId);
 			if (mustSyncByDate(previousStateSnapshot)) {
 				Date searchEmailsFromDate = searchEmailsFromDate(actualOptions.getFilterType(), dataDeltaDate);
 				return mailboxService.fetchEmails(udr, collectionPath, searchEmailsFromDate);
@@ -120,16 +120,15 @@ public class MailBackendSyncData {
 			return Objects.firstNonNull(filterType, FilterType.ALL_ITEMS).getFilteredDate(dataDeltaDate);	
 		}
 
-		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options, Integer collectionId, UserDataRequest udr)
+		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options, Integer collectionId)
 				throws FilterTypeChangedException {
 			
 			if (!snapshotIsAbsent(snapshot) && filterTypeHasChanged(snapshot, options)) {
-				manageFilterTypeChanged(udr, collectionId, snapshot.getFilterType(), options.getFilterType());
+				manageFilterTypeChanged(collectionId, snapshot.getFilterType(), options.getFilterType());
 			}
 		}
 
-		private void manageFilterTypeChanged(UserDataRequest udr, Integer collectionId, FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
-			snapshotService.deleteSnapshotAndSyncKeys(udr.getDevId(), collectionId);
+		private void manageFilterTypeChanged(Integer collectionId, FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
 			throw new FilterTypeChangedException(collectionId, previousFilterType, currentFilterType);
 		}
 

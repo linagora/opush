@@ -31,13 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
-import java.util.List;
-
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
-import org.obm.push.store.SyncKeysDao;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
@@ -47,12 +44,10 @@ import com.google.inject.Singleton;
 public class SnapshotServiceImpl implements SnapshotService {
 
 	private final SnapshotDao snapshotDao;
-	private final SyncKeysDao syncKeysDao;
 
 	@Inject
-	@VisibleForTesting SnapshotServiceImpl(SnapshotDao snapshotDao, SyncKeysDao syncKeysDao) {
+	@VisibleForTesting SnapshotServiceImpl(SnapshotDao snapshotDao) {
 		this.snapshotDao = snapshotDao;
-		this.syncKeysDao = syncKeysDao;
 	}
 
 	@Override
@@ -62,7 +57,6 @@ public class SnapshotServiceImpl implements SnapshotService {
 
 	@Override
 	public void storeSnapshot(Snapshot snapshot) {
-		syncKeysDao.put(snapshot.getDeviceId(), snapshot.getCollectionId(), snapshot.getSyncKey());
 		snapshotDao.put(snapshot);
 	}
 
@@ -71,20 +65,5 @@ public class SnapshotServiceImpl implements SnapshotService {
 		Snapshot snapshot = getSnapshot(deviceId, syncKey, collectionId);
 		storeSnapshot(Snapshot.builder()
 				.actualizeSnapshot(snapshot, newSyncKey));
-	}
-	
-	@Override
-	public void deleteSnapshotAndSyncKeys(DeviceId deviceId, int collectionId) {
-		List<SyncKey> syncKeys = syncKeysDao.get(deviceId, collectionId);
-		if (syncKeys != null) {
-			delete(deviceId, collectionId, syncKeys);
-		}
-	}
-
-	private void delete(DeviceId deviceId, int collectionId, List<SyncKey> syncKeys) {
-		for (SyncKey syncKey : syncKeys) {
-			snapshotDao.delete(deviceId, syncKey, collectionId);
-		}
-		syncKeysDao.delete(deviceId, collectionId);
 	}
 }

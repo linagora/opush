@@ -70,7 +70,6 @@ public class MigrationServiceImpl implements MigrationService {
 			MonitoredCollectionDaoEhcacheMigrationImpl monitoredCollectionDaoEhcacheMigrationImpl, MonitoredCollectionDaoEhcacheImpl monitoredCollectionDaoEhcacheImpl,
 			SnapshotDaoEhcacheMigrationImpl snapshotDaoEhcacheMigrationImpl, SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl,
 			SyncedCollectionDaoEhcacheMigrationImpl syncedCollectionDaoEhcacheMigrationImpl, SyncedCollectionDaoEhcacheImpl syncedCollectionDaoEhcacheImpl,
-			SyncKeysDaoEhcacheMigrationImpl syncKeysDaoEhcacheMigrationImpl, SyncKeysDaoEhcacheImpl syncKeysDaoEhcacheImpl,
 			UnsynchronizedItemDaoEhcacheMigrationImpl unsynchronizedItemDaoEhcacheMigrationImpl, UnsynchronizedItemDaoEhcacheImpl unsynchronizedItemDaoEhcacheImpl,
 			WindowingDaoChunkEhcacheMigrationImpl windowingDaoChunkEhcacheMigrationImpl, WindowingDaoIndexEhcacheMigrationImpl windowingDaoIndexEhcacheMigrationImpl, WindowingDaoEhcacheImpl windowingDaoEhcacheImpl) {
 		this.logger = logger;
@@ -81,7 +80,6 @@ public class MigrationServiceImpl implements MigrationService {
 				.put(monitoredCollectionDaoEhcacheMigrationImpl, monitoredCollectionDaoEhcacheImpl.getStore())
 				.put(snapshotDaoEhcacheMigrationImpl, snapshotDaoEhcacheImpl.getStore())
 				.put(syncedCollectionDaoEhcacheMigrationImpl, syncedCollectionDaoEhcacheImpl.getStore())
-				.put(syncKeysDaoEhcacheMigrationImpl, syncKeysDaoEhcacheImpl.getStore())
 				.put(unsynchronizedItemDaoEhcacheMigrationImpl, unsynchronizedItemDaoEhcacheImpl.getStore())
 				.put(windowingDaoChunkEhcacheMigrationImpl, windowingDaoEhcacheImpl.getChunksStore())
 				.put(windowingDaoIndexEhcacheMigrationImpl, windowingDaoEhcacheImpl.getIndexStore())

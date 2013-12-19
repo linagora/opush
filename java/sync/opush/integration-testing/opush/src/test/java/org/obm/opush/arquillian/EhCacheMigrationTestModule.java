@@ -68,8 +68,6 @@ public class EhCacheMigrationTestModule  extends AuthenticatedArquillianModule {
 		copyFileInDataFolder("monitoredCollectionService.index");
 		copyFileInDataFolder("syncedCollectionStoreService.data");
 		copyFileInDataFolder("syncedCollectionStoreService.index");
-		copyFileInDataFolder("syncKeysStore.data");
-		copyFileInDataFolder("syncKeysStore.index");
 		copyFileInDataFolder("unsynchronizedItemService.data");
 		copyFileInDataFolder("unsynchronizedItemService.index");
 	}

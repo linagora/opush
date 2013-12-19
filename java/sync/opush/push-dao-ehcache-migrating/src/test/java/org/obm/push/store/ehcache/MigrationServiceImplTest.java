@@ -70,8 +70,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 	private SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl;
 	private SyncedCollectionDaoEhcacheMigrationImpl syncedCollectionDaoEhcacheMigrationImpl;
 	private SyncedCollectionDaoEhcacheImpl syncedCollectionDaoEhcacheImpl;
-	private SyncKeysDaoEhcacheMigrationImpl syncKeysDaoEhcacheMigrationImpl;
-	private SyncKeysDaoEhcacheImpl syncKeysDaoEhcacheImpl;
 	private UnsynchronizedItemDaoEhcacheMigrationImpl unsynchronizedItemDaoEhcacheMigrationImpl;
 	private UnsynchronizedItemDaoEhcacheImpl unsynchronizedItemDaoEhcacheImpl;
 	private WindowingDaoChunkEhcacheMigrationImpl windowingDaoChunkEhcacheMigrationImpl;
@@ -104,8 +102,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 		snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		syncedCollectionDaoEhcacheMigrationImpl = new SyncedCollectionDaoEhcacheMigrationImpl(objectStoreManagerMigration);
 		syncedCollectionDaoEhcacheImpl = new SyncedCollectionDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
-		syncKeysDaoEhcacheMigrationImpl = new SyncKeysDaoEhcacheMigrationImpl(objectStoreManagerMigration);
-		syncKeysDaoEhcacheImpl = new SyncKeysDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		unsynchronizedItemDaoEhcacheMigrationImpl = new UnsynchronizedItemDaoEhcacheMigrationImpl(objectStoreManagerMigration);
 		unsynchronizedItemDaoEhcacheImpl = new UnsynchronizedItemDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		windowingDaoChunkEhcacheMigrationImpl = new WindowingDaoChunkEhcacheMigrationImpl(objectStoreManagerMigration);
@@ -117,7 +113,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 				monitoredCollectionDaoEhcacheMigrationImpl, monitoredCollectionDaoEhcacheImpl,
 				snapshotDaoEhcacheMigrationImpl, snapshotDaoEhcacheImpl,
 				syncedCollectionDaoEhcacheMigrationImpl, syncedCollectionDaoEhcacheImpl,
-				syncKeysDaoEhcacheMigrationImpl, syncKeysDaoEhcacheImpl,
 				unsynchronizedItemDaoEhcacheMigrationImpl, unsynchronizedItemDaoEhcacheImpl,
 				windowingDaoChunkEhcacheMigrationImpl, windowingDaoIndexEhcacheMigrationImpl, windowingDaoEhcacheImpl);
 	}
@@ -137,8 +132,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 		copyFileInTemporaryFolder("monitoredCollectionService.index");
 		copyFileInTemporaryFolder("syncedCollectionStoreService.data");
 		copyFileInTemporaryFolder("syncedCollectionStoreService.index");
-		copyFileInTemporaryFolder("syncKeysStore.data");
-		copyFileInTemporaryFolder("syncKeysStore.index");
 		copyFileInTemporaryFolder("unsynchronizedItemService.data");
 		copyFileInTemporaryFolder("unsynchronizedItemService.index");
 	}
@@ -188,17 +181,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 	}
 
 	@Test
-	public void testMigrateSyncKeys() {
-		int expectedSize = syncKeysDaoEhcacheMigrationImpl.getKeys().size();
-
-		migrationServiceImpl.migrateCache(
-				syncKeysDaoEhcacheMigrationImpl, syncKeysDaoEhcacheImpl.getStore());
-		
-		assertThat(syncKeysDaoEhcacheImpl.getStore().getKeys().size()).isGreaterThan(0).isEqualTo(expectedSize);
-		assertThat(syncKeysDaoEhcacheMigrationImpl.getKeys().size()).isEqualTo(expectedSize);
-	}
-
-	@Test
 	public void testMigrateUnsynchronizedItem() {
 		int expectedSize = unsynchronizedItemDaoEhcacheMigrationImpl.getKeys().size();
 
@@ -243,8 +225,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.MONITORED_COLLECTION_STORE + ".index"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNCED_COLLECTION_STORE + ".data"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNCED_COLLECTION_STORE + ".index"),
-				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNC_KEYS_STORE + ".data"),
-				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNC_KEYS_STORE + ".index"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.UNSYNCHRONIZED_ITEM_STORE + ".data"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.UNSYNCHRONIZED_ITEM_STORE + ".index") };
 		

@@ -31,12 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.DeviceId;
@@ -44,9 +44,6 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
-import org.obm.push.store.SyncKeysDao;
-
-import com.google.common.collect.ImmutableList;
 
 public class SnapshotServiceImplTest {
 
@@ -62,7 +59,7 @@ public class SnapshotServiceImplTest {
 		
 		replay(snapshotDao);
 		
-		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao, null);
+		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao);
 		Snapshot snapshot = snapshotService.getSnapshot(deviceId, syncKey, collectionId);
 		
 		verify(snapshotDao);
@@ -88,7 +85,7 @@ public class SnapshotServiceImplTest {
 		
 		replay(snapshotDao);
 		
-		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao, null);
+		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao);
 		Snapshot snapshot = snapshotService.getSnapshot(deviceId, syncKey, collectionId);
 		
 		verify(snapshotDao);
@@ -112,86 +109,11 @@ public class SnapshotServiceImplTest {
 		snapshotDao.put(snapshot);
 		expectLastCall().once();
 		
-		SyncKeysDao syncKeysDao = createStrictMock(SyncKeysDao.class);
-		syncKeysDao.put(deviceId, collectionId, syncKey);
-		expectLastCall().once();
+		replay(snapshotDao);
 		
-		replay(snapshotDao, syncKeysDao);
-		
-		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao, syncKeysDao);
+		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao);
 		snapshotService.storeSnapshot(snapshot);
 		
-		verify(snapshotDao, syncKeysDao);
-	}
-
-	@Test
-	public void testDeleteSnapshotAndSyncKeysEmpty() {
-		DeviceId deviceId = new DeviceId("deviceId");
-		int collectionId = 1;
-		
-		SyncKeysDao syncKeysDao = createStrictMock(SyncKeysDao.class);
-		expect(syncKeysDao.get(deviceId, collectionId))
-			.andReturn(null).once();
-		
-		replay(syncKeysDao);
-		
-		SnapshotService snapshotService = new SnapshotServiceImpl(null, syncKeysDao);
-		snapshotService.deleteSnapshotAndSyncKeys(deviceId, collectionId);
-		
-		verify(syncKeysDao);
-	}
-
-	@Test
-	public void testDeleteSnapshotAndSyncKeys() {
-		DeviceId deviceId = new DeviceId("deviceId");
-		SyncKey syncKey = new SyncKey("123");
-		int collectionId = 1;
-		
-		SnapshotDao snapshotDao = createStrictMock(SnapshotDao.class);
-		snapshotDao.delete(deviceId, syncKey, collectionId);
-		expectLastCall().once();
-		
-		SyncKeysDao syncKeysDao = createStrictMock(SyncKeysDao.class);
-		expect(syncKeysDao.get(deviceId, collectionId))
-			.andReturn(ImmutableList.of(syncKey)).once();
-		syncKeysDao.delete(deviceId, collectionId);
-		expectLastCall().once();
-		
-		replay(snapshotDao, syncKeysDao);
-		
-		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao, syncKeysDao);
-		snapshotService.deleteSnapshotAndSyncKeys(deviceId, collectionId);
-		
-		verify(snapshotDao, syncKeysDao);
-	}
-
-	@Test
-	public void testDeleteSnapshotAndSyncKeysMultipleSyncKeys() {
-		DeviceId deviceId = new DeviceId("deviceId");
-		SyncKey syncKey = new SyncKey("123");
-		SyncKey syncKey2 = new SyncKey("456");
-		SyncKey syncKey3 = new SyncKey("789");
-		int collectionId = 1;
-		
-		SnapshotDao snapshotDao = createStrictMock(SnapshotDao.class);
-		snapshotDao.delete(deviceId, syncKey, collectionId);
-		expectLastCall().once();
-		snapshotDao.delete(deviceId, syncKey2, collectionId);
-		expectLastCall().once();
-		snapshotDao.delete(deviceId, syncKey3, collectionId);
-		expectLastCall().once();
-		
-		SyncKeysDao syncKeysDao = createStrictMock(SyncKeysDao.class);
-		expect(syncKeysDao.get(deviceId, collectionId))
-			.andReturn(ImmutableList.of(syncKey, syncKey2, syncKey3)).once();
-		syncKeysDao.delete(deviceId, collectionId);
-		expectLastCall().once();
-		
-		replay(snapshotDao, syncKeysDao);
-		
-		SnapshotService snapshotService = new SnapshotServiceImpl(snapshotDao, syncKeysDao);
-		snapshotService.deleteSnapshotAndSyncKeys(deviceId, collectionId);
-		
-		verify(snapshotDao, syncKeysDao);
+		verify(snapshotDao);
 	}
 }

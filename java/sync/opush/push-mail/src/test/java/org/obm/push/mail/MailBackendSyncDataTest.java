@@ -34,7 +34,6 @@ package org.obm.push.mail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
 
 import java.util.Collection;
@@ -234,8 +233,6 @@ public class MailBackendSyncDataTest {
 				.uidNext(5000)
 				.syncKey(new SyncKey("156"))
 				.build();
-
-		expectDeleteCollectionSnapshots();
 				
 		control.replay();
 		testee.searchEmailsToManage(udr, collectionId, collectionPath, snapshot, syncCollectionOptions, date("2004-10-14T22:00:00"), 0);
@@ -327,7 +324,6 @@ public class MailBackendSyncDataTest {
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
 		expectSnapshotDaoHasEntry(syncKey, snapshot);
 		expectActualEmailServerStateByDate(actualEmailsInServer, fromDate, uidNext);
-		expectDeleteCollectionSnapshots();
 		
 		control.replay();
 		testee.create(udr, ItemSyncState.builder()
@@ -335,11 +331,6 @@ public class MailBackendSyncDataTest {
 				.syncKey(syncKey)
 				.build(), 
 				collectionId, syncCollectionOptions);
-	}
-
-	private void expectDeleteCollectionSnapshots() {
-		snapshotService.deleteSnapshotAndSyncKeys(device.getDevId(), collectionId);
-		expectLastCall();
 	}
 	
 	@Test
