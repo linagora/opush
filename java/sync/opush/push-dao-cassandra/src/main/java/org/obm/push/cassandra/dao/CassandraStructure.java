@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2011-2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,32 +29,19 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.configuration;
+package org.obm.push.cassandra.dao;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.name.Names;
-
-public class LoggerModule extends org.obm.configuration.module.LoggerModule {
-
-	public static final String AUTH = "AUTHENTICATION";
-	public static final String TRIMMED_REQUEST = "REQUEST.TRIMMED";
-	public static final String FULL_REQUEST = "REQUEST.FULL";
-	public static final String MAIL_DATA = "MAIL.DATA";
-	public static final String MIGRATION = "MIGRATION";
-	public static final String CASSANDRA = "CASSANDRA";
+public interface CassandraStructure {
 	
-	@Override
-	protected void configure() {
-		super.configure();
-		bind(Logger.class).annotatedWith(Names.named(AUTH)).toInstance(LoggerFactory.getLogger(AUTH));
-		bind(Logger.class).annotatedWith(Names.named(TRIMMED_REQUEST)).toInstance(LoggerFactory.getLogger(TRIMMED_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(FULL_REQUEST)).toInstance(LoggerFactory.getLogger(FULL_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(MAIL_DATA)).toInstance(LoggerFactory.getLogger(MAIL_DATA));
-		bind(Logger.class).annotatedWith(Names.named(MIGRATION)).toInstance(LoggerFactory.getLogger(MIGRATION));
-		bind(Logger.class).annotatedWith(Names.named(CASSANDRA)).toInstance(LoggerFactory.getLogger(CASSANDRA));
+	interface SyncedCollection {
+		String TABLE = "synced_collection";
+		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 
+		
+		interface Columns {
+			String CREDENTIALS = "credentials";
+			String DEVICE = "device";
+			String COLLECTION_ID = "collection_id";
+			String ANALYSED_SYNC_COLLECTION = "analysed_sync_collection";
+		}
 	}
-
-	
 }

@@ -105,7 +105,6 @@ import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -116,7 +115,7 @@ public class JSONService {
 	private final static Logger logger = LoggerFactory.getLogger(JSONService.class);
 	
 	@Inject
-	@VisibleForTesting JSONService() {}
+	protected JSONService() {}
 	
 	public <T> T deserialize(Class<T> t, String json) {
 		T value = null;

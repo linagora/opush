@@ -31,8 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
+import org.obm.push.store.SyncedCollectionDao;
 import org.obm.sync.LifecycleListener;
 
 import com.datastax.driver.core.Session;
@@ -46,9 +48,14 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
 		bindSession();
+		bindDao();
 		
 		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);
 		lifecycleListeners.addBinding().to(CassandraSessionProvider.class);
+	}
+
+	private void bindDao() {
+		bind(SyncedCollectionDao.class).to(SyncedCollectionDaoCassandraImpl.class);
 	}
 
 	private void bindSession() {

@@ -33,10 +33,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
-			<artifactId>configuration</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.linagora.obm</groupId>
 			<artifactId>configuration-test</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -47,6 +43,10 @@
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>push-bean</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm.opush</groupId>
+			<artifactId>push-configuration</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
