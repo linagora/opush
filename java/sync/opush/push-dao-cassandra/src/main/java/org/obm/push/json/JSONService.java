@@ -33,6 +33,7 @@ package org.obm.push.json;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Set;
 
 import org.obm.push.bean.AbstractSyncCollection;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -105,7 +106,9 @@ import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -129,6 +132,18 @@ public class JSONService {
 		return value;
 	}
 	
+	public <T> Set<T> deserializeSet(final Class<T> t, Set<String> jsons) {
+		return FluentIterable.from(jsons)
+				.transform(new Function<String, T>() {
+
+					@Override
+					public T apply(String input) {
+						return deserialize(t, input);
+					}
+				})
+				.toSet();
+	}
+	
 	public String serialize(Object object) {
 		String value = null;
 		try {
@@ -138,6 +153,18 @@ public class JSONService {
 			Throwables.propagate(e);
 		}
 		return value;
+	}
+	
+	public <T> Set<String> serializeSet(Set<T> objects) {
+		return FluentIterable.from(objects)
+			.transform(new Function<T, String>() {
+
+				@Override
+				public String apply(T input) {
+					return serialize(input);
+				}
+			})
+			.toSet();
 	}
 
 	private ObjectMapper anyVisibilityObjectMapper() {

@@ -37,6 +37,7 @@ import static org.obm.DateUtils.date;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.junit.Test;
@@ -88,7 +89,6 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceDayOfWeek;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
-import org.obm.push.json.JSONService;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
@@ -1749,5 +1749,53 @@ public class JSONServiceTest {
 			.data(msTask)
 			.build();
 		assertThat(itemChange).isEqualTo(expectedItemChange);
+	}
+	
+	@Test
+	public void testSerializeSetSingleValue() {
+		ImmutableSet<MSEventUid> msEventUids = ImmutableSet.<MSEventUid> of(new MSEventUid("uid"));
+		
+		Set<String> serialized = new JSONService().serializeSet(msEventUids);
+		assertThat(serialized).containsOnly("{\"uid\":\"uid\"}");
+	}
+	
+	@Test
+	public void testSerializeSet() {
+		ImmutableSet<MSEventUid> msEventUids = ImmutableSet.<MSEventUid> of(new MSEventUid("uid1"), new MSEventUid("uid2"));
+		
+		Set<String> serialized = new JSONService().serializeSet(msEventUids);
+		assertThat(serialized).containsOnly("{\"uid\":\"uid1\"}", "{\"uid\":\"uid2\"}");
+	}
+	
+	@Test
+	public void testSerializeEmptySet() {
+		ImmutableSet<MSEventUid> msEventUids = ImmutableSet.<MSEventUid> of();
+		
+		Set<String> serialized = new JSONService().serializeSet(msEventUids);
+		assertThat(serialized).isEmpty();
+	}
+	
+	@Test
+	public void testDeserializeSetSingleValue() {
+		Set<MSEventUid> deserializedSet = new JSONService().deserializeSet(MSEventUid.class, ImmutableSet.<String> of("{\"uid\":\"uid1\"}"));
+		
+		MSEventUid expectedMSEventUid = new MSEventUid("uid1");
+		assertThat(deserializedSet).containsOnly(expectedMSEventUid);
+	}
+	
+	@Test
+	public void testDeserializeSet() {
+		Set<MSEventUid> deserializedSet = new JSONService().deserializeSet(MSEventUid.class, ImmutableSet.<String> of("{\"uid\":\"uid1\"}", "{\"uid\":\"uid2\"}"));
+		
+		MSEventUid expectedMSEventUid = new MSEventUid("uid1");
+		MSEventUid expectedMSEventUid2 = new MSEventUid("uid2");
+		assertThat(deserializedSet).containsOnly(expectedMSEventUid, expectedMSEventUid2);
+	}
+	
+	@Test
+	public void testEmptyDeserializeSet() {
+		Set<MSEventUid> deserializedSet = new JSONService().deserializeSet(MSEventUid.class, ImmutableSet.<String> of());
+		
+		assertThat(deserializedSet).isEmpty();
 	}
 }
