@@ -63,6 +63,7 @@ import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.MissingRequestParameterException;
+import org.obm.push.protocol.data.PingAnalyser;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
@@ -80,6 +81,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 	
 	private final MonitoredCollectionDao monitoredCollectionDao;
 	private final PingProtocol protocol;
+	private final PingAnalyser pingAnalyser;
 	private final ContinuationService continuationService;
 	private final boolean enablePush;
 
@@ -87,12 +89,14 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 	protected PingHandler(IBackend backend, EncoderFactory encoderFactory,
 			IContentsImporter contentsImporter,
 			IContentsExporter contentsExporter, StateMachine stMachine,
-			PingProtocol pingProtocol, MonitoredCollectionDao monitoredCollectionDao,
+			PingProtocol pingProtocol, PingAnalyser pingAnalyser,
+			MonitoredCollectionDao monitoredCollectionDao,
 			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper, ContinuationService continuationService,
 			@Named("enable-push") boolean enablePush) {
 		
 		super(backend, encoderFactory, contentsImporter,
 				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		this.pingAnalyser = pingAnalyser;
 		
 		this.monitoredCollectionDao = monitoredCollectionDao;
 		this.protocol = pingProtocol;
@@ -105,7 +109,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 			Document doc, ActiveSyncRequest request, Responder responder) {
 		try {
 			PingRequest pingRequest = protocol.decodeRequest(doc);
-			AnalysedPingRequest analyzedPingRequest = protocol.analyzeRequest(udr, pingRequest);
+			AnalysedPingRequest analyzedPingRequest = pingAnalyser.analysePing(udr, pingRequest);
 			
 			doTheJob(continuation, udr, analyzedPingRequest);
 

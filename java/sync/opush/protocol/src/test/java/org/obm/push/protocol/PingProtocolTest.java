@@ -56,7 +56,7 @@ public class PingProtocolTest {
 	
 	@Before
 	public void init() {
-		pingProtocol = new PingProtocol(null);
+		pingProtocol = new PingProtocol();
 	}
 	
 	@Test

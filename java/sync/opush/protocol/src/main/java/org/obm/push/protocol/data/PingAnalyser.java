@@ -49,6 +49,7 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.MonitoredCollectionDao;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -77,6 +78,9 @@ public class PingAnalyser {
 
 	public AnalysedPingRequest analysePing(UserDataRequest udr, PingRequest pingRequest) 
 			throws DaoException, CollectionPathException, MissingRequestParameterException {
+
+		Preconditions.checkNotNull(udr);
+		Preconditions.checkNotNull(pingRequest);
 		
 		AnalysedPingRequest.Builder builder = AnalysedPingRequest.builder()
 			.heartbeatInterval(checkHeartbeatInterval(udr, pingRequest))

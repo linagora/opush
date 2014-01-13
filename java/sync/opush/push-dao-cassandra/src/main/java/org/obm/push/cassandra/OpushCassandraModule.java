@@ -31,9 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
+import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.obm.sync.LifecycleListener;
 
@@ -56,6 +58,7 @@ public class OpushCassandraModule extends AbstractModule {
 
 	private void bindDao() {
 		bind(SyncedCollectionDao.class).to(SyncedCollectionDaoCassandraImpl.class);
+		bind(MonitoredCollectionDao.class).to(MonitoredCollectionDaoCassandraImpl.class);
 	}
 
 	private void bindSession() {

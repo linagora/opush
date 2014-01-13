@@ -38,32 +38,22 @@ import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.UserDataRequest;
-import org.obm.push.exception.CollectionPathException;
-import org.obm.push.exception.DaoException;
-import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
-import org.obm.push.protocol.data.MissingRequestParameterException;
-import org.obm.push.protocol.data.PingAnalyser;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingResponse> {
 
-	private final PingAnalyser pingAnalyser;
 
 	@Inject
-	@VisibleForTesting PingProtocol(PingAnalyser pingAnalyser) {
-		this.pingAnalyser = pingAnalyser;
-	}
+	@VisibleForTesting PingProtocol() {}
 
 	@Override
 	public PingRequest decodeRequest(Document doc) {
@@ -164,14 +154,5 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		Element root = document.getDocumentElement();
 		DOMUtils.createElementAndText(root, "Status", errorStatus);
 		return document;
-	}
-
-	
-	public AnalysedPingRequest analyzeRequest(UserDataRequest udr, PingRequest pingRequest) 
-			throws DaoException, CollectionPathException, MissingRequestParameterException {
-		
-		Preconditions.checkNotNull(udr);
-		Preconditions.checkNotNull(pingRequest);
-		return pingAnalyser.analysePing(udr, pingRequest);
 	}
 }

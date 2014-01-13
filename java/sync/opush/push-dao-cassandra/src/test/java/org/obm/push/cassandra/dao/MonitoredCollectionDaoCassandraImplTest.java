@@ -31,28 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
-public interface CassandraStructure {
+import org.cassandraunit.CassandraCQLUnit;
+import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.junit.Before;
+import org.junit.Rule;
+import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
+
+	private static final String KEYSPACE = "opush";
+	private static final String SYNCED_COLLECTION_CQL = "monitored_collection.cql";
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet(SYNCED_COLLECTION_CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
-	interface SyncedCollection {
-		String TABLE = "synced_collection";
-		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 
-		
-		interface Columns {
-			String CREDENTIALS = "credentials";
-			String DEVICE = "device";
-			String COLLECTION_ID = "collection_id";
-			String ANALYSED_SYNC_COLLECTION = "analysed_sync_collection";
-		}
-	}
+	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
 	
-	interface MonitoredCollection {
-		String TABLE = "monitored_collection";
-		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE };
-		
-		interface Columns {
-			String CREDENTIALS = "credentials";
-			String DEVICE = "device";
-			String ANALYSED_SYNC_COLLECTIONS = "analysed_sync_collections";
-		}
+	@Before
+	public void init() {
+		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
 	}
 }
