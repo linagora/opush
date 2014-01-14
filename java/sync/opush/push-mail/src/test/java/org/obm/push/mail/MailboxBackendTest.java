@@ -85,6 +85,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.EventService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.UserEmailParserUtils;
 
 import com.google.common.base.Charsets;
@@ -112,7 +113,7 @@ public class MailboxBackendTest {
 	private Transformer transformer;
 	private EventService eventService;
 	private SnapshotService snapshotService;
-	private WindowingService windowingService;
+	private WindowingDao windowingDao;
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
 
@@ -136,12 +137,12 @@ public class MailboxBackendTest {
 		expect(transformersFactory.create(anyObject(FetchInstruction.class))).andReturn(transformer).anyTimes();
 		msEmailFetcher = new MSEmailFetcher(mailboxService, transformersFactory, msEmailConverter);
 		snapshotService = mocks.createMock(SnapshotService.class);
-		windowingService = mocks.createMock(WindowingService.class);
+		windowingDao = mocks.createMock(WindowingDao.class);
 		smtpSender = mocks.createMock(SmtpSender.class);
 		emailConfiguration = mocks.createMock(EmailConfiguration.class);
 		
 		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, snapshotService,
-				null, mappingService, msEmailFetcher, null, null, null, windowingService, smtpSender, emailConfiguration);
+				null, mappingService, msEmailFetcher, null, null, null, windowingDao, smtpSender, emailConfiguration);
 	}
 	
 	@Test(expected=ItemNotFoundException.class)

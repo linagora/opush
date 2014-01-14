@@ -48,9 +48,9 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.mail.EmailChanges;
-import org.obm.push.mail.WindowingService;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.store.ehcache.StoreManager;
 
 import com.google.common.base.Function;
@@ -74,7 +74,7 @@ public class WindowingStepdefs {
 	@Inject 
 	private TransactionProvider transactionProvider;
 	
-	private final WindowingService windowingService;
+	private final WindowingDao windowingDao;
 	private TransactionManager tm;
 	private final StoreManager storeManager;
 
@@ -92,8 +92,8 @@ public class WindowingStepdefs {
 
 	
 	@Inject
-	public WindowingStepdefs(WindowingService windowingService, StoreManager storeManager) {
-		this.windowingService = windowingService;
+	public WindowingStepdefs(WindowingDao windowingDao, StoreManager storeManager) {
+		this.windowingDao = windowingDao;
 		this.storeManager = storeManager;
 	}
 	
@@ -124,15 +124,15 @@ public class WindowingStepdefs {
 	@When("user ask for the first (\\d+) elements")
 	public void retrieveFirstElements(int elements) {
 		userGenerateANewSyncKey();
-		windowingService.hasPendingElements(windowingIndexKey, syncKey);
-		windowingService.pushPendingElements(windowingIndexKey, syncKey, inbox, elements);
+		windowingDao.hasPendingElements(windowingIndexKey, syncKey);
+		windowingDao.pushPendingElements(windowingIndexKey, syncKey, inbox, elements);
 		this.elementsLeft = inbox.sumOfChanges();
 		retrieveNextElements(elements);
 	}
 	
 	@When("user ask for the next (\\d+) elements")
 	public void retrieveNextElements(int elements) {
-		windowingService.hasPendingElements(windowingIndexKey, syncKey);
+		windowingDao.hasPendingElements(windowingIndexKey, syncKey);
 		startToRetrieveElements();
 		userGenerateANewSyncKey();
 		retrieveElements(elements);
@@ -154,7 +154,7 @@ public class WindowingStepdefs {
 	}
 
 	private void retrieveElements(int elements) {
-		retrievedElements = windowingService.popNextPendingElements(windowingIndexKey, elements, syncKey);
+		retrievedElements = windowingDao.popNextPendingElements(windowingIndexKey, elements, syncKey);
 		this.elementsLeft -= retrievedElements.sumOfChanges();
 	}
 	
@@ -165,8 +165,8 @@ public class WindowingStepdefs {
 	
 	@Then("there is (\\d+) elements left in store$")
 	public void assertElementsInStore(int elements) {
-		assertThat(windowingService.hasPendingElements(windowingIndexKey, syncKey)).isEqualTo(elements > 0);
-		EmailChanges pendingChanges = windowingService.popNextPendingElements(windowingIndexKey, Integer.MAX_VALUE, syncKey);
+		assertThat(windowingDao.hasPendingElements(windowingIndexKey, syncKey)).isEqualTo(elements > 0);
+		EmailChanges pendingChanges = windowingDao.popNextPendingElements(windowingIndexKey, Integer.MAX_VALUE, syncKey);
 		assertThat(pendingChanges).isEqualTo(generateEmails(elements));
 	}
 	

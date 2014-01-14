@@ -42,8 +42,6 @@ import org.obm.opush.env.OpushConfigurationFixture;
 import org.obm.opush.env.OpushStaticConfiguration;
 import org.obm.opush.env.OpushStaticConfiguration.EhCache;
 import org.obm.push.configuration.OpushConfiguration;
-import org.obm.push.mail.WindowingService;
-import org.obm.push.mail.WindowingServiceImpl;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.store.ehcache.CacheEvictionListener;
 import org.obm.push.store.ehcache.CacheEvictionListenerImpl;
@@ -75,7 +73,6 @@ public class WindowingModule extends AbstractModule {
 		bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));
 		bind(TransactionProvider.class).to(LazyTransactionProvider.class);
 		bind(WindowingDao.class).to(WindowingDaoEhcacheImpl.class);
-		bind(WindowingService.class).to(WindowingServiceImpl.class);
 		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(configurationLogger);
 		bind(EhCacheConfiguration.class).toInstance(new EhCache(configuration.ehCache));
 		bind(StoreManager.class).to(ObjectStoreManager.class);

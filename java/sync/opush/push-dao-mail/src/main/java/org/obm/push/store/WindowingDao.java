@@ -36,18 +36,10 @@ import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.WindowingIndexKey;
 
 public interface WindowingDao {
+
+	EmailChanges popNextPendingElements(WindowingIndexKey key, int maxSize, SyncKey newSyncKey);
 	
-	Iterable<EmailChanges> consumingChunksIterable(WindowingIndexKey key);
+	void pushPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges changes, int windowSize);
 
-	void pushNextRequestPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges partition);
-	
-	void pushPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges partition);
-
-	SyncKey getWindowingSyncKey(WindowingIndexKey key);
-
-	void removePreviousCollectionWindowing(WindowingIndexKey key);
-
-	Object getChunksStore();
-
-	Object getIndexStore();
+	boolean hasPendingElements(WindowingIndexKey key, SyncKey syncKey);
 }

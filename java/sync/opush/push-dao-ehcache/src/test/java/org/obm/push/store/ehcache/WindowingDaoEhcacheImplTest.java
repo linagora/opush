@@ -31,9 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
@@ -42,22 +44,44 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.obm.annotations.transactional.TransactionProvider;
 import org.obm.push.configuration.OpushConfiguration;
-import org.obm.push.dao.testsuite.WindowingDaoTest;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.User;
+import org.obm.push.bean.User.Factory;
+import org.obm.push.mail.EmailChanges;
+import org.obm.push.mail.bean.Email;
+import org.obm.push.mail.bean.WindowingIndexKey;
 import org.obm.transaction.TransactionManagerRule;
 import org.slf4j.Logger;
 
-public class WindowingDaoEhcacheImplTest extends WindowingDaoTest {
+import com.google.common.base.Function;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Range;
+
+public class WindowingDaoEhcacheImplTest {
 
 	@Rule public TemporaryFolder tempFolder =  new TemporaryFolder();
 	@Rule public TransactionManagerRule transactionManagerRule = new TransactionManagerRule();
 	
+	private WindowingDaoEhcacheImpl.PartitionDao testee;
 	private ObjectStoreManager objectStoreManager;
+
+	private User user;
+	private Device device;
 
 	@Before
 	public void init() throws NotSupportedException, SystemException, IOException {
+		user = Factory.create().createUser("login@domain", "email@domain", "displayName");
+		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		
 		Logger logger = EasyMock.createNiceMock(Logger.class);
 		TransactionProvider transactionProvider = EasyMock.createNiceMock(TransactionProvider.class);
 		OpushConfiguration opushConfiguration = new EhCacheOpushConfiguration().mock(tempFolder);
@@ -65,7 +89,7 @@ public class WindowingDaoEhcacheImplTest extends WindowingDaoTest {
 		TestingEhCacheConfiguration config = new TestingEhCacheConfiguration();
 		objectStoreManager = new ObjectStoreManager(opushConfiguration, config, logger, transactionProvider);
 		CacheEvictionListener cacheEvictionListener = createMock(CacheEvictionListener.class);
-		windowingDao = new WindowingDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
+		testee = new WindowingDaoEhcacheImpl.PartitionDao(objectStoreManager, cacheEvictionListener);
 		
 		transactionManagerRule.getTransactionManager().begin();
 	}
@@ -74,5 +98,110 @@ public class WindowingDaoEhcacheImplTest extends WindowingDaoTest {
 	public void cleanup() throws IllegalStateException, SecurityException, SystemException {
 		transactionManagerRule.getTransactionManager().rollback();
 		objectStoreManager.shutdown();
+	}
+	
+	@Test
+	public void testGetWindowingSyncKeyOnEmptyStore() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		assertThat(syncKey).isNull();
+	}
+	
+	@Test
+	public void testGetWindowingSyncKey() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey expectedSyncKey = new SyncKey("123");
+		testee.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
+		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		assertThat(syncKey).isEqualTo(expectedSyncKey);
+	}
+	
+	@Test
+	public void testGetWindowingSyncKeyBadKey() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		testee.pushPendingElements(WindowingIndexKey, new SyncKey("123"), EmailChanges.builder().build());
+		SyncKey syncKey = testee.getWindowingSyncKey(new WindowingIndexKey(user, device.getDevId(), 2));
+		assertThat(syncKey).isNull();
+	}
+	
+	@Test
+	public void testPushNextAndConsume() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = new SyncKey("123");
+		
+		EmailChanges firstEmails = generateEmails(25);
+		EmailChanges secondEmails = generateEmails(25);
+		testee.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
+		testee.pushNextRequestPendingElements(WindowingIndexKey, syncKey, secondEmails);
+		
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
+	}
+	
+	@Test
+	public void testPushNextAndConsumeWithDataRemaining() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = new SyncKey("123");
+		EmailChanges generateEmails = generateEmails(25);
+		testee.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
+		testee.pushNextRequestPendingElements(WindowingIndexKey, syncKey, EmailChanges.builder().build());
+		
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		assertThat(emailChanges).containsOnly(generateEmails);
+	}
+	
+	@Test
+	public void testRemovePreviousCollectionWindowing() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey expectedSyncKey = new SyncKey("123");
+		testee.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
+		testee.removePreviousCollectionWindowing(WindowingIndexKey);
+		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		assertThat(syncKey).isNull();
+	}
+	
+	@Test
+	public void testConsumingChunksIterableCleansStore() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = new SyncKey("123");
+		EmailChanges generateEmails = generateEmails(25);
+		testee.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
+		
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		assertThat(emailChanges).containsOnly(generateEmails);
+		
+		Iterable<EmailChanges> emailChangesSecondTime = testee.consumingChunksIterable(WindowingIndexKey);
+		assertThat(emailChangesSecondTime).isEmpty();
+	}
+	
+	@Test
+	public void testConsumingChunksIterableWithIndex() {
+		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = new SyncKey("123");
+		EmailChanges firstEmails = generateEmails(25);
+		testee.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
+		SyncKey secondSyncKey = new SyncKey("456");
+		EmailChanges secondEmails = generateEmails(25, 30);
+		testee.pushPendingElements(WindowingIndexKey, secondSyncKey, secondEmails);
+		
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
+	}
+
+	private EmailChanges generateEmails(long number) {
+		return generateEmails(0, number);
+	}
+	
+	private EmailChanges generateEmails(long start, long number) {
+		return EmailChanges.builder()
+				.additions(
+					FluentIterable.from(ContiguousSet.create(Range.closedOpen(start, start + number), DiscreteDomain.longs()))
+						.transform(new Function<Long, Email>() {
+							@Override
+							public Email apply(Long uid) {
+								return Email.builder().uid(uid).build();
+							}
+						}).toSet())
+				.build();
 	}
 }

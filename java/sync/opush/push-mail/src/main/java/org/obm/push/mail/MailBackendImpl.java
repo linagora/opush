@@ -114,6 +114,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.tnefconverter.TNEFConverterException;
 import org.obm.push.tnefconverter.TNEFUtils;
 import org.obm.push.utils.FileUtils;
@@ -162,7 +163,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final SnapshotService snapshotService;
 	private final EmailChangesFetcher emailChangesFetcher;
 	private final MailBackendSyncDataFactory mailBackendSyncDataFactory;
-	private final WindowingService windowingService;
+	private final WindowingDao windowingDao;
 	private final SmtpSender smtpSender;
 
 
@@ -180,7 +181,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			TransformersFactory transformersFactory,
 			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
 			MailBackendSyncDataFactory mailBackendSyncDataFactory,
-			WindowingService windowingService,
+			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
 			EmailConfiguration emailConfiguration)  {
 
@@ -194,7 +195,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		this.msEmailFetcher = msEmailFetcher;
 		this.transformersFactory = transformersFactory;
 		this.mailBackendSyncDataFactory = mailBackendSyncDataFactory;
-		this.windowingService = windowingService;
+		this.windowingDao = windowingDao;
 		this.smtpSender = smtpSender;
 		this.emailConfiguration = emailConfiguration;
 	}
@@ -320,7 +321,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			SyncKey requestSyncKey = syncCollection.getSyncKey();
 			WindowingIndexKey key = new WindowingIndexKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId());
 			
-			if (windowingService.hasPendingElements(key, requestSyncKey)) {
+			if (windowingDao.hasPendingElements(key, requestSyncKey)) {
 				snapshotService.actualizeSnapshot(udr.getDevId(), requestSyncKey, syncCollection.getCollectionId(), newSyncKey);
 				return continueWindowing(udr, syncCollection, key, syncState.getSyncDate(), newSyncKey);
 			} else {
@@ -343,7 +344,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		if (collection.getWindowSize() >= syncData.getEmailChanges().sumOfChanges()) {
 			return fetchChanges(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey, syncData.getEmailChanges());
 		} else {
-			windowingService.pushPendingElements(key, newSyncKey, syncData.getEmailChanges(), collection.getWindowSize());
+			windowingDao.pushPendingElements(key, newSyncKey, syncData.getEmailChanges(), collection.getWindowSize());
 			return continueWindowing(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey);
 		}
 	}
@@ -352,7 +353,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
 		
-		EmailChanges pendingChanges = windowingService.popNextPendingElements(key, collection.getWindowSize(), dataDeltaSyncKey);
+		EmailChanges pendingChanges = windowingDao.popNextPendingElements(key, collection.getWindowSize(), dataDeltaSyncKey);
 		return fetchChanges(udr, collection, key, dataDelaSyncDate, dataDeltaSyncKey, pendingChanges);
 	}
 
@@ -369,7 +370,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.deletions(serverItemChanges.getItemDeletions())
 				.syncDate(dataDelaSyncDate)
 				.syncKey(dataDeltaSyncKey)
-				.moreAvailable(windowingService.hasPendingElements(key, dataDeltaSyncKey))
+				.moreAvailable(windowingDao.hasPendingElements(key, dataDeltaSyncKey))
 				.build();
 	}
 

@@ -51,6 +51,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.annotations.transactional.TransactionProvider;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.store.ehcache.WindowingDaoEhcacheImpl.PartitionDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +107,7 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 		unsynchronizedItemDaoEhcacheImpl = new UnsynchronizedItemDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		windowingDaoChunkEhcacheMigrationImpl = new WindowingDaoChunkEhcacheMigrationImpl(objectStoreManagerMigration);
 		windowingDaoIndexEhcacheMigrationImpl = new WindowingDaoIndexEhcacheMigrationImpl(objectStoreManagerMigration);
-		windowingDaoEhcacheImpl = new WindowingDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
+		windowingDaoEhcacheImpl = new WindowingDaoEhcacheImpl(new PartitionDao(objectStoreManager, cacheEvictionListener));
 
 		migrationServiceImpl = new MigrationServiceImpl(logger,
 				objectStoreManager, objectStoreManagerMigration,

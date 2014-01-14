@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.push.mail.MSMailTestsUtils.loadEmail;
 import static org.obm.push.mail.MSMailTestsUtils.mockOpushConfiguration;
 
@@ -81,6 +81,7 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -101,7 +102,7 @@ public class MailBackendTest {
 	private UserDataRequest udr;
 	private MailboxService mailboxService;
 	private MappingService mappingService;
-	private WindowingService windowingService;
+	private WindowingDao windowingDao;
 	private Provider<Builder> collectionPathBuilderProvider;
 	private CollectionPath.Builder collectionPathBuilder;
 	private SmtpSender smtpSender;
@@ -125,12 +126,12 @@ public class MailBackendTest {
 		expect(collectionPathBuilderProvider.get()).andReturn(collectionPathBuilder).anyTimes();
 		mailboxService = mocksControl.createMock(MailboxService.class);
 		mappingService = mocksControl.createMock(MappingService.class);
-		windowingService = mocksControl.createMock(WindowingService.class);
+		windowingDao = mocksControl.createMock(WindowingDao.class);
 		smtpSender = mocksControl.createMock(SmtpSender.class);
 		emailConfiguration = mocksControl.createMock(EmailConfiguration.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, null, null, mappingService,
-				null, null, collectionPathBuilderProvider, null, windowingService, smtpSender, emailConfiguration);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration);
 	}
 	
 	@Test
@@ -154,7 +155,7 @@ public class MailBackendTest {
 				
 		MailBackend mailBackend = new MailBackendImpl(mailboxService, authenticationService, new Mime4jUtils(),
 				mockOpushConfiguration(), null, null, mappingService, null, null,
-				collectionPathBuilderProvider, null, windowingService, smtpSender, emailConfiguration);
+				collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration);
 
 		mocksControl.replay();
 		
@@ -376,7 +377,7 @@ public class MailBackendTest {
 		
 		mocksControl.replay();
 		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, null,
-				null, null, collectionPathBuilderProvider, null, windowingService, smtpSender, emailConfiguration);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration);
 		Collection<OpushCollection> specialFolders = mailBackend.listSpecialFolders(udr).collections();
 		mocksControl.verify();
 
@@ -400,7 +401,7 @@ public class MailBackendTest {
 		
 		mocksControl.replay();
 		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, null,
-				null, null, collectionPathBuilderProvider, null, windowingService, smtpSender, emailConfiguration);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration);
 		Collection<OpushCollection> subscribedFolders = mailBackend.listSubscribedFolders(udr).collections();
 		mocksControl.verify();
 
@@ -426,7 +427,7 @@ public class MailBackendTest {
 		
 		mocksControl.replay();
 		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, mappingService,
-				null, null, collectionPathBuilderProvider, null, windowingService, smtpSender, emailConfiguration);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration);
 		CollectionChange itemChange = mailBackend.createCollectionChange(udr, collection);
 		mocksControl.verify();
 		

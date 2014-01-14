@@ -33,14 +33,10 @@ package org.obm.push.dao.testsuite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Properties;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.guice.GuiceRunner;
-import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
@@ -59,103 +55,119 @@ import com.google.common.collect.Range;
 @RunWith(GuiceRunner.class)
 public abstract class WindowingDaoTest {
 
-	protected WindowingDao windowingDao;
+	protected int collectionId;
+	protected DeviceId deviceId;
+	protected User user;
 
-	private User user;
-	private Device device;
-	
+	protected WindowingDao testee;
+
 	@Before
-	public void setUp() {
-		user = Factory.create().createUser("login@domain", "email@domain", "displayName");
-		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+	public void setup() {
+		collectionId = 5;
+		deviceId = new DeviceId("ab123");
+		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 	}
 	
-	@Test
-	public void testGetWindowingSyncKeyOnEmptyStore() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		SyncKey syncKey = windowingDao.getWindowingSyncKey(WindowingIndexKey);
-		assertThat(syncKey).isNull();
-	}
-	
-	@Test
-	public void testGetWindowingSyncKey() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		SyncKey expectedSyncKey = new SyncKey("123");
-		windowingDao.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
-		SyncKey syncKey = windowingDao.getWindowingSyncKey(WindowingIndexKey);
-		assertThat(syncKey).isEqualTo(expectedSyncKey);
-	}
-	
-	@Test
-	public void testGetWindowingSyncKeyBadKey() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		windowingDao.pushPendingElements(WindowingIndexKey, new SyncKey("123"), EmailChanges.builder().build());
-		SyncKey syncKey = windowingDao.getWindowingSyncKey(new WindowingIndexKey(user, device.getDevId(), 2));
-		assertThat(syncKey).isNull();
-	}
-	
-	@Test
-	public void testPushNextAndConsume() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+	@Test(expected=IllegalArgumentException.class)
+	public void popNextPendingElementsNullKey() {
+		WindowingIndexKey key = null;
 		SyncKey syncKey = new SyncKey("123");
-		
-		EmailChanges firstEmails = generateEmails(25);
-		EmailChanges secondEmails = generateEmails(25);
-		windowingDao.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
-		windowingDao.pushNextRequestPendingElements(WindowingIndexKey, syncKey, secondEmails);
-		
-		Iterable<EmailChanges> emailChanges = windowingDao.consumingChunksIterable(WindowingIndexKey);
-		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
+		int expectedSize = 12;
+
+		testee.popNextPendingElements(key, expectedSize, syncKey);
 	}
 	
-	@Test
-	public void testPushNextAndConsumeWithDataRemaining() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+	@Test(expected=IllegalArgumentException.class)
+	public void popNextPendingElementsZeroExpectedSize() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
-		EmailChanges generateEmails = generateEmails(25);
-		windowingDao.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
-		windowingDao.pushNextRequestPendingElements(WindowingIndexKey, syncKey, EmailChanges.builder().build());
-		
-		Iterable<EmailChanges> emailChanges = windowingDao.consumingChunksIterable(WindowingIndexKey);
-		assertThat(emailChanges).containsOnly(generateEmails);
+		int expectedSize = 0;
+		testee.popNextPendingElements(key, expectedSize, syncKey);
 	}
 	
-	@Test
-	public void testRemovePreviousCollectionWindowing() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		SyncKey expectedSyncKey = new SyncKey("123");
-		windowingDao.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
-		windowingDao.removePreviousCollectionWindowing(WindowingIndexKey);
-		SyncKey syncKey = windowingDao.getWindowingSyncKey(WindowingIndexKey);
-		assertThat(syncKey).isNull();
-	}
-	
-	@Test
-	public void testConsumingChunksIterableCleansStore() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+	@Test(expected=IllegalArgumentException.class)
+	public void popNextPendingElementsNegativeExpectedSize() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
-		EmailChanges generateEmails = generateEmails(25);
-		windowingDao.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
-		
-		Iterable<EmailChanges> emailChanges = windowingDao.consumingChunksIterable(WindowingIndexKey);
-		assertThat(emailChanges).containsOnly(generateEmails);
-		
-		Iterable<EmailChanges> emailChangesSecondTime = windowingDao.consumingChunksIterable(WindowingIndexKey);
-		assertThat(emailChangesSecondTime).isEmpty();
+		int expectedSize = -5;
+		testee.popNextPendingElements(key, expectedSize, syncKey);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void popNextPendingElementsNullSyncKey() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey syncKey = null;
+		int expectedSize = 45;
+		testee.popNextPendingElements(key, expectedSize, syncKey);
 	}
 	
 	@Test
-	public void testConsumingChunksIterableWithIndex() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+	public void popNextPendingElementsEmpty() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
-		EmailChanges firstEmails = generateEmails(25);
-		windowingDao.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
-		SyncKey secondSyncKey = new SyncKey("456");
-		EmailChanges secondEmails = generateEmails(25, 30);
-		windowingDao.pushPendingElements(WindowingIndexKey, secondSyncKey, secondEmails);
+		int expectedSize = 12;
+
+		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
+
+		assertThat(elements.sumOfChanges()).isEqualTo(0);
+	}
+	
+	@Test
+	public void popNextPendingElementsFewElements() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey syncKey = new SyncKey("123");
+		int expectedSize = 12;
+		EmailChanges emailChanges = generateEmails(2);
+		testee.pushPendingElements(key, syncKey, emailChanges, 2);
+
+		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
+
+		assertThat(elements.sumOfChanges()).isEqualTo(2);
+	}
+	
+	@Test
+	public void popNextPendingElementsEnoughElements() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey syncKey = new SyncKey("123");
+		int expectedSize = 2;
+		EmailChanges emailChanges = generateEmails(2);
+		testee.pushPendingElements(key, syncKey, emailChanges, 2);
+
+		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
 		
-		Iterable<EmailChanges> emailChanges = windowingDao.consumingChunksIterable(WindowingIndexKey);
-		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
+		assertThat(elements.sumOfChanges()).isEqualTo(2);
+	}
+
+	@Test
+	public void hasPendingElementsNoIndex() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey syncKey = new SyncKey("123");
+
+		boolean hasPendingElements = testee.hasPendingElements(key, syncKey);
+		
+		assertThat(hasPendingElements).isFalse();
+	}
+
+	@Test
+	public void hasPendingElementsSameIndexSyncKey() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey requestSyncKey = new SyncKey("123");
+		EmailChanges emailChanges = generateEmails(1);
+		testee.pushPendingElements(key, requestSyncKey, emailChanges, 2);
+		
+		boolean hasPendingElements = testee.hasPendingElements(key, requestSyncKey);
+		
+		assertThat(hasPendingElements).isTrue();
+	}
+	
+	@Test
+	public void hasPendingElementsDifferentIndexSyncKey() {
+		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		SyncKey requestSyncKey = new SyncKey("123");
+
+		boolean hasPendingElements = testee.hasPendingElements(key, requestSyncKey);
+		
+		assertThat(hasPendingElements).isFalse();
 	}
 
 	private EmailChanges generateEmails(long number) {

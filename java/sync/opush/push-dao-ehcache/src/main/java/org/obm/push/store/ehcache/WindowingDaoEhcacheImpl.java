@@ -40,6 +40,8 @@ import net.sf.ehcache.Element;
 
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.EmailChanges;
+import org.obm.push.mail.EmailChanges.Builder;
+import org.obm.push.mail.EmailChanges.Splitter;
 import org.obm.push.mail.bean.WindowingIndexKey;
 import org.obm.push.store.WindowingDao;
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -55,136 +58,206 @@ import com.google.inject.Singleton;
 public class WindowingDaoEhcacheImpl implements WindowingDao {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private final Cache chunksStore;
-	private final Cache indexStore;
+	private final PartitionDao partitionDao;
 	
-	@Inject 
-	@VisibleForTesting WindowingDaoEhcacheImpl(StoreManager objectStoreManager, CacheEvictionListener cacheEvictionListener) {
-		chunksStore = objectStoreManager.getStore(EhCacheStores.MAIL_WINDOWING_CHUNKS_STORE);
-		chunksStore.getCacheEventNotificationService().registerListener(cacheEvictionListener);
-		indexStore = objectStoreManager.getStore(EhCacheStores.MAIL_WINDOWING_INDEX_STORE);
-		indexStore.getCacheEventNotificationService().registerListener(cacheEvictionListener);
+	@Inject
+	@VisibleForTesting WindowingDaoEhcacheImpl(PartitionDao partitionDao) {
+		this.partitionDao = partitionDao;
+	}
+	
+	@Override
+	public EmailChanges popNextPendingElements(WindowingIndexKey key, int maxSize, SyncKey newSyncKey) {
+		Preconditions.checkArgument(key != null);
+		Preconditions.checkArgument(maxSize > 0);
+		Preconditions.checkArgument(newSyncKey != null);
+
+		logger.info("retrieve a maximum of {} changes for key {}", maxSize, key);
+		
+		EmailChanges changes = getEnoughChunks(key, maxSize);
+		Splitter splittedToFitWindowSize = splitToFitWindowSize(changes, maxSize);
+		partitionDao.pushNextRequestPendingElements(key, newSyncKey, splittedToFitWindowSize.getLeft());
+		return splittedToFitWindowSize.getFit();
 	}
 
-	@Override
-	public Cache getChunksStore() {
-		return chunksStore;
+	private Splitter splitToFitWindowSize(EmailChanges changes, int maxSize) {
+		Splitter parts = changes.splitToFit(maxSize);
+
+		logger.info("a chunk has been splitted, fit:{} and left:{}", parts.getFit(), parts.getLeft());
+		
+		return parts;
 	}
 
-	@Override
-	public Cache getIndexStore() {
-		return indexStore;
-	}
+	private EmailChanges getEnoughChunks(WindowingIndexKey key, int maxSize) {
+		Builder builder = EmailChanges.builder();
+		for (EmailChanges changes: partitionDao.consumingChunksIterable(key)) {
 
-	@Override
-	public Iterable<EmailChanges> consumingChunksIterable(final WindowingIndexKey key) {
-		return new Iterable<EmailChanges>() {
-			@Override
-			public Iterator<EmailChanges> iterator() {
-				return new Iterator<EmailChanges>() {
-
-					@Override
-					public boolean hasNext() {
-						return getWindowingIndex(key) != null;
-					}
-
-					@Override
-					public EmailChanges next() {
-						WindowingIndex index = getWindowingIndex(key);
-						if (index == null) {
-							throw new NoSuchElementException();
-						}
-						EmailChanges emailChanges = consumeChunk(key, index);
-						udpateIndex(key, index);
-						return emailChanges;
-					}
-
-					private EmailChanges consumeChunk(WindowingIndexKey key, WindowingIndex index) {
-						ChunkKey chunkKey = new ChunkKey(key, index.getIndex());
-						Element emailChanges = chunksStore.get(chunkKey);
-						chunksStore.remove(chunkKey);
-						return (EmailChanges) emailChanges.getObjectValue();
-					}
-
-					private void udpateIndex(final WindowingIndexKey key, WindowingIndex index) {
-						if (index.getIndex() == 0) {
-							indexStore.remove(key);
-						} else {
-							indexStore.replace(new Element(key, index.nextToBeRetrieved()));
-						}
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException();
-					}
-				};
+			logger.info("a chunk is retrieved {}", changes);
+			
+			builder.merge(changes);
+			if (builder.sumOfChanges() >= maxSize) {
+				break;
 			}
-		};
+		}
+		return builder.build();
 	}
 	
 	@Override
-	public void pushNextRequestPendingElements(WindowingIndexKey indexKey, SyncKey syncKey, EmailChanges partition) {
-		WindowingIndex windowingIndex = getWindowingIndex(indexKey);
-		if (partition.hasChanges()) {
-			pushNextChunk(indexKey, partition, windowingIndex.nextToBeStored(syncKey));
-		} else if (windowingHasDataRemaining(windowingIndex)) {
-			indexStore.put(new Element(indexKey, windowingIndex.nextSyncKey(syncKey)));
+	public void pushPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges changes, int windowSize) {
+		
+		logger.info("pushing windowing elements, key:{}, syncKey:{}, changes:{}, windowSize:{}", 
+				key, syncKey, changes, windowSize);
+		
+		for (EmailChanges chunk: ImmutableList.copyOf(changes.partition(windowSize)).reverse()) {
+			partitionDao.pushPendingElements(key, syncKey, chunk);
 		}
 	}
-	
-	private boolean windowingHasDataRemaining(WindowingIndex windowingIndex) {
-		return windowingIndex != null;
-	}
 
 	@Override
-	public void pushPendingElements(WindowingIndexKey indexKey, SyncKey syncKey, EmailChanges partition) {
-		pushNextChunk(indexKey, partition, nextToBeStored(indexKey, syncKey));
-	}
-
-	private WindowingIndex nextToBeStored(WindowingIndexKey indexKey, SyncKey syncKey) {
-		WindowingIndex windowingIndex = getWindowingIndex(indexKey);
-		if (windowingIndex == null) {
-			return new WindowingIndex(0, syncKey);
+	public boolean hasPendingElements(WindowingIndexKey key, SyncKey syncKey) {
+		SyncKey windowingSyncKey = partitionDao.getWindowingSyncKey(key);
+		
+		if (windowingSyncKey == null) {
+			logger.info("no pending windowing for key {}", key);
+			return false;
+		} else if(!windowingSyncKey.equals(syncKey)) {
+			logger.info("reseting a pending windowing for key {} and syncKey {} by a new syncKey {}",
+					key, windowingSyncKey, syncKey);
+			partitionDao.removePreviousCollectionWindowing(key);
+			return false;
 		} else {
-			return windowingIndex.nextToBeStored(syncKey);
+			logger.info("there is a pending windowing for key {}, syncKey is {}", key, windowingSyncKey);
+			return true;
 		}
 	}
 
-	private void pushNextChunk(WindowingIndexKey indexKey, EmailChanges partition, WindowingIndex nextIndex) {
-		logger.debug("put windowing EmailChanges with key {} : {}", indexKey, partition);
-		chunksStore.put(new Element(new ChunkKey(indexKey, nextIndex.getIndex()), partition));
-		indexStore.put(new Element(indexKey, nextIndex));
+	public Cache getChunksStore() {
+		return partitionDao.chunksStore;
+	}
+
+	public Cache getIndexStore() {
+		return partitionDao.indexStore;
 	}
 	
-	private WindowingIndex getWindowingIndex(WindowingIndexKey key) {
-		Element indexElement = indexStore.get(key);
-		return (WindowingIndex) (indexElement != null ? indexElement.getObjectValue() : null);
-	}
-
-	@Override
-	public SyncKey getWindowingSyncKey(WindowingIndexKey key) {
-		WindowingIndex windowingIndex = getWindowingIndex(key);
-		if (windowingIndex != null) {
-			return windowingIndex.getSyncKey();
+	@Singleton
+	public static class PartitionDao {
+		
+		private final Logger logger = LoggerFactory.getLogger(getClass());
+		private final Cache chunksStore;
+		private final Cache indexStore;
+		
+		@Inject
+		@VisibleForTesting PartitionDao(StoreManager objectStoreManager, CacheEvictionListener cacheEvictionListener) {
+			chunksStore = objectStoreManager.getStore(EhCacheStores.MAIL_WINDOWING_CHUNKS_STORE);
+			chunksStore.getCacheEventNotificationService().registerListener(cacheEvictionListener);
+			indexStore = objectStoreManager.getStore(EhCacheStores.MAIL_WINDOWING_INDEX_STORE);
+			indexStore.getCacheEventNotificationService().registerListener(cacheEvictionListener);
 		}
-		return null;
-	}
-
-	@Override
-	public void removePreviousCollectionWindowing(WindowingIndexKey key) {
-		WindowingIndex windowingIndex = getWindowingIndex(key);
-		if (windowingIndex != null) {
-			indexStore.remove(key);
-			removePreviousCollectionChunks(key, windowingIndex);
+	
+		public Iterable<EmailChanges> consumingChunksIterable(final WindowingIndexKey key) {
+			return new Iterable<EmailChanges>() {
+				@Override
+				public Iterator<EmailChanges> iterator() {
+					return new Iterator<EmailChanges>() {
+	
+						@Override
+						public boolean hasNext() {
+							return getWindowingIndex(key) != null;
+						}
+	
+						@Override
+						public EmailChanges next() {
+							WindowingIndex index = getWindowingIndex(key);
+							if (index == null) {
+								throw new NoSuchElementException();
+							}
+							EmailChanges emailChanges = consumeChunk(key, index);
+							udpateIndex(key, index);
+							return emailChanges;
+						}
+	
+						private EmailChanges consumeChunk(WindowingIndexKey key, WindowingIndex index) {
+							ChunkKey chunkKey = new ChunkKey(key, index.getIndex());
+							Element emailChanges = chunksStore.get(chunkKey);
+							chunksStore.remove(chunkKey);
+							return (EmailChanges) emailChanges.getObjectValue();
+						}
+	
+						private void udpateIndex(final WindowingIndexKey key, WindowingIndex index) {
+							if (index.getIndex() == 0) {
+								indexStore.remove(key);
+							} else {
+								indexStore.replace(new Element(key, index.nextToBeRetrieved()));
+							}
+						}
+	
+						@Override
+						public void remove() {
+							throw new UnsupportedOperationException();
+						}
+					};
+				}
+			};
 		}
-	}
-
-	private void removePreviousCollectionChunks(WindowingIndexKey key, WindowingIndex startingIndex) {
-		WindowingIndex indexToRemove = startingIndex;
-		while (indexToRemove != null) {
-			chunksStore.remove(new ChunkKey(key, indexToRemove.getIndex()));
-			indexToRemove = indexToRemove.nextToBeRetrieved();
+		
+		public void pushNextRequestPendingElements(WindowingIndexKey indexKey, SyncKey syncKey, EmailChanges partition) {
+			WindowingIndex windowingIndex = getWindowingIndex(indexKey);
+			if (partition.hasChanges()) {
+				pushNextChunk(indexKey, partition, windowingIndex.nextToBeStored(syncKey));
+			} else if (windowingHasDataRemaining(windowingIndex)) {
+				indexStore.put(new Element(indexKey, windowingIndex.nextSyncKey(syncKey)));
+			}
+		}
+		
+		private boolean windowingHasDataRemaining(WindowingIndex windowingIndex) {
+			return windowingIndex != null;
+		}
+	
+		public void pushPendingElements(WindowingIndexKey indexKey, SyncKey syncKey, EmailChanges partition) {
+			pushNextChunk(indexKey, partition, nextToBeStored(indexKey, syncKey));
+		}
+	
+		private WindowingIndex nextToBeStored(WindowingIndexKey indexKey, SyncKey syncKey) {
+			WindowingIndex windowingIndex = getWindowingIndex(indexKey);
+			if (windowingIndex == null) {
+				return new WindowingIndex(0, syncKey);
+			} else {
+				return windowingIndex.nextToBeStored(syncKey);
+			}
+		}
+	
+		private void pushNextChunk(WindowingIndexKey indexKey, EmailChanges partition, WindowingIndex nextIndex) {
+			logger.debug("put windowing EmailChanges with key {} : {}", indexKey, partition);
+			chunksStore.put(new Element(new ChunkKey(indexKey, nextIndex.getIndex()), partition));
+			indexStore.put(new Element(indexKey, nextIndex));
+		}
+		
+		private WindowingIndex getWindowingIndex(WindowingIndexKey key) {
+			Element indexElement = indexStore.get(key);
+			return (WindowingIndex) (indexElement != null ? indexElement.getObjectValue() : null);
+		}
+	
+		public SyncKey getWindowingSyncKey(WindowingIndexKey key) {
+			WindowingIndex windowingIndex = getWindowingIndex(key);
+			if (windowingIndex != null) {
+				return windowingIndex.getSyncKey();
+			}
+			return null;
+		}
+	
+		public void removePreviousCollectionWindowing(WindowingIndexKey key) {
+			WindowingIndex windowingIndex = getWindowingIndex(key);
+			if (windowingIndex != null) {
+				indexStore.remove(key);
+				removePreviousCollectionChunks(key, windowingIndex);
+			}
+		}
+	
+		private void removePreviousCollectionChunks(WindowingIndexKey key, WindowingIndex startingIndex) {
+			WindowingIndex indexToRemove = startingIndex;
+			while (indexToRemove != null) {
+				chunksStore.remove(new ChunkKey(key, indexToRemove.getIndex()));
+				indexToRemove = indexToRemove.nextToBeRetrieved();
+			}
 		}
 	}
 
