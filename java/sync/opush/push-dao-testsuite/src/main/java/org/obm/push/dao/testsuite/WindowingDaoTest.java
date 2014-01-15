@@ -43,7 +43,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
-import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;
@@ -70,7 +70,7 @@ public abstract class WindowingDaoTest {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void popNextPendingElementsNullKey() {
-		WindowingIndexKey key = null;
+		WindowingKey key = null;
 		SyncKey syncKey = new SyncKey("123");
 		int expectedSize = 12;
 
@@ -79,23 +79,23 @@ public abstract class WindowingDaoTest {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void popNextPendingElementsZeroExpectedSize() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 0;
 		testee.popNextPendingElements(key, expectedSize, syncKey);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void popNextPendingElementsNegativeExpectedSize() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = -5;
 		testee.popNextPendingElements(key, expectedSize, syncKey);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void popNextPendingElementsNullSyncKey() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, new SyncKey("123"));
 		SyncKey syncKey = null;
 		int expectedSize = 45;
 		testee.popNextPendingElements(key, expectedSize, syncKey);
@@ -103,8 +103,8 @@ public abstract class WindowingDaoTest {
 	
 	@Test
 	public void popNextPendingElementsEmpty() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 12;
 
 		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
@@ -114,8 +114,8 @@ public abstract class WindowingDaoTest {
 	
 	@Test
 	public void popNextPendingElementsFewElements() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 12;
 		EmailChanges emailChanges = generateEmails(2);
 		testee.pushPendingElements(key, syncKey, emailChanges, 2);
@@ -127,8 +127,8 @@ public abstract class WindowingDaoTest {
 	
 	@Test
 	public void popNextPendingElementsEnoughElements() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 2;
 		EmailChanges emailChanges = generateEmails(2);
 		testee.pushPendingElements(key, syncKey, emailChanges, 2);
@@ -140,8 +140,8 @@ public abstract class WindowingDaoTest {
 
 	@Test
 	public void hasPendingElementsNoIndex() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 
 		boolean hasPendingElements = testee.hasPendingElements(key, syncKey);
 		
@@ -150,8 +150,8 @@ public abstract class WindowingDaoTest {
 
 	@Test
 	public void hasPendingElementsSameIndexSyncKey() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey requestSyncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, requestSyncKey);
 		EmailChanges emailChanges = generateEmails(1);
 		testee.pushPendingElements(key, requestSyncKey, emailChanges, 2);
 		
@@ -162,8 +162,8 @@ public abstract class WindowingDaoTest {
 	
 	@Test
 	public void hasPendingElementsDifferentIndexSyncKey() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, collectionId);
 		SyncKey requestSyncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, requestSyncKey);
 
 		boolean hasPendingElements = testee.hasPendingElements(key, requestSyncKey);
 		

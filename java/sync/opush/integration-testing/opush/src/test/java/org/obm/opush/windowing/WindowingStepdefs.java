@@ -49,7 +49,7 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
-import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.store.ehcache.StoreManager;
 
@@ -78,7 +78,7 @@ public class WindowingStepdefs {
 	private TransactionManager tm;
 	private final StoreManager storeManager;
 
-	private WindowingIndexKey windowingIndexKey;
+	private WindowingKey windowingIndexKey;
 	private SyncKey syncKey;
 	private int collectionId;
 	private User user;
@@ -104,8 +104,9 @@ public class WindowingStepdefs {
 		collectionId = 5;
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		deviceId = new DeviceId("ab123");
+		syncKey = new SyncKey("123");
 		
-		windowingIndexKey = new WindowingIndexKey(user, deviceId, collectionId);
+		windowingIndexKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
 	
 	@After

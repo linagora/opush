@@ -46,6 +46,7 @@ public class WindowingIndexKey implements Serializable {
 	private final User user;
 	private final DeviceId deviceId;
 	private final int collectionId;
+
 	
 	public WindowingIndexKey(User user, DeviceId deviceId, int collectionId) {
 		Preconditions.checkArgument(user != null);

@@ -105,7 +105,7 @@ import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
-import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.mail.conversation.EmailView;
 import org.obm.push.mail.conversation.EmailViewAttachment;
 import org.obm.push.mail.exception.FilterTypeChangedException;
@@ -319,7 +319,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 		try {
 			SyncKey requestSyncKey = syncCollection.getSyncKey();
-			WindowingIndexKey key = new WindowingIndexKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId());
+			WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
 			
 			if (windowingDao.hasPendingElements(key, requestSyncKey)) {
 				snapshotService.actualizeSnapshot(udr.getDevId(), requestSyncKey, syncCollection.getCollectionId(), newSyncKey);
@@ -332,7 +332,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		}
 	}
 
-	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingIndexKey key, SyncKey newSyncKey)
+	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
 			throws EmailViewPartsFetcherException {
 		
 		Integer collectionId = collection.getCollectionId();
@@ -349,7 +349,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		}
 	}
 
-	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingIndexKey key,
+	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
 			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
 		
@@ -357,7 +357,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return fetchChanges(udr, collection, key, dataDelaSyncDate, dataDeltaSyncKey, pendingChanges);
 	}
 
-	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, WindowingIndexKey key,
+	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
 			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey, EmailChanges pendingChanges)
 		throws EmailViewPartsFetcherException {
 		

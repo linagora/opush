@@ -102,89 +102,89 @@ public class WindowingDaoEhcacheImplTest {
 	
 	@Test
 	public void testGetWindowingSyncKeyOnEmptyStore() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		SyncKey syncKey = testee.getWindowingSyncKey(windowingIndexKey);
 		assertThat(syncKey).isNull();
 	}
 	
 	@Test
 	public void testGetWindowingSyncKey() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		SyncKey expectedSyncKey = new SyncKey("123");
-		testee.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
-		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		testee.pushPendingElements(windowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
+		SyncKey syncKey = testee.getWindowingSyncKey(windowingIndexKey);
 		assertThat(syncKey).isEqualTo(expectedSyncKey);
 	}
 	
 	@Test
 	public void testGetWindowingSyncKeyBadKey() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		testee.pushPendingElements(WindowingIndexKey, new SyncKey("123"), EmailChanges.builder().build());
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		testee.pushPendingElements(windowingIndexKey, new SyncKey("123"), EmailChanges.builder().build());
 		SyncKey syncKey = testee.getWindowingSyncKey(new WindowingIndexKey(user, device.getDevId(), 2));
 		assertThat(syncKey).isNull();
 	}
 	
 	@Test
 	public void testPushNextAndConsume() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		
 		EmailChanges firstEmails = generateEmails(25);
 		EmailChanges secondEmails = generateEmails(25);
-		testee.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
-		testee.pushNextRequestPendingElements(WindowingIndexKey, syncKey, secondEmails);
+		testee.pushPendingElements(windowingIndexKey, syncKey, firstEmails);
+		testee.pushNextRequestPendingElements(windowingIndexKey, syncKey, secondEmails);
 		
-		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(windowingIndexKey);
 		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
 	}
 	
 	@Test
 	public void testPushNextAndConsumeWithDataRemaining() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		EmailChanges generateEmails = generateEmails(25);
-		testee.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
-		testee.pushNextRequestPendingElements(WindowingIndexKey, syncKey, EmailChanges.builder().build());
+		testee.pushPendingElements(windowingIndexKey, syncKey, generateEmails);
+		testee.pushNextRequestPendingElements(windowingIndexKey, syncKey, EmailChanges.builder().build());
 		
-		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(windowingIndexKey);
 		assertThat(emailChanges).containsOnly(generateEmails);
 	}
 	
 	@Test
 	public void testRemovePreviousCollectionWindowing() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
-		SyncKey expectedSyncKey = new SyncKey("123");
-		testee.pushPendingElements(WindowingIndexKey, expectedSyncKey, EmailChanges.builder().build());
-		testee.removePreviousCollectionWindowing(WindowingIndexKey);
-		SyncKey syncKey = testee.getWindowingSyncKey(WindowingIndexKey);
+		SyncKey requestedSyncKey = new SyncKey("123");
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
+		testee.pushPendingElements(windowingIndexKey, requestedSyncKey, EmailChanges.builder().build());
+		testee.removePreviousCollectionWindowing(windowingIndexKey);
+		SyncKey syncKey = testee.getWindowingSyncKey(windowingIndexKey);
 		assertThat(syncKey).isNull();
 	}
 	
 	@Test
 	public void testConsumingChunksIterableCleansStore() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		EmailChanges generateEmails = generateEmails(25);
-		testee.pushPendingElements(WindowingIndexKey, syncKey, generateEmails);
+		testee.pushPendingElements(windowingIndexKey, syncKey, generateEmails);
 		
-		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(windowingIndexKey);
 		assertThat(emailChanges).containsOnly(generateEmails);
 		
-		Iterable<EmailChanges> emailChangesSecondTime = testee.consumingChunksIterable(WindowingIndexKey);
+		Iterable<EmailChanges> emailChangesSecondTime = testee.consumingChunksIterable(windowingIndexKey);
 		assertThat(emailChangesSecondTime).isEmpty();
 	}
 	
 	@Test
 	public void testConsumingChunksIterableWithIndex() {
-		WindowingIndexKey WindowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		SyncKey syncKey = new SyncKey("123");
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, device.getDevId(), 1);
 		EmailChanges firstEmails = generateEmails(25);
-		testee.pushPendingElements(WindowingIndexKey, syncKey, firstEmails);
+		testee.pushPendingElements(windowingIndexKey, syncKey, firstEmails);
 		SyncKey secondSyncKey = new SyncKey("456");
 		EmailChanges secondEmails = generateEmails(25, 30);
-		testee.pushPendingElements(WindowingIndexKey, secondSyncKey, secondEmails);
+		testee.pushPendingElements(windowingIndexKey, secondSyncKey, secondEmails);
 		
-		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(WindowingIndexKey);
+		Iterable<EmailChanges> emailChanges = testee.consumingChunksIterable(windowingIndexKey);
 		assertThat(emailChanges).containsOnly(firstEmails, secondEmails);
 	}
 

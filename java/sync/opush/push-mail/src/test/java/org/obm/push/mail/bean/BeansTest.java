@@ -65,7 +65,7 @@ public class BeansTest {
 					.add(MailboxFolder.class)
 					.add(MailboxFolders.class)
 					.add(MimeAddress.class)
-					.add(WindowingIndexKey.class)
+					.add(WindowingKey.class)
 					.add(EmailMetadata.class)
 					.add(Acl.class)
 					.build();

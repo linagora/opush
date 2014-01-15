@@ -43,6 +43,7 @@ import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.EmailChanges.Splitter;
 import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,16 +67,17 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 	
 	@Override
-	public EmailChanges popNextPendingElements(WindowingIndexKey key, int maxSize, SyncKey newSyncKey) {
+	public EmailChanges popNextPendingElements(WindowingKey key, int maxSize, SyncKey newSyncKey) {
 		Preconditions.checkArgument(key != null);
 		Preconditions.checkArgument(maxSize > 0);
 		Preconditions.checkArgument(newSyncKey != null);
 
-		logger.info("retrieve a maximum of {} changes for key {}", maxSize, key);
+		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
+		logger.info("retrieve a maximum of {} changes for key {}", maxSize, windowingIndexKey);
 		
-		EmailChanges changes = getEnoughChunks(key, maxSize);
+		EmailChanges changes = getEnoughChunks(windowingIndexKey, maxSize);
 		Splitter splittedToFitWindowSize = splitToFitWindowSize(changes, maxSize);
-		partitionDao.pushNextRequestPendingElements(key, newSyncKey, splittedToFitWindowSize.getLeft());
+		partitionDao.pushNextRequestPendingElements(windowingIndexKey, newSyncKey, splittedToFitWindowSize.getLeft());
 		return splittedToFitWindowSize.getFit();
 	}
 
@@ -102,19 +104,25 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 	
 	@Override
-	public void pushPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges changes, int windowSize) {
-		
+	public void pushPendingElements(WindowingKey key, SyncKey syncKey, EmailChanges changes, int windowSize) {
+		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
 		logger.info("pushing windowing elements, key:{}, syncKey:{}, changes:{}, windowSize:{}", 
-				key, syncKey, changes, windowSize);
+				windowingIndexKey, syncKey, changes, windowSize);
 		
 		for (EmailChanges chunk: ImmutableList.copyOf(changes.partition(windowSize)).reverse()) {
-			partitionDao.pushPendingElements(key, syncKey, chunk);
+			partitionDao.pushPendingElements(windowingIndexKey, syncKey, chunk);
 		}
 	}
 
+	private WindowingIndexKey windowingIndexKey(WindowingKey key) {
+		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(key.getUser(), key.getDeviceId(), key.getCollectionId());
+		return windowingIndexKey;
+	}
+
 	@Override
-	public boolean hasPendingElements(WindowingIndexKey key, SyncKey syncKey) {
-		SyncKey windowingSyncKey = partitionDao.getWindowingSyncKey(key);
+	public boolean hasPendingElements(WindowingKey key, SyncKey syncKey) {
+		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
+		SyncKey windowingSyncKey = partitionDao.getWindowingSyncKey(windowingIndexKey);
 		
 		if (windowingSyncKey == null) {
 			logger.info("no pending windowing for key {}", key);
@@ -122,7 +130,7 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 		} else if(!windowingSyncKey.equals(syncKey)) {
 			logger.info("reseting a pending windowing for key {} and syncKey {} by a new syncKey {}",
 					key, windowingSyncKey, syncKey);
-			partitionDao.removePreviousCollectionWindowing(key);
+			partitionDao.removePreviousCollectionWindowing(windowingIndexKey);
 			return false;
 		} else {
 			logger.info("there is a pending windowing for key {}, syncKey is {}", key, windowingSyncKey);

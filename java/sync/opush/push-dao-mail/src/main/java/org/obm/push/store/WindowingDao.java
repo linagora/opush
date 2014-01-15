@@ -33,13 +33,13 @@ package org.obm.push.store;
 
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.EmailChanges;
-import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 
 public interface WindowingDao {
 
-	EmailChanges popNextPendingElements(WindowingIndexKey key, int maxSize, SyncKey newSyncKey);
+	EmailChanges popNextPendingElements(WindowingKey key, int maxSize, SyncKey newSyncKey);
 	
-	void pushPendingElements(WindowingIndexKey key, SyncKey syncKey, EmailChanges changes, int windowSize);
+	void pushPendingElements(WindowingKey key, SyncKey syncKey, EmailChanges changes, int windowSize);
 
-	boolean hasPendingElements(WindowingIndexKey key, SyncKey syncKey);
+	boolean hasPendingElements(WindowingKey key, SyncKey syncKey);
 }

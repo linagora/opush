@@ -46,7 +46,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
-import org.obm.push.mail.bean.WindowingIndexKey;
+import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.ehcache.WindowingDaoEhcacheImpl.WindowingIndex;
 import org.slf4j.Logger;
 
@@ -73,14 +73,16 @@ public class WindowingDaoIndexEhcacheMigrationImplTest extends StoreManagerConfi
 	
 	@Test
 	public void testGetKeys() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, 1);
-		WindowingIndexKey key2 = new WindowingIndexKey(user, deviceId, 1);
+		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, 1, syncKey);
+		SyncKey syncKey2 = new SyncKey("456");
+		WindowingKey key2 = new WindowingKey(user, deviceId, 1, syncKey2);
 		windowingDaoChunkEhcacheMigrationImpl.store.put(new Element(
 				key, 
-				new WindowingIndex(1, new SyncKey("123"))));
+				new WindowingIndex(1, syncKey)));
 		windowingDaoChunkEhcacheMigrationImpl.store.put(new Element(
 				key2, 
-				new WindowingIndex(2, new SyncKey("456"))));
+				new WindowingIndex(2, syncKey2)));
 		
 		List<Object> keys = windowingDaoChunkEhcacheMigrationImpl.getKeys();
 		assertThat(keys).containsOnly(key, key2);
@@ -88,21 +90,23 @@ public class WindowingDaoIndexEhcacheMigrationImplTest extends StoreManagerConfi
 	
 	@Test
 	public void testGet() {
+		SyncKey syncKey = new SyncKey("123");
 		Element element = new Element(
-				new WindowingIndexKey(user, deviceId, 1), 
-				new WindowingIndex(1, new SyncKey("123")));
+				new WindowingKey(user, deviceId, 1, syncKey), 
+				new WindowingIndex(1, syncKey));
 		windowingDaoChunkEhcacheMigrationImpl.store.put(element);
 		
-		Element value = windowingDaoChunkEhcacheMigrationImpl.get(new WindowingIndexKey(user, deviceId, 1));
+		Element value = windowingDaoChunkEhcacheMigrationImpl.get(new WindowingKey(user, deviceId, 1, syncKey));
 		assertThat(value).isEqualTo(element);
 	}
 	
 	@Test
 	public void testRemove() {
-		WindowingIndexKey key = new WindowingIndexKey(user, deviceId, 1);
+		SyncKey syncKey = new SyncKey("123");
+		WindowingKey key = new WindowingKey(user, deviceId, 1, syncKey);
 		windowingDaoChunkEhcacheMigrationImpl.store.put(new Element(
 				key, 
-				new WindowingIndex(1, new SyncKey("123"))));
+				new WindowingIndex(1, syncKey)));
 		
 		windowingDaoChunkEhcacheMigrationImpl.remove(key);
 		

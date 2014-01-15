@@ -421,7 +421,7 @@ public class SerializableCompatibilityTest {
 						.additions(ImmutableSet.of(
 								Email.builder().uid(3).read(true).date(date("2006-08-13T21:39:45Z")).build()))
 						.build())
-				.put("org.obm.push.mail.bean.WindowingIndexKey", new WindowingIndexKey(user, deviceId, 15))
+				.put("org.obm.push.mail.bean.WindowingIndexKey", windowingIndexKey)
 				.put("org.obm.push.mail.bean.SnapshotKey", SnapshotKey.builder()
 						.collectionId(15)
 						.deviceId(deviceId)
