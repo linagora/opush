@@ -29,17 +29,43 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store;
+package org.obm.push.cassandra.dao;
 
-import org.obm.push.bean.SyncKey;
-import org.obm.push.mail.EmailChanges;
-import org.obm.push.mail.bean.WindowingKey;
+import java.util.Map;
 
-public interface WindowingDao {
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
-	EmailChanges popNextPendingElements(WindowingKey key, int maxSize, SyncKey newSyncKey);
+public enum ChangeType {
+
+	ADD("ADD"),
+	CHANGE("CHANGE"),
+	DELETE("DELETE");
 	
-	void pushPendingElements(WindowingKey key, SyncKey syncKey, EmailChanges changes, int windowSize);
+	private final String value;
+	
+	private ChangeType(String value) {
+		this.value = value;
+	}
+	
+	public String asValue() {
+		return value;
+	}
 
-	boolean hasPendingElements(WindowingKey key);
+	public static ChangeType fromValue(String value){
+		if (valueToEnum.containsKey(value)) {
+			return valueToEnum.get(value);
+		}
+		return null;
+	}
+	
+	private static Map<String, ChangeType> valueToEnum;
+	
+	static {
+		Builder<String, ChangeType> builder = ImmutableMap.builder();
+		for (ChangeType changeType : values()) {
+			builder.put(changeType.value, changeType);
+		}
+		valueToEnum = builder.build();
+	}
 }

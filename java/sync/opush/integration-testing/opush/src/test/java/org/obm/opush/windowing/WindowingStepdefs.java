@@ -33,25 +33,17 @@ package org.obm.opush.windowing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
 import java.util.UUID;
 
-import javax.transaction.NotSupportedException;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
-
-import org.fest.util.Files;
-import org.obm.annotations.transactional.TransactionProvider;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
-import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
-import org.obm.push.store.ehcache.StoreManager;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ContiguousSet;
@@ -59,6 +51,7 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Range;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -68,17 +61,12 @@ import cucumber.api.java.en.When;
 
 public class WindowingStepdefs {
 
-	@Inject
-	private OpushConfiguration opushConfiguration;
-	
-	@Inject 
-	private TransactionProvider transactionProvider;
-	
-	private final WindowingDao windowingDao;
-	private TransactionManager tm;
-	private final StoreManager storeManager;
+	@Inject CassandraServer cassandraServer;
+	@Inject Injector injector;
 
-	private WindowingKey windowingIndexKey;
+	private WindowingDao windowingDao;
+	
+	private WindowingKey windowingKey;
 	private SyncKey syncKey;
 	private int collectionId;
 	private User user;
@@ -89,32 +77,20 @@ public class WindowingStepdefs {
 	private int elementsLeft;
 	private int retreivingChangesIteration;
 	private int retreivingChangesSum;
-
-	
-	@Inject
-	public WindowingStepdefs(WindowingDao windowingDao, StoreManager storeManager) {
-		this.windowingDao = windowingDao;
-		this.storeManager = storeManager;
-	}
 	
 	@Before
-	public void setup() throws NotSupportedException, SystemException {
-		tm = transactionProvider.get();
-		tm.begin();
+	public void setup() throws Exception {
+		cassandraServer.start();
+		windowingDao = injector.getInstance(WindowingDao.class);
+		
 		collectionId = 5;
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		deviceId = new DeviceId("ab123");
-		syncKey = new SyncKey("123");
-		
-		windowingIndexKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
 	
 	@After
-	public void shutdown() throws Exception {
-		tm.rollback();
-		storeManager.shutdown();
-		Files.delete(new File(opushConfiguration.getDataDirectory()));
-		transactionProvider.shutdown();
+	public void shutdown() {
+		cassandraServer.stop();
 	}
 	
 	@Given("user has (\\d+) elements in INBOX")
@@ -125,15 +101,16 @@ public class WindowingStepdefs {
 	@When("user ask for the first (\\d+) elements")
 	public void retrieveFirstElements(int elements) {
 		userGenerateANewSyncKey();
-		windowingDao.hasPendingElements(windowingIndexKey, syncKey);
-		windowingDao.pushPendingElements(windowingIndexKey, syncKey, inbox, elements);
+		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
+		windowingDao.hasPendingElements(windowingKey);
+		windowingDao.pushPendingElements(windowingKey, syncKey, inbox, elements);
 		this.elementsLeft = inbox.sumOfChanges();
 		retrieveNextElements(elements);
 	}
 	
 	@When("user ask for the next (\\d+) elements")
 	public void retrieveNextElements(int elements) {
-		windowingDao.hasPendingElements(windowingIndexKey, syncKey);
+		windowingDao.hasPendingElements(windowingKey);
 		startToRetrieveElements();
 		userGenerateANewSyncKey();
 		retrieveElements(elements);
@@ -155,8 +132,9 @@ public class WindowingStepdefs {
 	}
 
 	private void retrieveElements(int elements) {
-		retrievedElements = windowingDao.popNextPendingElements(windowingIndexKey, elements, syncKey);
+		retrievedElements = windowingDao.popNextPendingElements(windowingKey, elements, syncKey);
 		this.elementsLeft -= retrievedElements.sumOfChanges();
+		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
 	
 	@Then("user get (\\d+) elements$")
@@ -166,8 +144,9 @@ public class WindowingStepdefs {
 	
 	@Then("there is (\\d+) elements left in store$")
 	public void assertElementsInStore(int elements) {
-		assertThat(windowingDao.hasPendingElements(windowingIndexKey, syncKey)).isEqualTo(elements > 0);
-		EmailChanges pendingChanges = windowingDao.popNextPendingElements(windowingIndexKey, Integer.MAX_VALUE, syncKey);
+		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
+		assertThat(windowingDao.hasPendingElements(windowingKey)).isEqualTo(elements > 0);
+		EmailChanges pendingChanges = windowingDao.popNextPendingElements(windowingKey, Integer.MAX_VALUE, syncKey);
 		assertThat(pendingChanges).isEqualTo(generateEmails(elements));
 	}
 	

@@ -77,6 +77,10 @@ public class WindowingKey implements Serializable {
 		return syncKey;
 	}
 
+	public WindowingKey withSyncKey(SyncKey dataDeltaSyncKey) {
+		return new WindowingKey(getUser(), getDeviceId(), getCollectionId(), dataDeltaSyncKey);
+	}
+
 	@Override
 	public final int hashCode(){
 		return Objects.hashCode(user, deviceId, collectionId, syncKey);

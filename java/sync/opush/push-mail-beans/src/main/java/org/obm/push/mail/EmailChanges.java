@@ -45,9 +45,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 
 @JsonDeserialize(builder=EmailChanges.Builder.class)
@@ -63,15 +62,15 @@ public class EmailChanges implements Serializable {
 	
 	public static class Builder {
 	
-		private final Set<Email> additions;
-		private final Set<Email> changes;
-		private final Set<Email> deletions;
+		private final SortedEmailSet additions;
+		private final SortedEmailSet changes;
+		private final SortedEmailSet deletions;
 		
 		private Builder() {
 			super();
-			additions = Sets.newHashSet();
-			changes = Sets.newHashSet();
-			deletions = Sets.newHashSet();
+			additions = new SortedEmailSet();
+			changes = new SortedEmailSet();
+			deletions = new SortedEmailSet();
 		}
 
 		public Builder deletion(Email... emails) {
@@ -120,9 +119,9 @@ public class EmailChanges implements Serializable {
 		
 		public EmailChanges build() {
 			return new EmailChanges(
-					ImmutableSet.copyOf(deletions), 
-					ImmutableSet.copyOf(changes),
-					ImmutableSet.copyOf(additions));
+					ImmutableSortedSet.copyOfSorted(deletions), 
+					ImmutableSortedSet.copyOfSorted(changes),
+					ImmutableSortedSet.copyOfSorted(additions));
 		}
 
 	}
@@ -266,7 +265,7 @@ public class EmailChanges implements Serializable {
 						}
 					});
 	}
-
+	
 	private static EmailChanges fromEntries(Iterable<EmailPartitionEntry> entries) {
 		Builder builder = EmailChanges.builder();
 		for (EmailPartitionEntry entry: entries) {
@@ -302,6 +301,4 @@ public class EmailChanges implements Serializable {
 				}
 			});
 	}
-	
-
 }

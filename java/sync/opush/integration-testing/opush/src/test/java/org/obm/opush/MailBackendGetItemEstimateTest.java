@@ -154,7 +154,7 @@ public class MailBackendGetItemEstimateTest {
 
 	@Test
 	public void testGetItemEstimateWithInvalidSyncKey() throws Exception {
-		SyncKey invalidSyncKey = new SyncKey("456");
+		SyncKey invalidSyncKey = new SyncKey("b5dcc20d-d781-418a-b2dc-91df8b313325");
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
@@ -175,8 +175,8 @@ public class MailBackendGetItemEstimateTest {
 	@Test
 	public void testGetItemEstimateNoChange() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey lastSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("419b040c-b801-4f59-9f77-64c35a52c29e");
+		SyncKey lastSyncKey = new SyncKey("617b4ccd-2d67-4397-9e7e-57ef36fc7878");
 		int lastStateId = 3;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
@@ -220,8 +220,8 @@ public class MailBackendGetItemEstimateTest {
 	@Test
 	public void testGetItemEstimateNoChangeWithFilterTypeChanged() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey lastSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("2917ed5b-6f92-4626-9edd-258af2159757");
+		SyncKey lastSyncKey = new SyncKey("d604c7d1-39b6-4c15-8437-3aa46875cae7");
 		int lastStateId = 3;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
@@ -265,8 +265,8 @@ public class MailBackendGetItemEstimateTest {
 	@Test
 	public void testGetItemEstimateWithChanges() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey lastSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("f0820039-8bf4-4357-b79d-e33990440118");
+		SyncKey lastSyncKey = new SyncKey("f1856d19-7a4b-4422-ae84-bda5516bf4b8");
 		int lastStateId = 3;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));

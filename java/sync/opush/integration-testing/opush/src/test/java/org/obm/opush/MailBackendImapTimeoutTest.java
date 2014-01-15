@@ -179,8 +179,8 @@ public class MailBackendImapTimeoutTest {
 	@Test
 	public void testSyncHandler() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("8afde786-94c2-4a2a-af20-f9ebc93bf42d");
+		SyncKey secondAllocatedSyncKey = new SyncKey("c8c5f1ba-abec-429c-9742-14e50f613060");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
@@ -217,8 +217,8 @@ public class MailBackendImapTimeoutTest {
 	}
 	@Test
 	public void testFolderSyncHandler() throws Exception {
-		SyncKey syncKey = new SyncKey("123");
-		SyncKey secondSyncKey = new SyncKey("456");
+		SyncKey syncKey = new SyncKey("cf32d2cb-2f09-425b-b840-bee03c1dd18e");
+		SyncKey secondSyncKey = new SyncKey("768380e9-c6d5-45c1-baaa-19c7405daffb");
 		int stateId = 3;
 		int stateId2 = 4;
 		
@@ -271,7 +271,7 @@ public class MailBackendImapTimeoutTest {
 	
 	@Test
 	public void testGetItemEstimateHandler() throws Exception {
-		SyncKey syncKey = new SyncKey("123");
+		SyncKey syncKey = new SyncKey("a7a6b55c-71d2-4754-98df-af6465a91481");
 		int stateId = 3;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
@@ -362,7 +362,7 @@ public class MailBackendImapTimeoutTest {
 	@Test
 	public void testPingHandler() throws Exception {
 		long heartbeat = 5;
-		SyncKey syncKey = new SyncKey("123");
+		SyncKey syncKey = new SyncKey("35aff2e3-544d-4b3f-b6d8-cc9162a45dce");
 		int stateId = 3;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));

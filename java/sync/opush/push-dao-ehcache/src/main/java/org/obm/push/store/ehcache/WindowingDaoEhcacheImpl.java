@@ -120,8 +120,9 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 
 	@Override
-	public boolean hasPendingElements(WindowingKey key, SyncKey syncKey) {
+	public boolean hasPendingElements(WindowingKey key) {
 		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
+		SyncKey syncKey = key.getSyncKey();
 		SyncKey windowingSyncKey = partitionDao.getWindowingSyncKey(windowingIndexKey);
 		
 		if (windowingSyncKey == null) {
@@ -210,7 +211,7 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 		public void pushNextRequestPendingElements(WindowingIndexKey indexKey, SyncKey syncKey, EmailChanges partition) {
 			WindowingIndex windowingIndex = getWindowingIndex(indexKey);
 			if (partition.hasChanges()) {
-				pushNextChunk(indexKey, partition, windowingIndex.nextToBeStored(syncKey));
+				pushNextChunk(indexKey, partition, nextToBeStored(indexKey, syncKey));
 			} else if (windowingHasDataRemaining(windowingIndex)) {
 				indexStore.put(new Element(indexKey, windowingIndex.nextSyncKey(syncKey)));
 			}

@@ -178,8 +178,8 @@ public class MailBackendGetChangedTest {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
@@ -244,9 +244,9 @@ public class MailBackendGetChangedTest {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -312,9 +312,9 @@ public class MailBackendGetChangedTest {
 		String emailId3 = ":3";
 		String emailId4 = ":4";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -389,8 +389,8 @@ public class MailBackendGetChangedTest {
 	public void testInitialGetChangedNoSnapshotWithMarkAsDeleteMails() throws Exception {
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
@@ -453,9 +453,9 @@ public class MailBackendGetChangedTest {
 		String emailUid = ":1";
 		String emailUid2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -527,9 +527,9 @@ public class MailBackendGetChangedTest {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -585,9 +585,9 @@ public class MailBackendGetChangedTest {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -646,9 +646,9 @@ public class MailBackendGetChangedTest {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -707,11 +707,11 @@ public class MailBackendGetChangedTest {
 		String emailId2 = ":2";
 		String trashEmailId = ":1";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey thirdAllocatedSyncKey = new SyncKey("1012");
-		SyncKey firstAllocatedSyncKeyTrash = new SyncKey("1156");
-		SyncKey secondAllocatedSyncKeyTrash = new SyncKey("1241");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		SyncKey firstAllocatedSyncKeyTrash = new SyncKey("86cc9cc6-db13-4c06-87d7-fa2269c567b5");
+		SyncKey secondAllocatedSyncKeyTrash = new SyncKey("c4c558f0-d205-40f4-9292-3ad359e94c2a");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int allocatedStateId3 = 5;
@@ -787,9 +787,9 @@ public class MailBackendGetChangedTest {
 	public void testGetChangedWithReadFlag() throws Exception {
 		String emailId = "1";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -861,9 +861,9 @@ public class MailBackendGetChangedTest {
 	public void testGetChangedWithDeletedFlag() throws Exception {
 		String emailId = "1";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;
@@ -932,9 +932,9 @@ public class MailBackendGetChangedTest {
 	@Test
 	public void testGetChangedWithWindowsSize() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey thirdAllocatedSyncKey = new SyncKey("321");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int allocatedStateId3 = 5;
@@ -1012,9 +1012,9 @@ public class MailBackendGetChangedTest {
 	public void testFetchCommandGenerateSyncKey() throws Exception {
 		String emailId = "1";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("456");
-		SyncKey secondAllocatedSyncKey = new SyncKey("789");
-		SyncKey newAllocatedSyncKey = new SyncKey("1012");
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		int newAllocatedStateId = 5;

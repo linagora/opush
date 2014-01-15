@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
+
 public interface CassandraStructure {
 	
 	interface SyncedCollection {
@@ -53,6 +54,32 @@ public interface CassandraStructure {
 			String CREDENTIALS = "credentials";
 			String DEVICE = "device";
 			String ANALYSED_SYNC_COLLECTIONS = "analysed_sync_collections";
+		}
+	}
+	
+	interface Windowing {
+		String TABLE = "windowing";
+		String[] PK = { Columns.ID, Columns.CHANGE_INDEX };
+		
+		interface Columns {
+			String ID = "id";
+			String CHANGE_INDEX = "change_index";
+			String CHANGE_TYPE = "change_type";
+			String CHANGE_VALUE = "change_value";
+		}
+	}
+	
+	interface WindowingIndex {
+		String TABLE = "windowing_index";
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.SYNC_KEY };
+		
+		interface Columns {
+			String USER = "user";
+			String DEVICE_ID = "device_id";
+			String COLLECTION_ID = "collection_id";
+			String SYNC_KEY = "sync_key";
+			String WINDOWING_ID = "windowing_id";
+			String WINDOWING_INDEX = "windowing_index";
 		}
 	}
 }

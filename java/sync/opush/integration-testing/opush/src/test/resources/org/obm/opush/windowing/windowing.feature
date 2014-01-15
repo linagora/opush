@@ -30,7 +30,7 @@ Feature: store and retrieve emails by chunks
     
   Scenario: user tries to synchronize an empty mailbox
     Given user has 0 elements in INBOX
-    When user ask for the next 25 elements
+    When user ask for the first 25 elements
     Then user get 0 elements
     And there is 0 elements left in store
     

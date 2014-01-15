@@ -239,12 +239,12 @@ public class SyncHandlerWithBackendTest {
 	@Test
 	public void testInitialSyncThenRecreatesAccountOnMails() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
-		SyncKey newFirstAllocatedSyncKey = new SyncKey("789");
-		SyncKey newSecondAllocatedSyncKey = new SyncKey("980");
-		SyncKey newThirdAllocatedSyncKey = new SyncKey("123456");
-		SyncKey newFourthAllocatedSyncKey = new SyncKey("456789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
+		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
+		SyncKey newFirstAllocatedSyncKey = new SyncKey("52add403-4c77-40a3-9a2b-f593534557f1");
+		SyncKey newSecondAllocatedSyncKey = new SyncKey("8cb67253-91be-4558-a9ab-5dc8a93155d4");
+		SyncKey newThirdAllocatedSyncKey = new SyncKey("7916b925-2f28-4e60-beca-89641853d8a0");
+		SyncKey newFourthAllocatedSyncKey = new SyncKey("29255644-73ad-4a9c-b8af-2ead31a38f01");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		int newFirstAllocatedStateId = 5;
@@ -366,12 +366,12 @@ public class SyncHandlerWithBackendTest {
 	@Test
 	public void testInitialSyncThenRecreatesAccountOnCalendars() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
-		SyncKey newFirstAllocatedSyncKey = new SyncKey("789");
-		SyncKey newSecondAllocatedSyncKey = new SyncKey("980");
-		SyncKey newThirdAllocatedSyncKey = new SyncKey("123456");
-		SyncKey newFourthAllocatedSyncKey = new SyncKey("456789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
+		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
+		SyncKey newFirstAllocatedSyncKey = new SyncKey("faacfa99-d6ef-406b-8c59-fc90a6710443");
+		SyncKey newSecondAllocatedSyncKey = new SyncKey("c5dfc365-d7a0-4883-b407-69e8587df761");
+		SyncKey newThirdAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
+		SyncKey newFourthAllocatedSyncKey = new SyncKey("d974602b-29fe-49ba-bf82-03b413d1c2fb");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		int newFirstAllocatedStateId = 5;
@@ -567,9 +567,9 @@ public class SyncHandlerWithBackendTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
 		
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
-		SyncKey thirdAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("a181b4e9-7b87-42cf-9e8b-6de8184bed55");
+		SyncKey secondAllocatedSyncKey = new SyncKey("6710d6e4-6101-4054-9566-086d6ecf3202");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("a65bfdaa-5a5d-437c-b43e-5454a25045ae");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		int thirdAllocatedStateId = 5;
@@ -652,8 +652,8 @@ public class SyncHandlerWithBackendTest {
 	public void testNoContentDispositionPartIsSentAsAttachment() throws Exception {
 		appendToINBOX(greenMailUser, "eml/attachmentWithoutContentDisposition.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
+		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -700,8 +700,8 @@ public class SyncHandlerWithBackendTest {
 	public void testMailWithICSAttachment() throws Exception {
 		appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("a548f9c2-4eab-4a81-bb29-7a9bbb2d32b3");
+		SyncKey secondAllocatedSyncKey = new SyncKey("9ecb6879-5ec9-44f7-8b4d-91530cefb044");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -743,8 +743,8 @@ public class SyncHandlerWithBackendTest {
 	public void testForwardedEmailWithAttachments() throws Exception {
 		appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("626befef-21cc-4910-8e08-f9e966ca0495");
+		SyncKey secondAllocatedSyncKey = new SyncKey("33521cf6-aa8c-424b-94c3-08068c24c310");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -791,8 +791,8 @@ public class SyncHandlerWithBackendTest {
 	public void testInvitationDoesntShownInAttachments() throws Exception {
 		appendToINBOX(greenMailUser, "eml/invitation.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("bec49e8d-4bb1-43fa-beac-baa82e1b1e72");
+		SyncKey secondAllocatedSyncKey = new SyncKey("838edf22-870f-4980-93e2-8df4058cba50");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -833,8 +833,8 @@ public class SyncHandlerWithBackendTest {
 	public void testCancelInvitationDoesntShownInAttachments() throws Exception {
 		appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("9d66d5cd-f636-466a-9309-ba84feda617f");
+		SyncKey secondAllocatedSyncKey = new SyncKey("c701603f-f61b-4419-96a0-3098863fcd71");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -875,8 +875,8 @@ public class SyncHandlerWithBackendTest {
 	public void testModifiedOccurenceInvitationDoesntShownInAttachments() throws Exception {
 		appendToINBOX(greenMailUser, "eml/modifiedOccurenceInvitation.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("132");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("04a3200c-064d-491f-91f3-1c04e6d46dd5");
+		SyncKey secondAllocatedSyncKey = new SyncKey("7ecea940-44bc-4525-a005-68a963408ebd");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(firstAllocatedSyncKey)
@@ -912,8 +912,8 @@ public class SyncHandlerWithBackendTest {
 
 	@Test
 	public void testOnlyOneOpushObmSyncConnectionUsed() throws Exception {
-		SyncKey firstAllocatedSyncKey = new SyncKey("123");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
+		SyncKey firstAllocatedSyncKey = new SyncKey("4a2c7db8-b532-40a0-92c3-bfebb8da8f00");
+		SyncKey secondAllocatedSyncKey = new SyncKey("55df3cf4-b70d-4df2-ac48-d31646994321");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		
@@ -994,9 +994,9 @@ public class SyncHandlerWithBackendTest {
 		greenMail.setUser(userEmail, complexPassword);
 		bindCollectionIdToPath();
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("123");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
-		SyncKey thirdAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("663e5b84-e6ba-472b-a385-18f7f92e99d6");
+		SyncKey secondAllocatedSyncKey = new SyncKey("773e5b84-e6ba-472b-a385-18f7f92e99d6");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("883e5b84-e6ba-472b-a385-18f7f92e99d6");
 		
 		Date firstDate = date("2012-10-09T16:22:53");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1054,9 +1054,9 @@ public class SyncHandlerWithBackendTest {
 	@Test
 	public void testEventSensitivityNotModifiedByDevices() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
-		SyncKey firstAllocatedSyncKey = new SyncKey("123");
-		SyncKey secondAllocatedSyncKey = new SyncKey("456");
-		SyncKey thirdAllocatedSyncKey = new SyncKey("789");
+		SyncKey firstAllocatedSyncKey = new SyncKey("b91c285a-46c3-436e-8ad5-4b851830150e");
+		SyncKey secondAllocatedSyncKey = new SyncKey("96e8dcae-ac37-4b6f-a310-f7fcd5c3d858");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("82a066ae-c8c5-4a89-a706-0ea5e7750f5e");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		int thirdAllocatedStateId = 5;

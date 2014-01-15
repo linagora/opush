@@ -41,6 +41,7 @@ import javax.transaction.SystemException;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.obm.annotations.transactional.TransactionProvider;
@@ -75,5 +76,11 @@ public class WindowingDaoEhcacheImplInterfaceMethodsTest extends WindowingDaoTes
 	public void cleanup() throws IllegalStateException, SecurityException, SystemException {
 		transactionManagerRule.getTransactionManager().rollback();
 		objectStoreManager.shutdown();
+	}
+	
+	@Ignore("EHCache implementation does not support back in history")
+	@Override
+	public void hasPendingElementsWhenAskingWithPreviousSyncKey() {
+		// not supported
 	}
 }

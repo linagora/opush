@@ -31,27 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.windowing;
 
+import static org.easymock.EasyMock.createControl;
+
 import java.util.concurrent.TimeUnit;
 
 import org.obm.StaticConfigurationService;
-import org.obm.annotations.transactional.LazyTransactionProvider;
-import org.obm.annotations.transactional.TransactionProvider;
 import org.obm.configuration.TransactionConfiguration;
-import org.obm.configuration.module.LoggerModule;
+import org.obm.opush.env.OpushCassandraModule;
 import org.obm.opush.env.OpushConfigurationFixture;
 import org.obm.opush.env.OpushStaticConfiguration;
-import org.obm.opush.env.OpushStaticConfiguration.EhCache;
+import org.obm.push.cassandra.CassandraSessionProvider;
+import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
+import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.store.WindowingDao;
-import org.obm.push.store.ehcache.CacheEvictionListener;
-import org.obm.push.store.ehcache.CacheEvictionListenerImpl;
-import org.obm.push.store.ehcache.EhCacheConfiguration;
-import org.obm.push.store.ehcache.ObjectStoreManager;
-import org.obm.push.store.ehcache.StoreManager;
-import org.obm.push.store.ehcache.WindowingDaoEhcacheImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.Session;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 import com.google.inject.AbstractModule;
@@ -59,24 +56,22 @@ import com.google.inject.name.Names;
 
 public class WindowingModule extends AbstractModule {
 
-	private final Logger configurationLogger;
+	private final Logger logger;
 
 	public WindowingModule() {
-		configurationLogger = LoggerFactory.getLogger(getClass());
+		logger = LoggerFactory.getLogger(getClass());
 	}
 	
 	@Override
 	protected void configure() {
 		OpushConfigurationFixture configuration = configuration();
-		configuration.transaction.timeoutInSeconds = 3600;
+		install(new OpushCassandraModule(createControl()));
+		bind(Session.class).toProvider(CassandraSessionProvider.class);
 		bind(OpushConfiguration.class).toInstance(new OpushStaticConfiguration(configuration));
 		bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));
-		bind(TransactionProvider.class).to(LazyTransactionProvider.class);
-		bind(WindowingDao.class).to(WindowingDaoEhcacheImpl.class);
-		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(configurationLogger);
-		bind(EhCacheConfiguration.class).toInstance(new EhCache(configuration.ehCache));
-		bind(StoreManager.class).to(ObjectStoreManager.class);
-		bind(CacheEvictionListener.class).to(CacheEvictionListenerImpl.class);
+		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
+		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(logger);
+		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CASSANDRA)).toInstance(logger);
 	}		
 
 	protected OpushConfigurationFixture configuration() {
