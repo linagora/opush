@@ -37,9 +37,11 @@ import java.util.UUID;
 
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.WindowingKey;
@@ -72,8 +74,8 @@ public class WindowingStepdefs {
 	private User user;
 	private DeviceId deviceId;
 
-	private EmailChanges inbox;
-	private EmailChanges retrievedElements;
+	private WindowingChanges<Email> inbox;
+	private WindowingChanges<Email> retrievedElements;
 	private int elementsLeft;
 	private int retreivingChangesIteration;
 	private int retreivingChangesSum;
@@ -103,7 +105,7 @@ public class WindowingStepdefs {
 		userGenerateANewSyncKey();
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 		windowingDao.hasPendingElements(windowingKey);
-		windowingDao.pushPendingElements(windowingKey, syncKey, inbox, elements);
+		windowingDao.pushPendingChanges(windowingKey, syncKey, inbox, PIMDataType.EMAIL, elements);
 		this.elementsLeft = inbox.sumOfChanges();
 		retrieveNextElements(elements);
 	}
@@ -132,7 +134,7 @@ public class WindowingStepdefs {
 	}
 
 	private void retrieveElements(int elements) {
-		retrievedElements = windowingDao.popNextPendingElements(windowingKey, elements, syncKey);
+		retrievedElements = windowingDao.popNextChanges(windowingKey, elements, syncKey, EmailChanges.builder()).build();
 		this.elementsLeft -= retrievedElements.sumOfChanges();
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
@@ -146,8 +148,8 @@ public class WindowingStepdefs {
 	public void assertElementsInStore(int elements) {
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 		assertThat(windowingDao.hasPendingElements(windowingKey)).isEqualTo(elements > 0);
-		EmailChanges pendingChanges = windowingDao.popNextPendingElements(windowingKey, Integer.MAX_VALUE, syncKey);
-		assertThat(pendingChanges).isEqualTo(generateEmails(elements));
+		assertThat(windowingDao.popNextChanges(windowingKey, Integer.MAX_VALUE, syncKey, EmailChanges.builder()).build())
+			.isEqualTo(generateEmails(elements));
 	}
 	
 	@When("user get (\\d+) elements in (\\d+) iterations$")
@@ -162,11 +164,11 @@ public class WindowingStepdefs {
 		retreivingChangesSum = 0;
 	}
 	
-	private EmailChanges generateEmails(long number) {
+	private WindowingChanges<Email> generateEmails(long number) {
 		return generateEmails(0, number);
 	}
 	
-	private EmailChanges generateEmails(long start, long number) {
+	private WindowingChanges<Email> generateEmails(long start, long number) {
 		return EmailChanges.builder()
 				.additions(
 					FluentIterable.from(ContiguousSet.create(Range.closedOpen(start, start + number), DiscreteDomain.longs()))

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,21 +29,23 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store;
+package org.obm.push.bean.change;
 
-import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.change.WindowingChanges;
-import org.obm.push.bean.change.WindowingChangesBuilder;
-import org.obm.push.bean.change.WindowingItem;
-import org.obm.push.mail.bean.WindowingKey;
+import java.util.Collection;
 
-public interface WindowingDao {
 
-	<T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder);
-	
-	<T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey syncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize);
+public interface WindowingChangesBuilder<T extends WindowingItem, C extends WindowingChanges<?>> {
 
-	boolean hasPendingElements(WindowingKey key);
+	Class<T> getPIMDataClass();
 
+	WindowingChangesBuilder<T, C> addition(T changeValue);
+	WindowingChangesBuilder<T, C> additions(Collection<T> changeValues);
+
+	WindowingChangesBuilder<T, C> change(T changeValue);
+	WindowingChangesBuilder<T, C> changes(Collection<T> changeValues);
+
+	WindowingChangesBuilder<T, C> deletion(T changeValue);
+	WindowingChangesBuilder<T, C> deletions(Collection<T> changeValues);
+
+	C build();
 }

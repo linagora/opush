@@ -38,10 +38,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.mail.EmailChanges;
+import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
@@ -69,73 +72,92 @@ public abstract class WindowingDaoTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void popNextPendingElementsNullKey() {
+	public void popNextChangesNullBuilder() {
+		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
+		int expectedSize = 12;
+		Builder builder = null;
+		
+		testee.popNextChanges(key, expectedSize, syncKey, builder);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void popNextChangesNullKey() {
 		WindowingKey key = null;
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		int expectedSize = 12;
 
-		testee.popNextPendingElements(key, expectedSize, syncKey);
+		testee.popNextChanges(key, expectedSize, syncKey, EmailChanges.builder());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void popNextPendingElementsZeroExpectedSize() {
+	public void popNextChangesZeroExpectedSize() {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 0;
-		testee.popNextPendingElements(key, expectedSize, syncKey);
+
+		testee.popNextChanges(key, expectedSize, syncKey, EmailChanges.builder());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void popNextPendingElementsNegativeExpectedSize() {
+	public void popNextChangesNegativeExpectedSize() {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = -5;
-		testee.popNextPendingElements(key, expectedSize, syncKey);
+
+		testee.popNextChanges(key, expectedSize, syncKey, EmailChanges.builder());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void popNextPendingElementsNullSyncKey() {
+	public void popNextChangesNullSyncKey() {
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1"));
 		SyncKey syncKey = null;
 		int expectedSize = 45;
-		testee.popNextPendingElements(key, expectedSize, syncKey);
+
+		testee.popNextChanges(key, expectedSize, syncKey, EmailChanges.builder());
 	}
 	
 	@Test
-	public void popNextPendingElementsEmpty() {
+	public void popNextChangesEmpty() {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 12;
+		EmailChanges.Builder givenBuilder = EmailChanges.builder();
 
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
+		WindowingChangesBuilder<Email, EmailChanges> resultBuilder = 
+				testee.popNextChanges(key, expectedSize, syncKey, givenBuilder);
 
-		assertThat(elements.sumOfChanges()).isEqualTo(0);
+		assertThat(resultBuilder.build().sumOfChanges()).isEqualTo(0);
 	}
 	
 	@Test
-	public void popNextPendingElementsFewElements() {
+	public void popNextChangesFewElements() {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 12;
 		EmailChanges emailChanges = generateEmails(2);
-		testee.pushPendingElements(key, syncKey, emailChanges, 2);
+		testee.pushPendingChanges(key, syncKey, emailChanges, PIMDataType.EMAIL, 2);
+		EmailChanges.Builder givenBuilder = EmailChanges.builder();
 
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
+		WindowingChangesBuilder<Email, EmailChanges> resultBuilder = 
+				testee.popNextChanges(key, expectedSize, syncKey, givenBuilder);
 
-		assertThat(elements.sumOfChanges()).isEqualTo(2);
+		assertThat(resultBuilder.build().sumOfChanges()).isEqualTo(2);
 	}
 	
 	@Test
-	public void popNextPendingElementsEnoughElements() {
+	public void popNextChangesEnoughElements() {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		int expectedSize = 2;
 		EmailChanges emailChanges = generateEmails(2);
-		testee.pushPendingElements(key, syncKey, emailChanges, 2);
+		testee.pushPendingChanges(key, syncKey, emailChanges, PIMDataType.EMAIL, 2);
+		EmailChanges.Builder givenBuilder = EmailChanges.builder();
 
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey);
-		
-		assertThat(elements.sumOfChanges()).isEqualTo(2);
+		WindowingChangesBuilder<Email, EmailChanges> resultBuilder = 
+				testee.popNextChanges(key, expectedSize, syncKey, givenBuilder);
+
+		assertThat(resultBuilder.build().sumOfChanges()).isEqualTo(2);
 	}
 
 	@Test
@@ -153,7 +175,7 @@ public abstract class WindowingDaoTest {
 		SyncKey requestSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, requestSyncKey);
 		EmailChanges emailChanges = generateEmails(1);
-		testee.pushPendingElements(key, requestSyncKey, emailChanges, 2);
+		testee.pushPendingChanges(key, requestSyncKey, emailChanges, PIMDataType.EMAIL, 2);
 		
 		boolean hasPendingElements = testee.hasPendingElements(key);
 		
@@ -171,14 +193,14 @@ public abstract class WindowingDaoTest {
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		WindowingKey key2 = new WindowingKey(user, deviceId, collectionId, syncKey2);
 		WindowingKey key3 = new WindowingKey(user, deviceId, collectionId, syncKey3);
-		testee.pushPendingElements(key, syncKey2, emailChanges, 3);
-		
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey2);
-		EmailChanges elements2 = testee.popNextPendingElements(key2, expectedSize, syncKey3);
+		testee.pushPendingChanges(key, syncKey2, emailChanges, PIMDataType.EMAIL, 3);
+
+		EmailChanges.Builder changes1 = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
+		EmailChanges.Builder changes2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
 		boolean hasPendingElements = testee.hasPendingElements(key3);
 
-		assertThat(elements.sumOfChanges()).isEqualTo(expectedSize);
-		assertThat(elements2.sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(changes1.build().sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(changes2.build().sumOfChanges()).isEqualTo(expectedSize);
 		assertThat(hasPendingElements).isTrue();
 	}
 	
@@ -194,16 +216,16 @@ public abstract class WindowingDaoTest {
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		WindowingKey key2 = new WindowingKey(user, deviceId, collectionId, syncKey2);
 		WindowingKey key3 = new WindowingKey(user, deviceId, collectionId, syncKey3);
-		testee.pushPendingElements(key, syncKey2, emailChanges, 2);
+		testee.pushPendingChanges(key, syncKey2, emailChanges, PIMDataType.EMAIL, 2);
 		
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey2);
-		EmailChanges elements2 = testee.popNextPendingElements(key2, expectedSize, syncKey3);
-		EmailChanges elements3 = testee.popNextPendingElements(key3, expectedSize, syncKey4);
+		EmailChanges.Builder changes1 = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
+		EmailChanges.Builder changes2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
+		EmailChanges.Builder changes3 = testee.popNextChanges(key3, expectedSize, syncKey4, EmailChanges.builder());
 		boolean hasPendingElements = testee.hasPendingElements(key3);
 
-		assertThat(elements.sumOfChanges()).isEqualTo(expectedSize);
-		assertThat(elements2.sumOfChanges()).isEqualTo(expectedSize);
-		assertThat(elements3.sumOfChanges()).isZero();
+		assertThat(changes1.build().sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(changes2.build().sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(changes3.build().sumOfChanges()).isZero();
 		assertThat(hasPendingElements).isFalse();
 	}
 	
@@ -217,16 +239,17 @@ public abstract class WindowingDaoTest {
 		SyncKey syncKey3 = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 		WindowingKey key2 = new WindowingKey(user, deviceId, collectionId, syncKey2);
-		testee.pushPendingElements(key, syncKey2, emailChanges, 2);
+		testee.pushPendingChanges(key, syncKey2, emailChanges, PIMDataType.EMAIL, 2);
 
-		EmailChanges firstElementsOfKey = testee.popNextPendingElements(key, expectedSize, syncKey2);
-		EmailChanges firstElementsOfKey2 = testee.popNextPendingElements(key2, expectedSize, syncKey3);
-		EmailChanges secondElementsOfKey = testee.popNextPendingElements(key, expectedSize, syncKey2);
+		
+		EmailChanges.Builder firstChangesOfKey = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
+		EmailChanges.Builder firstChangesOfKey2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
+		EmailChanges.Builder secondChangesOfKey = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
 		boolean hasPendingElements = testee.hasPendingElements(key2);
 
-		assertThat(firstElementsOfKey.sumOfChanges()).isEqualTo(expectedSize);
-		assertThat(firstElementsOfKey2.sumOfChanges()).isEqualTo(expectedSize);
-		assertThat(firstElementsOfKey).isEqualTo(secondElementsOfKey);
+		assertThat(firstChangesOfKey.build().sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(firstChangesOfKey2.build().sumOfChanges()).isEqualTo(expectedSize);
+		assertThat(firstChangesOfKey.build()).isEqualTo(secondChangesOfKey.build());
 		assertThat(hasPendingElements).isTrue();
 	}
 	
@@ -242,10 +265,10 @@ public abstract class WindowingDaoTest {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		SyncKey syncKey2 = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
-		testee.pushPendingElements(key, syncKey2, emailChanges, 3);
+		testee.pushPendingChanges(key, syncKey2, emailChanges, PIMDataType.EMAIL, 3);
 
-		EmailChanges elements = testee.popNextPendingElements(key, expectedSize, syncKey2);
-		assertThat(elements.sumOfChanges()).isEqualTo(expectedSize);
+		EmailChanges.Builder changes = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
+		assertThat(changes.build().sumOfChanges()).isEqualTo(expectedSize);
 	}
 
 	private EmailChanges generateEmails(long number) {

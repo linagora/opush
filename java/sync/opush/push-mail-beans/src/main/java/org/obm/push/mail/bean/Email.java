@@ -34,6 +34,7 @@ package org.obm.push.mail.bean;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.obm.push.bean.change.WindowingItem;
 import org.obm.push.utils.index.Indexed;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,7 +42,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 
 @JsonDeserialize(builder=Email.Builder.class)
-public class Email implements Indexed<Long>, Serializable {
+public class Email implements WindowingItem, Indexed<Long>, Serializable {
 
 	public static Builder builder() {
 		return new Builder();

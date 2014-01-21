@@ -33,10 +33,13 @@ package org.obm.push.mail;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.mail.bean.Email;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -50,7 +53,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
 
 @JsonDeserialize(builder=EmailChanges.Builder.class)
-public class EmailChanges implements Serializable {
+public class EmailChanges implements WindowingChanges<Email>, Serializable {
 	
 	public static EmailChanges empty() {
 		return builder().build();
@@ -60,7 +63,7 @@ public class EmailChanges implements Serializable {
 		return new Builder();
 	}
 	
-	public static class Builder {
+	public static class Builder implements WindowingChangesBuilder<Email, EmailChanges> {
 	
 		private final SortedEmailSet additions;
 		private final SortedEmailSet changes;
@@ -72,15 +75,32 @@ public class EmailChanges implements Serializable {
 			changes = new SortedEmailSet();
 			deletions = new SortedEmailSet();
 		}
+		
+		@Override
+		public Class<Email> getPIMDataClass() {
+			return Email.class;
+		}
+		
+		@Override
+		public Builder deletion(Email email) {
+			this.deletions.add(email);
+			return this;
+		}
 
 		public Builder deletion(Email... emails) {
 			this.deletions.addAll(Arrays.asList(emails));
 			return this;
 		}
-		
-		public Builder deletions(Set<Email> deletions) {
+
+		public Builder deletions(Collection<Email> deletions) {
 			Preconditions.checkArgument(deletions != null, "deletions must not be null");
 			this.deletions.addAll(deletions);
+			return this;
+		}
+		
+		@Override
+		public Builder change(Email email) {
+			this.changes.add(email);
 			return this;
 		}
 
@@ -89,18 +109,24 @@ public class EmailChanges implements Serializable {
 			return this;
 		}
 		
-		public Builder changes(Set<Email> changes) {
+		public Builder changes(Collection<Email> changes) {
 			Preconditions.checkArgument(changes != null, "changes must not be null");
 			this.changes.addAll(changes);
 			return this;
 		}
 
+		@Override
+		public Builder addition(Email email) {
+			this.additions.add(email);
+			return this;
+		}
+		
 		public Builder addition(Email... emails) {
 			this.additions.addAll(Arrays.asList(emails));
 			return this;
 		}
 		
-		public Builder additions(Set<Email> additions) {
+		public Builder additions(Collection<Email> additions) {
 			Preconditions.checkArgument(additions != null, "additions must not be null");
 			this.additions.addAll(additions);
 			return this;
@@ -116,14 +142,14 @@ public class EmailChanges implements Serializable {
 		public int sumOfChanges() {
 			return additions.size() + changes.size() + deletions.size();
 		}
-		
+
+		@Override
 		public EmailChanges build() {
 			return new EmailChanges(
 					ImmutableSortedSet.copyOfSorted(deletions), 
 					ImmutableSortedSet.copyOfSorted(changes),
 					ImmutableSortedSet.copyOfSorted(additions));
 		}
-
 	}
 	
 	private static final long serialVersionUID = 7053066531067862573L;
@@ -138,14 +164,17 @@ public class EmailChanges implements Serializable {
 		this.additions = additions;
 	}
 	
+	@Override
 	public Set<Email> deletions() {
 		return deletions;
 	}
 
+	@Override
 	public Set<Email> changes() {
 		return changes;
 	}
 
+	@Override
 	public Set<Email> additions() {
 		return additions;
 	}
@@ -154,6 +183,7 @@ public class EmailChanges implements Serializable {
 		return !additions.isEmpty() || !changes.isEmpty() || !deletions.isEmpty();
 	}
 
+	@Override
 	public int sumOfChanges() {
 		return additions.size() + changes.size() + deletions.size();
 	}

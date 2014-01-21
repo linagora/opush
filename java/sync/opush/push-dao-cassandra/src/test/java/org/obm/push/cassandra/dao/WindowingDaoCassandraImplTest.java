@@ -44,9 +44,10 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.dao.testsuite.WindowingDaoTest;
 import org.obm.push.mail.EmailChanges;
-import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.bean.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +74,9 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 	
 	@Test
 	public void buildEmailChangesWhenNone() {
-		EmailChanges emailChanges = testeeImpl.buildEmailChanges(ImmutableList.<Row>of());
-		assertThat(emailChanges.sumOfChanges()).isZero();
+		EmailChanges.Builder changesBuilder = EmailChanges.builder();
+		testeeImpl.putChangesInBuilder(ImmutableList.<Row>of(), changesBuilder);
+		assertThat(changesBuilder.build().sumOfChanges()).isZero();
 	}
 	
 	@Test
@@ -86,12 +88,14 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 		expect(row1.getString(CHANGE_VALUE)).andReturn(testeeImpl.jsonService.serialize(change));
 		
 		mocks.replay();
-		EmailChanges emailChanges = testeeImpl.buildEmailChanges(ImmutableList.of(row1));
+		EmailChanges.Builder changesBuilder = EmailChanges.builder();
+		testeeImpl.putChangesInBuilder(ImmutableList.of(row1), changesBuilder);
 		mocks.verify();
 		
-		assertThat(emailChanges.additions()).containsOnly(change);
-		assertThat(emailChanges.changes()).isEmpty();
-		assertThat(emailChanges.deletions()).isEmpty();
+		EmailChanges changes = changesBuilder.build();
+		assertThat(changes.additions()).containsOnly(change);
+		assertThat(changes.changes()).isEmpty();
+		assertThat(changes.deletions()).isEmpty();
 	}
 	
 	@Test
@@ -103,12 +107,14 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 		expect(row1.getString(CHANGE_VALUE)).andReturn(testeeImpl.jsonService.serialize(change));
 		
 		mocks.replay();
-		EmailChanges emailChanges = testeeImpl.buildEmailChanges(ImmutableList.of(row1));
+		EmailChanges.Builder changesBuilder = EmailChanges.builder();
+		testeeImpl.putChangesInBuilder(ImmutableList.of(row1), changesBuilder);
 		mocks.verify();
 		
-		assertThat(emailChanges.changes()).containsOnly(change);
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.deletions()).isEmpty();
+		EmailChanges changes = changesBuilder.build();
+		assertThat(changes.changes()).containsOnly(change);
+		assertThat(changes.additions()).isEmpty();
+		assertThat(changes.deletions()).isEmpty();
 	}
 	
 	@Test
@@ -118,14 +124,16 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 		Row row1 = mocks.createMock(Row.class);
 		expect(row1.getString(CHANGE_TYPE)).andReturn("DELETE");
 		expect(row1.getString(CHANGE_VALUE)).andReturn(testeeImpl.jsonService.serialize(change));
-		
+
 		mocks.replay();
-		EmailChanges emailChanges = testeeImpl.buildEmailChanges(ImmutableList.of(row1));
+		EmailChanges.Builder changesBuilder = EmailChanges.builder();
+		testeeImpl.putChangesInBuilder(ImmutableList.of(row1), changesBuilder);
 		mocks.verify();
 		
-		assertThat(emailChanges.deletions()).containsOnly(change);
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.changes()).isEmpty();
+		EmailChanges changes = changesBuilder.build();
+		assertThat(changes.deletions()).containsOnly(change);
+		assertThat(changes.additions()).isEmpty();
+		assertThat(changes.changes()).isEmpty();
 	}
 	
 	@Test
@@ -155,65 +163,67 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 		Row row6 = mocks.createMock(Row.class);
 		expect(row6.getString(CHANGE_TYPE)).andReturn("DELETE");
 		expect(row6.getString(CHANGE_VALUE)).andReturn(testeeImpl.jsonService.serialize(del2));
-		
+
 		mocks.replay();
-		EmailChanges emailChanges = testeeImpl.buildEmailChanges(ImmutableList.of(row1, row2, row3, row4, row5, row6));
+		EmailChanges.Builder changesBuilder = EmailChanges.builder();
+		testeeImpl.putChangesInBuilder(ImmutableList.of(row1, row2, row3, row4, row5, row6), changesBuilder);
 		mocks.verify();
 		
-		assertThat(emailChanges.additions()).containsOnly(add1, add2);
-		assertThat(emailChanges.changes()).containsOnly(change1, change2);
-		assertThat(emailChanges.deletions()).containsOnly(del1, del2);
+		EmailChanges changes = changesBuilder.build();
+		assertThat(changes.additions()).containsOnly(add1, add2);
+		assertThat(changes.changes()).containsOnly(change1, change2);
+		assertThat(changes.deletions()).containsOnly(del1, del2);
 	}
 	
 	@Test
 	public void putChangeWhenNullDoNothing() {
 		Email change = buildChange();
-		EmailChanges emailChanges = putChangeAs(change, null);
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.changes()).isEmpty();
-		assertThat(emailChanges.deletions()).isEmpty();
+		WindowingChanges<Email> changes = putChangeAs(change, null);
+		assertThat(changes.deletions()).isEmpty();
+		assertThat(changes.changes()).isEmpty();
+		assertThat(changes.additions()).isEmpty();
 	}
 	
 	@Test
 	public void putChangeWhenNotExistingDoNothing() {
 		Email change = buildChange();
-		EmailChanges emailChanges = putChangeAs(change, "ILLEGAL TYPE");
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.changes()).isEmpty();
-		assertThat(emailChanges.deletions()).isEmpty();
+		WindowingChanges<Email> changes = putChangeAs(change, "ILLEGAL TYPE");
+		assertThat(changes.deletions()).isEmpty();
+		assertThat(changes.changes()).isEmpty();
+		assertThat(changes.additions()).isEmpty();
 	}
 	
 	@Test
 	public void putChangeWhenAdd() {
 		Email change = buildChange();
-		EmailChanges emailChanges = putChangeAs(change, "ADD");
-		assertThat(emailChanges.deletions()).isEmpty();
-		assertThat(emailChanges.changes()).isEmpty();
-		assertThat(emailChanges.additions()).containsOnly(change);
+		WindowingChanges<Email> changes = putChangeAs(change, "ADD");
+		assertThat(changes.deletions()).isEmpty();
+		assertThat(changes.changes()).isEmpty();
+		assertThat(changes.additions()).containsOnly(change);
 	}
 	
 	@Test
 	public void putChangeWhenChange() {
 		Email change = buildChange();
-		EmailChanges emailChanges = putChangeAs(change, "CHANGE");
-		assertThat(emailChanges.deletions()).isEmpty();
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.changes()).containsOnly(change);
+		WindowingChanges<Email> changes = putChangeAs(change, "CHANGE");
+		assertThat(changes.deletions()).isEmpty();
+		assertThat(changes.changes()).containsOnly(change);
+		assertThat(changes.additions()).isEmpty();
 	}
 	
 	@Test
 	public void putChangeWhenDeletion() {
 		Email change = buildChange();
-		EmailChanges emailChanges = putChangeAs(change, "DELETE");
-		assertThat(emailChanges.additions()).isEmpty();
-		assertThat(emailChanges.changes()).isEmpty();
-		assertThat(emailChanges.deletions()).containsOnly(change);
+		WindowingChanges<Email> changes = putChangeAs(change, "DELETE");
+		assertThat(changes.additions()).isEmpty();
+		assertThat(changes.changes()).isEmpty();
+		assertThat(changes.deletions()).containsOnly(change);
 	}
 
-	private EmailChanges putChangeAs(Email change, String type) {
-		Builder emailChangesBuilder = EmailChanges.builder();
-		testeeImpl.putChange(emailChangesBuilder, type, testeeImpl.jsonService.serialize(change));
-		return emailChangesBuilder.build();
+	private WindowingChanges<Email> putChangeAs(Email change, String type) {
+		WindowingChangesBuilder<Email, EmailChanges> builder = EmailChanges.builder();
+		testeeImpl.putChange(builder, type, change);
+		return builder.build();
 	}
 
 	private Email buildChange() {

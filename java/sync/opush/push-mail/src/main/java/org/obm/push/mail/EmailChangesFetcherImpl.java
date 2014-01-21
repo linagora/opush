@@ -38,6 +38,7 @@ import java.util.Set;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -69,7 +70,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	@Override
 	public MSEmailChanges fetch(UserDataRequest udr,
 			int collectionId, String collectionPath,
-			List<BodyPreference> bodyPreferences, EmailChanges emailChanges) throws EmailViewPartsFetcherException, DaoException {
+			List<BodyPreference> bodyPreferences, WindowingChanges<Email> emailChanges) throws EmailViewPartsFetcherException, DaoException {
 		Preconditions.checkNotNull(emailChanges, "emailChanges can not be null");
 		return MSEmailChanges.builder()
 				.deletions(emailDeletions(collectionId, emailChanges.deletions()))

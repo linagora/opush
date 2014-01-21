@@ -45,14 +45,18 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.USER;
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_INDEX;
+import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_KIND;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.WindowingChangesBuilder;
+import org.obm.push.bean.change.WindowingItem;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
-import org.obm.push.mail.EmailChanges;
-import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 import org.slf4j.Logger;
@@ -73,32 +77,36 @@ import com.google.inject.name.Named;
 
 @Singleton
 public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements WindowingDao, CassandraStructure {
-
+	
 	private static final int ONLY_ONE_ITEM = 1;
 	private static final int STARTING_WINDOWING_INDEX = 0;
-
+	
 	@Inject  
-	@VisibleForTesting WindowingDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
+	@VisibleForTesting WindowingDaoCassandraImpl(Session session, JSONService jsonService,
+			@Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
 	}
 
 	@Override
-	public EmailChanges popNextPendingElements(WindowingKey key, int maxSize, SyncKey newSyncKey) {
+	public <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B 
+			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder) {
 		Preconditions.checkArgument(key != null);
 		Preconditions.checkArgument(maxSize > 0);
 		Preconditions.checkArgument(newSyncKey != null);
+		Preconditions.checkArgument(changesBuilder != null);
 
 		ResultSet windowingIndexResultSet = selectWindowingIndex(key);
 		if (windowingIndexResultSet.isExhausted()) {
-			logger.debug("No windowing index found, returning empty EmailChanges");
-			return EmailChanges.builder().build();
+			logger.debug("No windowing index found, returning the given builder");
+			return changesBuilder;
+		} else {
+			return popChanges(key, maxSize, newSyncKey, windowingIndexResultSet.one(), changesBuilder);
 		}
-		return popChanges(key, maxSize, newSyncKey, windowingIndexResultSet.one());
 	}
 
 	@Override
-	public void pushPendingElements(WindowingKey key, SyncKey newSyncKey, EmailChanges changes, int windowSize) {
-		insertNewIndex(key, key.getSyncKey(), insertWindowingChanges(changes), STARTING_WINDOWING_INDEX);
+	public <T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey newSyncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize) {
+		insertNewIndex(key, key.getSyncKey(), insertWindowingChanges(changes), kind, STARTING_WINDOWING_INDEX);
 	}
 
 	@Override
@@ -112,7 +120,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	private ResultSet selectWindowingIndex(WindowingKey key) {
-		Where statement = select(WINDOWING_ID, WINDOWING_INDEX)
+		Where statement = select(WINDOWING_ID, WINDOWING_KIND, WINDOWING_INDEX)
 			.from(WindowingIndex.TABLE)
 			.where(eq(USER, key.getUser().getLoginAtDomain()))
 			.and(eq(DEVICE_ID, key.getDeviceId().getDeviceId()))
@@ -122,20 +130,31 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		return session.execute(statement);
 	}
 
-	private EmailChanges popChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, Row indexRow) {
-		UUID windowingId = indexRow.getUUID(WINDOWING_ID);
-		int windowingIndex = indexRow.getInt(WINDOWING_INDEX);
-		logger.debug("Windowing index found Id:{} Index:{}", windowingId, windowingIndex);
+	private <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B popChanges(
+			WindowingKey key, int maxSize, SyncKey newSyncKey, Row indexRow, B changesBuilder) {
 		
-		EmailChanges emailChanges = buildEmailChanges(maxSize, windowingId, windowingIndex);
-		insertNewIndex(key, newSyncKey, windowingId, windowingIndex, emailChanges);
-		return emailChanges;
+		UUID windowingId = indexRow.getUUID(WINDOWING_ID);
+		PIMDataType windowingDataType = recognizeKind(indexRow.getString(WINDOWING_KIND));
+		int windowingIndex = indexRow.getInt(WINDOWING_INDEX);
+		logger.debug("Windowing index found Id:{} Kind:{} Index:{}", windowingId, windowingDataType, windowingIndex);
+		
+		int changesCount = putChangesInBuilder(maxSize, windowingId, windowingIndex, changesBuilder);
+		insertNewIndex(key, newSyncKey, windowingId, windowingDataType, windowingIndex, changesCount);
+		return changesBuilder;
 	}
 
-	private void insertNewIndex(WindowingKey key, SyncKey newSyncKey, UUID windowingId, int windowingIndex, EmailChanges emailChanges) {
-		int nextWindowingIndex = windowingIndex + emailChanges.sumOfChanges();
+	private PIMDataType recognizeKind(String type) {
+		PIMDataType dataType = PIMDataType.recognizeDataType(type);
+		Preconditions.checkArgument(!PIMDataType.UNKNOWN.equals(dataType));
+		return dataType;
+	}
+
+	private void insertNewIndex(WindowingKey key, SyncKey newSyncKey, UUID windowingId,
+			PIMDataType windowingKind, int windowingIndex, int changesCount) {
+		
+		int nextWindowingIndex = windowingIndex + changesCount;
 		if (hasNextIndex(windowingId, nextWindowingIndex)) {
-			insertNewIndex(key, newSyncKey, windowingId, nextWindowingIndex);
+			insertNewIndex(key, newSyncKey, windowingId, windowingKind, nextWindowingIndex);
 		}
 	}
 
@@ -149,39 +168,45 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		return session.execute(statement);
 	}
 
-	private EmailChanges buildEmailChanges(int maxSize, UUID windowingId, int windowingIndex) {
-		return buildEmailChanges(selectChanges(maxSize, windowingId, windowingIndex).all());
+	private <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> int 
+			putChangesInBuilder(int maxSize, UUID windowingId, int windowingIndex, B changesBuilder) {
+		
+		List<Row> fittingChanges = selectChanges(maxSize, windowingId, windowingIndex).all();
+		putChangesInBuilder(fittingChanges, changesBuilder);
+		return fittingChanges.size();
 	}
 	
-	@VisibleForTesting EmailChanges buildEmailChanges(Iterable<Row> changeRows) {
-		EmailChanges.Builder emailChangesBuilder = EmailChanges.builder();
+	@VisibleForTesting <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> void 
+			putChangesInBuilder(Iterable<Row> changeRows, B changesBuilder) {
 		
 		for (Row changeRow : changeRows) {
 			String changeType = changeRow.getString(CHANGE_TYPE);
 			String changeValueAsJson = changeRow.getString(CHANGE_VALUE);
 			logger.debug("Windowing change found {} {}", changeType, changeValueAsJson);
-			putChange(emailChangesBuilder, changeType, changeValueAsJson);
+
+			T changeValue = jsonService.deserialize(changesBuilder.getPIMDataClass(), changeValueAsJson);
+			putChange(changesBuilder, changeType, changeValue);
 		}
-		return emailChangesBuilder.build();
 	}
 
-	@VisibleForTesting void putChange(EmailChanges.Builder emailChangesBuilder, String changeTypeValue, String changeValueAsJson) {
+	@VisibleForTesting <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> void 
+			putChange(B builder, String changeTypeValue, T changeValue) {
+		
 		ChangeType changeType = ChangeType.fromValue(changeTypeValue);
 		if (changeType == null) {
 			logger.warn("Discarding a change, its ChangeType is unknown: {}", changeTypeValue);
 			return;
 		}
 		
-		Email email = jsonService.deserialize(Email.class, changeValueAsJson);
 		switch (changeType) {
 			case ADD:
-				emailChangesBuilder.addition(email);
+				builder.addition(changeValue);
 				break;
 			case CHANGE:
-				emailChangesBuilder.change(email);
+				builder.change(changeValue);
 				break;
 			case DELETE:
-				emailChangesBuilder.deletion(email);
+				builder.deletion(changeValue);
 				break;
 		}
 	}
@@ -191,42 +216,45 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		return !resultSet.isExhausted();
 	}
 
-	private void insertNewIndex(WindowingKey key, SyncKey newSyncKey, UUID windowingId, int newWindowingIndex) {
+	private void insertNewIndex(WindowingKey key, SyncKey newSyncKey, UUID windowingId, 
+			PIMDataType windowingKind, int newWindowingIndex) {
+		
 		Insert statement = insertInto(WindowingIndex.TABLE)
 			.value(USER, key.getUser().getLoginAtDomain())
 			.value(DEVICE_ID, key.getDeviceId().getDeviceId())
 			.value(COLLECTION_ID, key.getCollectionId())
 			.value(SYNC_KEY, UUID.fromString(newSyncKey.getSyncKey()))
 			.value(WINDOWING_ID, windowingId)
+			.value(WINDOWING_KIND, windowingKind.asXmlValue())
 			.value(WINDOWING_INDEX, newWindowingIndex);
 		logger.debug("Inserting {}", statement.getQueryString());
 		session.execute(statement);
 	}
 
-	private UUID insertWindowingChanges(EmailChanges changes) {
+	private UUID insertWindowingChanges(WindowingChanges<?> changes) {
 		BatchStatement batch = new BatchStatement(Type.LOGGED);
 		UUID windowingUUID = UUID.randomUUID();
 		int index = STARTING_WINDOWING_INDEX;
 		
-		for (Email email : changes.additions()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, email, ChangeType.ADD);
+		for (WindowingItem item : changes.additions()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.ADD);
 		}
-		for (Email email : changes.changes()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, email, ChangeType.CHANGE);
+		for (WindowingItem item : changes.changes()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.CHANGE);
 		}
-		for (Email email : changes.deletions()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, email, ChangeType.DELETE);
+		for (WindowingItem item : changes.deletions()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.DELETE);
 		}
 		session.execute(batch);
 		return windowingUUID;
 	}
 
-	private void addInsertStatementInBatch(BatchStatement batch, UUID windowingUUID, int changeIndex, Email email, ChangeType changeType) {
+	private void addInsertStatementInBatch(BatchStatement batch, UUID windowingUUID, int changeIndex, WindowingItem item, ChangeType changeType) {
 		Insert statement = insertInto(Windowing.TABLE)
 			.value(ID, windowingUUID)
 			.value(CHANGE_INDEX, changeIndex)
 			.value(CHANGE_TYPE, changeType.asValue())
-			.value(CHANGE_VALUE, jsonService.serialize(email));
+			.value(CHANGE_VALUE, jsonService.serialize(item));
 		logger.debug("Inserting in batch {} the change {}", batch , statement.getQueryString());
 		batch.add(statement);
 	}

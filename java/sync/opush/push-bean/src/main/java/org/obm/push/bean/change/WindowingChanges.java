@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,21 +29,16 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store;
+package org.obm.push.bean.change;
 
-import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.change.WindowingChanges;
-import org.obm.push.bean.change.WindowingChangesBuilder;
-import org.obm.push.bean.change.WindowingItem;
-import org.obm.push.mail.bean.WindowingKey;
+import java.util.Set;
 
-public interface WindowingDao {
+public interface WindowingChanges<T extends WindowingItem> {
 
-	<T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder);
+	int sumOfChanges();
 	
-	<T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey syncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize);
-
-	boolean hasPendingElements(WindowingKey key);
-
+	Set<T> additions();
+	Set<T> changes();
+	Set<T> deletions();
+	
 }

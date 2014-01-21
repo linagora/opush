@@ -38,7 +38,11 @@ import java.util.NoSuchElementException;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.WindowingChangesBuilder;
+import org.obm.push.bean.change.WindowingItem;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.EmailChanges.Splitter;
@@ -67,10 +71,12 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 	
 	@Override
-	public EmailChanges popNextPendingElements(WindowingKey key, int maxSize, SyncKey newSyncKey) {
+	public <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B 
+			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder) {
 		Preconditions.checkArgument(key != null);
 		Preconditions.checkArgument(maxSize > 0);
 		Preconditions.checkArgument(newSyncKey != null);
+		Preconditions.checkArgument(changesBuilder != null);
 
 		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
 		logger.info("retrieve a maximum of {} changes for key {}", maxSize, windowingIndexKey);
@@ -78,7 +84,8 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 		EmailChanges changes = getEnoughChunks(windowingIndexKey, maxSize);
 		Splitter splittedToFitWindowSize = splitToFitWindowSize(changes, maxSize);
 		partitionDao.pushNextRequestPendingElements(windowingIndexKey, newSyncKey, splittedToFitWindowSize.getLeft());
-		return splittedToFitWindowSize.getFit();
+		
+		return (B) EmailChanges.builder().merge(splittedToFitWindowSize.getFit());
 	}
 
 	private Splitter splitToFitWindowSize(EmailChanges changes, int maxSize) {
@@ -104,7 +111,11 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 	
 	@Override
-	public void pushPendingElements(WindowingKey key, SyncKey syncKey, EmailChanges changes, int windowSize) {
+	public <T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey syncKey, 
+			WindowingChanges<T> windowingChanges, PIMDataType pimDataType, int windowSize) {
+		
+		EmailChanges changes = (EmailChanges) windowingChanges;
+		
 		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
 		logger.info("pushing windowing elements, key:{}, syncKey:{}, changes:{}, windowSize:{}", 
 				windowingIndexKey, syncKey, changes, windowSize);

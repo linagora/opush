@@ -75,6 +75,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -101,6 +102,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
+import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MessageSet;
@@ -344,7 +346,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		if (collection.getWindowSize() >= syncData.getEmailChanges().sumOfChanges()) {
 			return fetchChanges(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey, syncData.getEmailChanges());
 		} else {
-			windowingDao.pushPendingElements(key, newSyncKey, syncData.getEmailChanges(), collection.getWindowSize());
+			windowingDao.pushPendingChanges(key, newSyncKey, syncData.getEmailChanges(), PIMDataType.EMAIL, collection.getWindowSize());
 			return continueWindowing(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey);
 		}
 	}
@@ -353,12 +355,12 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
 		
-		EmailChanges pendingChanges = windowingDao.popNextPendingElements(key, collection.getWindowSize(), dataDeltaSyncKey);
+		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), dataDeltaSyncKey, EmailChanges.builder()).build();
 		return fetchChanges(udr, collection, key, dataDelaSyncDate, dataDeltaSyncKey, pendingChanges);
 	}
-
+	
 	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
-			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey, EmailChanges pendingChanges)
+			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey, WindowingChanges<Email> pendingChanges)
 		throws EmailViewPartsFetcherException {
 		
 		int collectionId = collection.getCollectionId();

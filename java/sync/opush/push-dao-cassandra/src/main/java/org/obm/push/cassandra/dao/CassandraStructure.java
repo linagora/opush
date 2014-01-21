@@ -79,6 +79,7 @@ public interface CassandraStructure {
 			String COLLECTION_ID = "collection_id";
 			String SYNC_KEY = "sync_key";
 			String WINDOWING_ID = "windowing_id";
+			String WINDOWING_KIND = "windowing_kind";
 			String WINDOWING_INDEX = "windowing_index";
 		}
 	}
