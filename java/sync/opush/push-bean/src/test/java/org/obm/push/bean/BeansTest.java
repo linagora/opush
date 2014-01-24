@@ -40,6 +40,7 @@ import org.obm.push.bean.autodiscover.AutodiscoverResponseError;
 import org.obm.push.bean.autodiscover.AutodiscoverResponseServer;
 import org.obm.push.bean.autodiscover.AutodiscoverResponseUser;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -116,6 +117,7 @@ public class BeansTest {
 					.add(SyncClientCommands.class)
 					.add(SyncClientCommands.Add.class)
 					.add(DataDelta.class)
+					.add(WindowingKey.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

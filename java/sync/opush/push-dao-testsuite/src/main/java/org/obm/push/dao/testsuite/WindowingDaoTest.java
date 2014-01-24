@@ -43,10 +43,10 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.change.WindowingChangesBuilder;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.bean.Email;
-import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;

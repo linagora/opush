@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.mail.bean;
+package org.obm.push.bean.change;
 
 import java.io.Serializable;
 

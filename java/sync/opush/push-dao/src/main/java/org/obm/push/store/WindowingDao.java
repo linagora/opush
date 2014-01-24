@@ -36,7 +36,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.bean.change.WindowingItem;
-import org.obm.push.mail.bean.WindowingKey;
+import org.obm.push.bean.change.WindowingKey;
 
 public interface WindowingDao {
 

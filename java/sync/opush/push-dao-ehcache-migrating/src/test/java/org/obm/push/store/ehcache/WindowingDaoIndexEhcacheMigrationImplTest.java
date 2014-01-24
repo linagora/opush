@@ -46,7 +46,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
-import org.obm.push.mail.bean.WindowingKey;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.store.ehcache.WindowingDaoEhcacheImpl.WindowingIndex;
 import org.slf4j.Logger;
 

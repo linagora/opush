@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.mail.bean;
+package org.obm.push.bean.change;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +38,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.bean.change.WindowingKey;
 
 public class WindowingKeyTest {
 

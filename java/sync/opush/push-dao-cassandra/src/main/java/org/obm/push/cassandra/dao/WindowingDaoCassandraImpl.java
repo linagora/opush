@@ -55,9 +55,9 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.bean.change.WindowingItem;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
-import org.obm.push.mail.bean.WindowingKey;
 import org.obm.push.store.WindowingDao;
 import org.slf4j.Logger;
 
