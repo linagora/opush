@@ -43,6 +43,7 @@ import java.util.TimeZone;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.WindowingContact;
+import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
@@ -1756,6 +1757,232 @@ public class JSONServiceTest {
 		expectedMSEvent.setUid(new MSEventUid("123"));
 
 		assertThat(msEvent).isEqualTo(expectedMSEvent);
+	}
+
+	
+	@Test
+	public void testSerializeWindowingEvent() {
+		MSEventException msEventException = new MSEventException();
+		msEventException.setAllDayEvent(true);
+		msEventException.setBusyStatus(CalendarBusyStatus.BUSY);
+		msEventException.setCategories(ImmutableList.of("category"));
+		msEventException.setDescription("description");
+		msEventException.setDtStamp(date("2012-02-02T11:22:30"));
+		msEventException.setEndTime(date("2012-02-02T11:20:30"));
+		msEventException.setLocation("location");
+		msEventException.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
+		msEventException.setReminder(2);
+		msEventException.setSensitivity(CalendarSensitivity.PERSONAL);
+		msEventException.setStartTime(date("2012-02-01T11:20:30"));
+		msEventException.setSubject("subject");
+		
+		MSRecurrence msRecurrence = new MSRecurrence();
+		msRecurrence.setDayOfMonth(1);
+		msRecurrence.setDayOfWeek(ImmutableSet.of(RecurrenceDayOfWeek.SATURDAY));
+		msRecurrence.setDeadOccur(true);
+		msRecurrence.setInterval(2);
+		msRecurrence.setMonthOfYear(3);
+		msRecurrence.setOccurrences(4);
+		msRecurrence.setRegenerate(true);
+		msRecurrence.setStart(date("2012-02-02T11:12:33"));
+		msRecurrence.setType(RecurrenceType.WEEKLY);
+		msRecurrence.setUntil(date("2012-02-02T09:22:33"));
+		msRecurrence.setWeekOfMonth(5);
+		
+		MSEvent msEvent = new MSEvent();
+		msEvent.setAllDayEvent(true);
+		msEvent.setAttendeeEmails(ImmutableSet.of("attendee@obm.org"));
+		msEvent.setBusyStatus(CalendarBusyStatus.BUSY);
+		msEvent.setCategories(ImmutableList.of("category"));
+		msEvent.setCreated(date("2012-02-02T11:22:33"));
+		msEvent.setDescription("description");
+		msEvent.setDtStamp(date("2012-02-02T11:22:30"));
+		msEvent.setEndTime(date("2012-02-02T11:20:30"));
+		msEvent.setExceptions(ImmutableList.of(msEventException));
+		msEvent.setLastUpdate(date("2012-03-02T11:20:30"));
+		msEvent.setLocation("location");
+		msEvent.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
+		msEvent.setObmSequence(1);
+		msEvent.setOrganizerEmail("organizer@obm.org");
+		msEvent.setOrganizerName("organizer");
+		msEvent.setRecurrence(msRecurrence);
+		msEvent.setReminder(2);
+		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
+		msEvent.setStartTime(date("2012-02-01T11:20:30"));
+		msEvent.setSubject("subject");
+		msEvent.setTimeZone(TimeZone.getTimeZone("GMT"));
+		msEvent.setUid(new MSEventUid("123"));
+		
+		String serialized = new JSONService().serialize(WindowingEvent.builder().uid(7).msEvent(msEvent).build());
+		assertThat(serialized).isEqualTo(
+			"{\"msEvent\":{" +
+				"\"type\":\"CALENDAR\"," + 
+				"\"allDayEvent\":true," + 
+				"\"attendeeEmails\":[\"attendee@obm.org\"]," + 
+				"\"attendees\":[]," + 
+				"\"busyStatus\":\"BUSY\"," + 
+				"\"categories\":[\"category\"]," + 
+				"\"created\":1328178153000," + 
+				"\"description\":\"description\"," + 
+				"\"dtStamp\":1328178150000," + 
+				"\"endTime\":1328178030000," + 
+				"\"exceptions\":" + 
+					"[{" + 
+						"\"allDayEvent\":true," + 
+						"\"busyStatus\":\"BUSY\"," + 
+						"\"categories\":[\"category\"]," + 
+						"\"deleted\":false," + 
+						"\"description\":\"description\"," + 
+						"\"dtStamp\":1328178150000," + 
+						"\"endTime\":1328178030000," + 
+						"\"exceptionStartTime\":null," + 
+						"\"location\":\"location\"," + 
+						"\"meetingStatus\":\"IS_A_MEETING\"," + 
+						"\"reminder\":2," + 
+						"\"sensitivity\":\"PERSONAL\"," + 
+						"\"startTime\":1328091630000," + 
+						"\"subject\":\"subject\"" + 
+					"}]," + 
+				"\"lastUpdate\":1330683630000," + 
+				"\"location\":\"location\"," + 
+				"\"meetingStatus\":\"IS_A_MEETING\"," + 
+				"\"obmSequence\":1," + 
+				"\"organizerEmail\":\"organizer@obm.org\"," + 
+				"\"organizerName\":\"organizer\"," + 
+				"\"recurrence\":{" + 
+					"\"dayOfMonth\":1," + 
+					"\"dayOfWeek\":[\"SATURDAY\"]," + 
+					"\"deadOccur\":true," + 
+					"\"interval\":2," + 
+					"\"monthOfYear\":3," + 
+					"\"occurrences\":4," + 
+					"\"regenerate\":true," + 
+					"\"start\":1328177553000," + 
+					"\"type\":\"WEEKLY\"," + 
+					"\"until\":1328170953000," + 
+					"\"weekOfMonth\":5" + 
+				"}," + 
+				"\"reminder\":2," + 
+				"\"sensitivity\":\"PERSONAL\"," + 
+				"\"startTime\":1328091630000," + 
+				"\"subject\":\"subject\"," + 
+				"\"timeZone\":\"GMT\"," + 
+				"\"uid\":{\"uid\":\"123\"}" + 
+			"}," +
+			"\"uid\":7}");
+	}
+	
+	@Test
+	public void testDeserializeWindowingEvent() {
+		WindowingEvent event = new JSONService().deserialize(WindowingEvent.class, 
+			"{\"msEvent\":{" +
+					"\"type\":\"CALENDAR\"," + 
+					"\"allDayEvent\":true," + 
+					"\"attendeeEmails\":[\"attendee@obm.org\"]," + 
+					"\"attendees\":[]," + 
+					"\"busyStatus\":\"BUSY\"," + 
+					"\"categories\":[\"category\"]," + 
+					"\"created\":1328178153000," + 
+					"\"description\":\"description\"," + 
+					"\"dtStamp\":1328178150000," + 
+					"\"endTime\":1328178030000," + 
+					"\"exceptions\":" + 
+						"[{" + 
+							"\"allDayEvent\":true," + 
+							"\"busyStatus\":\"BUSY\"," + 
+							"\"categories\":[\"category\"]," + 
+							"\"deleted\":false," + 
+							"\"description\":\"description\"," + 
+							"\"dtStamp\":1328178150000," + 
+							"\"endTime\":1328178030000," + 
+							"\"exceptionStartTime\":null," + 
+							"\"location\":\"location\"," + 
+							"\"meetingStatus\":\"IS_A_MEETING\"," + 
+							"\"reminder\":2," + 
+							"\"sensitivity\":\"PERSONAL\"," + 
+							"\"startTime\":1328091630000," + 
+							"\"subject\":\"subject\"" + 
+						"}]," + 
+					"\"lastUpdate\":1330683630000," + 
+					"\"location\":\"location\"," + 
+					"\"meetingStatus\":\"IS_A_MEETING\"," + 
+					"\"obmSequence\":1," + 
+					"\"organizerEmail\":\"organizer@obm.org\"," + 
+					"\"organizerName\":\"organizer\"," + 
+					"\"recurrence\":{" + 
+						"\"dayOfMonth\":1," + 
+						"\"dayOfWeek\":[\"SATURDAY\"]," + 
+						"\"deadOccur\":true," + 
+						"\"interval\":2," + 
+						"\"monthOfYear\":3," + 
+						"\"occurrences\":4," + 
+						"\"regenerate\":true," + 
+						"\"start\":1328177553000," + 
+						"\"type\":\"WEEKLY\"," + 
+						"\"until\":1328170953000," + 
+						"\"weekOfMonth\":5" + 
+					"}," + 
+					"\"reminder\":2," + 
+					"\"sensitivity\":\"PERSONAL\"," + 
+					"\"startTime\":1328091630000," + 
+					"\"subject\":\"subject\"," + 
+					"\"timeZone\":\"GMT\"," + 
+					"\"uid\":{\"uid\":\"123\"}" + 
+				"}," +
+				"\"uid\":7}");
+		
+		MSEventException msEventException = new MSEventException();
+		msEventException.setAllDayEvent(true);
+		msEventException.setBusyStatus(CalendarBusyStatus.BUSY);
+		msEventException.setCategories(ImmutableList.of("category"));
+		msEventException.setDescription("description");
+		msEventException.setDtStamp(date("2012-02-02T11:22:30"));
+		msEventException.setEndTime(date("2012-02-02T11:20:30"));
+		msEventException.setLocation("location");
+		msEventException.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
+		msEventException.setReminder(2);
+		msEventException.setSensitivity(CalendarSensitivity.PERSONAL);
+		msEventException.setStartTime(date("2012-02-01T11:20:30"));
+		msEventException.setSubject("subject");
+		
+		MSRecurrence msRecurrence = new MSRecurrence();
+		msRecurrence.setDayOfMonth(1);
+		msRecurrence.setDayOfWeek(ImmutableSet.of(RecurrenceDayOfWeek.SATURDAY));
+		msRecurrence.setDeadOccur(true);
+		msRecurrence.setInterval(2);
+		msRecurrence.setMonthOfYear(3);
+		msRecurrence.setOccurrences(4);
+		msRecurrence.setRegenerate(true);
+		msRecurrence.setStart(date("2012-02-02T11:12:33"));
+		msRecurrence.setType(RecurrenceType.WEEKLY);
+		msRecurrence.setUntil(date("2012-02-02T09:22:33"));
+		msRecurrence.setWeekOfMonth(5);
+		
+		MSEvent expectedMSEvent = new MSEvent();
+		expectedMSEvent.setAllDayEvent(true);
+		expectedMSEvent.setAttendeeEmails(ImmutableSet.of("attendee@obm.org"));
+		expectedMSEvent.setBusyStatus(CalendarBusyStatus.BUSY);
+		expectedMSEvent.setCategories(ImmutableList.of("category"));
+		expectedMSEvent.setCreated(date("2012-02-02T11:22:33"));
+		expectedMSEvent.setDescription("description");
+		expectedMSEvent.setDtStamp(date("2012-02-02T11:22:30"));
+		expectedMSEvent.setEndTime(date("2012-02-02T11:20:30"));
+		expectedMSEvent.setExceptions(ImmutableList.of(msEventException));
+		expectedMSEvent.setLastUpdate(date("2012-03-02T11:20:30"));
+		expectedMSEvent.setLocation("location");
+		expectedMSEvent.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
+		expectedMSEvent.setObmSequence(1);
+		expectedMSEvent.setOrganizerEmail("organizer@obm.org");
+		expectedMSEvent.setOrganizerName("organizer");
+		expectedMSEvent.setRecurrence(msRecurrence);
+		expectedMSEvent.setReminder(2);
+		expectedMSEvent.setSensitivity(CalendarSensitivity.PERSONAL);
+		expectedMSEvent.setStartTime(date("2012-02-01T11:20:30"));
+		expectedMSEvent.setSubject("subject");
+		expectedMSEvent.setTimeZone(TimeZone.getTimeZone("GMT"));
+		expectedMSEvent.setUid(new MSEventUid("123"));
+
+		assertThat(event).isEqualTo(WindowingEvent.builder().uid(7).msEvent(expectedMSEvent).build());
 	}
 	
 	@Test

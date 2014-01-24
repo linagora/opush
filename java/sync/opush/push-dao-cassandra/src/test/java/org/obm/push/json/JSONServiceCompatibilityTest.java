@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.WindowingContact;
+import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
@@ -407,6 +408,7 @@ public class JSONServiceCompatibilityTest {
 					.build())
 			.put(filename(ItemChange.class), itemChange)
 			.put(filename(WindowingContact.class), WindowingContact.builder().uid(102).msContact(contact).build())
+			.put(filename(WindowingEvent.class), WindowingEvent.builder().uid(201).msEvent(msEvent).build())
 			.build();
 	}
 
