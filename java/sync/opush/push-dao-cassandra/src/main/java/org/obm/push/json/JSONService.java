@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Set;
 
+import org.obm.push.backend.WindowingContact;
 import org.obm.push.bean.AbstractSyncCollection;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
@@ -92,6 +93,7 @@ import org.obm.push.json.mixin.SyncCollectionOptionsMixIn;
 import org.obm.push.json.mixin.SyncCollectionRequestMixIn;
 import org.obm.push.json.mixin.SyncKeyMixIn;
 import org.obm.push.json.mixin.UserMixIn;
+import org.obm.push.json.mixin.WindowingContactMixIn;
 import org.obm.push.json.serializer.CharsetDeserializer;
 import org.obm.push.json.serializer.CharsetSerializer;
 import org.obm.push.json.serializer.SerializableInputStreamDeserializer;
@@ -217,7 +219,8 @@ public class JSONService {
 			.setMixInAnnotation(SyncCollectionOptions.class, SyncCollectionOptionsMixIn.class)
 			.setMixInAnnotation(SyncCollectionRequest.class, SyncCollectionRequestMixIn.class)
 			.setMixInAnnotation(SyncKey.class, SyncKeyMixIn.class)
-			.setMixInAnnotation(User.class, UserMixIn.class);
+			.setMixInAnnotation(User.class, UserMixIn.class)
+			.setMixInAnnotation(WindowingContact.class, WindowingContactMixIn.class);
 	}
 
 	private SimpleModule buildOpushBeansSerializers() {

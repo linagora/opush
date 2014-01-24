@@ -42,6 +42,7 @@ import java.util.TimeZone;
 
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
+import org.obm.push.backend.WindowingContact;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
@@ -672,6 +673,179 @@ public class JSONServiceTest {
 		expectedContact.setMMS("MMS");
 		expectedContact.setData("Data");
 		assertThat(contact).isEqualTo(expectedContact);
+	}
+	
+	@Test
+	public void testSerializeWindowingContact() {
+		MSContact contact = new MSContact();
+		contact.setAssistantName("AssistantName");
+		contact.setFirstName("FirstName");
+		contact.setMiddleName("MiddleName");
+		contact.setCompanyName("CompanyName");
+		contact.setTitle("Title");
+		
+		String serialized = new JSONService().serialize(WindowingContact.builder().uid(56).msContact(contact).build());
+		assertThat(serialized).isEqualTo(
+			"{" +
+				"\"msContact\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"accountName\":null," +
+					"\"anniversary\":null," +
+					"\"assistantName\":\"AssistantName\"," +
+					"\"assistantPhoneNumber\":null," +
+					"\"assistnamePhoneNumber\":null," +
+					"\"birthday\":null," +
+					"\"business2PhoneNumber\":null," +
+					"\"businessAddressCity\":null," +
+					"\"businessAddressCountry\":null," +
+					"\"businessFaxNumber\":null," +
+					"\"businessPhoneNumber\":null," +
+					"\"businessPostalCode\":null," +
+					"\"businessState\":null," +
+					"\"businessStreet\":null," +
+					"\"carPhoneNumber\":null," +
+					"\"categories\":null," +
+					"\"children\":null," +
+					"\"companyMainPhone\":null," +
+					"\"companyName\":\"CompanyName\"," +
+					"\"customerId\":null," +
+					"\"data\":null," +
+					"\"department\":null," +
+					"\"email1Address\":null," +
+					"\"email2Address\":null," +
+					"\"email3Address\":null," +
+					"\"fileAs\":null," +
+					"\"firstName\":\"FirstName\"," +
+					"\"governmentId\":null," +
+					"\"home2PhoneNumber\":null," +
+					"\"homeAddressCity\":null," +
+					"\"homeAddressCountry\":null," +
+					"\"homeAddressPostalCode\":null," +
+					"\"homeAddressState\":null," +
+					"\"homeAddressStreet\":null," +
+					"\"homeFaxNumber\":null," +
+					"\"homePhoneNumber\":null," +
+					"\"iMAddress\":null," +
+					"\"iMAddress2\":null," +
+					"\"iMAddress3\":null," +
+					"\"imaddress\":null," +
+					"\"imaddress2\":null," +
+					"\"imaddress3\":null," +
+					"\"jobTitle\":null," +
+					"\"lastName\":null," +
+					"\"mMS\":null," +
+					"\"managerName\":null," +
+					"\"middleName\":\"MiddleName\"," +
+					"\"mms\":null," +
+					"\"mobilePhoneNumber\":null," +
+					"\"nickName\":null," +
+					"\"officeLocation\":null," +
+					"\"otherAddressCity\":null," +
+					"\"otherAddressCountry\":null," +
+					"\"otherAddressPostalCode\":null," +
+					"\"otherAddressState\":null," +
+					"\"otherAddressStreet\":null," +
+					"\"pagerNumber\":null," +
+					"\"picture\":null," +
+					"\"radioPhoneNumber\":null," +
+					"\"spouse\":null," +
+					"\"suffix\":null," +
+					"\"title\":\"Title\"," +
+					"\"webPage\":null," +
+					"\"yomiCompanyName\":null," +
+					"\"yomiFirstName\":null," +
+					"\"yomiLastName\":null" +
+				"}," +
+				"\"uid\":56" +
+			"}");
+	}
+	
+	@Test
+	public void testDeserializeWindowingContact() {
+		WindowingContact contact = new JSONService().deserialize(WindowingContact.class,
+			"{" +
+				"\"msContact\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"accountName\":null," +
+					"\"anniversary\":null," +
+					"\"assistantName\":\"AssistantName\"," +
+					"\"assistantPhoneNumber\":null," +
+					"\"assistnamePhoneNumber\":null," +
+					"\"birthday\":null," +
+					"\"business2PhoneNumber\":null," +
+					"\"businessAddressCity\":null," +
+					"\"businessAddressCountry\":null," +
+					"\"businessFaxNumber\":null," +
+					"\"businessPhoneNumber\":null," +
+					"\"businessPostalCode\":null," +
+					"\"businessState\":null," +
+					"\"businessStreet\":null," +
+					"\"carPhoneNumber\":null," +
+					"\"categories\":null," +
+					"\"children\":null," +
+					"\"companyMainPhone\":null," +
+					"\"companyName\":\"CompanyName\"," +
+					"\"customerId\":null," +
+					"\"data\":null," +
+					"\"department\":null," +
+					"\"email1Address\":null," +
+					"\"email2Address\":null," +
+					"\"email3Address\":null," +
+					"\"fileAs\":null," +
+					"\"firstName\":\"FirstName\"," +
+					"\"governmentId\":null," +
+					"\"home2PhoneNumber\":null," +
+					"\"homeAddressCity\":null," +
+					"\"homeAddressCountry\":null," +
+					"\"homeAddressPostalCode\":null," +
+					"\"homeAddressState\":null," +
+					"\"homeAddressStreet\":null," +
+					"\"homeFaxNumber\":null," +
+					"\"homePhoneNumber\":null," +
+					"\"iMAddress\":null," +
+					"\"iMAddress2\":null," +
+					"\"iMAddress3\":null," +
+					"\"imaddress\":null," +
+					"\"imaddress2\":null," +
+					"\"imaddress3\":null," +
+					"\"jobTitle\":null," +
+					"\"lastName\":null," +
+					"\"mMS\":null," +
+					"\"managerName\":null," +
+					"\"middleName\":\"MiddleName\"," +
+					"\"mms\":null," +
+					"\"mobilePhoneNumber\":null," +
+					"\"nickName\":null," +
+					"\"officeLocation\":null," +
+					"\"otherAddressCity\":null," +
+					"\"otherAddressCountry\":null," +
+					"\"otherAddressPostalCode\":null," +
+					"\"otherAddressState\":null," +
+					"\"otherAddressStreet\":null," +
+					"\"pagerNumber\":null," +
+					"\"picture\":null," +
+					"\"radioPhoneNumber\":null," +
+					"\"spouse\":null," +
+					"\"suffix\":null," +
+					"\"title\":\"Title\"," +
+					"\"webPage\":null," +
+					"\"yomiCompanyName\":null," +
+					"\"yomiFirstName\":null," +
+					"\"yomiLastName\":null" +
+				"}," +
+				"\"uid\":56" +
+			"}");
+
+		MSContact expectedContact = new MSContact();
+		expectedContact.setAssistantName("AssistantName");
+		expectedContact.setFirstName("FirstName");
+		expectedContact.setMiddleName("MiddleName");
+		expectedContact.setCompanyName("CompanyName");
+		expectedContact.setTitle("Title");
+		
+		WindowingContact expectedWindowingContact = WindowingContact.builder().msContact(expectedContact).uid(56).build();
+		
+		assertThat(contact).isEqualTo(expectedWindowingContact);
 	}
 	
 	@Test

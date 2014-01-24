@@ -46,6 +46,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
+import org.obm.push.backend.WindowingContact;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
@@ -91,7 +92,6 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceDayOfWeek;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
-import org.obm.push.json.JSONService;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
@@ -406,6 +406,7 @@ public class JSONServiceCompatibilityTest {
 					.serverId("123")
 					.build())
 			.put(filename(ItemChange.class), itemChange)
+			.put(filename(WindowingContact.class), WindowingContact.builder().uid(102).msContact(contact).build())
 			.build();
 	}
 
