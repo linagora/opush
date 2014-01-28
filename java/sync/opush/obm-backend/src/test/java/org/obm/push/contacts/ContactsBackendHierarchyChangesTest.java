@@ -51,7 +51,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.DateUtils;
 import org.obm.configuration.ContactConfiguration;
-import org.obm.push.backend.BackendWindowingService;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.CollectionPath.Builder;
 import org.obm.push.bean.Credentials;
@@ -74,6 +73,7 @@ import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.Folder;
@@ -103,7 +103,7 @@ public class ContactsBackendHierarchyChangesTest {
 	private BookClient.Factory bookClientFactory;
 	private ContactConfiguration contactConfiguration;
 	private Provider<CollectionPath.Builder> collectionPathBuilderProvider;
-	private BackendWindowingService backendWindowingService;
+	private WindowingDao windowingDao;
 	private ClientIdService clientIdService;
 	private ContactsBackend contactsBackend;
 	private CloseableHttpClient httpClient;
@@ -136,7 +136,7 @@ public class ContactsBackendHierarchyChangesTest {
 			.andReturn(bookClient).anyTimes();
 		contactConfiguration = publicContactConfiguration();
 		collectionPathBuilderProvider = mocks.createMock(Provider.class);
-		backendWindowingService = mocks.createMock(BackendWindowingService.class);
+		windowingDao = mocks.createMock(WindowingDao.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
 		contactConverter = new ContactConverter();
 		
@@ -144,7 +144,7 @@ public class ContactsBackendHierarchyChangesTest {
 				bookClientFactory, 
 				contactConfiguration, 
 				collectionPathBuilderProvider,
-				backendWindowingService,
+				windowingDao,
 				clientIdService,
 				contactConverter);
 	}

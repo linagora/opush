@@ -40,14 +40,14 @@ import javax.naming.NoPermissionException;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.configuration.ContactConfiguration;
-import org.obm.push.backend.BackendWindowingService;
-import org.obm.push.backend.BackendWindowingService.BackendChangesProvider;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushCollection;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.backend.PathsToCollections;
 import org.obm.push.backend.PathsToCollections.Builder;
+import org.obm.push.backend.WindowingContact;
+import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.FolderSyncState;
@@ -56,10 +56,10 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -79,6 +79,7 @@ import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.resource.ResourcesUtils;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
@@ -92,9 +93,11 @@ import org.obm.sync.items.FolderChanges;
 import org.obm.sync.services.IAddressBook;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -106,7 +109,7 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 	
 	private final ContactConfiguration contactConfiguration;
 	private final BookClient.Factory bookClientFactory;
-	private final BackendWindowingService backendWindowingService;
+	private final WindowingDao windowingDao;
 	private final ClientIdService clientIdService;
 	private final ContactConverter contactConverter;
 	@Inject
@@ -114,14 +117,14 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 			BookClient.Factory bookClientFactory, 
 			ContactConfiguration contactConfiguration,
 			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
-			BackendWindowingService backendWindowingService,
+			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			ContactConverter contactConverter) {
 		
 		super(mappingService, collectionPathBuilderProvider);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
-		this.backendWindowingService = backendWindowingService;
+		this.windowingDao = windowingDao;
 		this.clientIdService = clientIdService;
 		this.contactConverter = contactConverter;
 	}
@@ -287,48 +290,97 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 		SyncCollectionOptions syncCollectionOptions) throws CollectionNotFoundException, 
 		DaoException, UnexpectedObmSyncServerException {
 	
-		DataDelta dataDelta = getAllChanges(udr, state, collectionId, state.getSyncKey());
+		WindowingContactChanges.Builder builder = WindowingContactChanges.builder();
+		Date lastSync = getAllChanges(udr, state, collectionId, builder);
+		DataDelta dataDelta = convertToDataDelta(builder.build(), collectionId, lastSync, state.getSyncKey());
 		return dataDelta.getItemEstimateSize();
 	}
 	
 	@Override
-	public DataDelta getChanged(final UserDataRequest udr, final ItemSyncState itemSyncState, final AnalysedSyncCollection syncCollection, 
-			final SyncClientCommands clientCommands, final SyncKey newSyncKey)
+	public DataDelta getChanged(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, 
+			SyncClientCommands clientCommands, SyncKey newSyncKey)
 		throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
 
-		return backendWindowingService.windowedChanges(udr, itemSyncState, syncCollection, clientCommands, newSyncKey, new BackendChangesProvider() {
+		SyncKey requestSyncKey = syncCollection.getSyncKey();
+		WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
+		
+		if (windowingDao.hasPendingElements(key)) {
+			return continueWindowing(syncCollection, key, newSyncKey, itemSyncState.getSyncDate());
+		} else {
+			return startWindowing(udr, itemSyncState, syncCollection, key, newSyncKey);
+		}
+	}
+
+	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey) {
+		
+		final Integer collectionId = collection.getCollectionId();
+		WindowingContactChanges.Builder builder = WindowingContactChanges.builder();
+		Date lastSync = getAllChanges(udr, syncState, collectionId, builder);
+		
+		WindowingContactChanges windowingContactChanges = builder.build();
+		if (collection.getWindowSize() >= windowingContactChanges.sumOfChanges()) {
+			return convertToDataDelta(windowingContactChanges, collectionId, lastSync, newSyncKey);
+		} else {
+			windowingDao.pushPendingChanges(key, newSyncKey, windowingContactChanges, PIMDataType.CONTACTS, collection.getWindowSize());
+			return continueWindowing(collection, key, newSyncKey, lastSync);
+		}
+	}
+
+	@VisibleForTesting DataDelta convertToDataDelta(WindowingContactChanges contactChanges, final Integer collectionId, Date syncDate, SyncKey newSyncKey) {
+		return DataDelta.builder()
+				.changes(FluentIterable.from(Iterables.concat(contactChanges.additions(),contactChanges.changes()))
+						.transform(new Function<WindowingContact, ItemChange>() {
 			
-			@Override
-			public DataDelta getAllChanges() {
-				return ContactsBackend.this.getAllChanges(udr, itemSyncState, syncCollection.getCollectionId(), newSyncKey);
-			}
-		});
+							@Override
+							public ItemChange apply(WindowingContact windowingContact) {
+								return ItemChange.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(windowingContact.getUid())))
+										.data(windowingContact.getMsContact())
+										.build();
+							}
+						}).toList())
+				.deletions(FluentIterable.from(contactChanges.deletions())
+						.transform(new Function<WindowingContact, ItemDeletion>() {
+			
+							@Override
+							public ItemDeletion apply(WindowingContact windowingContact) {
+								return ItemDeletion.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(windowingContact.getUid())))
+										.build();
+							}
+						}).toList())
+				.syncDate(syncDate)
+				.syncKey(newSyncKey)
+				.build();
+	}
+
+	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey, Date lastSync)
+		throws DaoException {
+		
+		WindowingContactChanges pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), syncKey, WindowingContactChanges.builder()).build();
+		return convertToDataDelta(pendingChanges, collection.getCollectionId(), lastSync, syncKey);
 	}
 	
-	@VisibleForTesting DataDelta getAllChanges(UserDataRequest udr, ItemSyncState state,
-			Integer collectionId, SyncKey newSyncKey) {
+
+	@VisibleForTesting Date getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, WindowingContactChanges.Builder builder) {
 		
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		ContactChanges contactChanges = listContactsChanged(udr, state, addressBookId);
 		
-		List<ItemChange> addUpd = new LinkedList<ItemChange>();
 		for (Contact contact : contactChanges.getUpdated()) {
-			addUpd.add(convertContactToItemChange(collectionId, contact));
-		}
-		
-		List<ItemDeletion> deletions = new LinkedList<ItemDeletion>();
-		for (Integer remove : contactChanges.getRemoved()) {
-			deletions.add(ItemDeletion.builder()
-					.serverId(ServerId.buildServerIdString(collectionId, remove))
+			builder.change(WindowingContact.builder()
+					.uid(contact.getUid())
+					.msContact(contactConverter.convert(contact))
 					.build());
 		}
 		
-		return DataDelta.builder()
-				.changes(addUpd)
-				.deletions(deletions)
-				.syncDate(contactChanges.getLastSync())
-				.syncKey(newSyncKey)
-				.build();
+		for (Integer remove : contactChanges.getRemoved()) {
+			builder.deletion(WindowingContact.builder()
+					.uid(remove)
+					.build());
+		}
+		
+		return contactChanges.getLastSync();
 	}
 	
 	private Integer findAddressBookIdFromCollectionId(UserDataRequest udr, Integer collectionId) 

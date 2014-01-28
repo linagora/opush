@@ -36,6 +36,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.obm.DateUtils.dateUTC;
 
 import java.io.IOException;
 import java.util.Date;
@@ -45,8 +46,6 @@ import java.util.TreeSet;
 
 import javax.naming.NoPermissionException;
 
-import net.fortuna.ical4j.util.Strings;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -55,12 +54,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.configuration.ContactConfiguration;
-import org.obm.push.backend.BackendWindowingService;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.CollectionPath.Builder;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushCollection;
 import org.obm.push.backend.PathsToCollections;
+import org.obm.push.backend.WindowingContact;
+import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
@@ -82,6 +82,7 @@ import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.AuthFault;
@@ -116,7 +117,7 @@ public class ContactsBackendTest {
 	private LoginService loginService;
 	private ContactConfiguration contactConfiguration;
 	private Provider<CollectionPath.Builder> collectionPathBuilderProvider;
-	private BackendWindowingService backendWindowingService;
+	private WindowingDao windowingDao;
 	private ClientIdService clientIdService;
 	private AccessToken token;
 	private ContactsBackend contactsBackend;
@@ -148,12 +149,12 @@ public class ContactsBackendTest {
 		loginService = mocks.createMock(LoginService.class);
 		contactConfiguration = mocks.createMock(ContactConfiguration.class);
 		collectionPathBuilderProvider = mocks.createMock(Provider.class);
-		backendWindowingService = mocks.createMock(BackendWindowingService.class);
+		windowingDao = mocks.createMock(WindowingDao.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
 		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, backendWindowingService, clientIdService, contactConverter);
+				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -191,7 +192,6 @@ public class ContactsBackendTest {
 	public void testGetChanges() throws Exception {
 		int collectionId = 1;
 		Date currentDate = DateUtils.getCurrentDate();
-		SyncKey newSyncKey = new SyncKey("789");
 		ItemSyncState lastKnownState = ItemSyncState.builder()
 				.syncDate(currentDate)
 				.syncKey(new SyncKey("1234567890a"))
@@ -208,22 +208,146 @@ public class ContactsBackendTest {
 		expectMappingServiceCollectionIdBehavior(books);
 		
 		mocks.replay();
-		DataDelta dataDelta = contactsBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, newSyncKey);
+		WindowingContactChanges.Builder builder = WindowingContactChanges.builder();
+		contactsBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, builder);
 		mocks.verify();
 
-		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.<ItemChange>of())
-				.deletions(ImmutableList.<ItemDeletion>of())
-				.syncDate(currentDate)
-				.syncKey(newSyncKey)
+		assertThat(builder.build()).isEqualTo(WindowingContactChanges.builder()
+				.changes(ImmutableList.<WindowingContact>of())
+				.deletions(ImmutableList.<WindowingContact>of())
 				.build());
 	}
 
 	@Test
+	public void convertToDataDeltaWhenEmpty() {
+		WindowingContactChanges changes = WindowingContactChanges.empty();
+		int collectionId = 12;
+		Date syncDate = dateUTC("2013-04-07T12:09:37");
+		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
+		
+		DataDelta result = contactsBackend.convertToDataDelta(changes, collectionId, syncDate, syncKey);
+		
+		assertThat(result.getChanges()).isEmpty();
+		assertThat(result.getDeletions()).isEmpty();
+		assertThat(result.getSyncDate()).isEqualTo(syncDate);
+		assertThat(result.getSyncKey()).isEqualTo(syncKey);
+	}
+	
+	@Test
+	public void convertToDataDeltaWhenTwoAdds() {
+		MSContact contact1 = new MSContact();
+		MSContact contact2 = new MSContact();
+		WindowingContactChanges changes = WindowingContactChanges.builder()
+				.addition(WindowingContact.builder().uid(14).msContact(contact1).build())
+				.addition(WindowingContact.builder().uid(16).msContact(contact2).build())
+				.build();
+		int collectionId = 12;
+		Date syncDate = dateUTC("2013-04-07T12:09:37");
+		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
+		
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		
+		mocks.replay();
+		DataDelta result = contactsBackend.convertToDataDelta(changes, collectionId, syncDate, syncKey);
+		mocks.verify();
+		
+		assertThat(result.getChanges()).containsOnly(
+				ItemChange.builder().serverId("12:14").data(contact1).build(),
+				ItemChange.builder().serverId("12:16").data(contact2).build());
+		assertThat(result.getDeletions()).isEmpty();
+		assertThat(result.getSyncDate()).isEqualTo(syncDate);
+		assertThat(result.getSyncKey()).isEqualTo(syncKey);
+	}
+
+	@Test
+	public void convertToDataDeltaWhenTwoChanges() {
+		MSContact contact1 = new MSContact();
+		MSContact contact2 = new MSContact();
+		WindowingContactChanges changes = WindowingContactChanges.builder()
+				.change(WindowingContact.builder().uid(14).msContact(contact1).build())
+				.change(WindowingContact.builder().uid(16).msContact(contact2).build())
+				.build();
+		int collectionId = 12;
+		Date syncDate = dateUTC("2013-04-07T12:09:37");
+		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
+
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		
+		mocks.replay();
+		DataDelta result = contactsBackend.convertToDataDelta(changes, collectionId, syncDate, syncKey);
+		mocks.verify();
+		
+		assertThat(result.getChanges()).containsOnly(
+				ItemChange.builder().serverId("12:14").data(contact1).build(),
+				ItemChange.builder().serverId("12:16").data(contact2).build());
+		assertThat(result.getDeletions()).isEmpty();
+		assertThat(result.getSyncDate()).isEqualTo(syncDate);
+		assertThat(result.getSyncKey()).isEqualTo(syncKey);
+	}
+	
+	@Test
+	public void convertToDataDeltaWhenTwoDeletions() {
+		MSContact contact1 = new MSContact();
+		MSContact contact2 = new MSContact();
+		WindowingContactChanges changes = WindowingContactChanges.builder()
+				.deletion(WindowingContact.builder().uid(14).msContact(contact1).build())
+				.deletion(WindowingContact.builder().uid(16).msContact(contact2).build())
+				.build();
+		int collectionId = 12;
+		Date syncDate = dateUTC("2013-04-07T12:09:37");
+		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
+
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		
+		mocks.replay();
+		DataDelta result = contactsBackend.convertToDataDelta(changes, collectionId, syncDate, syncKey);
+		mocks.verify();
+		
+		assertThat(result.getDeletions()).containsOnly(
+				ItemDeletion.builder().serverId("12:14").build(),
+				ItemDeletion.builder().serverId("12:16").build());
+		assertThat(result.getChanges()).isEmpty();
+		assertThat(result.getSyncDate()).isEqualTo(syncDate);
+		assertThat(result.getSyncKey()).isEqualTo(syncKey);
+	}
+	
+	@Test
+	public void convertToDataDeltaWhenOneOfEach() {
+		MSContact contact1 = new MSContact();
+		MSContact contact2 = new MSContact();
+		MSContact contact3 = new MSContact();
+		WindowingContactChanges changes = WindowingContactChanges.builder()
+				.addition(WindowingContact.builder().uid(14).msContact(contact1).build())
+				.change(WindowingContact.builder().uid(15).msContact(contact2).build())
+				.deletion(WindowingContact.builder().uid(16).msContact(contact3).build())
+				.build();
+		int collectionId = 12;
+		Date syncDate = dateUTC("2013-04-07T12:09:37");
+		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
+
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
+		expect(mappingService.getServerIdFor(collectionId, "15")).andReturn("12:15");
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		
+		mocks.replay();
+		DataDelta result = contactsBackend.convertToDataDelta(changes, collectionId, syncDate, syncKey);
+		mocks.verify();
+		
+		assertThat(result.getDeletions()).containsOnly(ItemDeletion.builder().serverId("12:16").build());
+		assertThat(result.getChanges()).containsOnly(
+				ItemChange.builder().serverId("12:14").data(contact1).build(),
+				ItemChange.builder().serverId("12:15").data(contact2).build());
+		assertThat(result.getSyncDate()).isEqualTo(syncDate);
+		assertThat(result.getSyncKey()).isEqualTo(syncKey);
+	}
+	
+	@Test
 	public void testGetAllChangesOnFirstSync() throws Exception {
 		int collectionId = 1;
 		Date currentDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
-		SyncKey newSyncKey = new SyncKey("789");
 		ItemSyncState lastKnownState = ItemSyncState.builder()
 				.syncDate(currentDate)
 				.syncKey(new SyncKey("1234567890a"))
@@ -246,35 +370,29 @@ public class ContactsBackendTest {
 		expect(bookClient.firstListContactsChanged(token, currentDate, collectionId)).andReturn(contactChanges).once();
 		expectMappingServiceCollectionIdBehavior(books);
 		
-		expect(mappingService.getServerIdFor(collectionId, Strings.valueOf(contact.getUid())))
-			.andReturn("1:" + contact.getUid()).once();
-		expect(mappingService.getServerIdFor(collectionId, Strings.valueOf(contact2.getUid())))
-			.andReturn("1:" + contact2.getUid()).once();
-		
 		mocks.replay();
-		DataDelta dataDelta = contactsBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, newSyncKey);
+		WindowingContactChanges.Builder builder = WindowingContactChanges.builder();
+		contactsBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, builder);
 		mocks.verify();
 
 		MSContact msContact = new MSContact();
 		msContact.setFirstName(contact.getFirstname());
 		msContact.setFileAs(contact.getFirstname());
-		ItemChange expectedItemChange = ItemChange.builder()
-			.serverId("1:1")
-			.data(msContact)
+		WindowingContact expectedWindowingContact = WindowingContact.builder()
+			.uid(1)
+			.msContact(msContact)
 			.build();
 		MSContact msContact2 = new MSContact();
 		msContact2.setFirstName(contact2.getFirstname());
 		msContact2.setFileAs(contact2.getFirstname());
-		ItemChange expectedItemChange2 = ItemChange.builder()
-			.serverId("1:2")
-			.data(msContact2)
-			.build();
+		WindowingContact expectedWindowingContact2 = WindowingContact.builder()
+				.uid(2)
+				.msContact(msContact2)
+				.build();
 		
-		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.of(expectedItemChange, expectedItemChange2))
-				.deletions(ImmutableList.<ItemDeletion>of())
-				.syncDate(currentDate)
-				.syncKey(newSyncKey)
+		assertThat(builder.build()).isEqualTo(WindowingContactChanges.builder()
+				.changes(ImmutableList.of(expectedWindowingContact, expectedWindowingContact2))
+				.deletions(ImmutableList.<WindowingContact>of())
 				.build());
 	}
 
