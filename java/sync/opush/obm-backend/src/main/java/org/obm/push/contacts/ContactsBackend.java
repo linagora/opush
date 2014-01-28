@@ -108,19 +108,22 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 	private final BookClient.Factory bookClientFactory;
 	private final BackendWindowingService backendWindowingService;
 	private final ClientIdService clientIdService;
+	private final ContactConverter contactConverter;
 	@Inject
 	@VisibleForTesting ContactsBackend(MappingService mappingService, 
 			BookClient.Factory bookClientFactory, 
 			ContactConfiguration contactConfiguration,
 			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
 			BackendWindowingService backendWindowingService,
-			ClientIdService clientIdService) {
+			ClientIdService clientIdService,
+			ContactConverter contactConverter) {
 		
 		super(mappingService, collectionPathBuilderProvider);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.backendWindowingService = backendWindowingService;
 		this.clientIdService = clientIdService;
+		this.contactConverter = contactConverter;
 	}
 
 	@Override
@@ -376,7 +379,7 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 	private ItemChange convertContactToItemChange(Integer collectionId, Contact contact) {
 		return ItemChange.builder()
 			.serverId( mappingService.getServerIdFor(collectionId, String.valueOf(contact.getUid())))
-			.data( new ContactConverter().convert(contact))
+			.data(contactConverter.convert(contact))
 			.build();
 	}
 
@@ -393,11 +396,11 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 		try {
 
 			if (serverId != null) {
-				Contact convertedContact = new ContactConverter().contact(contact);
+				Contact convertedContact = contactConverter.contact(contact);
 				convertedContact.setUid(contactId);
 				modifyContact(udr, addressBookId, convertedContact);
 			} else {
-				Contact createdContact = createContact(udr, addressBookId, new ContactConverter().contact(contact), clientId);
+				Contact createdContact = createContact(udr, addressBookId, contactConverter.contact(contact), clientId);
 				contactId = createdContact.getUid();
 			}
 

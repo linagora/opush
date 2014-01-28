@@ -54,12 +54,15 @@ import com.google.inject.Singleton;
 public class ObmSearchContact implements ISearchSource {
 
 	private final static Logger logger = LoggerFactory.getLogger(ObmSearchContact.class);
+	
 	private final BookClient.Factory bookClientFactory;
+	private final ContactConverter contactConverter;
 	
 	@Inject
-	private ObmSearchContact(BookClient.Factory bookClientFactory) {
+	private ObmSearchContact(BookClient.Factory bookClientFactory, ContactConverter contactConverter) {
 		super();
 		this.bookClientFactory = bookClientFactory;
+		this.contactConverter = contactConverter;
 	}
 	
 	@Override
@@ -71,13 +74,12 @@ public class ObmSearchContact implements ISearchSource {
 	public List<SearchResult> search(UserDataRequest udr, String query, Integer limit) {
 		List<SearchResult> ret = new LinkedList<SearchResult>();
 		AccessToken token = ResourcesUtils.getAccessToken(udr);
-		ContactConverter cc = new ContactConverter();
 		try {
 			Integer offset = null;
 			List<Contact> contacts = getBookClient(udr)
 					.searchContactsInSynchronizedAddressBooks(token, query, limit, offset);
 			for (Contact contact: contacts) {
-				ret.add(cc.convertToSearchResult(contact));
+				ret.add(contactConverter.convertToSearchResult(contact));
 			}
 		} catch (ServerFault e) {
 			logger.error(e.getMessage(), e);

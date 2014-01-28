@@ -121,6 +121,7 @@ public class ContactsBackendTest {
 	private AccessToken token;
 	private ContactsBackend contactsBackend;
 	private CloseableHttpClient httpClient;
+	private ContactConverter contactConverter;
 	
 	@Before
 	public void setUp() {
@@ -149,9 +150,10 @@ public class ContactsBackendTest {
 		collectionPathBuilderProvider = mocks.createMock(Provider.class);
 		backendWindowingService = mocks.createMock(BackendWindowingService.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
+		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, backendWindowingService, clientIdService);
+				collectionPathBuilderProvider, backendWindowingService, clientIdService, contactConverter);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -181,7 +183,7 @@ public class ContactsBackendTest {
 	
 	@Test
 	public void testGetPIMDataType() {
-		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null);
+		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null);
 		assertThat(contactsBackend.getPIMDataType()).isEqualTo(PIMDataType.CONTACTS);
 	}
 
@@ -371,7 +373,7 @@ public class ContactsBackendTest {
 		MSContact msContact = new MSContact();
 		
 		Contact contact = newContactObject(serverId);
-		Contact convertedContact = new ContactConverter().contact(msContact);
+		Contact convertedContact = contactConverter.contact(msContact);
 		expect(bookClient.createContact(token, targetcontactCollectionUid, convertedContact, clientIdHash))
 			.andReturn(contact).once();
 		
@@ -508,7 +510,7 @@ public class ContactsBackendTest {
 		ItemChange itemChange = ItemChange.builder()
 				.serverId(serverId)
 				.isNew(false)
-				.data(new ContactConverter().convert(contact))
+				.data(contactConverter.convert(contact))
 				.build();
 		
 		assertThat(itemChanges).hasSize(1);

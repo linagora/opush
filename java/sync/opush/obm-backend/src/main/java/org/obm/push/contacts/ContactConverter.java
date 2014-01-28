@@ -45,13 +45,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Converts between OBM & MS Exchange contact models
  */
+@Singleton
 public class ContactConverter {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContactConverter.class);
+	
+	@Inject
+	@VisibleForTesting ContactConverter() {
+		super();
+	}
 	
 	/**
 	 * OBM to PDA

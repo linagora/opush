@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.contacts;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Date;
@@ -107,6 +107,7 @@ public class ContactsBackendHierarchyChangesTest {
 	private ClientIdService clientIdService;
 	private ContactsBackend contactsBackend;
 	private CloseableHttpClient httpClient;
+	private ContactConverter contactConverter;
 
 	@Before
 	public void setUp() {
@@ -137,13 +138,15 @@ public class ContactsBackendHierarchyChangesTest {
 		collectionPathBuilderProvider = mocks.createMock(Provider.class);
 		backendWindowingService = mocks.createMock(BackendWindowingService.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
+		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, 
 				bookClientFactory, 
 				contactConfiguration, 
 				collectionPathBuilderProvider,
 				backendWindowingService,
-				clientIdService);
+				clientIdService,
+				contactConverter);
 	}
 
 	@After
