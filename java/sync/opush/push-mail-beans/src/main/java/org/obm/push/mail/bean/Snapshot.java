@@ -42,14 +42,11 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.ProtocolException;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-@JsonDeserialize(builder=Snapshot.Builder.class)
 public class Snapshot implements Serializable {
 	
 	public static Builder builder() {
@@ -131,7 +128,6 @@ public class Snapshot implements Serializable {
 	private final Integer collectionId;
 	private final long uidNext;
 	private final Collection<Email> emails;
-	@JsonIgnore
 	private final MessageSet messageSet;
 	
 	protected Snapshot(DeviceId deviceId, FilterType filterType, SyncKey syncKey, Integer collectionId, long uidNext, Collection<Email> emails) {

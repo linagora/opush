@@ -68,6 +68,8 @@ import org.obm.push.json.mixin.BodyPreferenceMixIn;
 import org.obm.push.json.mixin.CredentialsMixIn;
 import org.obm.push.json.mixin.DeviceIdMixIn;
 import org.obm.push.json.mixin.DeviceMixIn;
+import org.obm.push.json.mixin.EmailChangesMixIn;
+import org.obm.push.json.mixin.EmailMixIn;
 import org.obm.push.json.mixin.IApplicationDataMixIn;
 import org.obm.push.json.mixin.ItemChangeMixIn;
 import org.obm.push.json.mixin.ItemDeletionMixIn;
@@ -80,6 +82,7 @@ import org.obm.push.json.mixin.MSEventUidMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestCategoryMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestRecurrenceMixIn;
+import org.obm.push.json.mixin.SnapshotMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandRequestMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandResponseMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsMixIn;
@@ -93,6 +96,9 @@ import org.obm.push.json.serializer.CharsetDeserializer;
 import org.obm.push.json.serializer.CharsetSerializer;
 import org.obm.push.json.serializer.SerializableInputStreamDeserializer;
 import org.obm.push.json.serializer.SerializableInputStreamSerializer;
+import org.obm.push.mail.EmailChanges;
+import org.obm.push.mail.bean.Email;
+import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.utils.SerializableInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,6 +196,8 @@ public class JSONService {
 			.setMixInAnnotation(AbstractSyncCollection.class, AbstractSyncCollectionMixIn.class)
 			.setMixInAnnotation(AnalysedSyncCollection.class, AnalysedSyncCollectionMixIn.class)
 			.setMixInAnnotation(BodyPreference.class, BodyPreferenceMixIn.class)
+			.setMixInAnnotation(Email.class, EmailMixIn.class)
+			.setMixInAnnotation(EmailChanges.class, EmailChangesMixIn.class)
 			.setMixInAnnotation(MSAddress.class, MSAddressMixIn.class)
 			.setMixInAnnotation(MSEmailBody.class, MSEmailBodyMixIn.class)
 			.setMixInAnnotation(MSEmailHeader.class, MSEmailHeaderMixIn.class)
@@ -199,6 +207,7 @@ public class JSONService {
 			.setMixInAnnotation(MSMeetingRequestCategory.class, MSMeetingRequestCategoryMixIn.class)
 			.setMixInAnnotation(MSMeetingRequest.class, MSMeetingRequestMixIn.class)
 			.setMixInAnnotation(MSMeetingRequestRecurrence.class, MSMeetingRequestRecurrenceMixIn.class)
+			.setMixInAnnotation(Snapshot.class, SnapshotMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandRequest.class, SyncCollectionCommandRequestMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandResponse.class, SyncCollectionCommandResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommands.class, SyncCollectionCommandsMixIn.class)

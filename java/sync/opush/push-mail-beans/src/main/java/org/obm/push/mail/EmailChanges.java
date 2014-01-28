@@ -42,7 +42,6 @@ import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.mail.bean.Email;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -52,7 +51,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
 
-@JsonDeserialize(builder=EmailChanges.Builder.class)
 public class EmailChanges implements WindowingChanges<Email>, Serializable {
 	
 	public static EmailChanges empty() {
