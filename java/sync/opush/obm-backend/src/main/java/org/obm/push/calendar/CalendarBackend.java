@@ -45,13 +45,13 @@ import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.Ical4jUser.Factory;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
-import org.obm.push.backend.BackendWindowingService;
-import org.obm.push.backend.BackendWindowingService.BackendChangesProvider;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushCollection;
 import org.obm.push.backend.PathsToCollections;
 import org.obm.push.backend.PathsToCollections.Builder;
+import org.obm.push.backend.WindowingEvent;
+import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.BreakdownGroups;
@@ -65,6 +65,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -86,6 +87,7 @@ import org.obm.push.resource.ResourcesUtils;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
@@ -108,7 +110,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -127,7 +128,7 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 	private final CalendarClient.Factory calendarClientFactory;
 	private final ConsistencyEventChangesLogger consistencyLogger;
 	private final EventExtId.Factory eventExtIdFactory;
-	private final BackendWindowingService backendWindowingService;
+	private final WindowingDao windowingDao;
 	private final ClientIdService clientIdService;
 	private final Ical4jHelper ical4jHelper;
 	private final Factory ical4jUserFactory;
@@ -138,7 +139,7 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 			EventService eventService,
 			Provider<CollectionPath.Builder> collectionPathBuilderProvider, ConsistencyEventChangesLogger consistencyLogger,
 			EventExtId.Factory eventExtIdFactory,
-			BackendWindowingService backendWindowingService,
+			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			Ical4jHelper ical4jHelper, 
 			Ical4jUser.Factory ical4jUserFactory) {
@@ -149,7 +150,7 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 		this.eventService = eventService;
 		this.consistencyLogger = consistencyLogger;
 		this.eventExtIdFactory = eventExtIdFactory;
-		this.backendWindowingService = backendWindowingService;
+		this.windowingDao = windowingDao;
 		this.clientIdService = clientIdService;
 		this.ical4jHelper = ical4jHelper;
 		this.ical4jUserFactory = ical4jUserFactory;
@@ -270,41 +271,84 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 	}
 
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, 
-				SyncCollectionOptions collectionOptions) 
-			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, 
-				ConversionException, HierarchyChangedException {
+	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions) 
+			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 		
-		DataDelta dataDelta = getAllChanges(udr, state, collectionId, collectionOptions, state.getSyncKey());
-		return dataDelta.getItemEstimateSize();
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		getAllChanges(udr, state, collectionId, collectionOptions, builder);
+		return builder.sumOfChanges();
 	}
 	
 	@Override
-	public DataDelta getChanged(final UserDataRequest udr, final ItemSyncState itemSyncState, final AnalysedSyncCollection syncCollection, 
-			SyncClientCommands clientCommands, final SyncKey newSyncKey)
-		throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException,
-			ConversionException, HierarchyChangedException {
+	public DataDelta getChanged(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, 
+			SyncClientCommands clientCommands, SyncKey newSyncKey)
+		throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
 
-		return backendWindowingService.windowedChanges(udr, itemSyncState, syncCollection, clientCommands, newSyncKey, new BackendChangesProvider() {
-			
-			@Override
-			public DataDelta getAllChanges() {
-				return CalendarBackend.this.getAllChanges(udr, itemSyncState, syncCollection.getCollectionId(), 
-						syncCollection.getOptions(), newSyncKey);
-			}
-		});
+		SyncKey requestSyncKey = syncCollection.getSyncKey();
+		WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
+		
+		if (windowingDao.hasPendingElements(key)) {
+			return continueWindowing(syncCollection, key, newSyncKey, itemSyncState.getSyncDate());
+		} else {
+			return startWindowing(udr, itemSyncState, syncCollection, key, newSyncKey);
+		}
 	}
 
-	@VisibleForTesting DataDelta getAllChanges(UserDataRequest udr, ItemSyncState state,
-			Integer collectionId, SyncCollectionOptions collectionOptions, SyncKey newSyncKey) {
+	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey) {
+		
+		final Integer collectionId = collection.getCollectionId();
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		Date lastSync = getAllChanges(udr, syncState, collectionId, collection.getOptions(), builder);
+		
+		WindowingEventChanges windowingEventChanges = builder.build();
+		if (collection.getWindowSize() >= windowingEventChanges.sumOfChanges()) {
+			return convertToDataDelta(windowingEventChanges, collectionId, lastSync, newSyncKey);
+		} else {
+			windowingDao.pushPendingChanges(key, newSyncKey, windowingEventChanges, PIMDataType.CALENDAR, collection.getWindowSize());
+			return continueWindowing(collection, key, newSyncKey, lastSync);
+		}
+	}
+
+	@VisibleForTesting DataDelta convertToDataDelta(WindowingEventChanges eventChanges, final Integer collectionId, Date syncDate, SyncKey newSyncKey) {
+		return DataDelta.builder()
+				.changes(FluentIterable.from(Iterables.concat(eventChanges.additions(), eventChanges.changes()))
+						.transform(new Function<WindowingEvent, ItemChange>() {
+			
+							@Override
+							public ItemChange apply(WindowingEvent windowingEvent) {
+								return ItemChange.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(windowingEvent.getUid())))
+										.data(windowingEvent.getMsEvent())
+										.build();
+							}
+						}).toList())
+				.deletions(FluentIterable.from(eventChanges.deletions())
+						.transform(new Function<WindowingEvent, ItemDeletion>() {
+			
+							@Override
+							public ItemDeletion apply(WindowingEvent windowingEvent) {
+								return ItemDeletion.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(windowingEvent.getUid())))
+										.build();
+							}
+						}).toList())
+				.syncDate(syncDate)
+				.syncKey(newSyncKey)
+				.build();
+	}
+
+	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey, Date lastSync) throws DaoException {
+		WindowingEventChanges pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), syncKey, WindowingEventChanges.builder()).build();
+		return convertToDataDelta(pendingChanges, collection.getCollectionId(), lastSync, syncKey);
+	}
+
+	@VisibleForTesting Date getAllChanges(UserDataRequest udr, ItemSyncState state,
+			Integer collectionId, SyncCollectionOptions collectionOptions, WindowingEventChanges.Builder builder) {
 		
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
 		AccessToken token = getAccessToken(udr);
 		
-		DataDelta delta = null;
-
 		try {
-			
 			EventChanges changes = null;
 			Date filteredSyncDate = state.getFilteredSyncDate(collectionOptions.getFilterType());
 			boolean syncFiltered = filteredSyncDate != state.getSyncDate();
@@ -318,15 +362,12 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 			logger.info("Event changes [ {} ]", changes.getUpdated().size());
 			logger.info("Event changes LastSync [ {} ]", changes.getLastSync().toString());
 			
-			delta = buildDataDelta(udr, collectionId, token, changes, newSyncKey);
+			appendChangesToBuilder(udr, token, changes, builder);
 			
-			logger.info("getContentChanges( {}, lastSync = {} ) => {}",
-				collectionPath.backendName(), filteredSyncDate, delta.statistics());
-			
-			return delta;
+			return changes.getLastSync();
 		} catch (org.obm.sync.NotAllowedException e) {
 			logger.warn(e.getMessage(), e);
-			return delta;
+			return state.getSyncDate();
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -350,43 +391,35 @@ public class CalendarBackend extends ObmSyncBackend implements org.obm.push.ICal
 		return getCalendarClient(udr).getSync(token, collectionPath.backendName(), filteredSyncDate);
 	}
 	
-	@VisibleForTesting DataDelta buildDataDelta(UserDataRequest udr, Integer collectionId,
-			AccessToken token, EventChanges changes, SyncKey newSyncKey) throws ServerFault,
-			DaoException, ConversionException {
-		final String userEmail = getCalendarClient(udr).getUserEmail(token);
+	@VisibleForTesting void appendChangesToBuilder(UserDataRequest udr, AccessToken token, EventChanges changes, WindowingEventChanges.Builder builder) 
+			throws ServerFault, DaoException, ConversionException {
+		
+		String userEmail = getCalendarClient(udr).getUserEmail(token);
 		Preconditions.checkNotNull(userEmail, "User has no email address");
 
-		return DataDelta.builder()
-				.changes(addOrUpdateEventFilter(changes.getUpdated(), userEmail, collectionId, udr))
-				.deletions(removeEventFilter(changes.getDeletedEvents(), collectionId))
-				.syncDate(changes.getLastSync())
-				.syncKey(newSyncKey)
-				.build();
+		appendUpdatesEventFilter(changes.getUpdated(), userEmail, udr, builder);
+		appendDeletions(changes.getDeletedEvents(), builder);
 	}
 
-	private List<ItemChange> addOrUpdateEventFilter(Set<Event> events, String userEmail,
-			Integer collectionId, UserDataRequest udr) throws DaoException, ConversionException {
+	private void appendUpdatesEventFilter(Set<Event> events, String userEmail, UserDataRequest udr, WindowingEventChanges.Builder builder) 
+			throws DaoException, ConversionException {
 		
-		List<ItemChange> items = Lists.newArrayList();
-		for (final Event event : events) {
+		for (Event event : events) {
 			if (checkIfEventCanBeAdded(event, userEmail) && event.getRecurrenceId() == null) {
-				String serverId = getServerIdFor(collectionId, event.getObmId());
-				ItemChange change = createItemChangeToAddFromEvent(udr, event, serverId);
-				items.add(change);
+				builder.change(WindowingEvent.builder()
+						.uid(event.getObmId().getObmId())
+						.msEvent(eventService.convertEventToMSEvent(udr, event))
+						.build());
 			}	
 		}
-		return items;
 	}
 	
-	private List<ItemDeletion> removeEventFilter(Iterable<DeletedEvent> eventsRemoved, Integer collectionId) {
-		
-		List<ItemDeletion> deletions = Lists.newArrayList();
-		for (final DeletedEvent eventRemove : eventsRemoved) {
-			deletions.add(ItemDeletion.builder()
-					.serverId(ServerId.buildServerIdString(collectionId, eventRemove.getId().getObmId()))
+	private void appendDeletions(Iterable<DeletedEvent> eventsRemoved, WindowingEventChanges.Builder builder) {
+		for (DeletedEvent eventRemove : eventsRemoved) {
+			builder.deletion(WindowingEvent.builder()
+					.uid(eventRemove.getId().getObmId())
 					.build());
 		}
-		return deletions;
 	}
 
 	private boolean checkIfEventCanBeAdded(Event event, String userEmail) {

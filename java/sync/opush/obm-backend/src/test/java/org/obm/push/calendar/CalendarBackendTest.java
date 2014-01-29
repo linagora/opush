@@ -61,10 +61,10 @@ import org.obm.icalendar.ICalendar;
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
-import org.obm.push.backend.BackendWindowingService;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.CollectionPath.Builder;
-import org.obm.push.backend.DataDelta;
+import org.obm.push.backend.WindowingEvent;
+import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Credentials;
@@ -86,7 +86,6 @@ import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ICalendarConverterException;
@@ -98,6 +97,7 @@ import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.NotAllowedException;
 import org.obm.sync.auth.AccessToken;
@@ -144,7 +144,7 @@ public class CalendarBackendTest {
 	private Provider<CollectionPath.Builder> collectionPathBuilderProvider;
 	private ConsistencyEventChangesLogger consistencyLogger;
 	private EventExtId.Factory eventExtIdFactory;
-	private BackendWindowingService backendWindowingService;
+	private WindowingDao windowingDao;
 	private ClientIdService clientIdService;
 	private Ical4jHelper ical4jHelper;
 	private Ical4jUser.Factory ical4jUserFactory;
@@ -194,7 +194,7 @@ public class CalendarBackendTest {
 		expect(collectionPathBuilderProvider.get()).andReturn(collectionPathBuilder).anyTimes();
 		this.consistencyLogger = mockControl.createMock(ConsistencyEventChangesLogger.class);
 		this.eventExtIdFactory = mockControl.createMock(EventExtId.Factory.class);
-		this.backendWindowingService = mockControl.createMock(BackendWindowingService.class);
+		this.windowingDao = mockControl.createMock(WindowingDao.class);
 		this.clientIdService = mockControl.createMock(ClientIdService.class);
 		this.ical4jHelper = mockControl.createMock(Ical4jHelper.class);
 		this.ical4jUserFactory = mockControl.createMock(Ical4jUser.Factory.class);
@@ -210,7 +210,7 @@ public class CalendarBackendTest {
 				eventConverter, 
 				eventService, 
 				collectionPathBuilderProvider, consistencyLogger, eventExtIdFactory, 
-				backendWindowingService,
+				windowingDao,
 				clientIdService,
 				ical4jHelper,
 				ical4jUserFactory);
@@ -629,17 +629,19 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		DataDelta dataDelta = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
 		
 		mockControl.verify();
 		
-		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.of(ItemChange.builder().serverId("1:21").build(), ItemChange.builder().serverId("1:22").build()))
+		assertThat(syncDate).isEqualTo(currentDate);
+		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+				.changes(ImmutableList.of(
+						WindowingEvent.builder().uid(21).build(), 
+						WindowingEvent.builder().uid(22).build()))
 				.deletions(ImmutableList.of(
-						ItemDeletion.builder().serverId("1:11").build(),
-						ItemDeletion.builder().serverId("1:12").build()))
-				.syncDate(currentDate)
-				.syncKey(syncKey)
+						WindowingEvent.builder().uid(11).build(),
+						WindowingEvent.builder().uid(12).build()))
 				.build());
 	}
 	
@@ -673,15 +675,17 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		DataDelta dataDelta = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
 		
 		mockControl.verify();
 		
-		assertThat(dataDelta).isEqualTo(DataDelta.builder()
-				.changes(ImmutableList.of(ItemChange.builder().serverId("1:21").build(), ItemChange.builder().serverId("1:22").build()))
-				.deletions(ImmutableList.<ItemDeletion> of())
-				.syncDate(currentDate)
-				.syncKey(syncKey)
+		assertThat(syncDate).isEqualTo(currentDate);
+		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+				.changes(ImmutableList.of(
+						WindowingEvent.builder().uid(21).build(), 
+						WindowingEvent.builder().uid(22).build()))
+				.deletions(ImmutableList.<WindowingEvent> of())
 				.build());
 	}
 
@@ -1246,9 +1250,7 @@ public class CalendarBackendTest {
 	}
 	
 	@Test
-	public void buildDeltaDataMustNotTransformDeclinedEventIntoRemoved() throws ServerFault, DaoException, ConversionException {
-		int collectionId = 1;
-		SyncKey syncKey = new SyncKey("1324");
+	public void appendChangesToBuilderMustNotTransformDeclinedEventIntoRemoved() throws ServerFault, DaoException, ConversionException {
 		EventObmId eventObmId = new EventObmId(132453);
 		EventExtId eventExtId = new EventExtId("event-ext-id-bla-bla");
 		Attendee attendee = UserAttendee.builder().email(user.getLoginAtDomain()).participation(Participation.declined()).build();
@@ -1270,12 +1272,14 @@ public class CalendarBackendTest {
 		
 		mockControl.replay();
 		
-		DataDelta dataDelta = calendarBackend.buildDataDelta(userDataRequest, collectionId, token, eventChanges, syncKey);
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		calendarBackend.appendChangesToBuilder(userDataRequest, token, eventChanges, builder);
 		
 		mockControl.verify();
-		assertThat(dataDelta.getDeletions()).hasSize(1).containsOnly(
-				ItemDeletion.builder()
-				.serverId("1:132453")
+		
+		assertThat(builder.build().deletions()).hasSize(1).containsOnly(
+				WindowingEvent.builder()
+				.uid(132453)
 				.build());
 	}
 
@@ -1313,8 +1317,16 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		DataDelta allChanges = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, syncKey);
-		assertThat(allChanges).isNull();
+		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
+		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
+		
+		mockControl.verify();
+		
+		assertThat(syncDate).isEqualTo(currentDate);
+		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+				.changes(ImmutableList.<WindowingEvent> of())
+				.deletions(ImmutableList.<WindowingEvent> of())
+				.build());
 	}
 	
 	@Test (expected=ItemNotFoundException.class)
