@@ -43,7 +43,7 @@ public class Estimate {
 	
 	public static class Builder {
 		private SyncCollectionResponse collection;
-		private int estimate;
+		private long estimate;
 		
 		private Builder() {}
 		
@@ -52,8 +52,8 @@ public class Estimate {
 			return this;
 		}
 		
-		public Builder estimate(int estimate) {
-			this.estimate = estimate;
+		public Builder incrementEstimate(long estimate) {
+			this.estimate += estimate;
 			return this;
 		}
 		
@@ -63,9 +63,9 @@ public class Estimate {
 	}
 
 	private final SyncCollectionResponse collection;
-	private final int estimate;
+	private final long estimate;
 
-	private Estimate(SyncCollectionResponse collection, int estimate) {
+	private Estimate(SyncCollectionResponse collection, long estimate) {
 		this.collection = collection;
 		this.estimate = estimate;
 	}
@@ -74,7 +74,7 @@ public class Estimate {
 		return collection;
 	}
 	
-	public int getEstimate() {
+	public long getEstimate() {
 		return estimate;
 	}
 	

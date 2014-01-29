@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
-import java.util.Collection;
-
 import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -46,7 +44,7 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.item.ItemChange;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -67,7 +65,7 @@ import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.store.UnsynchronizedItemDao;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -78,7 +76,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class GetItemEstimateHandler extends WbxmlRequestHandler {
 
-	private final UnsynchronizedItemDao unSynchronizedItemCache;
+	private final WindowingDao windowingDao;
 	private final GetItemEstimateProtocol protocol;
 	private final ICollectionPathHelper collectionPathHelper;
 
@@ -86,14 +84,14 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 	protected GetItemEstimateHandler(IBackend backend,
 			EncoderFactory encoderFactory, IContentsImporter contentsImporter,
 			IContentsExporter contentsExporter, StateMachine stMachine,
-			UnsynchronizedItemDao unSynchronizedItemCache, CollectionDao collectionDao,
+			WindowingDao windowingDao, CollectionDao collectionDao,
 			GetItemEstimateProtocol protocol, WBXMLTools wbxmlTools, DOMDumper domDumper,
 			ICollectionPathHelper collectionPathHelper) {
 		
 		super(backend, encoderFactory, contentsImporter,
 				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
 		
-		this.unSynchronizedItemCache = unSynchronizedItemCache;
+		this.windowingDao = windowingDao;
 		this.protocol = protocol;
 		this.collectionPathHelper = collectionPathHelper;
 	}
@@ -166,35 +164,27 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 		return getItemEstimateResponseBuilder.build();
 	}
 	
-	@VisibleForTesting Estimate computeEstimate(UserDataRequest udr, AnalysedSyncCollection request, PIMDataType dataType, SyncCollectionResponse.Builder builder) throws DaoException, InvalidSyncKeyException,
-		CollectionNotFoundException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
+	@VisibleForTesting Estimate computeEstimate(UserDataRequest udr, AnalysedSyncCollection request, PIMDataType dataType, SyncCollectionResponse.Builder syncCollectionResponseBuilder) 
+			throws DaoException, InvalidSyncKeyException, CollectionNotFoundException, ProcessingEmailException, 
+				UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 		
 		SyncKey syncKey = request.getSyncKey();
 		ItemSyncState state = stMachine.getItemSyncState(syncKey);
+		int collectionId = request.getCollectionId();
 		if (state == null) {
-			throw new InvalidSyncKeyException(request.getCollectionId(), syncKey);
+			throw new InvalidSyncKeyException(collectionId, syncKey);
 		}
 		
-		int unSynchronizedItemNb, count;
+		Estimate.Builder estimateBuilder = Estimate.builder();
 		try {
-			unSynchronizedItemNb = listItemToAddSize(request);
-			count = contentsExporter.getItemEstimateSize(udr, dataType, request, state);
+			estimateBuilder.incrementEstimate(windowingDao.countPendingChanges(new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey)));
+			estimateBuilder.incrementEstimate(contentsExporter.getItemEstimateSize(udr, dataType, request, state));
 		} catch (FilterTypeChangedException e) {
-			builder.status(SyncStatus.INVALID_SYNC_KEY);
-			return Estimate.builder()
-					.collection(builder.build())
-					.build();
+			syncCollectionResponseBuilder.status(SyncStatus.INVALID_SYNC_KEY);
 		}
 	
-		return Estimate.builder()
-				.collection(builder.build())
-				.estimate(count + unSynchronizedItemNb)
+		return estimateBuilder
+				.collection(syncCollectionResponseBuilder.build())
 				.build();
 	}
-
-	private int listItemToAddSize(AnalysedSyncCollection syncCollection) {
-		Collection<ItemChange> listItemToAdd = unSynchronizedItemCache.listItemsToAdd(syncCollection.getSyncKey());
-		return listItemToAdd.size();
-	}
-
 }

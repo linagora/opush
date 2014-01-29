@@ -110,7 +110,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 			int estimateSize = Integer.valueOf(DOMUtils.getElementText(collection, "Estimate"));
 			getItemEstimateResponseBuilder.add(Estimate.builder()
 					.collection(builder.build())
-					.estimate(estimateSize)
+					.incrementEstimate(estimateSize)
 					.build());
 		}
 		
@@ -157,7 +157,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 		DOMUtils.createElementAndText(collectionElement, "CollectionId", syncCollection.getCollectionId());
 	}
 
-	private void createEstimateElement(int estimate, Element collectionElement) {
+	private void createEstimateElement(long estimate, Element collectionElement) {
 		Element estim = DOMUtils.createElement(collectionElement, "Estimate");
 		estim.setTextContent(String.valueOf(estimate));
 	}

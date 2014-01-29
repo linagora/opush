@@ -122,7 +122,7 @@ public class GetItemEstimateHandlerTest {
 
 	@Test
 	public void testGetItemEstimateWithValidCollectionAndSyncKey() throws Exception {
-		SyncKey syncKey = new SyncKey("1");
+		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
 		int collectionId = 15105;
 		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
@@ -140,7 +140,7 @@ public class GetItemEstimateHandlerTest {
 
 	@Test
 	public void testGetItemEstimateWithUnexistingCollection() throws Exception {
-		SyncKey syncKey = new SyncKey("1");
+		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
 		int unexistingCollectionId = 15105;
 		Set<Integer> existingCollections = Collections.<Integer>emptySet();
@@ -158,7 +158,7 @@ public class GetItemEstimateHandlerTest {
 
 	@Test
 	public void testGetItemEstimateWithInvalidSyncKey() throws Exception {
-		SyncKey invalidSyncKey = new SyncKey("1");
+		SyncKey invalidSyncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = null;
 		int collectionId = 15105;
 		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
@@ -186,7 +186,7 @@ public class GetItemEstimateHandlerTest {
 
 	@Test
 	public void testGetItemEstimateWithHierarchyChangedException() throws Exception {
-		SyncKey syncKey = new SyncKey("1");
+		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
 		int collectionId = 15105;
 		Set<Integer> syncEmailCollectionsIds = Sets.newHashSet(collectionId);

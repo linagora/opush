@@ -31,11 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Collections;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -43,6 +41,7 @@ import org.junit.Test;
 import org.obm.push.ContentsExporter;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
@@ -51,11 +50,14 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
+import org.obm.push.bean.User;
+import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.state.StateMachine;
-import org.obm.push.store.UnsynchronizedItemDao;
+import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 
 
@@ -65,27 +67,27 @@ public class GetItemEstimateHandlerTest {
 	
 	private UserDataRequest udr;
 	private Device device;
+	private User user;
 
 	private StateMachine stMachine;
 	private IContentsExporter contentsExporter;
-	private UnsynchronizedItemDao unSynchronizedItemCache;
+	private WindowingDao windowingDao;
 
 	private GetItemEstimateHandler testee;
-
-
 
 	@Before
 	public void init() {
 		control = createControl();
 		
-		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
-		udr = new UserDataRequest(null,  null, device);
+		user = Factory.create().createUser("test@test", "test@domain", "displayName");
+		device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
+		udr = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
 		
 		contentsExporter = control.createMock(ContentsExporter.class);
 		stMachine = control.createMock(StateMachine.class);
-		unSynchronizedItemCache = control.createMock(UnsynchronizedItemDao.class);
+		windowingDao = control.createMock(WindowingDao.class);
 		
-		testee = new GetItemEstimateHandler(null, null, null, contentsExporter, stMachine, unSynchronizedItemCache, null, null, null, null, null);
+		testee = new GetItemEstimateHandler(null, null, null, contentsExporter, stMachine, windowingDao, null, null, null, null, null);
 		
 	}
 	
@@ -108,8 +110,8 @@ public class GetItemEstimateHandlerTest {
 			.andReturn(syncState);
 		expect(contentsExporter.getItemEstimateSize(udr, PIMDataType.EMAIL, syncCollection, syncState))
 			.andThrow(new FilterTypeChangedException(collectionId, FilterType.THREE_DAYS_BACK, FilterType.ONE_MONTHS_BACK));
-		expect(unSynchronizedItemCache.listItemsToAdd(syncKey))
-			.andReturn(Collections.EMPTY_SET);
+		expect(windowingDao.countPendingChanges(new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey)))
+			.andReturn(0l);
 		
 		control.replay();
 		SyncCollectionResponse.Builder builder = SyncCollectionResponse.builder()
