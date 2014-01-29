@@ -221,7 +221,7 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 	}
 
 	private WindowingChanges<Email> putChangeAs(Email change, String type) {
-		WindowingChangesBuilder<Email, EmailChanges> builder = EmailChanges.builder();
+		WindowingChangesBuilder<Email> builder = EmailChanges.builder();
 		testeeImpl.putChange(builder, type, change);
 		return builder.build();
 	}

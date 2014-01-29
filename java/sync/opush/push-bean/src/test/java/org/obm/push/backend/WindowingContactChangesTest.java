@@ -85,9 +85,9 @@ public class WindowingContactChangesTest {
 
 	@Test
 	public void buildOneContactInEachCollection() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		WindowingContactChanges emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
@@ -101,10 +101,10 @@ public class WindowingContactChangesTest {
 	
 	@Test
 	public void mergeWithEmpty() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact change2 = WindowingContact.builder().uid(4).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact change2 = WindowingContact.builder().uid(4).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change, change2))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
@@ -115,10 +115,10 @@ public class WindowingContactChangesTest {
 
 	@Test
 	public void mergeFromEmpty() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact change2 = WindowingContact.builder().uid(4).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact change2 = WindowingContact.builder().uid(4).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		WindowingContactChanges emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change, change2))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
@@ -132,17 +132,17 @@ public class WindowingContactChangesTest {
 	
 	@Test
 	public void merge() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
 			.additions(ImmutableSet.<WindowingContact>of(addition));
 		
-		WindowingContact change2 = WindowingContact.builder().uid(4).msContact(new MSContact()).build();
-		WindowingContact deletion2 = WindowingContact.builder().uid(5).msContact(new MSContact()).build();
-		WindowingContact addition2 = WindowingContact.builder().uid(6).msContact(new MSContact()).build();
+		WindowingContact change2 = WindowingContact.builder().uid(4).applicationData(new MSContact()).build();
+		WindowingContact deletion2 = WindowingContact.builder().uid(5).applicationData(new MSContact()).build();
+		WindowingContact addition2 = WindowingContact.builder().uid(6).applicationData(new MSContact()).build();
 		WindowingContactChanges emailChanges2 = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change2))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion2))
@@ -158,15 +158,15 @@ public class WindowingContactChangesTest {
 
 	@Test
 	public void mergeWithDuplicates() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
 			.additions(ImmutableSet.<WindowingContact>of(addition));
 		
-		WindowingContact change2 = WindowingContact.builder().uid(4).msContact(new MSContact()).build();
+		WindowingContact change2 = WindowingContact.builder().uid(4).applicationData(new MSContact()).build();
 		WindowingContactChanges emailChanges2 = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change2))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
@@ -188,9 +188,9 @@ public class WindowingContactChangesTest {
 	
 	@Test
 	public void sumOfChanges() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))
@@ -201,9 +201,9 @@ public class WindowingContactChangesTest {
 	
 	@Test
 	public void sumOfChangesWithDuplicates() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.changes(ImmutableSet.<WindowingContact>of(change))
@@ -217,9 +217,9 @@ public class WindowingContactChangesTest {
 	
 	@Test
 	public void sumOfChangesWithDuplicatesInMerge() {
-		WindowingContact change = WindowingContact.builder().uid(1).msContact(new MSContact()).build();
-		WindowingContact deletion = WindowingContact.builder().uid(2).msContact(new MSContact()).build();
-		WindowingContact addition = WindowingContact.builder().uid(3).msContact(new MSContact()).build();
+		WindowingContact change = WindowingContact.builder().uid(1).applicationData(new MSContact()).build();
+		WindowingContact deletion = WindowingContact.builder().uid(2).applicationData(new MSContact()).build();
+		WindowingContact addition = WindowingContact.builder().uid(3).applicationData(new MSContact()).build();
 		Builder emailChanges = WindowingContactChanges.builder()
 			.changes(ImmutableSet.<WindowingContact>of(change))
 			.deletions(ImmutableSet.<WindowingContact>of(deletion))

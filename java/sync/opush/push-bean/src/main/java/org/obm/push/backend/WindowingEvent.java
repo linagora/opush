@@ -34,12 +34,12 @@ package org.obm.push.backend;
 import java.io.Serializable;
 
 import org.obm.push.bean.MSEvent;
-import org.obm.push.bean.change.WindowingItem;
+import org.obm.push.bean.change.WindowingItemWithData;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-public class WindowingEvent implements WindowingItem, Serializable {
+public class WindowingEvent implements WindowingItemWithData, Serializable {
 
 	public static Builder builder() {
 		return new Builder();
@@ -48,7 +48,7 @@ public class WindowingEvent implements WindowingItem, Serializable {
 	public static class Builder {
 		
 		private Integer uid;
-		private MSEvent msEvent;
+		private MSEvent applicationData;
 		
 		private Builder() {
 		}
@@ -58,44 +58,46 @@ public class WindowingEvent implements WindowingItem, Serializable {
 			return this;
 		}
 		
-		public Builder msEvent(MSEvent msEvent) {
-			this.msEvent = msEvent;
+		public Builder applicationData(MSEvent msEvent) {
+			this.applicationData = msEvent;
 			return this;
 		}
 		
 		public WindowingEvent build() {
 			Preconditions.checkArgument(uid != null);
-			return new WindowingEvent(uid, msEvent);
+			return new WindowingEvent(uid, applicationData);
 		}
 	}
 	
 	private final int uid;
-	private final MSEvent msEvent;
+	private final MSEvent applicationData;
 
 	public WindowingEvent(int uid, MSEvent msEvent) {
 		this.uid = uid;
-		this.msEvent = msEvent;
+		this.applicationData = msEvent;
 	}
 
+	@Override
 	public int getUid() {
 		return uid;
 	}
 
-	public MSEvent getMsEvent() {
-		return msEvent;
+	@Override
+	public MSEvent getApplicationData() {
+		return applicationData;
 	}
 
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("uid", uid)
-			.add("msEvent", msEvent)
+			.add("msEvent", applicationData)
 			.toString();
 	}
 	
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(uid, msEvent);
+		return Objects.hashCode(uid, applicationData);
 	}
 	
 	@Override
@@ -103,7 +105,7 @@ public class WindowingEvent implements WindowingItem, Serializable {
 		if (object instanceof WindowingEvent) {
 			WindowingEvent that = (WindowingEvent) object;
 			return Objects.equal(this.uid, that.uid)
-				&& Objects.equal(this.msEvent, that.msEvent);
+				&& Objects.equal(this.applicationData, that.applicationData);
 		}
 		return false;
 	}

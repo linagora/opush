@@ -34,12 +34,12 @@ package org.obm.push.backend;
 import java.io.Serializable;
 
 import org.obm.push.bean.MSContact;
-import org.obm.push.bean.change.WindowingItem;
+import org.obm.push.bean.change.WindowingItemWithData;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-public class WindowingContact implements WindowingItem, Serializable {
+public class WindowingContact implements WindowingItemWithData, Serializable {
 
 	public static Builder builder() {
 		return new Builder();
@@ -48,7 +48,7 @@ public class WindowingContact implements WindowingItem, Serializable {
 	public static class Builder {
 		
 		private Integer uid;
-		private MSContact msContact;
+		private MSContact applicationData;
 		
 		private Builder() {
 		}
@@ -58,44 +58,46 @@ public class WindowingContact implements WindowingItem, Serializable {
 			return this;
 		}
 		
-		public Builder msContact(MSContact msContact) {
-			this.msContact = msContact;
+		public Builder applicationData(MSContact msContact) {
+			this.applicationData = msContact;
 			return this;
 		}
 		
 		public WindowingContact build() {
 			Preconditions.checkArgument(uid != null);
-			return new WindowingContact(uid, msContact);
+			return new WindowingContact(uid, applicationData);
 		}
 	}
 	
 	private final int uid;
-	private final MSContact msContact;
+	private final MSContact applicationData;
 
 	public WindowingContact(int uid, MSContact msContact) {
 		this.uid = uid;
-		this.msContact = msContact;
+		this.applicationData = msContact;
 	}
-
+	
+	@Override
 	public int getUid() {
 		return uid;
 	}
 
-	public MSContact getMsContact() {
-		return msContact;
+	@Override
+	public MSContact getApplicationData() {
+		return applicationData;
 	}
 
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("uid", uid)
-			.add("msContact", msContact)
+			.add("msContact", applicationData)
 			.toString();
 	}
 	
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(uid, msContact);
+		return Objects.hashCode(uid, applicationData);
 	}
 	
 	@Override
@@ -103,7 +105,7 @@ public class WindowingContact implements WindowingItem, Serializable {
 		if (object instanceof WindowingContact) {
 			WindowingContact that = (WindowingContact) object;
 			return Objects.equal(this.uid, that.uid)
-				&& Objects.equal(this.msContact, that.msContact);
+				&& Objects.equal(this.applicationData, that.applicationData);
 		}
 		return false;
 	}

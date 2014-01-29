@@ -91,6 +91,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ICalendarConverterException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
+import org.obm.push.impl.ObmSyncBackend.WindowingChangesDelta;
 import org.obm.push.resource.AccessTokenResource;
 import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
@@ -629,13 +630,12 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
-		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
+		WindowingChangesDelta<WindowingEvent> allChanges = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions);
 		
 		mockControl.verify();
 		
-		assertThat(syncDate).isEqualTo(currentDate);
-		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+		assertThat(allChanges.getDeltaDate()).isEqualTo(currentDate);
+		assertThat(allChanges.getWindowingChanges()).isEqualTo(WindowingEventChanges.builder()
 				.changes(ImmutableList.of(
 						WindowingEvent.builder().uid(21).build(), 
 						WindowingEvent.builder().uid(22).build()))
@@ -675,13 +675,12 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
-		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
+		WindowingChangesDelta<WindowingEvent> allChanges = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions);
 		
 		mockControl.verify();
 		
-		assertThat(syncDate).isEqualTo(currentDate);
-		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+		assertThat(allChanges.getDeltaDate()).isEqualTo(currentDate);
+		assertThat(allChanges.getWindowingChanges()).isEqualTo(WindowingEventChanges.builder()
 				.changes(ImmutableList.of(
 						WindowingEvent.builder().uid(21).build(), 
 						WindowingEvent.builder().uid(22).build()))
@@ -1317,13 +1316,12 @@ public class CalendarBackendTest {
 				.bodyPreferences(ImmutableList.of(bodyPreference))
 				.build();
 		
-		WindowingEventChanges.Builder builder = WindowingEventChanges.builder();
-		Date syncDate = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions, builder);
+		WindowingChangesDelta<WindowingEvent> allChanges = calendarBackend.getAllChanges(userDataRequest, lastKnownState, collectionId, syncCollectionOptions);
 		
 		mockControl.verify();
 		
-		assertThat(syncDate).isEqualTo(currentDate);
-		assertThat(builder.build()).isEqualTo(WindowingEventChanges.builder()
+		assertThat(allChanges.getDeltaDate()).isEqualTo(currentDate);
+		assertThat(allChanges.getWindowingChanges()).isEqualTo(WindowingEventChanges.builder()
 				.changes(ImmutableList.<WindowingEvent> of())
 				.deletions(ImmutableList.<WindowingEvent> of())
 				.build());

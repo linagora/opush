@@ -39,7 +39,7 @@ public class WindowingEventTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testBuildWithNullId() {
 		WindowingEvent.builder()
-			.msEvent(new MSEvent())
+			.applicationData(new MSEvent())
 			.build();
 	}
 
@@ -57,10 +57,10 @@ public class WindowingEventTest {
 		
 		WindowingEvent windowingEvent = WindowingEvent.builder()
 			.uid(uid)
-			.msEvent(msEvent)
+			.applicationData(msEvent)
 			.build();
 		
 		assertThat(windowingEvent.getUid()).isEqualTo(uid);
-		assertThat(windowingEvent.getMsEvent()).isEqualTo(msEvent);
+		assertThat(windowingEvent.getApplicationData()).isEqualTo(msEvent);
 	}
 }

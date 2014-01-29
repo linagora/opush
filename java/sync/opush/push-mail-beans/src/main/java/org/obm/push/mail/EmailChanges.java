@@ -61,7 +61,7 @@ public class EmailChanges implements WindowingChanges<Email>, Serializable {
 		return new Builder();
 	}
 	
-	public static class Builder implements WindowingChangesBuilder<Email, EmailChanges> {
+	public static class Builder implements WindowingChangesBuilder<Email> {
 	
 		private final SortedEmailSet additions;
 		private final SortedEmailSet changes;

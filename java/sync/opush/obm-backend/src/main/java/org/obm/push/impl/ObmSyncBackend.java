@@ -31,28 +31,172 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.impl;
 
+import java.util.Date;
+
 import org.obm.push.backend.CollectionPath.Builder;
+import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushBackend;
+import org.obm.push.backend.PIMBackend;
+import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.WindowingChangesBuilder;
+import org.obm.push.bean.change.WindowingItemWithData;
+import org.obm.push.bean.change.WindowingKey;
+import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.item.ItemChange;
+import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.exception.DaoException;
+import org.obm.push.exception.UnexpectedObmSyncServerException;
+import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.resource.ResourcesUtils;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.inject.Provider;
 
-public abstract class ObmSyncBackend extends OpushBackend {
+public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWithData> extends OpushBackend implements PIMBackend {
 
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected String obmSyncHost;
+	private final WindowingDao windowingDao;
 
-	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider) {
+	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, WindowingDao windowingDao) {
 		super(mappingService, collectionPathBuilderProvider);
+		this.windowingDao = windowingDao;
 	}
 	
 	protected AccessToken getAccessToken(UserDataRequest udr) {
 		return ResourcesUtils.getAccessToken(udr);
+	}
+	
+	@Override
+	public DataDelta getChanged(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, 
+			SyncClientCommands clientCommands, SyncKey newSyncKey)
+		throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
+
+		SyncKey requestSyncKey = syncCollection.getSyncKey();
+		WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
+		
+		if (windowingDao.hasPendingChanges(key)) {
+			return continueWindowing(syncCollection, key, newSyncKey, itemSyncState.getSyncDate());
+		} else {
+			return startWindowing(udr, itemSyncState, syncCollection, key, newSyncKey);
+		}
+	}
+	
+	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey) {
+		
+		final Integer collectionId = collection.getCollectionId();
+		
+		WindowingChangesDelta<WindowingItemType> allChanges = 
+				getAllChanges(udr, syncState, collectionId, collection.getOptions());
+		WindowingChanges<WindowingItemType> windowingChanges = allChanges.windowingChanges;
+		Date lastSync = allChanges.deltaDate;
+		
+		if (collection.getWindowSize() >= windowingChanges.sumOfChanges()) {
+			return builderWithChangesAndDeletions(windowingChanges, collectionId)
+					.syncDate(lastSync)
+					.syncKey(newSyncKey)
+					.moreAvailable(false)
+					.build();
+		} else {
+			windowingDao.pushPendingChanges(key, newSyncKey, windowingChanges, PIMDataType.CALENDAR, collection.getWindowSize());
+			return continueWindowing(collection, key, newSyncKey, lastSync);
+		}
+	}
+
+	protected abstract WindowingChangesDelta<WindowingItemType> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions);
+
+	@VisibleForTesting DataDelta.Builder builderWithChangesAndDeletions(WindowingChanges<WindowingItemType> changes, final Integer collectionId) {
+		return DataDelta.builder()
+				.changes(FluentIterable.from(Iterables.concat(changes.additions(), changes.changes()))
+						.transform(new Function<WindowingItemType, ItemChange>() {
+			
+							@Override
+							public ItemChange apply(WindowingItemType item) {
+								return ItemChange.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(item.getUid())))
+										.data(item.getApplicationData())
+										.build();
+							}
+						}).toList())
+				.deletions(FluentIterable.from(changes.deletions())
+						.transform(new Function<WindowingItemType, ItemDeletion>() {
+			
+							@Override
+							public ItemDeletion apply(WindowingItemType item) {
+								return ItemDeletion.builder()
+										.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(item.getUid())))
+										.build();
+							}
+						}).toList());
+	}
+
+	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey, Date lastSync) throws DaoException {
+		WindowingChanges<WindowingItemType> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), syncKey, windowingChangesBuilder()).build();
+		return builderWithChangesAndDeletions(pendingChanges, collection.getCollectionId())
+				.syncDate(lastSync)
+				.syncKey(syncKey)
+				.moreAvailable(windowingDao.hasPendingChanges(key.withSyncKey(syncKey)))
+				.build();
+	}
+	
+	protected abstract WindowingChangesBuilder<WindowingItemType> windowingChangesBuilder();
+	
+	public static class WindowingChangesDelta<ITEM extends WindowingItemWithData> {
+		
+		public static <ITEM extends WindowingItemWithData> Builder<ITEM> builder() {
+			return new Builder<ITEM>();
+		}
+		
+		public static class Builder<ITEM extends WindowingItemWithData> {
+			private Date deltaDate;
+			private WindowingChanges<ITEM>windowingChanges;
+			
+			private Builder() {}
+			
+			public Builder<ITEM> deltaDate(Date deltaDate) {
+				this.deltaDate = deltaDate;
+				return this;
+			}
+			
+			public Builder<ITEM> windowingChanges(WindowingChanges<ITEM> windowingChanges) {
+				this.windowingChanges = windowingChanges;
+				return this;
+			}
+			
+			public WindowingChangesDelta<ITEM> build() {
+				return new WindowingChangesDelta<ITEM>(deltaDate, windowingChanges);
+			}
+		}
+		
+		private final Date deltaDate;
+		private final WindowingChanges<ITEM> windowingChanges;
+		
+		public WindowingChangesDelta(Date deltaDate, WindowingChanges<ITEM> windowingChanges) {
+			this.deltaDate = deltaDate;
+			this.windowingChanges = windowingChanges;
+		}
+		
+		public Date getDeltaDate() {
+			return deltaDate;
+		}
+
+		public WindowingChanges<ITEM> getWindowingChanges() {
+			return windowingChanges;
+		}
 	}
 }

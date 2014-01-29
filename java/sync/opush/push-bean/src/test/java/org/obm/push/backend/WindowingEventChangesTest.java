@@ -85,9 +85,9 @@ public class WindowingEventChangesTest {
 
 	@Test
 	public void buildOneEventInEachCollection() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		WindowingEventChanges emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
@@ -101,10 +101,10 @@ public class WindowingEventChangesTest {
 	
 	@Test
 	public void mergeWithEmpty() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent change2 = WindowingEvent.builder().uid(4).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent change2 = WindowingEvent.builder().uid(4).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change, change2))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
@@ -115,10 +115,10 @@ public class WindowingEventChangesTest {
 
 	@Test
 	public void mergeFromEmpty() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent change2 = WindowingEvent.builder().uid(4).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent change2 = WindowingEvent.builder().uid(4).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		WindowingEventChanges emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change, change2))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
@@ -132,17 +132,17 @@ public class WindowingEventChangesTest {
 	
 	@Test
 	public void merge() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
 			.additions(ImmutableSet.<WindowingEvent>of(addition));
 		
-		WindowingEvent change2 = WindowingEvent.builder().uid(4).msEvent(new MSEvent()).build();
-		WindowingEvent deletion2 = WindowingEvent.builder().uid(5).msEvent(new MSEvent()).build();
-		WindowingEvent addition2 = WindowingEvent.builder().uid(6).msEvent(new MSEvent()).build();
+		WindowingEvent change2 = WindowingEvent.builder().uid(4).applicationData(new MSEvent()).build();
+		WindowingEvent deletion2 = WindowingEvent.builder().uid(5).applicationData(new MSEvent()).build();
+		WindowingEvent addition2 = WindowingEvent.builder().uid(6).applicationData(new MSEvent()).build();
 		WindowingEventChanges emailChanges2 = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change2))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion2))
@@ -158,15 +158,15 @@ public class WindowingEventChangesTest {
 
 	@Test
 	public void mergeWithDuplicates() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
 			.additions(ImmutableSet.<WindowingEvent>of(addition));
 		
-		WindowingEvent change2 = WindowingEvent.builder().uid(4).msEvent(new MSEvent()).build();
+		WindowingEvent change2 = WindowingEvent.builder().uid(4).applicationData(new MSEvent()).build();
 		WindowingEventChanges emailChanges2 = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change2))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
@@ -188,9 +188,9 @@ public class WindowingEventChangesTest {
 	
 	@Test
 	public void sumOfChanges() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))
@@ -201,9 +201,9 @@ public class WindowingEventChangesTest {
 	
 	@Test
 	public void sumOfChangesWithDuplicates() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.changes(ImmutableSet.<WindowingEvent>of(change))
@@ -217,9 +217,9 @@ public class WindowingEventChangesTest {
 	
 	@Test
 	public void sumOfChangesWithDuplicatesInMerge() {
-		WindowingEvent change = WindowingEvent.builder().uid(1).msEvent(new MSEvent()).build();
-		WindowingEvent deletion = WindowingEvent.builder().uid(2).msEvent(new MSEvent()).build();
-		WindowingEvent addition = WindowingEvent.builder().uid(3).msEvent(new MSEvent()).build();
+		WindowingEvent change = WindowingEvent.builder().uid(1).applicationData(new MSEvent()).build();
+		WindowingEvent deletion = WindowingEvent.builder().uid(2).applicationData(new MSEvent()).build();
+		WindowingEvent addition = WindowingEvent.builder().uid(3).applicationData(new MSEvent()).build();
 		Builder emailChanges = WindowingEventChanges.builder()
 			.changes(ImmutableSet.<WindowingEvent>of(change))
 			.deletions(ImmutableSet.<WindowingEvent>of(deletion))

@@ -34,18 +34,18 @@ package org.obm.push.bean.change;
 import java.util.Collection;
 
 
-public interface WindowingChangesBuilder<T extends WindowingItem, C extends WindowingChanges<?>> {
+public interface WindowingChangesBuilder<T extends WindowingItem> {
 
 	Class<T> getPIMDataClass();
 
-	WindowingChangesBuilder<T, C> addition(T changeValue);
-	WindowingChangesBuilder<T, C> additions(Collection<T> changeValues);
+	WindowingChangesBuilder<T> addition(T changeValue);
+	WindowingChangesBuilder<T> additions(Collection<T> changeValues);
 
-	WindowingChangesBuilder<T, C> change(T changeValue);
-	WindowingChangesBuilder<T, C> changes(Collection<T> changeValues);
+	WindowingChangesBuilder<T> change(T changeValue);
+	WindowingChangesBuilder<T> changes(Collection<T> changeValues);
 
-	WindowingChangesBuilder<T, C> deletion(T changeValue);
-	WindowingChangesBuilder<T, C> deletions(Collection<T> changeValues);
+	WindowingChangesBuilder<T> deletion(T changeValue);
+	WindowingChangesBuilder<T> deletions(Collection<T> changeValues);
 
-	C build();
+	WindowingChanges<T> build();
 }

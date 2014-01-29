@@ -347,12 +347,14 @@ public class SyncHandlerWithBackendTest {
 						.serverId(inboxCollectionId + ":2")
 						.isNew(true)
 						.build()));
+		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
 		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId + ":1")
 						.isNew(true)
 						.build()));
+		assertThat(secondCollectionResponse.isMoreAvailable()).isFalse();
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
@@ -523,12 +525,14 @@ public class SyncHandlerWithBackendTest {
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
+		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
 		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId2)
 						.isNew(true)
 						.build()));
+		assertThat(secondCollectionResponse.isMoreAvailable()).isFalse();
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 	}
 	
@@ -674,12 +678,14 @@ public class SyncHandlerWithBackendTest {
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
+		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
 		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId2)
 						.isNew(true)
 						.build()));
+		assertThat(secondCollectionResponse.isMoreAvailable()).isFalse();
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 	}
 

@@ -39,7 +39,7 @@ public class WindowingContactTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testBuildWithNullId() {
 		WindowingContact.builder()
-			.msContact(new MSContact())
+			.applicationData(new MSContact())
 			.build();
 	}
 
@@ -57,10 +57,10 @@ public class WindowingContactTest {
 		
 		WindowingContact windowingContact = WindowingContact.builder()
 			.uid(uid)
-			.msContact(msContact)
+			.applicationData(msContact)
 			.build();
 		
 		assertThat(windowingContact.getUid()).isEqualTo(uid);
-		assertThat(windowingContact.getMsContact()).isEqualTo(msContact);
+		assertThat(windowingContact.getApplicationData()).isEqualTo(msContact);
 	}
 }

@@ -53,7 +53,7 @@ public class WindowingEventChanges implements WindowingChanges<WindowingEvent>, 
 		return new Builder();
 	}
 	
-	public static class Builder implements WindowingChangesBuilder<WindowingEvent, WindowingEventChanges> {
+	public static class Builder implements WindowingChangesBuilder<WindowingEvent> {
 	
 		private ImmutableSet.Builder<WindowingEvent> additions;
 		private ImmutableSet.Builder<WindowingEvent> changes;

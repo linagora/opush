@@ -71,8 +71,8 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 	
 	@Override
-	public <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B 
-			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder) {
+	public <T extends WindowingItem> WindowingChangesBuilder<T> 
+			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, WindowingChangesBuilder<T> changesBuilder) {
 		Preconditions.checkArgument(key != null);
 		Preconditions.checkArgument(maxSize > 0);
 		Preconditions.checkArgument(newSyncKey != null);
@@ -85,7 +85,7 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 		Splitter splittedToFitWindowSize = splitToFitWindowSize(changes, maxSize);
 		partitionDao.pushNextRequestPendingElements(windowingIndexKey, newSyncKey, splittedToFitWindowSize.getLeft());
 		
-		return (B) EmailChanges.builder().merge(splittedToFitWindowSize.getFit());
+		return (WindowingChangesBuilder<T>) EmailChanges.builder().merge(splittedToFitWindowSize.getFit());
 	}
 
 	private Splitter splitToFitWindowSize(EmailChanges changes, int maxSize) {

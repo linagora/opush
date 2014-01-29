@@ -90,8 +90,8 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	@Override
-	public <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B 
-			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, B changesBuilder) {
+	public <T extends WindowingItem> WindowingChangesBuilder<T> 
+			popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, WindowingChangesBuilder<T> changesBuilder) {
 		Preconditions.checkArgument(key != null);
 		Preconditions.checkArgument(maxSize > 0);
 		Preconditions.checkArgument(newSyncKey != null);
@@ -132,8 +132,8 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		return session.execute(statement);
 	}
 
-	private <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> B popChanges(
-			WindowingKey key, int maxSize, SyncKey newSyncKey, Row indexRow, B changesBuilder) {
+	private <T extends WindowingItem> WindowingChangesBuilder<T> popChanges(
+			WindowingKey key, int maxSize, SyncKey newSyncKey, Row indexRow, WindowingChangesBuilder<T> changesBuilder) {
 		
 		UUID windowingId = indexRow.getUUID(WINDOWING_ID);
 		PIMDataType windowingDataType = recognizeKind(indexRow.getString(WINDOWING_KIND));
@@ -170,16 +170,16 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		return session.execute(statement);
 	}
 
-	private <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> int 
-			putChangesInBuilder(int maxSize, UUID windowingId, int windowingIndex, B changesBuilder) {
+	private <T extends WindowingItem> int 
+			putChangesInBuilder(int maxSize, UUID windowingId, int windowingIndex, WindowingChangesBuilder<T> changesBuilder) {
 		
 		List<Row> fittingChanges = selectChanges(maxSize, windowingId, windowingIndex).all();
 		putChangesInBuilder(fittingChanges, changesBuilder);
 		return fittingChanges.size();
 	}
 	
-	@VisibleForTesting <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> void 
-			putChangesInBuilder(Iterable<Row> changeRows, B changesBuilder) {
+	@VisibleForTesting <T extends WindowingItem> void 
+			putChangesInBuilder(Iterable<Row> changeRows, WindowingChangesBuilder<T> changesBuilder) {
 		
 		for (Row changeRow : changeRows) {
 			String changeType = changeRow.getString(CHANGE_TYPE);
@@ -191,8 +191,8 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		}
 	}
 
-	@VisibleForTesting <T extends WindowingItem, B extends WindowingChangesBuilder<T, ?>> void 
-			putChange(B builder, String changeTypeValue, T changeValue) {
+	@VisibleForTesting <T extends WindowingItem> void 
+			putChange(WindowingChangesBuilder<T> builder, String changeTypeValue, T changeValue) {
 		
 		ChangeType changeType = ChangeType.fromValue(changeTypeValue);
 		if (changeType == null) {

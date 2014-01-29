@@ -685,10 +685,10 @@ public class JSONServiceTest {
 		contact.setCompanyName("CompanyName");
 		contact.setTitle("Title");
 		
-		String serialized = new JSONService().serialize(WindowingContact.builder().uid(56).msContact(contact).build());
+		String serialized = new JSONService().serialize(WindowingContact.builder().uid(56).applicationData(contact).build());
 		assertThat(serialized).isEqualTo(
 			"{" +
-				"\"msContact\":{" +
+				"\"applicationData\":{" +
 					"\"type\":\"CONTACTS\"," +
 					"\"accountName\":null," +
 					"\"anniversary\":null," +
@@ -765,7 +765,7 @@ public class JSONServiceTest {
 	public void testDeserializeWindowingContact() {
 		WindowingContact contact = new JSONService().deserialize(WindowingContact.class,
 			"{" +
-				"\"msContact\":{" +
+				"\"applicationData\":{" +
 					"\"type\":\"CONTACTS\"," +
 					"\"accountName\":null," +
 					"\"anniversary\":null," +
@@ -844,9 +844,86 @@ public class JSONServiceTest {
 		expectedContact.setCompanyName("CompanyName");
 		expectedContact.setTitle("Title");
 		
-		WindowingContact expectedWindowingContact = WindowingContact.builder().msContact(expectedContact).uid(56).build();
+		WindowingContact expectedWindowingContact = WindowingContact.builder().applicationData(expectedContact).uid(56).build();
 		
 		assertThat(contact).isEqualTo(expectedWindowingContact);
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testDeserializeBadType() {
+		new JSONService().deserialize(WindowingEvent.class,
+			"{" +
+				"\"applicationData\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"accountName\":null," +
+					"\"anniversary\":null," +
+					"\"assistantName\":\"AssistantName\"," +
+					"\"assistantPhoneNumber\":null," +
+					"\"assistnamePhoneNumber\":null," +
+					"\"birthday\":null," +
+					"\"business2PhoneNumber\":null," +
+					"\"businessAddressCity\":null," +
+					"\"businessAddressCountry\":null," +
+					"\"businessFaxNumber\":null," +
+					"\"businessPhoneNumber\":null," +
+					"\"businessPostalCode\":null," +
+					"\"businessState\":null," +
+					"\"businessStreet\":null," +
+					"\"carPhoneNumber\":null," +
+					"\"categories\":null," +
+					"\"children\":null," +
+					"\"companyMainPhone\":null," +
+					"\"companyName\":\"CompanyName\"," +
+					"\"customerId\":null," +
+					"\"data\":null," +
+					"\"department\":null," +
+					"\"email1Address\":null," +
+					"\"email2Address\":null," +
+					"\"email3Address\":null," +
+					"\"fileAs\":null," +
+					"\"firstName\":\"FirstName\"," +
+					"\"governmentId\":null," +
+					"\"home2PhoneNumber\":null," +
+					"\"homeAddressCity\":null," +
+					"\"homeAddressCountry\":null," +
+					"\"homeAddressPostalCode\":null," +
+					"\"homeAddressState\":null," +
+					"\"homeAddressStreet\":null," +
+					"\"homeFaxNumber\":null," +
+					"\"homePhoneNumber\":null," +
+					"\"iMAddress\":null," +
+					"\"iMAddress2\":null," +
+					"\"iMAddress3\":null," +
+					"\"imaddress\":null," +
+					"\"imaddress2\":null," +
+					"\"imaddress3\":null," +
+					"\"jobTitle\":null," +
+					"\"lastName\":null," +
+					"\"mMS\":null," +
+					"\"managerName\":null," +
+					"\"middleName\":\"MiddleName\"," +
+					"\"mms\":null," +
+					"\"mobilePhoneNumber\":null," +
+					"\"nickName\":null," +
+					"\"officeLocation\":null," +
+					"\"otherAddressCity\":null," +
+					"\"otherAddressCountry\":null," +
+					"\"otherAddressPostalCode\":null," +
+					"\"otherAddressState\":null," +
+					"\"otherAddressStreet\":null," +
+					"\"pagerNumber\":null," +
+					"\"picture\":null," +
+					"\"radioPhoneNumber\":null," +
+					"\"spouse\":null," +
+					"\"suffix\":null," +
+					"\"title\":\"Title\"," +
+					"\"webPage\":null," +
+					"\"yomiCompanyName\":null," +
+					"\"yomiFirstName\":null," +
+					"\"yomiLastName\":null" +
+				"}," +
+				"\"uid\":56" +
+			"}");
 	}
 	
 	@Test
@@ -1813,9 +1890,9 @@ public class JSONServiceTest {
 		msEvent.setTimeZone(TimeZone.getTimeZone("GMT"));
 		msEvent.setUid(new MSEventUid("123"));
 		
-		String serialized = new JSONService().serialize(WindowingEvent.builder().uid(7).msEvent(msEvent).build());
+		String serialized = new JSONService().serialize(WindowingEvent.builder().uid(7).applicationData(msEvent).build());
 		assertThat(serialized).isEqualTo(
-			"{\"msEvent\":{" +
+			"{\"applicationData\":{" +
 				"\"type\":\"CALENDAR\"," + 
 				"\"allDayEvent\":true," + 
 				"\"attendeeEmails\":[\"attendee@obm.org\"]," + 
@@ -1875,7 +1952,7 @@ public class JSONServiceTest {
 	@Test
 	public void testDeserializeWindowingEvent() {
 		WindowingEvent event = new JSONService().deserialize(WindowingEvent.class, 
-			"{\"msEvent\":{" +
+			"{\"applicationData\":{" +
 					"\"type\":\"CALENDAR\"," + 
 					"\"allDayEvent\":true," + 
 					"\"attendeeEmails\":[\"attendee@obm.org\"]," + 
@@ -1982,7 +2059,7 @@ public class JSONServiceTest {
 		expectedMSEvent.setTimeZone(TimeZone.getTimeZone("GMT"));
 		expectedMSEvent.setUid(new MSEventUid("123"));
 
-		assertThat(event).isEqualTo(WindowingEvent.builder().uid(7).msEvent(expectedMSEvent).build());
+		assertThat(event).isEqualTo(WindowingEvent.builder().uid(7).applicationData(expectedMSEvent).build());
 	}
 	
 	@Test

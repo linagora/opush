@@ -53,7 +53,7 @@ public class WindowingContactChanges implements WindowingChanges<WindowingContac
 		return new Builder();
 	}
 	
-	public static class Builder implements WindowingChangesBuilder<WindowingContact, WindowingContactChanges> {
+	public static class Builder implements WindowingChangesBuilder<WindowingContact> {
 	
 		private ImmutableSet.Builder<WindowingContact> additions;
 		private ImmutableSet.Builder<WindowingContact> changes;

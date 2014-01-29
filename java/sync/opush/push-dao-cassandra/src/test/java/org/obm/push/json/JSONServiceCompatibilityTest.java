@@ -407,8 +407,8 @@ public class JSONServiceCompatibilityTest {
 					.serverId("123")
 					.build())
 			.put(filename(ItemChange.class), itemChange)
-			.put(filename(WindowingContact.class), WindowingContact.builder().uid(102).msContact(contact).build())
-			.put(filename(WindowingEvent.class), WindowingEvent.builder().uid(201).msEvent(msEvent).build())
+			.put(filename(WindowingContact.class), WindowingContact.builder().uid(102).applicationData(contact).build())
+			.put(filename(WindowingEvent.class), WindowingEvent.builder().uid(201).applicationData(msEvent).build())
 			.build();
 	}
 
