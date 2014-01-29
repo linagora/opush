@@ -71,8 +71,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 	private SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl;
 	private SyncedCollectionDaoEhcacheMigrationImpl syncedCollectionDaoEhcacheMigrationImpl;
 	private SyncedCollectionDaoEhcacheImpl syncedCollectionDaoEhcacheImpl;
-	private UnsynchronizedItemDaoEhcacheMigrationImpl unsynchronizedItemDaoEhcacheMigrationImpl;
-	private UnsynchronizedItemDaoEhcacheImpl unsynchronizedItemDaoEhcacheImpl;
 	private WindowingDaoChunkEhcacheMigrationImpl windowingDaoChunkEhcacheMigrationImpl;
 	private WindowingDaoIndexEhcacheMigrationImpl windowingDaoIndexEhcacheMigrationImpl;
 	private WindowingDaoEhcacheImpl windowingDaoEhcacheImpl;
@@ -103,8 +101,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 		snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		syncedCollectionDaoEhcacheMigrationImpl = new SyncedCollectionDaoEhcacheMigrationImpl(objectStoreManagerMigration);
 		syncedCollectionDaoEhcacheImpl = new SyncedCollectionDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
-		unsynchronizedItemDaoEhcacheMigrationImpl = new UnsynchronizedItemDaoEhcacheMigrationImpl(objectStoreManagerMigration);
-		unsynchronizedItemDaoEhcacheImpl = new UnsynchronizedItemDaoEhcacheImpl(objectStoreManager, cacheEvictionListener);
 		windowingDaoChunkEhcacheMigrationImpl = new WindowingDaoChunkEhcacheMigrationImpl(objectStoreManagerMigration);
 		windowingDaoIndexEhcacheMigrationImpl = new WindowingDaoIndexEhcacheMigrationImpl(objectStoreManagerMigration);
 		windowingDaoEhcacheImpl = new WindowingDaoEhcacheImpl(new PartitionDao(objectStoreManager, cacheEvictionListener));
@@ -114,7 +110,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 				monitoredCollectionDaoEhcacheMigrationImpl, monitoredCollectionDaoEhcacheImpl,
 				snapshotDaoEhcacheMigrationImpl, snapshotDaoEhcacheImpl,
 				syncedCollectionDaoEhcacheMigrationImpl, syncedCollectionDaoEhcacheImpl,
-				unsynchronizedItemDaoEhcacheMigrationImpl, unsynchronizedItemDaoEhcacheImpl,
 				windowingDaoChunkEhcacheMigrationImpl, windowingDaoIndexEhcacheMigrationImpl, windowingDaoEhcacheImpl);
 	}
 	
@@ -133,8 +128,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 		copyFileInTemporaryFolder("monitoredCollectionService.index");
 		copyFileInTemporaryFolder("syncedCollectionStoreService.data");
 		copyFileInTemporaryFolder("syncedCollectionStoreService.index");
-		copyFileInTemporaryFolder("unsynchronizedItemService.data");
-		copyFileInTemporaryFolder("unsynchronizedItemService.index");
 	}
 
 	private void copyFileInTemporaryFolder(String fileName) throws IOException, FileNotFoundException {
@@ -182,17 +175,6 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 	}
 
 	@Test
-	public void testMigrateUnsynchronizedItem() {
-		int expectedSize = unsynchronizedItemDaoEhcacheMigrationImpl.getKeys().size();
-
-		migrationServiceImpl.migrateCache(
-				unsynchronizedItemDaoEhcacheMigrationImpl, unsynchronizedItemDaoEhcacheImpl.getStore());
-		
-		assertThat(unsynchronizedItemDaoEhcacheImpl.getStore().getKeys().size()).isGreaterThan(0).isEqualTo(expectedSize);
-		assertThat(unsynchronizedItemDaoEhcacheMigrationImpl.getKeys().size()).isEqualTo(expectedSize);
-	}
-
-	@Test
 	public void testMigrateWindowingChunk() {
 		int expectedSize = windowingDaoChunkEhcacheMigrationImpl.getKeys().size();
 
@@ -225,9 +207,7 @@ public class MigrationServiceImplTest extends StoreManagerConfigurationTest {
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.MONITORED_COLLECTION_STORE + ".data"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.MONITORED_COLLECTION_STORE + ".index"),
 				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNCED_COLLECTION_STORE + ".data"),
-				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNCED_COLLECTION_STORE + ".index"),
-				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.UNSYNCHRONIZED_ITEM_STORE + ".data"),
-				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.UNSYNCHRONIZED_ITEM_STORE + ".index") };
+				new File(dataDir + File.separator + MigrationSourceObjectStoreManager.SYNCED_COLLECTION_STORE + ".index")};
 		
 		assertThat(dataDir.listFiles()).contains(files);
 		migrationServiceImpl.migrate();

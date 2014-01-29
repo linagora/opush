@@ -57,13 +57,6 @@ public class SerializableTest {
 	public void buildOutputStream() throws IOException {
 		objectOutputStream = new ObjectOutputStream(new ByteArrayOutputStream());	
 	}
-	
-	@Test
-	public void unsynchronizedItemDaoEhcacheImplKey() {
-		UnsynchronizedItemDaoEhcacheImpl.Key_2_4_2_4 key = new UnsynchronizedItemDaoEhcacheImpl.Key_2_4_2_4(
-				new SyncKey("132"), UnsynchronizedItemType.ADD);
-		SerializableTester.reserializeAndAssert(key);
-	}
 
 	@Test
 	public void monitoredCollectionDaoEhcacheImplKey() {
