@@ -34,9 +34,12 @@ package org.obm.push.cassandra.dao;
 import org.obm.push.json.JSONService;
 import org.slf4j.Logger;
 
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
 public abstract class AbstractCassandraDao {
+
+	protected static final int COUNT_SELECT_ONLY_INDEX = 0;
 	
 	protected final Session session;
 	protected final JSONService jsonService;
@@ -46,5 +49,9 @@ public abstract class AbstractCassandraDao {
 		this.session = session;
 		this.jsonService = jsonService;
 		this.logger = logger;
+	}
+
+	protected long getCountSelectOnlyValue(ResultSet resultSet) {
+		return resultSet.one().getLong(COUNT_SELECT_ONLY_INDEX);
 	}
 }

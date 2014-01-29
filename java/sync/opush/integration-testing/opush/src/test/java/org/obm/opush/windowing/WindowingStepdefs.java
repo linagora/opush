@@ -104,7 +104,7 @@ public class WindowingStepdefs {
 	public void retrieveFirstElements(int elements) {
 		userGenerateANewSyncKey();
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
-		windowingDao.hasPendingElements(windowingKey);
+		windowingDao.hasPendingChanges(windowingKey);
 		windowingDao.pushPendingChanges(windowingKey, syncKey, inbox, PIMDataType.EMAIL, elements);
 		this.elementsLeft = inbox.sumOfChanges();
 		retrieveNextElements(elements);
@@ -112,7 +112,7 @@ public class WindowingStepdefs {
 	
 	@When("user ask for the next (\\d+) elements")
 	public void retrieveNextElements(int elements) {
-		windowingDao.hasPendingElements(windowingKey);
+		windowingDao.hasPendingChanges(windowingKey);
 		startToRetrieveElements();
 		userGenerateANewSyncKey();
 		retrieveElements(elements);
@@ -147,7 +147,7 @@ public class WindowingStepdefs {
 	@Then("there is (\\d+) elements left in store$")
 	public void assertElementsInStore(int elements) {
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
-		assertThat(windowingDao.hasPendingElements(windowingKey)).isEqualTo(elements > 0);
+		assertThat(windowingDao.hasPendingChanges(windowingKey)).isEqualTo(elements > 0);
 		assertThat(windowingDao.popNextChanges(windowingKey, Integer.MAX_VALUE, syncKey, EmailChanges.builder()).build())
 			.isEqualTo(generateEmails(elements));
 	}

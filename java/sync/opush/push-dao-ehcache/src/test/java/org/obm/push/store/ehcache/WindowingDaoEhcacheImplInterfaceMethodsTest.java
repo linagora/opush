@@ -83,4 +83,10 @@ public class WindowingDaoEhcacheImplInterfaceMethodsTest extends WindowingDaoTes
 	public void hasPendingElementsWhenAskingWithPreviousSyncKey() {
 		// not supported
 	}
+	
+	@Ignore("Not implemented for EhCache, as it will be dropped soon")
+	@Override
+	public void countElements() {
+		// not supported
+	}
 }

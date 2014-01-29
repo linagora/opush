@@ -193,8 +193,8 @@ public class MailBackendImplTest {
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
 		
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(false);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer,
 				actualEmailsInServer, emailChanges, fromDate, syncState);
 
@@ -236,8 +236,8 @@ public class MailBackendImplTest {
 		
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(false);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
@@ -324,8 +324,8 @@ public class MailBackendImplTest {
 				.build();
 		
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(false);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectMailBackendSyncData(currentUIDNext, syncCollectionOptions, existingSnapshot, previousEmailsInServer, fetchedEmails, emailChanges, fromDate, syncState);
 
 		expectServerItemChanges(bodyPreferences, emailChanges, modifiedEmail, newEmail, deletedEmail);
@@ -523,8 +523,8 @@ public class MailBackendImplTest {
 		EmailChanges fittingChanges = allChanges;
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(false);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		
 		Snapshot previousSnapshot = Snapshot.builder()
 				.emails(previousEmails)
@@ -589,8 +589,8 @@ public class MailBackendImplTest {
 		expect(changesBuilder.build()).andReturn(fittingChanges);
 	
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(false);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(true);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(true);
 		
 		Snapshot previousSnapshot = Snapshot.builder()
 				.emails(previousEmails)
@@ -650,11 +650,11 @@ public class MailBackendImplTest {
 		expect(changesBuilder.build()).andReturn(fittingChanges);
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(true);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
 		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
@@ -699,12 +699,12 @@ public class MailBackendImplTest {
 		expect(changesBuilder.build()).andReturn(fittingChanges);
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(true);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
 		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
 		expectLastCall();
 		
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
-		expect(windowingDao.hasPendingElements(windowingKey.withSyncKey(newSyncKey))).andReturn(true);
+		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(true);
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
@@ -747,7 +747,7 @@ public class MailBackendImplTest {
 		expect(changesBuilder.build()).andReturn(fittingChanges);
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
-		expect(windowingDao.hasPendingElements(windowingKey)).andReturn(true);
+		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
 		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);

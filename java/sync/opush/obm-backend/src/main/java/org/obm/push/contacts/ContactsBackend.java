@@ -304,7 +304,7 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 		SyncKey requestSyncKey = syncCollection.getSyncKey();
 		WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
 		
-		if (windowingDao.hasPendingElements(key)) {
+		if (windowingDao.hasPendingChanges(key)) {
 			return continueWindowing(syncCollection, key, newSyncKey, itemSyncState.getSyncDate());
 		} else {
 			return startWindowing(udr, itemSyncState, syncCollection, key, newSyncKey);

@@ -66,6 +66,7 @@ import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
@@ -78,6 +79,7 @@ import com.google.inject.name.Named;
 @Singleton
 public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements WindowingDao, CassandraStructure {
 	
+	private static final int NO_PENDING_CHANGES = 0;
 	private static final int ONLY_ONE_ITEM = 1;
 	private static final int STARTING_WINDOWING_INDEX = 0;
 	
@@ -110,7 +112,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	@Override
-	public boolean hasPendingElements(WindowingKey key) {
+	public boolean hasPendingChanges(WindowingKey key) {
 		ResultSet resultSetIndex = selectWindowingIndex(key);
 		if (resultSetIndex.isExhausted()) {
 			logger.debug("No current windowing");
@@ -257,5 +259,30 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 			.value(CHANGE_VALUE, jsonService.serialize(item));
 		logger.debug("Inserting in batch {} the change {}", batch , statement.getQueryString());
 		batch.add(statement);
+	}
+
+	@Override
+	public long countPendingChanges(WindowingKey windowingKey) {
+		ResultSet windowingIndexResultSet = selectWindowingIndex(windowingKey);
+		if (windowingIndexResultSet.isExhausted()) {
+			logger.debug("No pending windowing, returning {} changes", NO_PENDING_CHANGES);
+			return NO_PENDING_CHANGES;
+		}
+		
+		Row indexRow = windowingIndexResultSet.one();
+		UUID windowingId = indexRow.getUUID(WINDOWING_ID);
+		PIMDataType windowingDataType = recognizeKind(indexRow.getString(WINDOWING_KIND));
+		int windowingIndex = indexRow.getInt(WINDOWING_INDEX);
+		logger.debug("Windowing index found Id:{} Kind:{} Index:{}", windowingId, windowingDataType, windowingIndex);
+		
+		Statement statement = select().countAll()
+				.from(Windowing.TABLE)
+				.where(eq(ID, windowingId))
+				.and(gte(CHANGE_INDEX, windowingIndex));
+		ResultSet resultSet = session.execute(statement);
+		if (resultSet.isExhausted()) {
+			return NO_PENDING_CHANGES;
+		}
+		return getCountSelectOnlyValue(resultSet);
 	}
 }

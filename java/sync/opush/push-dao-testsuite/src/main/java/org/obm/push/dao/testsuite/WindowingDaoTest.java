@@ -165,7 +165,7 @@ public abstract class WindowingDaoTest {
 		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
 
-		boolean hasPendingElements = testee.hasPendingElements(key);
+		boolean hasPendingElements = testee.hasPendingChanges(key);
 		
 		assertThat(hasPendingElements).isFalse();
 	}
@@ -177,7 +177,7 @@ public abstract class WindowingDaoTest {
 		EmailChanges emailChanges = generateEmails(1);
 		testee.pushPendingChanges(key, requestSyncKey, emailChanges, PIMDataType.EMAIL, 2);
 		
-		boolean hasPendingElements = testee.hasPendingElements(key);
+		boolean hasPendingElements = testee.hasPendingChanges(key);
 		
 		assertThat(hasPendingElements).isTrue();
 	}
@@ -197,7 +197,7 @@ public abstract class WindowingDaoTest {
 
 		EmailChanges.Builder changes1 = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
 		EmailChanges.Builder changes2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
-		boolean hasPendingElements = testee.hasPendingElements(key3);
+		boolean hasPendingElements = testee.hasPendingChanges(key3);
 
 		assertThat(changes1.build().sumOfChanges()).isEqualTo(expectedSize);
 		assertThat(changes2.build().sumOfChanges()).isEqualTo(expectedSize);
@@ -221,7 +221,7 @@ public abstract class WindowingDaoTest {
 		EmailChanges.Builder changes1 = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
 		EmailChanges.Builder changes2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
 		EmailChanges.Builder changes3 = testee.popNextChanges(key3, expectedSize, syncKey4, EmailChanges.builder());
-		boolean hasPendingElements = testee.hasPendingElements(key3);
+		boolean hasPendingElements = testee.hasPendingChanges(key3);
 
 		assertThat(changes1.build().sumOfChanges()).isEqualTo(expectedSize);
 		assertThat(changes2.build().sumOfChanges()).isEqualTo(expectedSize);
@@ -245,7 +245,7 @@ public abstract class WindowingDaoTest {
 		EmailChanges.Builder firstChangesOfKey = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
 		EmailChanges.Builder firstChangesOfKey2 = testee.popNextChanges(key2, expectedSize, syncKey3, EmailChanges.builder());
 		EmailChanges.Builder secondChangesOfKey = testee.popNextChanges(key, expectedSize, syncKey2, EmailChanges.builder());
-		boolean hasPendingElements = testee.hasPendingElements(key2);
+		boolean hasPendingElements = testee.hasPendingChanges(key2);
 
 		assertThat(firstChangesOfKey.build().sumOfChanges()).isEqualTo(expectedSize);
 		assertThat(firstChangesOfKey2.build().sumOfChanges()).isEqualTo(expectedSize);
@@ -286,5 +286,23 @@ public abstract class WindowingDaoTest {
 							}
 						}).toSet())
 				.build();
+	}
+	
+	@Test
+	public void countElementsWhenNoElements() {
+		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
+		assertThat(testee.countPendingChanges(key)).isEqualTo(0);
+	}
+	
+	@Test
+	public void countElements() {
+		int numberOfElements = 2;
+		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
+		EmailChanges emailChanges = generateEmails(numberOfElements);
+		testee.pushPendingChanges(key, syncKey, emailChanges, PIMDataType.EMAIL, numberOfElements);
+		
+		assertThat(testee.countPendingChanges(key)).isEqualTo(numberOfElements);
 	}
 }

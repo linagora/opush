@@ -44,6 +44,7 @@ public interface WindowingDao {
 	
 	<T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey syncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize);
 
-	boolean hasPendingElements(WindowingKey key);
+	boolean hasPendingChanges(WindowingKey key);
 
+	long countPendingChanges(WindowingKey windowingKey);
 }

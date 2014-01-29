@@ -323,7 +323,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			SyncKey requestSyncKey = syncCollection.getSyncKey();
 			WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
 			
-			if (windowingDao.hasPendingElements(key)) {
+			if (windowingDao.hasPendingChanges(key)) {
 				snapshotService.actualizeSnapshot(udr.getDevId(), requestSyncKey, syncCollection.getCollectionId(), newSyncKey);
 				return continueWindowing(udr, syncCollection, key, syncState.getSyncDate(), newSyncKey);
 			} else {
@@ -372,7 +372,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.deletions(serverItemChanges.getItemDeletions())
 				.syncDate(dataDelaSyncDate)
 				.syncKey(dataDeltaSyncKey)
-				.moreAvailable(windowingDao.hasPendingElements(key.withSyncKey(dataDeltaSyncKey)))
+				.moreAvailable(windowingDao.hasPendingChanges(key.withSyncKey(dataDeltaSyncKey)))
 				.build();
 	}
 

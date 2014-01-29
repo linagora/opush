@@ -131,7 +131,7 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 	}
 
 	@Override
-	public boolean hasPendingElements(WindowingKey key) {
+	public boolean hasPendingChanges(WindowingKey key) {
 		WindowingIndexKey windowingIndexKey = windowingIndexKey(key);
 		SyncKey syncKey = key.getSyncKey();
 		SyncKey windowingSyncKey = partitionDao.getWindowingSyncKey(windowingIndexKey);
@@ -376,5 +376,11 @@ public class WindowingDaoEhcacheImpl implements WindowingDao {
 		public Serializable nextSyncKey(SyncKey newSyncKey) {
 			return new WindowingIndex(index , newSyncKey);
 		}
+	}
+
+	@Override
+	public long countPendingChanges(WindowingKey windowingKey) {
+		// Not implemented for EhCache, as it will be dropped soon
+		return 0;
 	}
 }
