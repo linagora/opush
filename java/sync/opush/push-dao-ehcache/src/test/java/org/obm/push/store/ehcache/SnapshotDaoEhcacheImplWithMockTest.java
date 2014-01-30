@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.powermock.api.easymock.PowerMock.createMock;
 import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
@@ -53,8 +53,6 @@ import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.utils.DateUtils;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.google.common.collect.ImmutableList;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Cache.class, ObjectStoreManager.class, RegisteredEventListeners.class})
@@ -189,40 +187,6 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 		
 		SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, null);
 		snapshotDaoEhcacheImpl.put(snapshot);
-		
-		verifyAll();
-	}
-	
-	@Test
-	public void deleteAll() {
-		DeviceId deviceId = new DeviceId("deviceId");
-		
-		ObjectStoreManager objectStoreManager = createObjectStoreManager();
-		
-		Cache cache = createCache();
-		RegisteredEventListeners registeredEventListeners = createMock(RegisteredEventListeners.class);
-		expect(registeredEventListeners.registerListener(anyObject(CacheEventListener.class)))
-			.andReturn(true);
-		expect(cache.getCacheEventNotificationService())
-			.andReturn(registeredEventListeners).anyTimes();
-		
-		SnapshotKey snapshotKey = SnapshotKey.builder()
-					.deviceId(deviceId)
-					.syncKey(new SyncKey("syncKey"))
-					.collectionId(2)
-					.build();
-		expect(cache.getKeys())
-			.andReturn(ImmutableList.of(snapshotKey)).once();
-		expect(cache.remove(snapshotKey))
-			.andReturn(true).once();
-		
-		expect(objectStoreManager.getStore(ObjectStoreManager.MAIL_SNAPSHOT_STORE))
-			.andReturn(cache).anyTimes();
-
-		replayAll();
-		
-		SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, null);
-		snapshotDaoEhcacheImpl.deleteAll(deviceId);
 		
 		verifyAll();
 	}

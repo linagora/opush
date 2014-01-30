@@ -40,8 +40,5 @@ public interface SnapshotDao {
 	Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId);
 	
 	void put(Snapshot snapshot);
-	
-	void deleteAll(DeviceId deviceId);
 
-	void delete(DeviceId deviceId, SyncKey syncKey, int collectionId);
 }

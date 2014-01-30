@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
-import java.util.List;
-
 import net.sf.ehcache.Element;
 
 import org.obm.push.bean.DeviceId;
@@ -42,9 +40,6 @@ import org.obm.push.store.SnapshotDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -88,38 +83,4 @@ public class SnapshotDaoEhcacheImpl extends AbstractEhcacheDao implements Snapsh
 		store.put(new Element(key, snapshot));
 	}
 
-	private static class SnapshotHasDeviceIdPredicate implements Predicate<SnapshotKey> {
-
-		private final DeviceId deviceId;
-		
-		private SnapshotHasDeviceIdPredicate(DeviceId deviceId) {
-			this.deviceId = deviceId;
-		}
-		
-		@Override
-		public boolean apply(SnapshotKey input) {
-			return Objects.equal(deviceId, input.getDeviceId()); 
-		}
-	}
-	
-	@Override
-	public void deleteAll(DeviceId deviceId) {
-		List<SnapshotKey> keys = store.getKeys();
-		Iterable<SnapshotKey> toRemove = Iterables.filter(keys, new SnapshotHasDeviceIdPredicate(deviceId));
-		for (SnapshotKey snapshotKey : toRemove) {
-			logger.debug("delete snapshot with key {}", snapshotKey);
-			store.remove(snapshotKey);
-		}
-	}
-	
-	@Override
-	public void delete(DeviceId deviceId, SyncKey syncKey, int collectionId) {
-		SnapshotKey snapshotKey = SnapshotKey.builder()
-				.deviceId(deviceId)
-				.syncKey(syncKey)
-				.collectionId(collectionId)
-				.build();
-		logger.debug("delete snapshot with key {}", snapshotKey);
-		store.remove(snapshotKey);
-	}
 }
