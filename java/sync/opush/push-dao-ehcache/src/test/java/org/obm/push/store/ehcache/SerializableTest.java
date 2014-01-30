@@ -31,12 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Properties;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Credentials;
@@ -51,13 +47,6 @@ import com.google.common.testing.SerializableTester;
 
 public class SerializableTest {
 	
-	private ObjectOutputStream objectOutputStream;
-
-	@Before
-	public void buildOutputStream() throws IOException {
-		objectOutputStream = new ObjectOutputStream(new ByteArrayOutputStream());	
-	}
-
 	@Test
 	public void monitoredCollectionDaoEhcacheImplKey() {
 		Key key = new MonitoredCollectionDaoEhcacheImpl.Key(
@@ -77,16 +66,6 @@ public class SerializableTest {
 		User user = User.Factory.create().createUser("user@email.org", "user@email.org", "display name");
 		WindowingIndexKey windowingIndexKey = new WindowingIndexKey(user, new DeviceId("564"), 456);
 		SerializableTester.reserializeAndAssert(new WindowingDaoEhcacheImpl.ChunkKey(windowingIndexKey, 5));
-	}
-	
-	@Test
-	public void testSnapshotKey() throws IOException {
-		SnapshotKey snapshotKey = SnapshotKey.builder()
-				.deviceId(new DeviceId("deviceId"))
-				.syncKey(new SyncKey("syncKey"))
-				.collectionId(1)
-				.build();
-		objectOutputStream.writeObject(snapshotKey);
 	}
 
 }

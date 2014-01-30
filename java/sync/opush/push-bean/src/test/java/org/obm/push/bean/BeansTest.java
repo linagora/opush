@@ -33,11 +33,11 @@ package org.obm.push.bean;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.backend.DataDelta;
-import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.backend.WindowingContact;
+import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.backend.WindowingEvent;
+import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.autodiscover.AutodiscoverRequest;
 import org.obm.push.bean.autodiscover.AutodiscoverResponse;
 import org.obm.push.bean.autodiscover.AutodiscoverResponseError;
@@ -126,6 +126,7 @@ public class BeansTest {
 					.add(WindowingContact.class)
 					.add(WindowingEventChanges.class)
 					.add(WindowingEvent.class)
+					.add(SnapshotKey.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

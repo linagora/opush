@@ -78,6 +78,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollection;
 import org.obm.push.bean.SyncCollectionChange;
 import org.obm.push.bean.SyncCollectionCommandResponse;
@@ -104,7 +105,6 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.bean.WindowingIndexKey;
 import org.obm.push.store.ehcache.MonitoredCollectionDaoEhcacheImpl;
-import org.obm.push.store.ehcache.SnapshotKey;
 import org.obm.push.store.ehcache.SyncedCollectionDaoEhcacheImpl;
 import org.obm.push.store.ehcache.WindowingDaoEhcacheImpl;
 import org.obm.push.utils.SerializableInputStream;
@@ -420,12 +420,7 @@ public class SerializableCompatibilityTest {
 								Email.builder().uid(3).read(true).date(date("2006-08-13T21:39:45Z")).build()))
 						.build())
 				.put("org.obm.push.mail.bean.WindowingIndexKey", windowingIndexKey)
-				.put("org.obm.push.mail.bean.SnapshotKey", SnapshotKey.builder()
-						.collectionId(15)
-						.deviceId(deviceId)
-						.syncKey(syncKey)
-						.build())
-				.put("org.obm.push.store.ehcache.SnapshotKey", SnapshotKey.builder()
+				.put("org.obm.push.bean.SnapshotKey", SnapshotKey.builder()
 						.collectionId(20)
 						.deviceId(new DeviceId("the device id"))
 						.syncKey(new SyncKey("987"))

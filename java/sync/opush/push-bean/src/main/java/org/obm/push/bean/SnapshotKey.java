@@ -29,12 +29,10 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store.ehcache;
+package org.obm.push.bean;
 
 import java.io.Serializable;
 
-import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.SyncKey;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -73,8 +71,6 @@ public class SnapshotKey implements Serializable{
 			return new SnapshotKey(syncKey, deviceId, collectionId);
 		}
 	}
-	
-	private static final long serialVersionUID = 1978530090812057347L;
 	
 	private final SyncKey syncKey;
 	private final DeviceId deviceId;

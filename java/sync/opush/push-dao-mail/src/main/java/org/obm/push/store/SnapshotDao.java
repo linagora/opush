@@ -38,6 +38,8 @@ import org.obm.push.mail.bean.Snapshot;
 public interface SnapshotDao {
 	
 	Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId);
+
+//	Snapshot actualize(SnapshotKey key, SyncKey syncKey);
 	
 	void put(Snapshot snapshot);
 

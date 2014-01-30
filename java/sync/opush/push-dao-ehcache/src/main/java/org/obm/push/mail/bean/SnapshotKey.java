@@ -58,7 +58,7 @@ public class SnapshotKey implements Serializable{
 	}
 	
 	private Object readResolve() {
-		return org.obm.push.store.ehcache.SnapshotKey.builder()
+		return org.obm.push.bean.SnapshotKey.builder()
 				.collectionId(getCollectionId())
 				.deviceId(getDeviceId())
 				.syncKey(getSyncKey())

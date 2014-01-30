@@ -344,4 +344,14 @@ public class SerializableTest {
 		SyncKey syncKey = new SyncKey("syncKey");
 		objectOutputStream.writeObject(syncKey);
 	}
+	
+	@Test
+	public void testSnapshotKey() throws IOException {
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("deviceId"))
+				.syncKey(new SyncKey("syncKey"))
+				.collectionId(1)
+				.build();
+		objectOutputStream.writeObject(snapshotKey);
+	}
 }

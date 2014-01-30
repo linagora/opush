@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 import org.slf4j.Logger;

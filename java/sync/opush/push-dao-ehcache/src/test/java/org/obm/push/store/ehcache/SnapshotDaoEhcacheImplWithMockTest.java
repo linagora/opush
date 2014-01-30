@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;

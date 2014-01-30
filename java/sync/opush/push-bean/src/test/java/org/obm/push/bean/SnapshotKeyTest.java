@@ -29,12 +29,11 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store.ehcache;
+package org.obm.push.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 
 public class SnapshotKeyTest {
