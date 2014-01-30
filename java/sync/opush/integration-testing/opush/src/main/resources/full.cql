@@ -31,3 +31,17 @@ CREATE TABLE windowing (
 	change_value text,
 	PRIMARY KEY ((id), change_index, change_type)
 );
+
+CREATE TABLE snapshot_index (
+	device_id text,
+	collection_id int,
+	sync_key uuid,
+	snapshot_id uuid,
+	PRIMARY KEY ((device_id), collection_id, sync_key)
+);
+
+CREATE TABLE snapshot (
+	id uuid,
+	snapshot text,
+	PRIMARY KEY (id)
+);

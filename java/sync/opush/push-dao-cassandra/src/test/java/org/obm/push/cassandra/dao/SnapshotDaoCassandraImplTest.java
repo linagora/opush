@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,60 +29,27 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store.ehcache;
+package org.obm.push.cassandra.dao;
 
-import net.sf.ehcache.Element;
-
-import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.SyncKey;
-import org.obm.push.mail.bean.Snapshot;
-import org.obm.push.store.SnapshotDao;
+import org.cassandraunit.CassandraCQLUnit;
+import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.junit.Before;
+import org.junit.Rule;
+import org.obm.push.dao.testsuite.SnapshotDaoTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+public class SnapshotDaoCassandraImplTest extends SnapshotDaoTest {
 
-@Singleton
-public class SnapshotDaoEhcacheImpl extends AbstractEhcacheDao implements SnapshotDao {
-
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final String KEYSPACE = "opush";
+	private static final String SNAPSHOT_CQL = "snapshot.cql";
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet(SNAPSHOT_CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
-	@Inject  SnapshotDaoEhcacheImpl(StoreManager objectStoreManager, CacheEvictionListener cacheEvictionListener) {
-		super(objectStoreManager, cacheEvictionListener);
+	private Logger logger = LoggerFactory.getLogger(SnapshotDaoCassandraImplTest.class);
+	
+	@Before
+	public void init() {
+		snapshotDao = new SnapshotDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
 	}
 	
-	@Override
-	protected String getStoreName() {
-		return EhCacheStores.MAIL_SNAPSHOT_STORE;
-	}
-
-	@Override
-	public Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId) {
-		SnapshotKey key = SnapshotKey.builder()
-			.deviceId(deviceId)
-			.syncKey(syncKey)
-			.collectionId(collectionId)
-			.build();
-		Element element = store.get(key);
-		logger.debug("Get snapshot with key {} : {}", key, element);
-		if (element != null) {
-			return (Snapshot) element.getObjectValue();
-		}
-		return null;
-	}
-
-	@Override
-	public void put(Snapshot snapshot) {
-		Preconditions.checkNotNull(snapshot);
-		SnapshotKey key = SnapshotKey.builder()
-				.deviceId(snapshot.getDeviceId())
-				.syncKey(snapshot.getSyncKey())
-				.collectionId(snapshot.getCollectionId())
-				.build();
-		logger.debug("put snapshot with key {} : {}", key, snapshot);
-		store.put(new Element(key, snapshot));
-	}
-
 }

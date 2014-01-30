@@ -83,4 +83,26 @@ public interface CassandraStructure {
 			String WINDOWING_INDEX = "windowing_index";
 		}
 	}
+	
+	interface SnapshotTable {
+		String TABLE = "snapshot";
+		String[] PK = { Columns.ID };
+		
+		interface Columns {
+			String ID = "id";
+			String SNAPSHOT = "snapshot";
+		}
+	}
+	
+	interface SnapshotIndex {
+		String TABLE = "snapshot_index";
+		String[] PK = { Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.SYNC_KEY };
+		
+		interface Columns {
+			String DEVICE_ID = "device_id";
+			String COLLECTION_ID = "collection_id";
+			String SYNC_KEY = "sync_key";
+			String SNAPSHOT_ID = "snapshot_id";
+		}
+	}
 }

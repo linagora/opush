@@ -137,6 +137,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -149,6 +150,7 @@ public class SyncHandlerWithBackendTest {
 
 	private final static int ONE_WINDOWS_SIZE = 1;
 	
+	@Inject	Injector injector;
 	@Inject	SingleUserFixture singleUserFixture;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
@@ -162,10 +164,10 @@ public class SyncHandlerWithBackendTest {
 	@Inject SyncDecoder decoder;
 	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject SnapshotService snapshotService;
 	@Inject TransactionProvider transactionProvider;
 	@Inject CassandraServer cassandraServer;
 	
+	private SnapshotService snapshotService;
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
 	private DateService dateService;
@@ -215,6 +217,7 @@ public class SyncHandlerWithBackendTest {
 		calendarClient = classToInstanceMap.get(CalendarClient.class);
 		bookClient = classToInstanceMap.get(BookClient.class);
 		eventService = classToInstanceMap.get(EventService.class);
+		snapshotService = injector.getInstance(SnapshotService.class);
 
 		bindCollectionIdToPath();
 		

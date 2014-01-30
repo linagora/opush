@@ -50,29 +50,14 @@ public abstract class SnapshotDaoTest {
 	protected SnapshotDao snapshotDao;
 	
 	@Test
-	public void getNull() {
-		SyncKey syncKey = new SyncKey("synckey");
-		DeviceId deviceId = new DeviceId("deviceId");
-		Integer connectionId = 1;
-		
-		Snapshot snapshot = snapshotDao.get(deviceId, syncKey, connectionId);
-		
-		assertThat(snapshot).isNull();
-	}
-	
-	@Test
-	public void put() {
-		SyncKey syncKey = new SyncKey("synckey");
+	public void getWhenSyncKeyDoesNotMatch() {
+		SyncKey syncKey = new SyncKey("8b7d5982-cbb3-4cd0-8151-0d20f9118fe7");
 		DeviceId deviceId = new DeviceId("deviceId");
 		Integer collectionId = 1;
 		int uidNext = 2;
-		Email email = Email.builder()
-				.uid(3)
-				.read(false)
-				.date(DateUtils.getCurrentDate())
-				.build();
-		
-		Snapshot snapshot = Snapshot.builder()
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+
+		Snapshot storedSnapshot = Snapshot.builder()
 				.deviceId(deviceId)
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.syncKey(syncKey)
@@ -81,12 +66,67 @@ public abstract class SnapshotDaoTest {
 				.addEmail(email)
 				.build();
 		
-		snapshotDao.put(snapshot);
+		snapshotDao.put(storedSnapshot);
+
+		SyncKey otherSyncKey = new SyncKey("c1c98fd7-5692-44fe-a73f-85b6ef0dcaa6");
+		Snapshot snapshot = snapshotDao.get(deviceId, otherSyncKey, collectionId);
+		
+		assertThat(snapshot).isNull();
 	}
 	
 	@Test
-	public void get() {
-		SyncKey syncKey = new SyncKey("synckey");
+	public void getWhenCollectionDoesNotMatch() {
+		SyncKey syncKey = new SyncKey("b2704aef-26a7-49eb-baf8-e1a3efbccf8b");
+		DeviceId deviceId = new DeviceId("deviceId");
+		Integer collectionId = 1;
+		int uidNext = 2;
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+
+		Snapshot storedSnapshot = Snapshot.builder()
+				.deviceId(deviceId)
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.syncKey(syncKey)
+				.collectionId(collectionId)
+				.uidNext(uidNext)
+				.addEmail(email)
+				.build();
+		
+		snapshotDao.put(storedSnapshot);
+
+		Integer otherCollection = 15;
+		Snapshot snapshot = snapshotDao.get(deviceId, syncKey, otherCollection);
+		
+		assertThat(snapshot).isNull();
+	}
+	
+	@Test
+	public void getWhenDeviceDoesNotMatch() {
+		SyncKey syncKey = new SyncKey("2ae02b70-3de8-4da0-8241-3cb7e948ab24");
+		DeviceId deviceId = new DeviceId("deviceId");
+		Integer collectionId = 1;
+		int uidNext = 2;
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+
+		Snapshot storedSnapshot = Snapshot.builder()
+				.deviceId(deviceId)
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.syncKey(syncKey)
+				.collectionId(collectionId)
+				.uidNext(uidNext)
+				.addEmail(email)
+				.build();
+		
+		snapshotDao.put(storedSnapshot);
+
+		DeviceId otherDeviceId = new DeviceId("otherDeviceId");
+		Snapshot snapshot = snapshotDao.get(otherDeviceId, syncKey, collectionId);
+		
+		assertThat(snapshot).isNull();
+	}
+	
+	@Test
+	public void getWhenParamsMatch() {
+		SyncKey syncKey = new SyncKey("8b5dd1d5-9fd7-423f-81c7-89ffe4e5cfb6");
 		DeviceId deviceId = new DeviceId("deviceId");
 		Integer collectionId = 1;
 		int uidNext = 2;
@@ -109,5 +149,10 @@ public abstract class SnapshotDaoTest {
 		Snapshot snapshot = snapshotDao.get(deviceId, syncKey, collectionId);
 		
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
+	}
+	
+	@Test(expected=NullPointerException.class)
+	public void putWhenSnapshotIsNull() {
+		snapshotDao.put(null);
 	}
 }
