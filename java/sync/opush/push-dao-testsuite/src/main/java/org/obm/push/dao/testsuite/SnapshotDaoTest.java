@@ -40,6 +40,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
@@ -134,6 +135,99 @@ public abstract class SnapshotDaoTest {
 		
 		snapshotDao.put(snapshotKey, expectedSnapshot);
 		Snapshot snapshot = snapshotDao.get(snapshotKey);
+		
+		assertThat(snapshot).isEqualTo(expectedSnapshot);
+	}
+	
+	@Test(expected=DaoException.class)
+	public void linkWhenSyncKeyDoesNotMatch() {
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("deviceId"))
+				.syncKey(new SyncKey("079962a8-ffa5-48ca-9de5-de0949a55b32"))
+				.collectionId(1).build();
+		Snapshot storedSnapshot = Snapshot.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.uidNext(2)
+				.addEmail(email).build();
+		
+		snapshotDao.put(snapshotKey, storedSnapshot);
+
+		SnapshotKey otherSnapshotKey = SnapshotKey.builder()
+				.deviceId(snapshotKey.getDeviceId())
+				.syncKey(new SyncKey("0a713c3f-a79b-43bb-a706-d467ab62f37b"))
+				.collectionId(snapshotKey.getCollectionId()).build();
+		SyncKey linkingSyncKey = new SyncKey("25df65ac-ed3e-46ab-9d36-9ca2e352b407");
+		snapshotDao.linkSyncKeyToSnapshot(linkingSyncKey, otherSnapshotKey);
+	}
+
+	@Test(expected=DaoException.class)
+	public void linkWhenCollectionDoesNotMatch() {
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("deviceId"))
+				.syncKey(new SyncKey("d4c03a3e-2c08-4a4e-aea5-646189c8b1ab"))
+				.collectionId(1).build();
+		Snapshot storedSnapshot = Snapshot.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.uidNext(2)
+				.addEmail(email).build();
+		
+		snapshotDao.put(snapshotKey, storedSnapshot);
+
+		SnapshotKey otherSnapshotKey = SnapshotKey.builder()
+				.deviceId(snapshotKey.getDeviceId())
+				.syncKey(snapshotKey.getSyncKey())
+				.collectionId(546).build();
+		SyncKey linkingSyncKey = new SyncKey("cb32c35b-0b8a-4ccd-b36b-130f3c96777e");
+		snapshotDao.linkSyncKeyToSnapshot(linkingSyncKey, otherSnapshotKey);
+	}
+
+	@Test(expected=DaoException.class)
+	public void linkWhenDeviceDoesNotMatch() {
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("deviceId"))
+				.syncKey(new SyncKey("5e1a2713-ee71-44af-87ae-0e46e428ca8d"))
+				.collectionId(1).build();
+		Snapshot storedSnapshot = Snapshot.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.uidNext(2)
+				.addEmail(email).build();
+		
+		snapshotDao.put(snapshotKey, storedSnapshot);
+
+		SnapshotKey otherSnapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("otherDeviceId"))
+				.syncKey(snapshotKey.getSyncKey())
+				.collectionId(snapshotKey.getCollectionId()).build();
+		SyncKey linkingSyncKey = new SyncKey("5257f839-fe1b-47cf-a818-c988d49d8624");
+		snapshotDao.linkSyncKeyToSnapshot(linkingSyncKey, otherSnapshotKey);
+	}
+	
+	@Test
+	public void linkWhenParamsMatch() {
+		Email email = Email.builder().uid(3).read(false).date(DateUtils.getCurrentDate()).build();
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(new DeviceId("deviceId"))
+				.syncKey(new SyncKey("8b5dd1d5-9fd7-423f-81c7-89ffe4e5cfb6"))
+				.collectionId(1).build();
+		Snapshot expectedSnapshot = Snapshot.builder()
+				.filterType(FilterType.THREE_DAYS_BACK)
+				.uidNext(5)
+				.addEmail(email)
+				.build();
+		
+		snapshotDao.put(snapshotKey, expectedSnapshot);
+
+		SyncKey linkingSyncKey = new SyncKey("5257f839-fe1b-47cf-a818-c988d49d8624");
+		snapshotDao.linkSyncKeyToSnapshot(linkingSyncKey, snapshotKey);
+		
+		SnapshotKey linkedSnapshotKey = SnapshotKey.builder()
+				.deviceId(snapshotKey.getDeviceId())
+				.syncKey(linkingSyncKey)
+				.collectionId(snapshotKey.getCollectionId()).build();
+		Snapshot snapshot = snapshotDao.get(linkedSnapshotKey);
 		
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
 	}

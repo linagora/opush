@@ -44,7 +44,9 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Column
 import java.util.UUID;
 
 import org.obm.push.bean.SnapshotKey;
+import org.obm.push.bean.SyncKey;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.exception.DaoException;
 import org.obm.push.json.JSONService;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
@@ -70,16 +72,15 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 
 	@Override
 	public Snapshot get(SnapshotKey snapshotKey) {
-		ResultSet snapshotIndexResultSet = selectSnapshotIndex(snapshotKey);
-		if (snapshotIndexResultSet.isExhausted()) {
-			logger.debug("No snapshot index found, returning null");
+		UUID snapshotId = selectSnapshotId(snapshotKey);
+		if (snapshotId == null) {
+			logger.debug("No snapshot found, returning null");
 			return null;
 		}
 		
-		UUID snapshotId  = snapshotIndexResultSet.one().getUUID(SNAPSHOT_ID);
 		ResultSet snapshotResultSet = selectSnapshot(snapshotId);
 		if (snapshotResultSet.isExhausted()) {
-			logger.debug("No snapshot found, returning null");
+			logger.debug("No snapshot found for id {}, returning null", snapshotId);
 			return null;
 		}
 		
@@ -93,13 +94,34 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 		insertNewIndex(snapshotKey, insertSnapshot(snapshot));
 	}
 
-	private ResultSet selectSnapshotIndex(SnapshotKey snapshotKey) {
+	@Override
+	public void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException {
+		SnapshotKey snapshotKeyForNewIndex = SnapshotKey.builder()
+			.collectionId(snapshotKey.getCollectionId())
+			.deviceId(snapshotKey.getDeviceId())
+			.syncKey(synckey)
+			.build();
+		
+		UUID selectSnapshotId = selectSnapshotId(snapshotKey);
+		if (selectSnapshotId == null) {
+			throw new DaoException("Not snapshot found for snapshot key " + snapshotKey);
+		}
+		
+		insertNewIndex(snapshotKeyForNewIndex, selectSnapshotId);
+	}
+
+	private UUID selectSnapshotId(SnapshotKey snapshotKey) {
 		Where statement = select(SNAPSHOT_ID).from(SnapshotIndex.TABLE)
 				.where(eq(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId()))
 				.and(eq(COLLECTION_ID, snapshotKey.getCollectionId()))
 				.and(eq(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey())));
 		logger.debug("Select snapshot index query: {}", statement.getQueryString());
-		return session.execute(statement);
+
+		ResultSet snapshotIndexResultSet = session.execute(statement);
+		if (snapshotIndexResultSet.isExhausted()) {
+			return null;
+		}
+		return snapshotIndexResultSet.one().getUUID(SNAPSHOT_ID);
 	}
 
 	private ResultSet selectSnapshot(UUID snapshotId) {

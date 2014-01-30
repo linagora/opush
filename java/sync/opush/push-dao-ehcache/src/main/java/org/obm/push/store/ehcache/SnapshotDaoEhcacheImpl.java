@@ -34,6 +34,8 @@ package org.obm.push.store.ehcache;
 import net.sf.ehcache.Element;
 
 import org.obm.push.bean.SnapshotKey;
+import org.obm.push.bean.SyncKey;
+import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
 import org.slf4j.Logger;
@@ -69,9 +71,25 @@ public class SnapshotDaoEhcacheImpl extends AbstractEhcacheDao implements Snapsh
 
 	@Override
 	public void put(SnapshotKey key, Snapshot snapshot) {
+		Preconditions.checkNotNull(key);
 		Preconditions.checkNotNull(snapshot);
 		logger.debug("put snapshot with key {} : {}", key, snapshot);
 		store.put(new Element(key, snapshot));
+	}
+
+	@Override
+	public void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException {
+		Snapshot snapshot = get(snapshotKey);
+		if (snapshot == null) {
+			throw new DaoException("Not snapshot found for snapshot key " + snapshotKey);
+		}
+		
+		SnapshotKey newSnapshotKey = SnapshotKey.builder()
+				.collectionId(snapshotKey.getCollectionId())
+				.deviceId(snapshotKey.getDeviceId())
+				.syncKey(synckey)
+				.build();
+		put(newSnapshotKey, snapshot);
 	}
 
 }

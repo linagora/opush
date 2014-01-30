@@ -49,6 +49,7 @@ import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.minig.imap.impl.MessageSetUtils;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.SnapshotDao;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -64,20 +65,20 @@ public class MailBackendSyncData {
 		private final DateService dateService;
 		private final MappingService mappingService;
 		private final MailboxService mailboxService;
-		private final SnapshotService snapshotService;
+		private final SnapshotDao snapshotDao;
 		private final EmailChangesComputer emailChangesComputer;
 
 		@Inject
 		@VisibleForTesting MailBackendSyncDataFactory(DateService dateService,
 				MappingService mappingService,
 				MailboxService mailboxService,
-				SnapshotService snapshotService,
+				SnapshotDao snapshotDao,
 				EmailChangesComputer emailChangesComputer) {
 			
 			this.dateService = dateService;
 			this.mappingService = mappingService;
 			this.mailboxService = mailboxService;
-			this.snapshotService = snapshotService;
+			this.snapshotDao = snapshotDao;
 			this.emailChangesComputer = emailChangesComputer;
 		}
 		
@@ -89,7 +90,7 @@ public class MailBackendSyncData {
 			String collectionPath = mappingService.getCollectionPathFor(collectionId);
 			long currentUIDNext = mailboxService.fetchUIDNext(udr, collectionPath);
 
-			Snapshot previousStateSnapshot = snapshotService.getSnapshot(SnapshotKey.builder()
+			Snapshot previousStateSnapshot = snapshotDao.get(SnapshotKey.builder()
 					.deviceId(udr.getDevId())
 					.syncKey(state.getSyncKey())
 					.collectionId(collectionId)

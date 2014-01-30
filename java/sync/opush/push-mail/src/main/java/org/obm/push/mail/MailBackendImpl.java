@@ -117,6 +117,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.tnefconverter.TNEFConverterException;
 import org.obm.push.tnefconverter.TNEFUtils;
@@ -163,7 +164,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final AuthenticationService authenticationService;
 	private final MSEmailFetcher msEmailFetcher;
 	private final TransformersFactory transformersFactory;
-	private final SnapshotService snapshotService;
+	private final SnapshotDao snapshotDao;
 	private final EmailChangesFetcher emailChangesFetcher;
 	private final MailBackendSyncDataFactory mailBackendSyncDataFactory;
 	private final WindowingDao windowingDao;
@@ -177,7 +178,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	/* package */ MailBackendImpl(MailboxService mailboxService, 
 			AuthenticationService authenticationService, 
 			Mime4jUtils mime4jUtils, OpushConfiguration opushConfiguration,
-			SnapshotService snapshotService,
+			SnapshotDao snapshotDao,
 			EmailChangesFetcher emailChangesFetcher,
 			MappingService mappingService,
 			MSEmailFetcher msEmailFetcher,
@@ -193,7 +194,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		this.mime4jUtils = mime4jUtils;
 		this.opushConfiguration = opushConfiguration;
 		this.authenticationService = authenticationService;
-		this.snapshotService = snapshotService;
+		this.snapshotDao = snapshotDao;
 		this.emailChangesFetcher = emailChangesFetcher;
 		this.msEmailFetcher = msEmailFetcher;
 		this.transformersFactory = transformersFactory;
@@ -321,15 +322,13 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException, ProcessingEmailException, FilterTypeChangedException {
 
 		try {
-			SyncKey requestSyncKey = syncCollection.getSyncKey();
-			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
+			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), syncCollection.getSyncKey());
 			
 			if (windowingDao.hasPendingChanges(windowingKey)) {
-				SnapshotKey snapshotKey = SnapshotKey.builder()
+				snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
 						.collectionId(syncCollection.getCollectionId())
 						.deviceId(udr.getDevId())
-						.syncKey(requestSyncKey).build();
-				snapshotService.actualizeSnapshot(snapshotKey, newSyncKey);
+						.syncKey(syncCollection.getSyncKey()).build());
 				return continueWindowing(udr, syncCollection, windowingKey, syncState.getSyncDate(), newSyncKey);
 			} else {
 				return startWindowing(udr, syncState, syncCollection, windowingKey, newSyncKey);
@@ -384,7 +383,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private void takeSnapshot(UserDataRequest udr, Integer collectionId, 
 			SyncCollectionOptions syncCollectionOptions, MailBackendSyncData syncData, SyncKey newSyncKey) {
 		
-		snapshotService.storeSnapshot(
+		snapshotDao.put(
 			SnapshotKey.builder()
 				.collectionId(collectionId)
 				.deviceId(udr.getDevId())
@@ -913,7 +912,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				ItemSyncState previousItemSyncState) 
 			throws ProcessingEmailException {
 
-		Snapshot snapshot = snapshotService.getSnapshot(SnapshotKey.builder()
+		Snapshot snapshot = snapshotDao.get(SnapshotKey.builder()
 				.deviceId(udr.getDevId())
 				.syncKey(previousItemSyncState.getSyncKey())
 				.collectionId(collectionId).build());

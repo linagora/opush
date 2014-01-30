@@ -103,7 +103,6 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.MailboxService;
-import org.obm.push.mail.SnapshotService;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -113,6 +112,7 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.store.ItemTrackingDao;
+import org.obm.push.store.SnapshotDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.book.AddressBook;
@@ -168,7 +168,7 @@ public class SyncHandlerWithBackendTest {
 	@Inject TransactionProvider transactionProvider;
 	@Inject CassandraServer cassandraServer;
 	
-	private SnapshotService snapshotService;
+	private SnapshotDao snapshotDao;
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
 	private DateService dateService;
@@ -218,7 +218,7 @@ public class SyncHandlerWithBackendTest {
 		calendarClient = classToInstanceMap.get(CalendarClient.class);
 		bookClient = classToInstanceMap.get(BookClient.class);
 		eventService = classToInstanceMap.get(EventService.class);
-		snapshotService = injector.getInstance(SnapshotService.class);
+		snapshotDao = injector.getInstance(SnapshotDao.class);
 
 		bindCollectionIdToPath();
 		
@@ -797,9 +797,9 @@ public class SyncHandlerWithBackendTest {
 			.containsOnly(ItemDeletion.builder().serverId(serverId).build());
 	}
 
-	private void initializeEmptySnapshotForSyncKey(SyncKey firstAllocatedSyncKey) throws NotSupportedException, SystemException, SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+	private void initializeEmptySnapshotForSyncKey(SyncKey firstAllocatedSyncKey) throws SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException, NotSupportedException {
 		transactionProvider.get().begin();
-		snapshotService.storeSnapshot(
+		snapshotDao.put(
 			SnapshotKey.builder()
 				.syncKey(firstAllocatedSyncKey)
 				.collectionId(inboxCollectionId)

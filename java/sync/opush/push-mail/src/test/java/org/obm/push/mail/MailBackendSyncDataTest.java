@@ -60,6 +60,7 @@ import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.SnapshotDao;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -77,7 +78,7 @@ public class MailBackendSyncDataTest {
 	private IMocksControl control;
 	private MailboxService mailboxService;
 	private MappingService mappingService;
-	private SnapshotService snapshotService;
+	private SnapshotDao snapshotDao;
 	private EmailChangesComputer emailChangesComputer;
 	private DateService dateService;
 	private MailBackendSyncDataFactory testee;
@@ -91,13 +92,13 @@ public class MailBackendSyncDataTest {
 		
 		control = createControl();
 		mailboxService = control.createMock(MailboxService.class);
-		snapshotService = control.createMock(SnapshotService.class);
+		snapshotDao = control.createMock(SnapshotDao.class);
 		mappingService = control.createMock(MappingService.class);
 		emailChangesComputer = control.createMock(EmailChangesComputer.class);
 		dateService = control.createMock(DateService.class);
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
 		
-		testee = new MailBackendSyncDataFactory(dateService, mappingService, mailboxService, snapshotService, emailChangesComputer);
+		testee = new MailBackendSyncDataFactory(dateService, mappingService, mailboxService, snapshotDao, emailChangesComputer);
 	}
 	
 	@Test
@@ -517,7 +518,7 @@ public class MailBackendSyncDataTest {
 	}
 
 	private void expectSnapshotDaoHasEntry(SyncKey syncKey, Snapshot snapshot) {
-		expect(snapshotService.getSnapshot(SnapshotKey.builder()
+		expect(snapshotDao.get(SnapshotKey.builder()
 				.deviceId(device.getDevId())
 				.syncKey(syncKey)
 				.collectionId(collectionId)

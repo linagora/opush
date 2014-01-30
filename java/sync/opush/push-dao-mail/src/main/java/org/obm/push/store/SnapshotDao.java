@@ -32,11 +32,15 @@
 package org.obm.push.store;
 
 import org.obm.push.bean.SnapshotKey;
+import org.obm.push.bean.SyncKey;
+import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Snapshot;
 
 public interface SnapshotDao {
 	
 	Snapshot get(SnapshotKey snapshotKey);
+
+	void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException;
 	
 	void put(SnapshotKey snapshotKey, Snapshot snapshot);
 

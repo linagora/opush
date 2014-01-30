@@ -86,6 +86,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.EventService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.UserEmailParserUtils;
 
@@ -113,7 +114,7 @@ public class MailboxBackendTest {
 	private MailViewToMSEmailConverter msEmailConverter;
 	private Transformer transformer;
 	private EventService eventService;
-	private SnapshotService snapshotService;
+	private SnapshotDao snapshotDao;
 	private WindowingDao windowingDao;
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
@@ -137,12 +138,12 @@ public class MailboxBackendTest {
 		transformer = mocks.createMock(Transformer.class);
 		expect(transformersFactory.create(anyObject(FetchInstruction.class))).andReturn(transformer).anyTimes();
 		msEmailFetcher = new MSEmailFetcher(mailboxService, transformersFactory, msEmailConverter);
-		snapshotService = mocks.createMock(SnapshotService.class);
+		snapshotDao = mocks.createMock(SnapshotDao.class);
 		windowingDao = mocks.createMock(WindowingDao.class);
 		smtpSender = mocks.createMock(SmtpSender.class);
 		emailConfiguration = mocks.createMock(EmailConfiguration.class);
 		
-		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, snapshotService,
+		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, snapshotDao,
 				null, mappingService, msEmailFetcher, null, null, null, windowingDao, smtpSender, emailConfiguration);
 	}
 	
@@ -203,7 +204,7 @@ public class MailboxBackendTest {
 			.uidNext(15l)
 			.addEmail(Email.builder().uid(itemId).build())
 			.filterType(FilterType.ALL_ITEMS).build();
-		expect(snapshotService.getSnapshot(existingSnapshotKey)).andReturn(existingSnapshot);
+		expect(snapshotDao.get(existingSnapshotKey)).andReturn(existingSnapshot);
 		
 		mocks.replay();		
 		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState);
@@ -311,7 +312,7 @@ public class MailboxBackendTest {
 				.uidNext(15l)
 				.addEmail(Email.builder().uid(itemId).build())
 				.filterType(FilterType.ALL_ITEMS).build();
-		expect(snapshotService.getSnapshot(existingSnapshotKey)).andReturn(existingSnapshot);
+		expect(snapshotDao.get(existingSnapshotKey)).andReturn(existingSnapshot);
 		
 		mocks.replay();
 		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState);
