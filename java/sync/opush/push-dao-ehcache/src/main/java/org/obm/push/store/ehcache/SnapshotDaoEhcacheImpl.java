@@ -33,9 +33,7 @@ package org.obm.push.store.ehcache;
 
 import net.sf.ehcache.Element;
 
-import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SnapshotKey;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
 import org.slf4j.Logger;
@@ -60,12 +58,7 @@ public class SnapshotDaoEhcacheImpl extends AbstractEhcacheDao implements Snapsh
 	}
 
 	@Override
-	public Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId) {
-		SnapshotKey key = SnapshotKey.builder()
-			.deviceId(deviceId)
-			.syncKey(syncKey)
-			.collectionId(collectionId)
-			.build();
+	public Snapshot get(SnapshotKey key) {
 		Element element = store.get(key);
 		logger.debug("Get snapshot with key {} : {}", key, element);
 		if (element != null) {
@@ -75,13 +68,8 @@ public class SnapshotDaoEhcacheImpl extends AbstractEhcacheDao implements Snapsh
 	}
 
 	@Override
-	public void put(Snapshot snapshot) {
+	public void put(SnapshotKey key, Snapshot snapshot) {
 		Preconditions.checkNotNull(snapshot);
-		SnapshotKey key = SnapshotKey.builder()
-				.deviceId(snapshot.getDeviceId())
-				.syncKey(snapshot.getSyncKey())
-				.collectionId(snapshot.getCollectionId())
-				.build();
 		logger.debug("put snapshot with key {} : {}", key, snapshot);
 		store.put(new Element(key, snapshot));
 	}

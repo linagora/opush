@@ -31,7 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
-import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.store.SnapshotDao;
@@ -51,19 +51,23 @@ public class SnapshotServiceImpl implements SnapshotService {
 	}
 
 	@Override
-	public Snapshot getSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId) {
-		return snapshotDao.get(deviceId, syncKey, collectionId);
+	public Snapshot getSnapshot(SnapshotKey key) {
+		return snapshotDao.get(key);
 	}
 
 	@Override
-	public void storeSnapshot(Snapshot snapshot) {
-		snapshotDao.put(snapshot);
+	public void storeSnapshot(SnapshotKey key, Snapshot snapshot) {
+		snapshotDao.put(key, snapshot);
 	}
 
 	@Override
-	public void actualizeSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId, SyncKey newSyncKey) {
-		Snapshot snapshot = getSnapshot(deviceId, syncKey, collectionId);
-		storeSnapshot(Snapshot.builder()
-				.actualizeSnapshot(snapshot, newSyncKey));
+	public void actualizeSnapshot(SnapshotKey key, SyncKey newSyncKey) {
+		Snapshot snapshot = getSnapshot(key);
+		SnapshotKey newSnapshotKey = SnapshotKey.builder()
+				.collectionId(key.getCollectionId())
+				.deviceId(key.getDeviceId())
+				.syncKey(newSyncKey)
+				.build();
+		storeSnapshot(newSnapshotKey, snapshot);
 	}
 }

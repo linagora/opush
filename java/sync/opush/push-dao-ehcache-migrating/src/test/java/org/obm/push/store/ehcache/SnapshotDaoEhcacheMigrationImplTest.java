@@ -83,18 +83,14 @@ public class SnapshotDaoEhcacheMigrationImplTest extends StoreManagerConfigurati
 		snapshotDaoEhcacheMigrationImpl.store.put(new Element(
 				key,
 				Snapshot.builder()
-					.deviceId(deviceId)
+					.uidNext(15l)
 					.filterType(FilterType.ALL_ITEMS)
-					.syncKey(new SyncKey("123"))
-					.collectionId(1)
 					.build()));
 		snapshotDaoEhcacheMigrationImpl.store.put(new Element(
 				key2, 
 				Snapshot.builder()
-					.deviceId(deviceId)
+					.uidNext(15l)
 					.filterType(FilterType.ONE_DAY_BACK)
-					.syncKey(new SyncKey("456"))
-					.collectionId(2)
 					.build()));
 		
 		List<Object> keys = snapshotDaoEhcacheMigrationImpl.getKeys();
@@ -111,10 +107,8 @@ public class SnapshotDaoEhcacheMigrationImplTest extends StoreManagerConfigurati
 		Element element = new Element(
 				key, 
 				Snapshot.builder()
-						.deviceId(deviceId)
+						.uidNext(15l)
 						.filterType(FilterType.ALL_ITEMS)
-						.syncKey(new SyncKey("123"))
-						.collectionId(1)
 						.build());
 		snapshotDaoEhcacheMigrationImpl.store.put(element);
 		
@@ -132,10 +126,8 @@ public class SnapshotDaoEhcacheMigrationImplTest extends StoreManagerConfigurati
 		Element element = new Element(
 				key, 
 				Snapshot.builder()
-						.deviceId(deviceId)
+						.uidNext(15l)
 						.filterType(FilterType.ALL_ITEMS)
-						.syncKey(new SyncKey("123"))
-						.collectionId(1)
 						.build());
 		snapshotDaoEhcacheMigrationImpl.store.put(element);
 		

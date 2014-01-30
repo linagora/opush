@@ -35,10 +35,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.ProtocolException;
 
@@ -54,34 +52,17 @@ public class Snapshot implements Serializable {
 	}
 	
 	public static class Builder {
-		private DeviceId deviceId;
+		
 		private FilterType filterType;
-		private SyncKey syncKey;
-		private Integer collectionId;
-		private long uidNext;
+		private Long uidNext;
 		private Collection<Email> emails;
 		
 		private Builder() {
 			emails = Lists.newArrayList();
 		}
 		
-		public Builder deviceId(DeviceId deviceId) {
-			this.deviceId = deviceId;
-			return this;
-		}
-		
 		public Builder filterType(FilterType filterType) {
 			this.filterType = filterType;
-			return this;
-		}
-		
-		public Builder syncKey(SyncKey syncKey) {
-			this.syncKey = syncKey;
-			return this;
-		}
-		
-		public Builder collectionId(Integer collectionId) {
-			this.collectionId = collectionId;
 			return this;
 		}
 		
@@ -100,41 +81,22 @@ public class Snapshot implements Serializable {
 			return this;
 		}
 		
-		public Snapshot actualizeSnapshot(Snapshot snapshot, SyncKey newSynckKey) {
-			return Snapshot.builder()
-				.deviceId(snapshot.getDeviceId())
-				.filterType(snapshot.getFilterType())
-				.syncKey(newSynckKey)
-				.collectionId(snapshot.getCollectionId())
-				.uidNext(snapshot.getUidNext())
-				.emails(snapshot.getEmails())
-				.build();
-		}
-		
 		public Snapshot build() {
-			Preconditions.checkArgument(deviceId != null, "deviceId can't be null or empty");
-			Preconditions.checkArgument(filterType != null, "filterType can't be null or empty");
-			Preconditions.checkArgument(syncKey != null, "syncKey can't be null or empty");
-			Preconditions.checkArgument(collectionId != null, "collectionId can't be null or empty");
-			return new Snapshot(deviceId, filterType, syncKey, collectionId, uidNext, emails);
+			Preconditions.checkState(filterType != null, "filterType can't be null or empty");
+			Preconditions.checkState(uidNext != null, "uidNext can't be null");
+			return new Snapshot(filterType, uidNext, emails);
 		}
 	}
 	
 	private static final long serialVersionUID = -8674207692296869251L;
 	
-	private final DeviceId deviceId;
 	private final FilterType filterType;
-	private final SyncKey syncKey;
-	private final Integer collectionId;
 	private final long uidNext;
 	private final Collection<Email> emails;
 	private final MessageSet messageSet;
 	
-	protected Snapshot(DeviceId deviceId, FilterType filterType, SyncKey syncKey, Integer collectionId, long uidNext, Collection<Email> emails) {
-		this.deviceId = deviceId;
+	protected Snapshot(FilterType filterType, long uidNext, Collection<Email> emails) {
 		this.filterType = filterType;
-		this.syncKey = syncKey;
-		this.collectionId = collectionId;
 		this.uidNext = uidNext;
 		this.emails = emails;
 		this.messageSet = generateMessageSet();
@@ -162,21 +124,8 @@ public class Snapshot implements Serializable {
 		return true;
 	}
 
-	
-	public DeviceId getDeviceId() {
-		return deviceId;
-	}
-
 	public FilterType getFilterType() {
 		return filterType;
-	}
-	
-	public SyncKey getSyncKey() {
-		return syncKey;
-	}
-
-	public Integer getCollectionId() {
-		return collectionId;
 	}
 
 	public long getUidNext() {
@@ -193,17 +142,15 @@ public class Snapshot implements Serializable {
 	
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(deviceId, filterType, syncKey, collectionId, uidNext, emails, messageSet);
+		return Objects.hashCode(filterType, uidNext, emails, messageSet);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
 		if (object instanceof Snapshot) {
 			Snapshot that = (Snapshot) object;
-			return Objects.equal(this.deviceId, that.deviceId) && 
+			return  
 				Objects.equal(this.filterType, that.filterType) && 
-				Objects.equal(this.syncKey, that.syncKey) && 
-				Objects.equal(this.collectionId, that.collectionId) && 
 				Objects.equal(this.uidNext, that.uidNext) && 
 				Objects.equal(this.emails, that.emails) &&  
 				Objects.equal(this.messageSet, that.messageSet); 
@@ -214,10 +161,7 @@ public class Snapshot implements Serializable {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("deviceId", deviceId)
 			.add("filterType", filterType)
-			.add("syncKey", syncKey)
-			.add("collectionId", collectionId)
 			.add("uidNext", uidNext)
 			.add("emails", emails)
 			.add("messageSet", messageSet)

@@ -72,6 +72,7 @@ import org.obm.push.bean.MSAttachementData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -321,13 +322,17 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 		try {
 			SyncKey requestSyncKey = syncCollection.getSyncKey();
-			WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
+			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
 			
-			if (windowingDao.hasPendingChanges(key)) {
-				snapshotService.actualizeSnapshot(udr.getDevId(), requestSyncKey, syncCollection.getCollectionId(), newSyncKey);
-				return continueWindowing(udr, syncCollection, key, syncState.getSyncDate(), newSyncKey);
+			if (windowingDao.hasPendingChanges(windowingKey)) {
+				SnapshotKey snapshotKey = SnapshotKey.builder()
+						.collectionId(syncCollection.getCollectionId())
+						.deviceId(udr.getDevId())
+						.syncKey(requestSyncKey).build();
+				snapshotService.actualizeSnapshot(snapshotKey, newSyncKey);
+				return continueWindowing(udr, syncCollection, windowingKey, syncState.getSyncDate(), newSyncKey);
 			} else {
-				return startWindowing(udr, syncState, syncCollection, key, newSyncKey);
+				return startWindowing(udr, syncState, syncCollection, windowingKey, newSyncKey);
 			}
 		} catch (EmailViewPartsFetcherException e) {
 			throw new ProcessingEmailException(e);
@@ -379,12 +384,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private void takeSnapshot(UserDataRequest udr, Integer collectionId, 
 			SyncCollectionOptions syncCollectionOptions, MailBackendSyncData syncData, SyncKey newSyncKey) {
 		
-		snapshotService.storeSnapshot(Snapshot.builder()
-				.emails(syncData.getNewManagedEmails())
+		snapshotService.storeSnapshot(
+			SnapshotKey.builder()
 				.collectionId(collectionId)
 				.deviceId(udr.getDevId())
+				.syncKey(newSyncKey).build(),
+			Snapshot.builder()
+				.emails(syncData.getNewManagedEmails())
 				.filterType(syncCollectionOptions.getFilterType())
-				.syncKey(newSyncKey)
 				.uidNext(syncData.getCurrentUIDNext())
 				.build());
 	}
@@ -906,7 +913,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				ItemSyncState previousItemSyncState) 
 			throws ProcessingEmailException {
 
-		Snapshot snapshot = snapshotService.getSnapshot(udr.getDevId(), previousItemSyncState.getSyncKey(), collectionId);
+		Snapshot snapshot = snapshotService.getSnapshot(SnapshotKey.builder()
+				.deviceId(udr.getDevId())
+				.syncKey(previousItemSyncState.getSyncKey())
+				.collectionId(collectionId).build());
 		if (snapshot == null) {
 			throw new InvalidSyncKeyException(previousItemSyncState.getSyncKey());
 		}

@@ -92,6 +92,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -798,13 +799,14 @@ public class SyncHandlerWithBackendTest {
 
 	private void initializeEmptySnapshotForSyncKey(SyncKey firstAllocatedSyncKey) throws NotSupportedException, SystemException, SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
 		transactionProvider.get().begin();
-		snapshotService.storeSnapshot(Snapshot.builder()
+		snapshotService.storeSnapshot(
+			SnapshotKey.builder()
 				.syncKey(firstAllocatedSyncKey)
 				.collectionId(inboxCollectionId)
-				.deviceId(user.deviceId)
+				.deviceId(user.deviceId).build(),
+			Snapshot.builder()
 				.uidNext(1l)
-				.filterType(FilterType.THREE_DAYS_BACK)
-				.build());
+				.filterType(FilterType.THREE_DAYS_BACK).build());
 		transactionProvider.get().commit();
 	}
 	

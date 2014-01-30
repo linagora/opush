@@ -1382,10 +1382,7 @@ public class JSONServiceTest {
 	@Test
 	public void testSerializeSnapshot() {
 		Snapshot snapshot = Snapshot.builder()
-				.collectionId(1)
-				.deviceId(new DeviceId("deviceId"))
 				.filterType(FilterType.THREE_DAYS_BACK)
-				.syncKey(new SyncKey("syncKey"))
 				.uidNext(2)
 				.addEmail(Email.builder()
 						.uid(1)
@@ -1397,8 +1394,7 @@ public class JSONServiceTest {
 		
 		String serialized = new JSONService().serialize(snapshot);
 		assertThat(serialized).isEqualTo(
-				"{\"collectionId\":1," + 
-					"\"deviceId\":{\"deviceId\":\"deviceId\"}," + 
+				"{" + 
 					"\"emails\":" + 
 						"[" + 
 							"{\"answered\":true," + 
@@ -1408,15 +1404,13 @@ public class JSONServiceTest {
 							"}" + 
 						"]," + 
 					"\"filterType\":\"THREE_DAYS_BACK\"," + 
-					"\"syncKey\":{\"syncKey\":\"syncKey\"}," + 
 					"\"uidNext\":2}");
 	}
 	
 	@Test
 	public void testDeserializeSnapshot() {
 		Snapshot snapshot = new JSONService().deserialize(Snapshot.class, 
-				"{\"collectionId\":1," + 
-					"\"deviceId\":{\"deviceId\":\"deviceId\"}," + 
+				"{" + 
 					"\"emails\":" + 
 						"[" + 
 							"{\"answered\":true," + 
@@ -1426,14 +1420,10 @@ public class JSONServiceTest {
 							"}" + 
 						"]," + 
 					"\"filterType\":\"THREE_DAYS_BACK\"," + 
-					"\"syncKey\":{\"syncKey\":\"syncKey\"}," + 
 					"\"uidNext\":2}");
 		
 		Snapshot expectedSnapshot = Snapshot.builder()
-				.collectionId(1)
-				.deviceId(new DeviceId("deviceId"))
 				.filterType(FilterType.THREE_DAYS_BACK)
-				.syncKey(new SyncKey("syncKey"))
 				.uidNext(2)
 				.addEmail(Email.builder()
 						.uid(1)

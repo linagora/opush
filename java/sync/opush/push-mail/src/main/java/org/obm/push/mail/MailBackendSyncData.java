@@ -36,6 +36,7 @@ import java.util.Date;
 
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
@@ -87,8 +88,12 @@ public class MailBackendSyncData {
 			Date dataDeltaDate = dateService.getCurrentDate();
 			String collectionPath = mappingService.getCollectionPathFor(collectionId);
 			long currentUIDNext = mailboxService.fetchUIDNext(udr, collectionPath);
-			
-			Snapshot previousStateSnapshot = snapshotService.getSnapshot(udr.getDevId(), state.getSyncKey(), collectionId);
+
+			Snapshot previousStateSnapshot = snapshotService.getSnapshot(SnapshotKey.builder()
+					.deviceId(udr.getDevId())
+					.syncKey(state.getSyncKey())
+					.collectionId(collectionId)
+					.build());
 			Collection<Email> managedEmails = getManagedEmails(previousStateSnapshot);
 			Collection<Email> newManagedEmails = searchEmailsToManage(udr, collectionId, collectionPath, previousStateSnapshot, options, dataDeltaDate, currentUIDNext);
 			

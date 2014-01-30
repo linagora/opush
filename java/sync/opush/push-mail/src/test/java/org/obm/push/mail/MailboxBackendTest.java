@@ -59,6 +59,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
@@ -194,14 +195,15 @@ public class MailboxBackendTest {
 				.syncDate(date("2012-01-01T11:22:33"))
 				.build();
 
+		SnapshotKey existingSnapshotKey = SnapshotKey.builder()
+				.collectionId(collectionId)
+				.deviceId(device.getDevId())
+				.syncKey(previousSyncKey).build();
 		Snapshot existingSnapshot = Snapshot.builder()
+			.uidNext(15l)
 			.addEmail(Email.builder().uid(itemId).build())
-			.collectionId(collectionId)
-			.deviceId(device.getDevId())
-			.syncKey(previousSyncKey)
 			.filterType(FilterType.ALL_ITEMS).build();
-		expect(snapshotService.getSnapshot(device.getDevId(), previousSyncKey, collectionId))
-			.andReturn(existingSnapshot);
+		expect(snapshotService.getSnapshot(existingSnapshotKey)).andReturn(existingSnapshot);
 		
 		mocks.replay();		
 		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState);
@@ -301,14 +303,15 @@ public class MailboxBackendTest {
 				.syncDate(date("2012-01-01T11:22:33"))
 				.build();
 
-		Snapshot existingSnapshot = Snapshot.builder()
-				.addEmail(Email.builder().uid(itemId).build())
+		SnapshotKey existingSnapshotKey = SnapshotKey.builder()
 				.collectionId(collectionId)
 				.deviceId(device.getDevId())
-				.syncKey(previousSyncKey)
+				.syncKey(previousSyncKey).build();
+		Snapshot existingSnapshot = Snapshot.builder()
+				.uidNext(15l)
+				.addEmail(Email.builder().uid(itemId).build())
 				.filterType(FilterType.ALL_ITEMS).build();
-		expect(snapshotService.getSnapshot(device.getDevId(), previousSyncKey, collectionId))
-				.andReturn(existingSnapshot);
+		expect(snapshotService.getSnapshot(existingSnapshotKey)).andReturn(existingSnapshot);
 		
 		mocks.replay();
 		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState);

@@ -31,15 +31,15 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
-import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.Snapshot;
 
 public interface SnapshotService {
 	
-	Snapshot getSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId);
+	Snapshot getSnapshot(SnapshotKey key);
 	
-	void storeSnapshot(Snapshot snapshot);
+	void storeSnapshot(SnapshotKey key, Snapshot snapshot);
 
-	void actualizeSnapshot(DeviceId deviceId, SyncKey syncKey, Integer collectionId, SyncKey newSyncKey);
+	void actualizeSnapshot(SnapshotKey key, SyncKey newSyncKey);
 }

@@ -101,8 +101,6 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
-import org.obm.push.mail.bean.MessageSet;
-import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.bean.WindowingIndexKey;
 import org.obm.push.store.ehcache.MonitoredCollectionDaoEhcacheImpl;
 import org.obm.push.store.ehcache.SyncedCollectionDaoEhcacheImpl;
@@ -425,7 +423,6 @@ public class SerializableCompatibilityTest {
 						.deviceId(new DeviceId("the device id"))
 						.syncKey(new SyncKey("987"))
 						.build())
-				.put("org.obm.push.mail.bean.Snapshot", buildCompatibleSnapshot(deviceId, syncKey, email))
 				.put("org.obm.push.bean.Device", device)
 				.put("org.obm.push.bean.SyncKeysKey",
 						SyncKeysKey.builder().collectionId(456).deviceId(deviceId).build())
@@ -454,23 +451,6 @@ public class SerializableCompatibilityTest {
 		
 	}
 
-	/**
-	 * When the Snapshot reference file has been generated, the generateMessageSet method 
-	 * extended the MessageSet to the given uidNext. This behavior has been removed by OBMFULL-4748.
-	 * This hack is used to say, trust me they are equals !
-	 */
-	private Snapshot buildCompatibleSnapshot(DeviceId deviceId, SyncKey syncKey, final Email email) {
-		final long uidNext = 45l;
-		return new Snapshot(deviceId, FilterType.ALL_ITEMS, syncKey, 15, uidNext, ImmutableList.of(email)) {
-			@Override
-			protected MessageSet generateMessageSet() {
-				return MessageSet.builder()
-						.add(email.getUid())
-						.add(uidNext)
-						.build();
-			}
-		};
-	}
 
 	@Ignore("This test is only used to serialize beans into files")
 	@Test

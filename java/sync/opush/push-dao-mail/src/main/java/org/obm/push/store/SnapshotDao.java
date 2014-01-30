@@ -31,16 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store;
 
-import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.mail.bean.Snapshot;
 
 public interface SnapshotDao {
 	
-	Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId);
-
-//	Snapshot actualize(SnapshotKey key, SyncKey syncKey);
+	Snapshot get(SnapshotKey snapshotKey);
 	
-	void put(Snapshot snapshot);
+	void put(SnapshotKey snapshotKey, Snapshot snapshot);
 
 }

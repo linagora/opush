@@ -43,8 +43,7 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Column
 
 import java.util.UUID;
 
-import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
 import org.obm.push.mail.bean.Snapshot;
@@ -70,8 +69,8 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	@Override
-	public Snapshot get(DeviceId deviceId, SyncKey syncKey, Integer collectionId) {
-		ResultSet snapshotIndexResultSet = selectSnapshotIndex(deviceId, syncKey, collectionId);
+	public Snapshot get(SnapshotKey snapshotKey) {
+		ResultSet snapshotIndexResultSet = selectSnapshotIndex(snapshotKey);
 		if (snapshotIndexResultSet.isExhausted()) {
 			logger.debug("No snapshot index found, returning null");
 			return null;
@@ -89,16 +88,16 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	@Override
-	public void put(Snapshot snapshot) {
+	public void put(SnapshotKey snapshotKey, Snapshot snapshot) {
 		Preconditions.checkNotNull(snapshot);
-		insertNewIndex(snapshot, insertSnapshot(snapshot));
+		insertNewIndex(snapshotKey, insertSnapshot(snapshot));
 	}
 
-	private ResultSet selectSnapshotIndex(DeviceId deviceId, SyncKey syncKey, Integer collectionId) {
+	private ResultSet selectSnapshotIndex(SnapshotKey snapshotKey) {
 		Where statement = select(SNAPSHOT_ID).from(SnapshotIndex.TABLE)
-				.where(eq(DEVICE_ID, deviceId.getDeviceId()))
-				.and(eq(COLLECTION_ID, collectionId))
-				.and(eq(SYNC_KEY, UUID.fromString(syncKey.getSyncKey())));
+				.where(eq(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId()))
+				.and(eq(COLLECTION_ID, snapshotKey.getCollectionId()))
+				.and(eq(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey())));
 		logger.debug("Select snapshot index query: {}", statement.getQueryString());
 		return session.execute(statement);
 	}
@@ -120,11 +119,11 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 		return snapshotId;
 	}
 
-	private void insertNewIndex(Snapshot snapshot, UUID snapshotId) {
+	private void insertNewIndex(SnapshotKey snapshotKey, UUID snapshotId) {
 		Insert statement = insertInto(SnapshotIndex.TABLE)
-			.value(DEVICE_ID, snapshot.getDeviceId().getDeviceId())
-			.value(COLLECTION_ID, snapshot.getCollectionId())
-			.value(SYNC_KEY, UUID.fromString(snapshot.getSyncKey().getSyncKey()))
+			.value(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId())
+			.value(COLLECTION_ID, snapshotKey.getCollectionId())
+			.value(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey()))
 			.value(SNAPSHOT_ID, snapshotId);
 		logger.debug("Inserting {}", statement.getQueryString());
 		session.execute(statement);

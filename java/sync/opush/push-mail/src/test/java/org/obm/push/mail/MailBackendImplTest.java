@@ -63,6 +63,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
@@ -297,11 +298,8 @@ public class MailBackendImplTest {
 
 		Snapshot existingSnapshot = Snapshot.builder()
 			.emails(previousEmailsInServer)
-			.collectionId(collectionId)
-			.deviceId(device.getDevId())
 			.filterType(syncCollectionOptions.getFilterType())
 			.uidNext(previousUIDNext)
-			.syncKey(syncKey)
 			.build();
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, currentUIDNext, syncCollectionOptions, fetchedEmails);
 		
@@ -431,11 +429,8 @@ public class MailBackendImplTest {
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(emailsInServer)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(2)
-				.syncKey(syncKey)
 				.build();
 		
 		EmailChanges emailChanges = EmailChanges.builder().build();
@@ -470,11 +465,8 @@ public class MailBackendImplTest {
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(previousEmailsInServer)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(2)
-				.syncKey(syncKey)
 				.build();
 		
 		EmailChanges emailChanges = EmailChanges.builder()
@@ -528,11 +520,8 @@ public class MailBackendImplTest {
 		
 		Snapshot previousSnapshot = Snapshot.builder()
 				.emails(previousEmails)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(uidNext)
-				.syncKey(previousSyncKey)
 				.build();
 		
 		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
@@ -594,11 +583,8 @@ public class MailBackendImplTest {
 		
 		Snapshot previousSnapshot = Snapshot.builder()
 				.emails(previousEmails)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(uidNext)
-				.syncKey(previousSyncKey)
 				.build();
 		
 		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
@@ -651,7 +637,8 @@ public class MailBackendImplTest {
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
-		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
+		SnapshotKey snapshotKey = SnapshotKey.builder().deviceId(devId).syncKey(previousSyncKey).collectionId(collectionId).build();
+		snapshotService.actualizeSnapshot(snapshotKey, newSyncKey);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
@@ -700,7 +687,8 @@ public class MailBackendImplTest {
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
-		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
+		SnapshotKey snapshotKey = SnapshotKey.builder().deviceId(devId).syncKey(previousSyncKey).collectionId(collectionId).build();
+		snapshotService.actualizeSnapshot(snapshotKey, newSyncKey);
 		expectLastCall();
 		
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
@@ -748,7 +736,8 @@ public class MailBackendImplTest {
 
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(true);
-		snapshotService.actualizeSnapshot(devId, previousSyncKey, collectionId, newSyncKey);
+		SnapshotKey snapshotKey = SnapshotKey.builder().deviceId(devId).syncKey(previousSyncKey).collectionId(collectionId).build();
+		snapshotService.actualizeSnapshot(snapshotKey, newSyncKey);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, syncCollectionOptions.getBodyPreferences(), fittingChanges))
@@ -772,8 +761,14 @@ public class MailBackendImplTest {
 				.syncKey(new SyncKey("123"))
 				.syncDate(date("2004-12-14T22:00:00"))
 				.build();
+
+		SnapshotKey snapshotKey = SnapshotKey.builder()
+				.deviceId(devId)
+				.syncKey(previousItemSyncState.getSyncKey())
+				.collectionId(collectionId)
+				.build();
 		
-		expect(snapshotService.getSnapshot(devId, previousItemSyncState.getSyncKey(), collectionId)).andReturn(null);
+		expect(snapshotService.getSnapshot(snapshotKey)).andReturn(null);
 		control.replay();
 		
 		try {
@@ -806,13 +801,16 @@ public class MailBackendImplTest {
 	private void expectSnapshotDaoRecordOneSnapshot(SyncKey syncKey, long uidNext,
 			SyncCollectionOptions syncCollectionOptions, Collection<Email> actualEmailsInServer) {
 		
-		snapshotService.storeSnapshot(Snapshot.builder()
-				.emails(actualEmailsInServer)
-				.collectionId(collectionId)
+		snapshotService.storeSnapshot(
+			SnapshotKey.builder()
 				.deviceId(device.getDevId())
+				.syncKey(syncKey)
+				.collectionId(collectionId)
+				.build(),
+			Snapshot.builder()
+				.emails(actualEmailsInServer)
 				.filterType(syncCollectionOptions.getFilterType())
 				.uidNext(uidNext)
-				.syncKey(syncKey)
 				.build());
 		expectLastCall();
 	}

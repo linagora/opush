@@ -87,7 +87,7 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 		replayAll();
 		
 		SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, null);
-		Snapshot snapshot = snapshotDaoEhcacheImpl.get(deviceId, syncKey, collectionId);
+		Snapshot snapshot = snapshotDaoEhcacheImpl.get(buildKey);
 		
 		verifyAll();
 		assertThat(snapshot).isNull();
@@ -119,10 +119,7 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 				.build();
 		
 		Snapshot expectedSnapshot = Snapshot.builder()
-				.deviceId(deviceId)
 				.filterType(FilterType.THREE_DAYS_BACK)
-				.syncKey(syncKey)
-				.collectionId(collectionId)
 				.uidNext(3)
 				.addEmail(email)
 				.build();
@@ -137,7 +134,7 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 		replayAll();
 		
 		SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, null);
-		Snapshot snapshot = snapshotDaoEhcacheImpl.get(deviceId, syncKey, collectionId);
+		Snapshot snapshot = snapshotDaoEhcacheImpl.get(snapshotKey);
 		
 		verifyAll();
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
@@ -169,10 +166,7 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 				.build();
 		
 		Snapshot snapshot = Snapshot.builder()
-				.deviceId(deviceId)
 				.filterType(FilterType.THREE_DAYS_BACK)
-				.syncKey(syncKey)
-				.collectionId(collectionId)
 				.uidNext(3)
 				.addEmail(email)
 				.build();
@@ -187,7 +181,7 @@ public class SnapshotDaoEhcacheImplWithMockTest {
 		replayAll();
 		
 		SnapshotDaoEhcacheImpl snapshotDaoEhcacheImpl = new SnapshotDaoEhcacheImpl(objectStoreManager, null);
-		snapshotDaoEhcacheImpl.put(snapshot);
+		snapshotDaoEhcacheImpl.put(snapshotKey, snapshot);
 		
 		verifyAll();
 	}

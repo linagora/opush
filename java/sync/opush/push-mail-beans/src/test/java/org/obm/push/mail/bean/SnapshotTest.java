@@ -34,12 +34,8 @@ package org.obm.push.mail.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.activesync.InvalidServerId;
-import org.obm.push.mail.bean.Email;
-import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.bean.Snapshot.Builder;
 import org.obm.push.utils.DateUtils;
 
@@ -47,48 +43,19 @@ import com.google.common.collect.ImmutableList;
 
 public class SnapshotTest {
 	
-	@Test (expected=IllegalArgumentException.class)
-	public void testNullDeviceId() {
-		Snapshot.builder()
-			.filterType(FilterType.ONE_DAY_BACK)
-			.syncKey(new SyncKey("syncKey"))
-			.collectionId(1)
-			.build();
-	}
-	
-	@Test (expected=IllegalArgumentException.class)
+	@Test (expected=IllegalStateException.class)
 	public void testNullFilterType() {
-		Snapshot.builder()
-			.deviceId(new DeviceId("deviceId"))
-			.syncKey(new SyncKey("syncKey"))
-			.collectionId(1)
-			.build();
+		Snapshot.builder().uidNext(15).build();
 	}
 	
-	@Test (expected=IllegalArgumentException.class)
-	public void testNullCollectionId() {
-		Snapshot.builder()
-			.deviceId(new DeviceId("deviceId"))
-			.filterType(FilterType.ONE_DAY_BACK)
-			.syncKey(new SyncKey("syncKey"))
-			.build();
-	}
-	
-	@Test (expected=IllegalArgumentException.class)
-	public void testNullSyncKey() {
-		Snapshot.builder()
-			.deviceId(new DeviceId("deviceId"))
-			.filterType(FilterType.ONE_DAY_BACK)
-			.collectionId(1)
-			.build();
+	@Test (expected=IllegalStateException.class)
+	public void testNullUidNext() {
+		Snapshot.builder().filterType(FilterType.ALL_ITEMS).build();
 	}
 	
 	@Test
 	public void testBuilder() {
 		FilterType filterType = FilterType.ONE_DAY_BACK;
-		DeviceId deviceId = new DeviceId("deviceId");
-		SyncKey synckey = new SyncKey("syncKey");
-		Integer collectionId = 1;
 		long uidNext = 2;
 		
 		long emailUID = 3;
@@ -105,18 +72,13 @@ public class SnapshotTest {
 				.build();
 		
 		Snapshot snapshot = Snapshot.builder()
-			.deviceId(deviceId)
 			.filterType(filterType)
-			.syncKey(synckey)
-			.collectionId(collectionId)
 			.uidNext(uidNext)
 			.addEmail(email)
 			.addEmail(email2)
 			.build();
 		
-		assertThat(snapshot.getDeviceId()).isEqualTo(deviceId);
 		assertThat(snapshot.getFilterType()).isEqualTo(filterType);
-		assertThat(snapshot.getCollectionId()).isEqualTo(collectionId);
 		assertThat(snapshot.getUidNext()).isEqualTo(uidNext);
 		assertThat(snapshot.getEmails()).containsExactly(email, email2);
 		assertThat(snapshot.getMessageSet().asDiscreteValues()).containsOnly(emailUID, emailUID2);
@@ -248,10 +210,7 @@ public class SnapshotTest {
 	
 	private Builder defaultSnapshotBuilder() {
 		return Snapshot.builder()
-				.deviceId(new DeviceId("deviceId"))
 				.filterType(FilterType.ONE_DAY_BACK)
-				.syncKey(new SyncKey("syncKey"))
-				.collectionId(1)
 				.uidNext(2);
 	}
 }

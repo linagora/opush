@@ -389,10 +389,7 @@ public class JSONServiceCompatibilityTest {
 					.build())
 			.put(filename(Snapshot.class), 
 				Snapshot.builder()
-					.collectionId(1)
-					.deviceId(new DeviceId("deviceId"))
 					.filterType(FilterType.THREE_DAYS_BACK)
-					.syncKey(new SyncKey("syncKey"))
 					.uidNext(2)
 					.addEmail(Email.builder()
 							.uid(1)

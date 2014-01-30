@@ -49,6 +49,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -121,11 +122,8 @@ public class MailBackendSyncDataTest {
 				.read(true)
 				.answered(true)
 				.build())
-			.collectionId(collectionId)
-			.deviceId(device.getDevId())
 			.filterType(FilterType.ALL_ITEMS)
 			.uidNext(5000)
-			.syncKey(new SyncKey("156"))
 			.build();
 
 		control.replay();
@@ -161,11 +159,8 @@ public class MailBackendSyncDataTest {
 					.read(false)
 					.answered(false)
 					.build())
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(5000)
-				.syncKey(new SyncKey("156"))
 				.build();
 
 		control.replay();
@@ -227,11 +222,8 @@ public class MailBackendSyncDataTest {
 					.read(false)
 					.answered(false)
 					.build())
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ONE_MONTHS_BACK)
 				.uidNext(5000)
-				.syncKey(new SyncKey("156"))
 				.build();
 				
 		control.replay();
@@ -282,11 +274,8 @@ public class MailBackendSyncDataTest {
 		Snapshot snapshot = Snapshot.builder()
 				.addEmail(snapedEmail)
 				.addEmail(deletedEmail)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(previousUIDNext)
-				.syncKey(new SyncKey("156"))
 				.build();
 		
 		control.replay();
@@ -313,11 +302,8 @@ public class MailBackendSyncDataTest {
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(previousEmailsInServer)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(5000)
-				.syncKey(syncKey)
 				.build();
 
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
@@ -413,11 +399,8 @@ public class MailBackendSyncDataTest {
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(emailsInServer)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(2)
-				.syncKey(syncKey)
 				.build();
 		
 		EmailChanges emailChanges = EmailChanges.builder().build();
@@ -464,11 +447,8 @@ public class MailBackendSyncDataTest {
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(previousEmailsInServer)
-				.collectionId(collectionId)
-				.deviceId(device.getDevId())
 				.filterType(FilterType.ALL_ITEMS)
 				.uidNext(2)
-				.syncKey(syncKey)
 				.build();
 		
 		
@@ -533,11 +513,16 @@ public class MailBackendSyncDataTest {
 	}
 
 	private void expectSnapshotDaoHasNoEntry(SyncKey syncKey) {
-		expect(snapshotService.getSnapshot(device.getDevId(), syncKey, collectionId)).andReturn(null);
+		expectSnapshotDaoHasEntry(syncKey, null);
 	}
 
 	private void expectSnapshotDaoHasEntry(SyncKey syncKey, Snapshot snapshot) {
-		expect(snapshotService.getSnapshot(device.getDevId(), syncKey, collectionId)).andReturn(snapshot);
+		expect(snapshotService.getSnapshot(SnapshotKey.builder()
+				.deviceId(device.getDevId())
+				.syncKey(syncKey)
+				.collectionId(collectionId)
+				.build()))
+			.andReturn(snapshot);
 	}
 	
 	private void expectEmailsDiff(Collection<Email> previousEmailsInServer, Collection<Email> actualEmailsInServer, EmailChanges diff) {

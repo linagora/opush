@@ -34,9 +34,7 @@ package org.obm.push.minig.imap.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 
@@ -51,10 +49,7 @@ public class MessageSetUtilsTest {
 	@Test
 	public void testComputeWithoutEmailsInSnapshot() {
 		Snapshot snapshot = Snapshot.builder()
-				.deviceId(new DeviceId("deviceId"))
 				.filterType(FilterType.ONE_DAY_BACK)
-				.syncKey(new SyncKey("syncKey"))
-				.collectionId(1)
 				.uidNext(1)
 				.build();
 		MessageSet messageSet = MessageSetUtils.computeEmailsUID(snapshot, 3);
