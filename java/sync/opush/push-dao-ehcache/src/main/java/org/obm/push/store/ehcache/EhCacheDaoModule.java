@@ -32,10 +32,6 @@
 package org.obm.push.store.ehcache;
 
 import org.obm.push.ContinuationTransactionMap;
-import org.obm.push.store.MonitoredCollectionDao;
-import org.obm.push.store.SnapshotDao;
-import org.obm.push.store.SyncedCollectionDao;
-import org.obm.push.store.WindowingDao;
 import org.obm.sync.LifecycleListener;
 
 import com.google.inject.AbstractModule;
@@ -45,19 +41,9 @@ public class EhCacheDaoModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
-		bind(EhCacheConfiguration.class).to(EhCacheConfigurationFileImpl.class);
-		bind(EhCacheStatistics.class).to(EhCacheStatisticsImpl.class);
-		bind(StoreManager.class).to(ObjectStoreManager.class);
-
-		bind(MonitoredCollectionDao.class).to(MonitoredCollectionDaoEhcacheImpl.class);
-		bind(SyncedCollectionDao.class).to(SyncedCollectionDaoEhcacheImpl.class);
 		bind(ContinuationTransactionMap.class).to(ContinuationTransactionMapImpl.class);
-		bind(SnapshotDao.class).to(SnapshotDaoEhcacheImpl.class);
-		bind(WindowingDao.class).to(WindowingDaoEhcacheImpl.class);
-		bind(CacheEvictionListener.class).to(CacheEvictionListenerImpl.class);
 
 		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);
-		lifecycleListeners.addBinding().to(StoreManager.class);
 		lifecycleListeners.addBinding().to(NonTransactionalObjectStoreManager.class);
 	}
 

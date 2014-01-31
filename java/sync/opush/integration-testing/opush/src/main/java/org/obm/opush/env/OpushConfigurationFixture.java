@@ -45,17 +45,6 @@ public class OpushConfigurationFixture extends Configuration {
 		public String user = "cassandra";
 		public String password = "cassandra";
 	}
-
-	public static class EhCache {
-		public int maxMemoryInMB = 10;
-		public int timeToLiveInSeconds = 60;
-		public Integer percentageAllowedToCache = null;
-		public int statsSampleToRecordCount = 10;
-		public int statsShortSamplingTimeInSeconds = 1;
-		public int statsMediumSamplingTimeInSeconds = 10;
-		public int statsLongSamplingTimeInSeconds = 60;
-		public int statsSamplingTimeStopInMinutes = 10;
-	}
 	
 	public static class Mail {
 		public boolean activateTls = false;
@@ -79,7 +68,6 @@ public class OpushConfigurationFixture extends Configuration {
 	public SyncPerms syncPerms = new SyncPerms();
 	public Mail mail = new Mail();
 	public RemoteConsole remoteConsole = new RemoteConsole();
-	public EhCache ehCache = new EhCache();
 	public Cassandra cassandra = new Cassandra();
 	public Backend backend = new Backend();
 	

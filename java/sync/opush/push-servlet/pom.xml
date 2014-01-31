@@ -47,10 +47,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-dao-ehcache-migrating</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>push-dao-jdbc</artifactId>
 		</dependency>
 		<dependency>

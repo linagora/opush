@@ -37,7 +37,6 @@ import java.util.TimeZone;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.obm.push.store.ehcache.MigrationServiceImpl;
 import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
@@ -58,8 +57,6 @@ public class GuiceServletContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
 
 		try {
-			migrateEhCache();
-			
 			injector = createInjector();
 			if (injector == null) { 
 				failStartup("Could not create injector: createInjector() returned null"); 
@@ -92,11 +89,5 @@ public class GuiceServletContextListener implements ServletContextListener {
 
 	private void shutdown() {
     	LifecycleListenerHelper.shutdownListeners(injector);
-	}
-
-	private void migrateEhCache() {
-		injector = EhCacheMigrationInjector.createMigrationInjector(opushModule());
-		injector.getInstance(MigrationServiceImpl.class).migrate();
-		shutdown();
 	}
 }

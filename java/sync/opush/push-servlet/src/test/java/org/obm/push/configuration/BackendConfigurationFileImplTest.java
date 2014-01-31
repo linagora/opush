@@ -54,11 +54,11 @@ public class BackendConfigurationFileImplTest {
 	@Test
 	public void testGetDatabaseBackendDefaultValue() {
 		expect(iniFile.getStringValue(BackendConfigurationFileImpl.DATABASE))
-			.andReturn(DatabaseBackend.EHCACHE.value());
+			.andReturn(DatabaseBackend.CASSANDRA.value());
 		
 		control.replay();
 		BackendConfigurationFileImpl backendConfigurationFileImpl = new BackendConfigurationFileImpl(iniFile);
-		assertThat(backendConfigurationFileImpl.getDatabaseBackend()).isEqualTo(DatabaseBackend.EHCACHE);
+		assertThat(backendConfigurationFileImpl.getDatabaseBackend()).isEqualTo(DatabaseBackend.CASSANDRA);
 		control.verify();
 	}
 	
@@ -80,7 +80,7 @@ public class BackendConfigurationFileImplTest {
 		
 		control.replay();
 		BackendConfigurationFileImpl backendConfigurationFileImpl = new BackendConfigurationFileImpl(iniFile);
-		assertThat(backendConfigurationFileImpl.getDatabaseBackend()).isEqualTo(DatabaseBackend.EHCACHE);
+		assertThat(backendConfigurationFileImpl.getDatabaseBackend()).isEqualTo(DatabaseBackend.CASSANDRA);
 		control.verify();
 	}
 }

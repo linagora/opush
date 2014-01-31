@@ -51,7 +51,6 @@ import org.obm.push.store.jdbc.OpushDatabaseModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
-import com.google.inject.util.Modules;
 
 public class OpushModule extends AbstractModule {
 
@@ -103,11 +102,9 @@ public class OpushModule extends AbstractModule {
 
 	private void opushDaoModule() {
 		if (isCassandraBackendEnable()) {
-			install(Modules.override(new EhCacheDaoModule())
-					.with(new OpushCassandraModule()));
-		} else {
-			install(new EhCacheDaoModule());
+			install(new OpushCassandraModule());
 		}
+		install(new EhCacheDaoModule());
 	}
 
 	private boolean isCassandraBackendEnable() {

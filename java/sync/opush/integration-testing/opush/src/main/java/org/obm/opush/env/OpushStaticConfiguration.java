@@ -34,10 +34,7 @@ package org.obm.opush.env;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
-
-import net.sf.ehcache.config.CacheConfiguration.TransactionalMode;
 
 import org.obm.Configuration;
 import org.obm.StaticLocatorConfiguration;
@@ -48,14 +45,8 @@ import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.DatabaseBackend;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
-import org.obm.push.store.ehcache.EhCacheConfiguration;
-import org.obm.push.store.ehcache.EhCacheStores;
-import org.obm.push.utils.ShareAmount;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 
 public class OpushStaticConfiguration extends StaticLocatorConfiguration implements OpushConfiguration {
 
@@ -171,74 +162,6 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		@Override
 		public Boolean allowUnknownPdaToSync() {
 			return configuration.allowUnknownDevice;
-		}
-	}
-
-	public static class EhCache implements EhCacheConfiguration {
-
-		private final OpushConfigurationFixture.EhCache configuration;
-		private final Map<String, Percentage> percentageByStoreMap;
-
-		public EhCache(OpushConfigurationFixture.EhCache configuration) {
-			this.configuration = configuration;
-			this.percentageByStoreMap = Maps.transformValues(
-					ShareAmount.forEntries(EhCacheStores.STORES).amount(100),
-					new Function<Integer, Percentage>() {
-						@Override
-						public Percentage apply(Integer input) {
-							return Percentage.of(input);
-						}
-					});
-		}
-
-		@Override
-		public int maxMemoryInMB() {
-			return configuration.maxMemoryInMB;
-		}
-
-		@Override
-		public Percentage percentageAllowedToCache(String cacheName) {
-			return Objects.firstNonNull(percentageByStoreMap.get(cacheName), Percentage.UNDEFINED);
-		}
-		
-		@Override
-		public Map<String, Percentage> percentageAllowedToCaches() {
-			return percentageByStoreMap;
-		}
-
-		@Override
-		public long timeToLiveInSeconds() {
-			return configuration.timeToLiveInSeconds;
-		}
-
-		@Override
-		public TransactionalMode transactionalMode() {
-			return TransactionalMode.XA;
-		}
-		
-		@Override
-		public int statsSampleToRecordCount() {
-			return configuration.statsSampleToRecordCount;
-		}
-
-		@Override
-		public int statsShortSamplingTimeInSeconds() {
-			return configuration.statsShortSamplingTimeInSeconds;
-		}
-		
-		@Override
-		public int statsMediumSamplingTimeInSeconds() {
-			return configuration.statsMediumSamplingTimeInSeconds;
-		}
-		
-		@Override
-		public int statsLongSamplingTimeInSeconds() {
-			return configuration.statsLongSamplingTimeInSeconds;
-		}
-
-		@Override
-		public int statsSamplingTimeStopInMinutes() {
-			return configuration.statsSamplingTimeStopInMinutes;
 		}
 	}
 	

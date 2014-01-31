@@ -67,7 +67,7 @@ public class BackendConfigurationFileImpl implements BackendConfiguration {
 	public DatabaseBackend getDatabaseBackend() {
 		String value = iniFile.getStringValue(DATABASE);
 		if (Strings.isNullOrEmpty(value)) {
-			return DatabaseBackend.EHCACHE;
+			return DatabaseBackend.CASSANDRA;
 		}
 		return DatabaseBackend.fromValue(value);
 	}

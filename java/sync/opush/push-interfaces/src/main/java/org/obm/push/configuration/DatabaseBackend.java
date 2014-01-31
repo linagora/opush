@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 public enum DatabaseBackend {
 
-	EHCACHE("ehcache"), 
 	CASSANDRA("cassandra");
 
 	private final String value;
@@ -55,7 +54,7 @@ public enum DatabaseBackend {
 		if (valueToEnum.containsKey(value)) {
 			return valueToEnum.get(value);
 		}
-		return EHCACHE;
+		return CASSANDRA;
 	}
 	
 	private static Map<String, DatabaseBackend> valueToEnum;
