@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 
+import java.util.Collection;
+
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,31 +54,73 @@ public class CassandraConfigurationFileImplTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void testSeedNotDefined() {
+	public void testSeedsNotDefined() {
 		try {
-			expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEED))
+			expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEEDS))
 				.andReturn(null);
 			
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
-			cassandraConfigurationFileImpl.seed();
+			cassandraConfigurationFileImpl.seeds();
 		} finally {
 			control.verify();
 		}
 	}
 	
 	@Test
-	public void testSeed() {
+	public void testOneSeed() {
 		String expectedSeed = "localhost";
-		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEED))
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEEDS))
 			.andReturn(expectedSeed);
 		
 		control.replay();
 		CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
-		String seed = cassandraConfigurationFileImpl.seed();
+		Collection<String> seed = cassandraConfigurationFileImpl.seeds();
 		control.verify();
 		
-		assertThat(seed).isEqualTo(expectedSeed);
+		assertThat(seed).containsOnly(expectedSeed);
+	}
+	
+	@Test
+	public void testThreeSeeds() {
+		String expectedSeeds = "localhost,192.0.0.1,0.0.0.0";
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEEDS))
+			.andReturn(expectedSeeds);
+		
+		control.replay();
+		CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
+		Collection<String> seed = cassandraConfigurationFileImpl.seeds();
+		control.verify();
+		
+		assertThat(seed).containsOnly("localhost", "192.0.0.1", "0.0.0.0");
+	}
+	
+	@Test
+	public void testThreeSeedsWithSpace() {
+		String expectedSeeds = " localhost, 192.0.0.1 , 0.0.0.0 ";
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEEDS))
+			.andReturn(expectedSeeds);
+		
+		control.replay();
+		CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
+		Collection<String> seed = cassandraConfigurationFileImpl.seeds();
+		control.verify();
+		
+		assertThat(seed).containsOnly("localhost", "192.0.0.1", "0.0.0.0");
+	}
+
+	@Test
+	public void testThreeSeedsWithUnexpectedComma() {
+		String expectedSeeds = " localhost,, 192.0.0.1, , 0.0.0.0 ";
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_SEEDS))
+		.andReturn(expectedSeeds);
+		
+		control.replay();
+		CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
+		Collection<String> seed = cassandraConfigurationFileImpl.seeds();
+		control.verify();
+		
+		assertThat(seed).containsOnly("localhost", "192.0.0.1", "0.0.0.0");
 	}
 	
 	@Test(expected=NullPointerException.class)
@@ -134,13 +178,13 @@ public class CassandraConfigurationFileImplTest {
 		
 		assertThat(user).isEqualTo(expectedUser);
 	}
-	
+
 	@Test(expected=NullPointerException.class)
 	public void testPasswordNotDefined() {
 		try {
 			expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_PASSWORD))
 				.andReturn(null);
-			
+
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
 			cassandraConfigurationFileImpl.password();
@@ -148,7 +192,7 @@ public class CassandraConfigurationFileImplTest {
 			control.verify();
 		}
 	}
-	
+
 	@Test
 	public void testPassword() {
 		String expectedPassword = "password";

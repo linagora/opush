@@ -31,15 +31,19 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.configuration.module.LoggerModule;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.slf4j.Logger;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
@@ -48,14 +52,19 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 	private boolean hasBeenSupplied = false;
 
 	@Inject
-	@VisibleForTesting CassandraSessionSupplierImpl(final CassandraConfiguration cassandraConfiguration) {
+	@VisibleForTesting CassandraSessionSupplierImpl(final CassandraConfiguration cassandraConfiguration,
+			@Named(LoggerModule.CONFIGURATION)Logger configurationLogger) {
+
+		configurationLogger.info("CASSANDRA SEEDS are {}", cassandraConfiguration.seeds());
+		configurationLogger.info("CASSANDRA USER is {}", cassandraConfiguration.user());
+		configurationLogger.info("CASSANDRA KEYSPACE is {}", cassandraConfiguration.keyspace());
 		sessionSupplier = Suppliers.memoize(new Supplier<Session>() {
 
 			@Override
 			public Session get() {
 				hasBeenSupplied = true;
 				return Cluster.builder()
-						.addContactPoint(cassandraConfiguration.seed())
+						.addContactPoints(Iterables.toArray(cassandraConfiguration.seeds(), String.class))
 						.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
 						.build()
 						.connect(cassandraConfiguration.keyspace());

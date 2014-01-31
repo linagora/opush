@@ -31,10 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
+import java.util.Collection;
+
 import org.obm.configuration.utils.IniFile;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -43,7 +46,8 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	@VisibleForTesting static final String CONFIG_FILE_PATH = "/etc/opush/cassandra.ini";
 	private final IniFile iniFile;
 	
-	@VisibleForTesting static final String CASSANDRA_SEED = "cassandra.seed";
+	@VisibleForTesting static final char CASSANDRA_SEEDS_SEPARATOR = ',';
+	@VisibleForTesting static final String CASSANDRA_SEEDS = "cassandra.seeds";
 	@VisibleForTesting static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
 	@VisibleForTesting static final String CASSANDRA_USER = "cassandra.user";
 	@VisibleForTesting static final String CASSANDRA_PASSWORD = "cassandra.password";
@@ -66,8 +70,12 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	}
 
 	@Override
-	public String seed() {
-		return getMandatoryStringValue(CASSANDRA_SEED);
+	public Collection<String> seeds() {
+		String allSeeds = getMandatoryStringValue(CASSANDRA_SEEDS);
+		return Splitter.on(CASSANDRA_SEEDS_SEPARATOR)
+				.omitEmptyStrings()
+				.trimResults()
+				.splitToList(allSeeds);
 	}
 
 	@Override

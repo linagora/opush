@@ -31,10 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
+import java.util.Collection;
+
 
 public interface CassandraConfiguration {
 
-	String seed();
+	Collection<String> seeds();
 	
 	String keyspace();
 	
