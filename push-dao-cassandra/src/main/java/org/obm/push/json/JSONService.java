@@ -129,14 +129,17 @@ import com.google.inject.Singleton;
 public class JSONService {
 	
 	private final static Logger logger = LoggerFactory.getLogger(JSONService.class);
+	private final ObjectMapper objectMapper;
 	
 	@Inject
-	protected JSONService() {}
+	protected JSONService() {
+		objectMapper = anyVisibilityObjectMapper();
+	}
 	
 	public <T> T deserialize(Class<T> t, String json) {
 		T value = null;
 		try {
-			value = (T) anyVisibilityObjectMapper().readValue(json, 
+			value = (T) objectMapper.readValue(json, 
 					TypeFactory.defaultInstance().constructFromCanonical(t.getCanonicalName())); 
 		} catch (IOException e) {
 			logger.error("Error on deserialize", e);
@@ -160,7 +163,7 @@ public class JSONService {
 	public String serialize(Object object) {
 		String value = null;
 		try {
-			value = anyVisibilityObjectMapper().writeValueAsString(object); 
+			value = objectMapper.writeValueAsString(object); 
 		} catch (IOException e) {
 			logger.error("Error on serialize", e);
 			Throwables.propagate(e);
