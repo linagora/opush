@@ -1,0 +1,3 @@
+#!/bin/sh -e
+
+invoke-rc.d opush stop 3>1

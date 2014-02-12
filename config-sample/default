@@ -1,0 +1,14 @@
+## To change the listening opush port
+# OPUSH_PORT=8082
+
+## To give extra options to the opush JVM
+# JAVA_OPTIONS=""
+
+## To override the Java version used by opush
+# JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+
+## To change the opush tmp directory
+# TMP_DIR="/tmp"
+
+## Maximum amount of time (in second) to wait before killing the instance when the stop command has been supplied
+# SHUTDOWN_TIMEOUT=10

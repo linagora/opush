@@ -56,6 +56,7 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	@VisibleForTesting final static String EXTERNAL_URL_KEY = "external-url";
 	@VisibleForTesting final static String OBM_SYNC_PORT = "8080";
 	@VisibleForTesting final static String OBM_SYNC_APP_NAME = "obm-sync/services";
+	@VisibleForTesting final static boolean IS_REQUEST_LOGGER_ENABLED = true;
 	
 	public static class Factory {
 		
@@ -135,5 +136,10 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	@Override
 	public String getObmSyncUrl(String obmSyncHost) {
 		return "http://" + obmSyncHost + ":" + OBM_SYNC_PORT + "/" + OBM_SYNC_APP_NAME;
+	}
+	
+	@Override
+	public boolean isRequestLoggerEnabled() {
+		return IS_REQUEST_LOGGER_ENABLED;
 	}
 }

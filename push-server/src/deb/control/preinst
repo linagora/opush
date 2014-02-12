@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+if ! id opush > /dev/null 2>&1 ; then
+	adduser --system --home /usr/share/opush --group opush
+fi

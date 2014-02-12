@@ -51,6 +51,7 @@ import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
@@ -60,10 +61,9 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.name.Names;
+import com.google.inject.name.Named;
 import com.google.inject.servlet.GuiceFilter;
 
 public class OpushContainerModule extends AbstractModule {
@@ -89,7 +89,9 @@ public class OpushContainerModule extends AbstractModule {
 	protected void configure() {}
 
 	@Provides @Singleton
-	protected OpushServer buildServer(Injector injector) {
+	protected OpushServer buildServer(Injector injector, 
+			OpushConfiguration configuration,
+			@Named(LoggerModule.CONTAINER) Logger logger) {
 		
 		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
 		jetty.setStopAtShutdown(true);
@@ -98,7 +100,7 @@ public class OpushContainerModule extends AbstractModule {
 		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
-		jetty.setHandler(buildHandlers(injector));
+		jetty.setHandler(buildHandlers(injector, configuration, logger));
 
 		return new OpushServer() {
 			
@@ -127,19 +129,21 @@ public class OpushContainerModule extends AbstractModule {
 		};
 	}
 
-	private Handler buildHandlers(Injector injector) {
+	private Handler buildHandlers(Injector injector, OpushConfiguration configuration, Logger logger) {
 		HandlerCollection handlers = new HandlerCollection();
-		handlers.addLifeCycleListener(buildLifeCycleListener(injector));
+		handlers.addLifeCycleListener(buildLifeCycleListener(logger));
 		handlers.addHandler(buildServletContext(injector));
-		handlers.addHandler(buildRequestLogger());
+		handlers.addHandler(buildRequestLogger(configuration));
 		return handlers;
 	}
 
-	private RequestLogHandler buildRequestLogger() {
+	private RequestLogHandler buildRequestLogger(OpushConfiguration configuration) {
 		RequestLogHandler requestLogHandler = new RequestLogHandler();
-		RequestLogImpl requestLog = new RequestLogImpl();
-		requestLog.setResource("/logback-access.xml");
-		requestLogHandler.setRequestLog(requestLog);
+		if (configuration.isRequestLoggerEnabled()) {
+			RequestLogImpl requestLog = new RequestLogImpl();
+			requestLog.setResource("/logback-access.xml");
+			requestLogHandler.setRequestLog(requestLog);
+		}
 		return requestLogHandler;
 	}
 	
@@ -166,8 +170,7 @@ public class OpushContainerModule extends AbstractModule {
 		};
 	}
 
-	private Listener buildLifeCycleListener(Injector injector) {
-		final Logger logger = injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)));
+	private Listener buildLifeCycleListener(final Logger logger) {
 		return new Listener() {
 			@Override
 			public void lifeCycleStopping(LifeCycle event) {

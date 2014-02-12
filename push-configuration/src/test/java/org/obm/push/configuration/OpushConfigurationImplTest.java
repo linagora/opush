@@ -76,4 +76,9 @@ public class OpushConfigurationImplTest {
 		String host = "myhost";
 		assertThat(opushConfigurationImpl.getObmSyncUrl(host)).isEqualTo("http://" + host + ":" + OpushConfigurationImpl.OBM_SYNC_PORT + "/" + OpushConfigurationImpl.OBM_SYNC_APP_NAME);
 	}
+	
+	@Test
+	public void testIsRequestLoggerEnabledIsTrue() {
+		assertThat(opushConfigurationImpl.isRequestLoggerEnabled()).isTrue();
+	}
 }

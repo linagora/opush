@@ -40,4 +40,6 @@ public interface OpushConfiguration extends DomainConfiguration, DataConfigurati
 	Charset getDefaultEncoding();
 	
 	String getActiveSyncServletUrl();
+	
+	boolean isRequestLoggerEnabled();
 }

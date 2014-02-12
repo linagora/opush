@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+db_input high opush/syncperms || true
+db_input high opush/cassandra-seeds || true
+db_input high opush/cassandra-keyspace || true
+db_input high opush/cassandra-user || true
+db_input high opush/cassandra-pwd || true
+db_go

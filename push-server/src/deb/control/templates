@@ -1,0 +1,26 @@
+Template: opush/syncperms
+Type: select
+Choices: true, false
+Default: true
+Description: opush default sync perms
+ Authorise synchronisation of unknown PDAs by default
+
+Template: opush/cassandra-seeds
+Type: string
+Description: Opush Cassandra seeds 
+ .
+ List of Cassandra seeds that can be used by Opush.
+ Seeds must be separated with comma like: seed1, seed2, seed3
+
+Template: opush/cassandra-keyspace
+Type: string
+Description: Opush Cassandra keyspace
+
+Template: opush/cassandra-user
+Type: string
+Description: Opush Cassandra user
+
+Template: opush/cassandra-pwd
+Type: password
+Description: Opush Cassandra user password
+

@@ -1,0 +1,97 @@
+#!/bin/bash
+set -e
+
+# Disable output redirection
+#DEBCONF_REDIR=0
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+TEMPDIR=/var/run/opush/upgrades
+NEWFILE=${TEMPDIR}/sync_perms.ini
+CONFIG=/etc/opush/sync_perms.ini
+
+mkdir -p "${TEMPDIR}"
+TEMPLATE=/usr/share/o-push/debian-conf/sync_perms.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+
+db_get opush/syncperms || true
+perms="$RET"
+sed -i -e "s/\(allow.unknown.pda\).*/\1=${perms}/" ${NEWFILE}
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+
+NEWFILE=${TEMPDIR}/ldap_conf.ini
+CONFIG=/etc/opush/ldap_conf.ini
+TEMPLATE=/usr/share/o-push/debian-conf/ldap_conf.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+db_get obm-conf/ldapserver || true
+ldapserver="$RET"
+sed -i -e "s%\(search.ldap.url\).*%\1=${ldapserver}%" ${NEWFILE}
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/mail_conf.ini
+CONFIG=/etc/opush/mail_conf.ini
+TEMPLATE=/usr/share/o-push/debian-conf/mail_conf.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/remote_console.ini
+CONFIG=/etc/opush/remote_console.ini
+TEMPLATE=/usr/share/o-push/debian-conf/remote_console.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/ehcache_conf.ini
+CONFIG=/etc/opush/ehcache_conf.ini
+TEMPLATE=/usr/share/o-push/debian-conf/ehcache_conf.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/policy.ini
+CONFIG=/etc/opush/policy.ini
+TEMPLATE=/usr/share/o-push/debian-conf/policy.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/cassandra.ini
+CONFIG=/etc/opush/cassandra.ini
+TEMPLATE=/usr/share/o-push/debian-conf/cassandra.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+db_get opush/cassandra-seeds
+sed -i -e "s|@SEEDS@|$RET|g" ${NEWFILE}
+db_get opush/cassandra-keyspace
+sed -i -e "s|@KEYSPACE@|$RET|g" ${NEWFILE}
+db_get opush/cassandra-user
+sed -i -e "s|@USER@|$RET|g" ${NEWFILE}
+db_get opush/cassandra-pwd
+sed -i -e "s|@PWD@|$RET|g" ${NEWFILE}
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/default
+CONFIG=/etc/default/opush
+TEMPLATE=/usr/share/o-push/debian-conf/default
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+NEWFILE=${TEMPDIR}/logback.xml
+CONFIG=/etc/opush/logback.xml
+TEMPLATE=/usr/share/o-push/debian-conf/logback.xml
+cp "${TEMPLATE}" "${NEWFILE}"
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush "${CONFIG}"
+
+invoke-rc.d opush start	 3>1
+
+#DEBHELPER#
+
+exit 0
+

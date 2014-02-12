@@ -33,9 +33,9 @@ package org.obm.opush.env;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.Collection;
 
 import org.obm.Configuration;
 import org.obm.StaticLocatorConfiguration;
@@ -47,8 +47,8 @@ import org.obm.push.configuration.DatabaseBackend;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
 
 
 public class OpushStaticConfiguration extends StaticLocatorConfiguration implements OpushConfiguration {
@@ -254,5 +254,10 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 	@Override
 	public String getObmSyncUrl(String obmSyncHost) {
 		return obmSyncHost + configuration.obmSyncServices;
+	}
+	
+	@Override
+	public boolean isRequestLoggerEnabled() {
+		return false;
 	}
 }

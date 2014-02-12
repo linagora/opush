@@ -116,14 +116,104 @@
 
 	<build>
 		<finalName>opush</finalName>
-		<plugins>		
+		<plugins>
+			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>${jdeb.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<verbose>false</verbose>
+							<deb>${project.build.directory}/${project.build.finalName}_${version}.deb</deb>
+							<controlDir>${basedir}/src/deb/control</controlDir>
+							<dataSet>
+							
+								<!-- WEBAPP -->
+								<data>
+									<type>file</type>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<dst>/usr/share/${project.build.finalName}/${project.build.finalName}.jar</dst>
+									<mapper>
+										<type>perm</type>
+										<user>opush</user>
+										<group>opush</group>
+									</mapper>
+								</data>
+								<data>
+									<type>directory</type>
+									<src>${project.build.directory}/lib</src>
+									<mapper>
+										<type>perm</type>
+										<user>opush</user>
+										<group>opush</group>
+										<prefix>/usr/share/${project.build.finalName}/lib</prefix>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>src/deb/resources/opush.debian.sh</src>
+									<dst>/etc/init.d/opush</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+										<user>root</user>
+										<group>root</group>
+									</mapper>
+								</data>
+								
+								<!-- DIRECTORIES TO CREATE -->
+								<data>
+									<type>template</type>
+									<paths>
+										<path>/etc/${project.build.finalName}</path>
+										<path>/var/lib/${project.build.finalName}</path>
+										<path>/var/log/${project.build.finalName}</path>
+										<path>/var/run/${project.build.finalName}</path>
+										<path>/usr/share/${project.build.finalName}</path>
+									</paths>
+									<mapper>
+										<type>perm</type>
+										<user>opush</user>
+										<group>opush</group>
+									</mapper>
+								</data>
+								
+								<!-- SAMPLE CONFIGURATION FILES -->
+								<data>
+									<type>directory</type>
+									<src>${project.parent.basedir}/config-sample/</src>
+									<mapper>
+										<type>perm</type>
+										<user>opush</user>
+										<group>opush</group>
+										<prefix>/usr/share/o-push/debian-conf</prefix>
+									</mapper>
+								</data>
+								
+								<!-- LINTIAN OVERRIDE FILE -->
+								<data>
+									<type>file</type>
+									<src>${basedir}/src/deb/resources/lintian-overrides</src>
+									<dst>/usr/share/lintian/overrides/${project.build.finalName}</dst>
+								</data>
+								
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
-						<phase>package</phase>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
@@ -138,16 +228,24 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>org.obm.push.OpushServerLauncher</mainClass>
-							<useUniqueVersions>false</useUniqueVersions>
-						</manifest>
-					</archive>
-				</configuration>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifest>
+									<addClasspath>true</addClasspath>
+									<classpathPrefix>lib/</classpathPrefix>
+									<mainClass>org.obm.push.OpushServerLauncher</mainClass>
+									<useUniqueVersions>false</useUniqueVersions>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
