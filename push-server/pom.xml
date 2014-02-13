@@ -208,6 +208,175 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<version>2.1-alpha-3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>rpm</goal>
+						</goals>
+						<configuration>
+							<name>${project.build.finalName}</name>
+							<version>${version}</version>
+							<!-- REQUIRED FOR RELEASES -->
+							<!--<release>${version}</release>-->
+							<group>Applications/Internet</group>
+							<copyright>AGPLv3</copyright>
+							<vendor>obm.org</vendor>
+							<url>http://www.obm.org</url>
+							<summary>Active Sync server for Open Business Management</summary>
+							<description>Active Sync server for Open Business Management
+ This package embed a web application to synchronize OBM data with
+ PDA and smartphones.
+
+OBM is a global groupware, messaging and CRM application. It is intended to
+be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+simple contact database. OBM also features integration with PDAs, smartphones,
+Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</description>
+							<requires>
+								<require>java-1.7.0-openjdk</require>
+								<require>obm-config</require>
+							</requires>
+
+							<mappings>
+								
+								<!-- SAMPLE CONFIGURATION FILES -->
+								<mapping>
+									<directory>/etc/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<configuration>true</configuration>
+									<sources>
+										<source>
+											<location>${project.parent.basedir}/config-sample/cassandra.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/ehcache_conf.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/ldap_conf.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/logback.xml</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/mail_conf.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/policy.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/remote_console.ini</location>
+										</source>
+										<source>
+											<location>${project.parent.basedir}/config-sample/sync_perms.ini</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/etc/default/</directory>
+									<filemode>644</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<configuration>true</configuration>
+									<sources>
+										<source>
+											<location>${project.parent.basedir}/config-sample/default</location>
+											<destination>opush</destination>
+										</source>
+									</sources>
+								</mapping>
+
+								<!-- WEBAPP -->
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/${project.build.finalName}.jar</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/lib</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/lib</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<sources>
+										<source>
+											<location>src/rpm/resources/opush-start.sh</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/etc/rc.d/init.d/</directory>
+									<filemode>755</filemode>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>src/rpm/resources/opush.centos.sh</location>
+											<destination>opush</destination>
+										</source>
+									</sources>
+								</mapping>
+								
+								<!-- DIRECTORIES TO CREATE -->
+								<mapping>
+									<directory>/var/lib/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+								</mapping>
+								<mapping>
+									<directory>/var/log/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+								</mapping>
+								<mapping>
+									<directory>/var/run/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+								</mapping>
+							</mappings>
+							
+							<!-- RPM SCRIPTS -->
+							<preremoveScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/preremove.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</preremoveScriptlet>
+							<postremoveScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/postremove.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</postremoveScriptlet>
+							<preinstallScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/preinstall.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</preinstallScriptlet>
+							
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
