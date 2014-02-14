@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+invoke-rc.d spushnik start	 3>1
+
+#DEBHELPER#
+
+exit 0
+

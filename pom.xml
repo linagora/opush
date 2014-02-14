@@ -36,7 +36,6 @@
 		<guice.version>3.0</guice.version>
 		<httpclient.version>4.3</httpclient.version>
 		<jackson.version>2.3.1</jackson.version>
-		<jdeb.version>1.1-9e4e08</jdeb.version>
 		<jersey.version>1.17.1</jersey.version>
 		<jetty.version>9.1.2.v20140210</jetty.version>
 		<logback.version>1.0.13</logback.version>
@@ -591,6 +590,11 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<artifactId>jdeb</artifactId>
+					<groupId>org.vafer</groupId>
+					<version>1.1-9e4e08</version>
+				</plugin>
  				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-clean-plugin</artifactId>

@@ -1,0 +1,18 @@
+Package: spushnik
+Version: [[version]]
+Section: net
+Priority: optional
+Architecture: all
+Build-Depends: java-sdk
+Maintainer: Matthieu Baechler <mbaechler@linagora.com>
+Depends: openjdk-7-jre-headless
+Conflicts: obm-jetty
+Priority: optional
+Homepage: http://www.obm.org
+Description: Opush probe
+  This package contains a Java webapp probe able to check the status of an Opush server instance.
+  .
+  OBM is a global groupware, messaging and CRM application. It is intended to
+  be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+  simple contact database. OBM also features integration with PDAs, smartphones,
+  Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.

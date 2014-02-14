@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+if ! id spushnik > /dev/null 2>&1 ; then
+	adduser --system --home /usr/share/spushnik --group spushnik
+fi
