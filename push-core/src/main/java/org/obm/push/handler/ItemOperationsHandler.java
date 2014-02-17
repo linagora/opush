@@ -34,8 +34,6 @@ package org.obm.push.handler;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jetty.http.HttpHeaderValues;
-import org.eclipse.jetty.http.HttpHeaders;
 import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -87,6 +85,7 @@ import org.w3c.dom.Document;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.net.HttpHeaders;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -310,8 +309,8 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 
 	@VisibleForTesting static boolean isAcceptGZip(ActiveSyncRequest request) {
 		String acceptEncoding = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
-		return acceptEncoding != null
-				&& acceptEncoding.contains(HttpHeaderValues.GZIP);
+		return acceptEncoding != null 
+				&& acceptEncoding.contains("gzip");
 	}
 
 	@VisibleForTesting static boolean isAcceptMultipart(ActiveSyncRequest request) {

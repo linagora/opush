@@ -46,8 +46,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.http.HttpHeaderValues;
-import org.eclipse.jetty.http.HttpHeaders;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.FileUtils;
 import org.obm.push.utils.IntEncoder;
@@ -59,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.HttpHeaders;
 import com.google.inject.Inject;
 
 public class ResponderImpl implements Responder {
@@ -197,7 +196,7 @@ public class ResponderImpl implements Responder {
 			out = resp.getOutputStream();
 			if (gzip) {
 				resp.addHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING);
-				resp.addHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaderValues.GZIP);
+				resp.addHeader(HttpHeaders.CONTENT_ENCODING, "gzip");
 				return new GZIPOutputStream(out);
 			} else {
 				return out;

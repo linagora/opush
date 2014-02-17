@@ -31,14 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
-import org.eclipse.jetty.http.HttpHeaders;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.impl.Responder;
@@ -50,6 +49,7 @@ import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
 import com.google.common.collect.Lists;
+import com.google.common.net.HttpHeaders;
 
 
 public class ItemOperationsHandlerTest {
