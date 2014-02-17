@@ -74,7 +74,6 @@
 
 	<modules>
 		<module>tnefconverter</module>
-		<module>push</module>
 		<module>wbxml</module>
 		<module>client</module>
 		<module>integration-testing</module>
