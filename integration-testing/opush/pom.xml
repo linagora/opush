@@ -32,7 +32,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-servlet</artifactId>
+			<artifactId>push-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>

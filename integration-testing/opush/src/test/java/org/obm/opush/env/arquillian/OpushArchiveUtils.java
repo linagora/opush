@@ -55,7 +55,7 @@ public class OpushArchiveUtils {
 		return ShrinkWrap
 				.create(WebArchive.class)
 				.addAsWebInfResource(GuiceWebXmlDescriptor.webXml(guiceModule, servletContextListener), "web.xml")
-				.addAsLibraries(resolveArtifacts("com.linagora.obm.opush:push-servlet"))
+				.addAsLibraries(resolveArtifacts("com.linagora.obm.opush:push-server"))
 				.addAsLibraries(resolveArtifacts("javax.transaction:jta"))
 				.addClasses(servletContextListener);
 	}
