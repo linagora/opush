@@ -34,6 +34,7 @@ package org.obm.push;
 import org.obm.configuration.VMArgumentsUtils;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -54,7 +55,22 @@ public class OpushServerLauncher {
 
 	public OpushServer start(Injector injector) throws Exception {
 		OpushServer server = injector.getInstance(OpushServer.class);
+		registerSigTermHandler(server);
 		server.start();
 		return server;
+	}
+
+	private void registerSigTermHandler(final OpushServer server) {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run() {
+				try {
+					server.stop();
+				} catch (Exception e) {
+					Throwables.propagate(e);
+				}
+			}
+		});
 	}
 }

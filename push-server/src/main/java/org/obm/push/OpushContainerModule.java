@@ -85,6 +85,7 @@ public class OpushContainerModule extends AbstractModule {
 
 	@Provides @Singleton
 	protected OpushServer buildServer(Injector injector) {
+		
 		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
