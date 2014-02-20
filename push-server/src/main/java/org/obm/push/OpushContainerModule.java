@@ -37,9 +37,12 @@ import javax.servlet.DispatcherType;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -51,6 +54,8 @@ import org.obm.push.configuration.LoggerModule;
 import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
+
+import ch.qos.logback.access.jetty.RequestLogImpl;
 
 import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
@@ -93,15 +98,8 @@ public class OpushContainerModule extends AbstractModule {
 		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
-		
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/");
-		context.addFilter(new FilterHolder(injector.getInstance(GuiceFilter.class)), "/*", EnumSet.allOf(DispatcherType.class));
-		context.addServlet(DefaultServlet.class, "/");
-		context.addEventListener(buildCleanupListener(injector));
-		context.addLifeCycleListener(buildLifeCycleListener(injector));
-		jetty.setHandler(context);
-		
+		jetty.setHandler(buildHandlers(injector));
+
 		return new OpushServer() {
 			
 			@Override
@@ -127,6 +125,31 @@ public class OpushContainerModule extends AbstractModule {
 				throw new IllegalStateException("Could not get server's listening port. Start the server first.");
 			}
 		};
+	}
+
+	private Handler buildHandlers(Injector injector) {
+		HandlerCollection handlers = new HandlerCollection();
+		handlers.addLifeCycleListener(buildLifeCycleListener(injector));
+		handlers.addHandler(buildServletContext(injector));
+		handlers.addHandler(buildRequestLogger());
+		return handlers;
+	}
+
+	private RequestLogHandler buildRequestLogger() {
+		RequestLogHandler requestLogHandler = new RequestLogHandler();
+		RequestLogImpl requestLog = new RequestLogImpl();
+		requestLog.setResource("/logback-access.xml");
+		requestLogHandler.setRequestLog(requestLog);
+		return requestLogHandler;
+	}
+	
+	private ServletContextHandler buildServletContext(Injector injector) {
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		context.setContextPath("/");
+		context.addFilter(new FilterHolder(injector.getInstance(GuiceFilter.class)), "/*", EnumSet.allOf(DispatcherType.class));
+		context.addServlet(DefaultServlet.class, "/");
+		context.addEventListener(buildCleanupListener(injector));
+		return context;
 	}
 
 	private ServletContextListener buildCleanupListener(final Injector injector) {
