@@ -30,6 +30,7 @@
 package org.obm.push;
 
 import java.util.EnumSet;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.DispatcherType;
@@ -48,6 +49,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.sync.LifecycleListenerHelper;
+import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
 
 import com.google.common.base.Objects;
@@ -62,20 +64,34 @@ import com.google.inject.servlet.GuiceFilter;
 public class OpushContainerModule extends AbstractModule {
 
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final int JETTY_SELECTED_PORT = 0;
 	private static final int POOL_THREAD_SIZE = Objects.firstNonNull( 
 			VMArgumentsUtils.integerArgumentValue("threadPoolSize"), 200);
 
+	private final int port;
+
+	public OpushContainerModule() {
+		this(JETTY_SELECTED_PORT);
+	}
+	
+	public OpushContainerModule(int port) {
+		this.port = port;
+		XTrustProvider.install();
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+	}
+	
 	@Override
 	protected void configure() {}
 
 	@Provides @Singleton
 	protected OpushServer buildServer(Injector injector) {
 		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
-		
-		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
-		jetty.addConnector(httpConnector);
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
+		
+		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
+		httpConnector.setPort(port);
+		jetty.addConnector(httpConnector);
 		
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
