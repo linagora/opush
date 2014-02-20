@@ -31,32 +31,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.obm.configuration.GlobalAppConfiguration;
+import org.obm.push.OpushContainerModule;
 import org.obm.push.OpushModule;
 import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.utils.DOMUtils;
-import org.obm.sync.LifecycleListenerHelper;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Modules;
 import com.google.inject.util.Modules.OverriddenModuleBuilder;
@@ -73,6 +57,7 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 	protected void configure() {
 		OverriddenModuleBuilder override = Modules.override(new OpushModule(opushConfiguration(), backendConfiguration(), noDatabase()), new PendingQueryFilterModule());
 		try {
+			install(new OpushContainerModule());
 			install(override.with(overrideModule()));
 			onModuleInstalled();
 		} catch (Exception e) {
@@ -93,66 +78,4 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 		return Modules.EMPTY_MODULE;
 	}
 	
-	@Provides @Singleton
-	protected OpushServer buildOpushServer(Injector injector) {
-		return new OpushServer(injector);
-	}
-	
-	public static class OpushServer {
-		
-		private final Server server;
-		private final ServerConnector httpConnector;
-
-		public OpushServer(Injector injector) {
-			server = new Server();
-			
-			httpConnector = new ServerConnector(server, new HttpConnectionFactory());
-			server.addConnector(httpConnector);
-			
-			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-			context.setContextPath("/");
-			context.addFilter(new FilterHolder(injector.getInstance(GuiceFilter.class)), "/*", EnumSet.allOf(DispatcherType.class));
-			context.addServlet(DefaultServlet.class, "/");
-			context.addEventListener(buildCleanupListener(injector));
-			server.setHandler(context);
-		}
-
-		private ServletContextListener buildCleanupListener(final Injector injector) {
-			return new ServletContextListener() {
-
-				@Override
-				public void contextInitialized(ServletContextEvent sce) {
-				}
-
-				@Override
-				public void contextDestroyed(ServletContextEvent sce) {
-					LifecycleListenerHelper.shutdownListeners(injector);
-				}
-			};
-		}
-
-		public void start() throws Exception {
-			server.start();
-		}
-
-		public void stop() throws Exception {
-			server.stop();
-		}
-		
-		public int getPort() {
-			if (server.isRunning()) {
-				return getLocalPort();
-			}
-			throw new IllegalStateException("Could not get server's listening port. Start the server first.");
-		}
-
-		private int getLocalPort() {
-			int port = httpConnector.getLocalPort();
-			if (port > 0) {
-				return port;
-			}
-			throw new IllegalStateException("Could not get server's listening port. Received port is " + port);
-		}
-	}
-
 }

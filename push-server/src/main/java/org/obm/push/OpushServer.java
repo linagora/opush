@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,32 +29,16 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.configuration;
+package org.obm.push;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.name.Names;
-
-public class LoggerModule extends org.obm.configuration.module.LoggerModule {
-
-	public static final String AUTH = "AUTHENTICATION";
-	public static final String TRIMMED_REQUEST = "REQUEST.TRIMMED";
-	public static final String FULL_REQUEST = "REQUEST.FULL";
-	public static final String MAIL_DATA = "MAIL.DATA";
-	public static final String CASSANDRA = "CASSANDRA";
-	public static final String CONTAINER = "CONTAINER";
+public interface OpushServer {
 	
-	@Override
-	protected void configure() {
-		super.configure();
-		bind(Logger.class).annotatedWith(Names.named(AUTH)).toInstance(LoggerFactory.getLogger(AUTH));
-		bind(Logger.class).annotatedWith(Names.named(TRIMMED_REQUEST)).toInstance(LoggerFactory.getLogger(TRIMMED_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(FULL_REQUEST)).toInstance(LoggerFactory.getLogger(FULL_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(MAIL_DATA)).toInstance(LoggerFactory.getLogger(MAIL_DATA));
-		bind(Logger.class).annotatedWith(Names.named(CASSANDRA)).toInstance(LoggerFactory.getLogger(CASSANDRA));
-		bind(Logger.class).annotatedWith(Names.named(CONTAINER)).toInstance(LoggerFactory.getLogger(CONTAINER));
-	}
+	void start() throws Exception;
+	
+	void stop() throws Exception;
 
+	void join() throws Exception;
+	
+	int getPort();
 	
 }

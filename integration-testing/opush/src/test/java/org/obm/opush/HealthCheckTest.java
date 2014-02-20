@@ -49,9 +49,9 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
+import org.obm.push.OpushServer;
 
 import com.google.inject.Inject;
 

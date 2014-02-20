@@ -66,6 +66,14 @@
 			<artifactId>crsh.shell.ssh</artifactId>
 			<version>1.2.7</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>
