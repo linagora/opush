@@ -43,6 +43,8 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Column
 
 import java.util.UUID;
 
+import org.obm.breakdownduration.bean.Watch;
+import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.configuration.LoggerModule;
@@ -63,6 +65,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
+@Watch(BreakdownGroups.CASSANDRA)
 public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements SnapshotDao, CassandraStructure {
 
 	@Inject  

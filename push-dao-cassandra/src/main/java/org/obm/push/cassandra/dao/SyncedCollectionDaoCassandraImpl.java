@@ -40,7 +40,9 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Col
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.CREDENTIALS;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.DEVICE;
 
+import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.configuration.LoggerModule;
@@ -58,6 +60,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
+@Watch(BreakdownGroups.CASSANDRA)
 public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao implements SyncedCollectionDao, CassandraStructure {
 
 	@Inject  

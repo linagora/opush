@@ -41,7 +41,9 @@ import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.
 
 import java.util.Set;
 
+import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.configuration.LoggerModule;
@@ -60,6 +62,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
+@Watch(BreakdownGroups.CASSANDRA)
 public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao implements MonitoredCollectionDao, CassandraStructure {
 
 	@Inject  

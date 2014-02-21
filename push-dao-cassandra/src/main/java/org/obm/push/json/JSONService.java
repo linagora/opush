@@ -35,11 +35,13 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Set;
 
+import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AbstractSyncCollection;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
@@ -123,6 +125,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
+@Watch(BreakdownGroups.JSON)
 public class JSONService {
 	
 	private final static Logger logger = LoggerFactory.getLogger(JSONService.class);

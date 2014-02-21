@@ -50,6 +50,8 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import java.util.List;
 import java.util.UUID;
 
+import org.obm.breakdownduration.bean.Watch;
+import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.WindowingChanges;
@@ -77,6 +79,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
+@Watch(BreakdownGroups.CASSANDRA)
 public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements WindowingDao, CassandraStructure {
 	
 	private static final int NO_PENDING_CHANGES = 0;
