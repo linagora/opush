@@ -58,6 +58,7 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
@@ -117,6 +118,7 @@ public class MailBackendImapTimeoutTest {
 	@Inject SyncDecoder syncDecoder;
 	@Inject PingProtocol pingProtocol;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private CollectionDao collectionDao;
 	private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
@@ -137,6 +139,7 @@ public class MailBackendImapTimeoutTest {
 	@Before
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
@@ -168,6 +171,7 @@ public class MailBackendImapTimeoutTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		Files.delete(configuration.dataDir);
 	}

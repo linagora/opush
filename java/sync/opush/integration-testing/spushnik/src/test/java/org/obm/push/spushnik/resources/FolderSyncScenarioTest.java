@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik.resources;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -62,6 +62,7 @@ import org.obm.arquillian.GuiceArquillianRunner;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
 import org.obm.push.spushnik.SpushnikTestUtils;
 import org.obm.push.spushnik.SpushnikWebArchive;
@@ -81,12 +82,14 @@ public class FolderSyncScenarioTest {
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private CloseableHttpClient httpClient;
 
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();
 	}
@@ -96,6 +99,7 @@ public class FolderSyncScenarioTest {
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
 		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, singleUserFixture.jaures);
 		mocksControl.replay();
+		cassandraServer.start();
 		opushServer.start();
 		httpClient = HttpClientBuilder.create().build();
 	}

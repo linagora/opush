@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.moveitem;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
@@ -59,6 +59,7 @@ import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -87,6 +88,7 @@ public class MoveItemsHandlerTest {
 	@Inject ImapConnectionCounter imapConnectionCounter;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private CollectionDao collectionDao;
 
@@ -103,6 +105,7 @@ public class MoveItemsHandlerTest {
 	@Before
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
@@ -131,6 +134,7 @@ public class MoveItemsHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);

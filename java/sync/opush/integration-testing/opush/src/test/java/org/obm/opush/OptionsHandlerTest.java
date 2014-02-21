@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 
 import org.apache.http.Header;
@@ -47,6 +47,7 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.OptionsResponse;
@@ -63,17 +64,20 @@ public class OptionsHandlerTest {
 	@Inject	OpushServer opushServer;
 	@Inject IMocksControl mocksControl;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 	}
 	

@@ -59,6 +59,7 @@ import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
@@ -88,6 +89,7 @@ public class SmartForwardHandlerTest {
 	@Inject GreenMail greenMail;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject DateProvider dateProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
@@ -106,6 +108,7 @@ public class SmartForwardHandlerTest {
 		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), user.password);
 		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
+		cassandraServer.start();
 		
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = 1;
@@ -122,6 +125,7 @@ public class SmartForwardHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
 	}

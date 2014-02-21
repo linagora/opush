@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik.resources;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.push.spushnik.SpushnikTestUtils.buildServiceUrl;
 
 import java.util.Properties;
@@ -51,6 +51,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.SingleUserFixture;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
@@ -72,7 +73,7 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioMockTest {
-	
+
 	@Inject SingleUserFixture singleUserFixture;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
@@ -80,15 +81,18 @@ public class FolderSyncScenarioMockTest {
 	@Inject Configuration configuration;
 	@Inject FolderSyncScenario folderSyncScenario;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
+		cassandraServer.start();
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 	}
 

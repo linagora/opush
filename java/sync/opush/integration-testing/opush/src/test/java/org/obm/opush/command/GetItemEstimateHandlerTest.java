@@ -63,6 +63,7 @@ import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.command.sync.EmailSyncTestUtils;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -97,21 +98,24 @@ public class GetItemEstimateHandlerTest {
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private List<OpushUser> fakeTestUsers;
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		fakeTestUsers = Arrays.asList(singleUserFixture.jaures);
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();
 	}

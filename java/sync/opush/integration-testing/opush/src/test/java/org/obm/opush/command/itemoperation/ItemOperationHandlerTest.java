@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.itemoperation;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
@@ -59,6 +59,7 @@ import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.store.CollectionDao;
@@ -89,6 +90,7 @@ public class ItemOperationHandlerTest {
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject PendingQueriesLock pendingQueries;
+	@Inject CassandraServer cassandraServer;
 	
 	private CollectionDao collectionDao;
 
@@ -109,6 +111,7 @@ public class ItemOperationHandlerTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = 1234;
@@ -127,6 +130,7 @@ public class ItemOperationHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();

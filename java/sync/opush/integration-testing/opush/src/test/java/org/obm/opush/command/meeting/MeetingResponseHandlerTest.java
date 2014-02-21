@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.meeting;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
@@ -61,6 +61,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.icalendar.ICalendar;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.ChangedCollections;
@@ -116,6 +117,7 @@ public class MeetingResponseHandlerTest {
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private int meetingCollectionId;
 	private int meetingItemId;
@@ -124,8 +126,9 @@ public class MeetingResponseHandlerTest {
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		meetingCollectionId = 2;
 		meetingItemId = 8;
 		invitationCollectionId = 5;
@@ -137,6 +140,7 @@ public class MeetingResponseHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
 	}

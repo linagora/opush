@@ -63,6 +63,7 @@ import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -90,7 +91,7 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class PushContinuationTest {
-	
+
 	@Inject	SingleUserFixture singleUserFixture;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
@@ -100,6 +101,7 @@ public class PushContinuationTest {
 	@Inject PingProtocol pingProtocol;
 	@Inject SyncDecoder syncDecoder;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private static final SyncKey INCOMING_SYNC_KEY = new SyncKey("132");
 	private static final SyncKey NEW_SYNC_KEY = new SyncKey("456");
@@ -116,10 +118,11 @@ public class PushContinuationTest {
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		threadpool = Executors.newFixedThreadPool(4);
 		async = Async.newInstance().use(threadpool);
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		
 		user = singleUserFixture.jaures;
 		inboxCollectionId = 1234;
@@ -131,6 +134,7 @@ public class PushContinuationTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		threadpool.shutdown();
 		httpClient.close();
 		Files.delete(configuration.dataDir);

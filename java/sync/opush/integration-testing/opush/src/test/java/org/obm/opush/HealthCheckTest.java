@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,6 +50,7 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 
 import com.google.inject.Inject;
@@ -57,20 +58,23 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class HealthCheckTest {
-	
+
 	@Inject OpushServer opushServer;
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig");
+		cassandraServer.start();
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 	}
 

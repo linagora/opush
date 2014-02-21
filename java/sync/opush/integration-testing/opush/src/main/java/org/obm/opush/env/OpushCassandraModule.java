@@ -36,10 +36,20 @@ import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.CassandraSessionSupplierImpl;
 import org.obm.push.cassandra.CassandraSessionSupplier;
 
+import com.google.inject.Provides;
+
 public class OpushCassandraModule extends AbstractOverrideModule {
+
+	private final CassandraServerImpl cassandraServer;
 
 	public OpushCassandraModule(IMocksControl mocksControl) {
 		super(mocksControl);
+		cassandraServer = new CassandraServerImpl();
+	}
+	
+	@Provides
+	public CassandraServer getCassandraServer() {
+		return cassandraServer;
 	}
 
 	@Override

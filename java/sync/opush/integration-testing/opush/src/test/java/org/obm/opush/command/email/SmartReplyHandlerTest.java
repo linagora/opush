@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.email;
 
-import static org.easymock.EasyMock.expect;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
 import static org.obm.DateUtils.date;
 import static org.obm.opush.IntegrationTestUtils.appendToINBOX;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
@@ -59,6 +59,7 @@ import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.ServerId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -85,6 +86,7 @@ public class SmartReplyHandlerTest {
 	@Inject GreenMail greenMail;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject DateProvider dateProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
@@ -98,6 +100,7 @@ public class SmartReplyHandlerTest {
 	@Before
 	public void setUp() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), user.password);
@@ -119,6 +122,7 @@ public class SmartReplyHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
 	}

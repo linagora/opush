@@ -61,6 +61,7 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.ItemSyncState;
@@ -98,6 +99,7 @@ public class MailBackendGetItemEstimateTest {
 	@Inject Configuration configuration;
 	@Inject SyncDecoder decoder;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
@@ -116,6 +118,7 @@ public class MailBackendGetItemEstimateTest {
 	@Before
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
@@ -144,6 +147,7 @@ public class MailBackendGetItemEstimateTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		Files.delete(configuration.dataDir);
 	}

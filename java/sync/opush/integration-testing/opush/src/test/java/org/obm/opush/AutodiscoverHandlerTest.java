@@ -53,6 +53,7 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -72,24 +73,27 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class AutodiscoverHandlerTest {
-	
+
 	@Inject SingleUserFixture singleUserFixture;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	private CloseableHttpClient httpClient;
 	
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
 	}

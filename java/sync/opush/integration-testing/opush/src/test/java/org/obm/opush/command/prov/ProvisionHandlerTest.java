@@ -57,6 +57,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushConfigurationFixture;
 import org.obm.push.ProtocolVersion;
@@ -88,19 +89,22 @@ public class ProvisionHandlerTest {
 	@Inject IMocksControl mocksControl;
 	@Inject OpushConfigurationFixture configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 
 	private List<OpushUser> fakeTestUsers;
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		fakeTestUsers = Arrays.asList(singleUserFixture.jaures);
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 	}
 		
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();
 	}

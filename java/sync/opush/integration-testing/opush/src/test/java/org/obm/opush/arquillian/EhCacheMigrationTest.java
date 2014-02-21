@@ -46,6 +46,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.arquillian.GuiceArquillianRunner;
@@ -53,6 +54,7 @@ import org.obm.opush.env.arquillian.AuthenticatedArquillianModule;
 import org.obm.opush.env.arquillian.OpushArchiveUtils;
 import org.obm.push.arquillian.extension.deployment.DeployForEachTests;
 
+@Ignore("Will be dropped on next commit")
 @RunWith(GuiceArquillianRunner.class)
 public class EhCacheMigrationTest {
 	

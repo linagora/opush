@@ -58,6 +58,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
@@ -79,29 +80,32 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 @GuiceModule(FolderSyncHandlerTestModule.class)
 public class FolderSyncHandlerTest {
-
+	
 	@Inject SingleUserFixture singleUserFixture;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private List<OpushUser> userAsList;
 	private OpushUser user;
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		user = singleUserFixture.jaures;
 		userAsList = Arrays.asList(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
+		cassandraServer.start();
 		httpClient = HttpClientBuilder.create().build();
 	}
 	
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();
 	}
@@ -279,5 +283,4 @@ public class FolderSyncHandlerTest {
 				.syncKey(newGeneratedSyncKey)
 				.build();
 	}
-
 }

@@ -61,6 +61,7 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -88,9 +89,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.icegreen.greenmail.imap.AuthorizationException;
 import com.icegreen.greenmail.imap.ImapHostManager;
-import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
@@ -112,6 +111,7 @@ public class MailBackendHandlerTest {
 	@Inject Configuration configuration;
 	@Inject SyncDecoder decoder;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private ServerSetup smtpServerSetup;
 	private String mailbox;
@@ -121,8 +121,9 @@ public class MailBackendHandlerTest {
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() throws AuthorizationException, FolderException {
+	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
@@ -137,6 +138,7 @@ public class MailBackendHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);

@@ -31,21 +31,30 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.cassandra.CassandraSessionSupplier;
 
 import com.datastax.driver.core.Session;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 
+	private CassandraServer cassandraServer;
+
+	@Inject
+	private CassandraSessionSupplierImpl(CassandraServer cassandraServer) {
+		this.cassandraServer = cassandraServer;
+	}
+	
 	@Override
 	public Session get() {
-		return null;
+		return cassandraServer.getClientSession();
 	}
 
 	@Override
 	public boolean hasBeenSupplied() {
-		return false;
+		return true;
 	}
 }

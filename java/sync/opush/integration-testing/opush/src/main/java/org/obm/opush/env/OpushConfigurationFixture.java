@@ -36,7 +36,7 @@ import org.obm.Configuration;
 public class OpushConfigurationFixture extends Configuration {
 
 	public static class Backend {
-		public String databaseBackend = "ehcache";
+		public String databaseBackend = "cassandra";
 	}
 
 	public static class Cassandra {

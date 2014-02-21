@@ -84,6 +84,7 @@ import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -145,13 +146,15 @@ public class SyncHandlerTest {
 	@Inject IContentsImporter contentsImporter;
 	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private List<OpushUser> fakeTestUsers;
 	private CloseableHttpClient httpClient;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		fakeTestUsers = Arrays.asList(singleUserFixture.jaures);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
@@ -159,6 +162,7 @@ public class SyncHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		httpClient.close();
 	}
 

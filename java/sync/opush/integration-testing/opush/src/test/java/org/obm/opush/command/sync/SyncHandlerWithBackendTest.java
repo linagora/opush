@@ -80,6 +80,7 @@ import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.Device;
@@ -163,6 +164,7 @@ public class SyncHandlerWithBackendTest {
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject SnapshotService snapshotService;
 	@Inject TransactionProvider transactionProvider;
+	@Inject CassandraServer cassandraServer;
 	
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
@@ -189,6 +191,7 @@ public class SyncHandlerWithBackendTest {
 	@Before
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
+		cassandraServer.start();
 		user = singleUserFixture.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
@@ -227,6 +230,7 @@ public class SyncHandlerWithBackendTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
 		greenMail.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
