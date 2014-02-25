@@ -1,8 +1,0 @@
-#!/bin/bash
-set -e
-
-service obm-locator stop > /dev/null
-[ -f /etc/init.d/obm-locator ] && unlink /etc/init.d/obm-locator
-
-exit 0
-

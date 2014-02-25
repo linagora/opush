@@ -1,6 +1,0 @@
-{package_name} ({debian_version}) stable; urgency=low
-
-  * New upstream release.
-
- -- Thomas Sarboni <tsarboni@linagora.com>  {changelog_date}
-
