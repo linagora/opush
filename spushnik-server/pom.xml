@@ -9,9 +9,9 @@
 		<version>2.6.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spushnik-module</artifactId>
+	<artifactId>spushnik-server</artifactId>
 	<packaging>jar</packaging>
-	<name>OPush Probe common</name>
+	<name>OPush Probe Server</name>
 	<url>http://www.obm.org/</url>
 	<version>2.6.0-SNAPSHOT</version>
 	

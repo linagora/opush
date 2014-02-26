@@ -22,7 +22,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>spushnik-module</artifactId>
+			<artifactId>spushnik-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush.integration-testing</groupId>

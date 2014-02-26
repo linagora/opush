@@ -95,8 +95,7 @@
 		<module>push-core</module>
 		<module>protocol</module>
 		<module>push-gatling</module>
-		<module>spushnik-module</module>
-		<module>spushnik-webapp</module>
+		<module>spushnik-server</module>
 		<module>obm-backend</module>
 	</modules>
 
@@ -312,7 +311,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm.opush</groupId>
-				<artifactId>spushnik-module</artifactId>
+				<artifactId>spushnik-server</artifactId>
 				<version>${opush.version}</version>
 			</dependency>
 			<dependency>
