@@ -29,45 +29,18 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env.arquillian;
+package org.obm.push.spushnik;
 
-import java.io.File;
+import org.obm.push.spushnik.resources.FolderSyncScenario;
+import org.obm.push.spushnik.service.CredentialsService;
 
-import javax.servlet.ServletContextListener;
+import com.google.inject.AbstractModule;
 
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.UnknownExtensionTypeException;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.CoordinateParseException;
-import org.jboss.shrinkwrap.resolver.api.ResolutionException;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.obm.arquillian.GuiceWebXmlDescriptor;
+public class SpushnikModule extends AbstractModule {
 
-import com.google.inject.Module;
-
-public class OpushArchiveUtils {
-
-	public static WebArchive buildWebArchive(Class<? extends Module> guiceModule, Class<? extends ServletContextListener> servletContextListener)
-			throws IllegalArgumentException, IllegalStateException, ResolutionException,
-			CoordinateParseException, UnknownExtensionTypeException {
-
-
-		return ShrinkWrap
-				.create(WebArchive.class)
-				.addAsWebInfResource(GuiceWebXmlDescriptor.webXml(guiceModule, servletContextListener), "web.xml")
-				.addAsLibraries(resolveArtifacts("com.linagora.obm.opush:push-server"))
-				.addAsLibraries(resolveArtifacts("javax.transaction:jta"))
-				.addClasses(servletContextListener);
+	@Override
+	public void configure() {
+		bind(FolderSyncScenario.class);
+		bind(CredentialsService.class);
 	}
-
-	private static File[] resolveArtifacts(String artifactCoordinates) {
-		return Maven.resolver()
-				.offline()
-				.loadPomFromFile("pom.xml")
-				.resolve(artifactCoordinates)
-				.withClassPathResolution(true)
-				.withTransitivity()
-				.asFile();
-	}
-
 }

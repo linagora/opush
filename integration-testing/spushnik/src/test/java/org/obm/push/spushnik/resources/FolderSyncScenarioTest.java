@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 
 import java.io.InputStream;
-import java.net.URL;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -46,33 +45,30 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.assertj.core.util.Files;
 import org.easymock.IMocksControl;
-import org.fest.util.Files;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
-import org.obm.arquillian.GuiceArquillianRunner;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.spushnik.SpushnikModule;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
+import org.obm.push.spushnik.SpushnikServer;
 import org.obm.push.spushnik.SpushnikTestUtils;
-import org.obm.push.spushnik.SpushnikWebArchive;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 
-@RunWith(GuiceArquillianRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioTest {
 
@@ -85,6 +81,8 @@ public class FolderSyncScenarioTest {
 	@Inject CassandraServer cassandraServer;
 	
 	private CloseableHttpClient httpClient;
+	private SpushnikServer spushnikServer;
+	private String baseURL;
 
 	@After
 	public void shutdown() throws Exception {
@@ -92,10 +90,14 @@ public class FolderSyncScenarioTest {
 		cassandraServer.stop();
 		Files.delete(configuration.dataDir);
 		httpClient.close();
+		spushnikServer.stop();
 	}
 	
 	@Before
 	public void setUp() throws Exception {
+		spushnikServer = new SpushnikServer(SpushnikModule.class);
+		spushnikServer.start();
+		baseURL = "http://localhost:" + spushnikServer.getPort() + "/spushnik/";
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
 		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, singleUserFixture.jaures);
 		mocksControl.replay();
@@ -105,8 +107,7 @@ public class FolderSyncScenarioTest {
 	}
 	
 	@Test
-	@RunAsClient
-	public void testFolderSyncScenarioWithNiceCertificate(@ArquillianResource URL baseURL) throws Exception {
+	public void testFolderSyncScenarioWithNiceCertificate() throws Exception {
 		HttpResponse httpResponse = folderSyncScenarioWithRequest(baseURL, "request_jaures_certificate_good.txt");
 		
 		InputStream content = httpResponse.getEntity().getContent();
@@ -115,8 +116,7 @@ public class FolderSyncScenarioTest {
 	}
 	
 	@Test
-	@RunAsClient
-	public void testFolderSyncScenarioWithNiceCertificateWrongPwd(@ArquillianResource URL baseURL) throws Exception {
+	public void testFolderSyncScenarioWithNiceCertificateWrongPwd() throws Exception {
 		HttpResponse httpResponse = folderSyncScenarioWithRequest(baseURL, "request_jaures_certificate_wrong_pwd.txt");
 		
 		InputStream content = httpResponse.getEntity().getContent();
@@ -127,8 +127,7 @@ public class FolderSyncScenarioTest {
 	}
 	
 	@Test
-	@RunAsClient
-	public void testFolderSyncScenarioWithBadCertificate(@ArquillianResource URL baseURL) throws Exception {
+	public void testFolderSyncScenarioWithBadCertificate() throws Exception {
 		HttpResponse httpResponse = folderSyncScenarioWithRequest(baseURL, "request_jaures_certificate_bad.txt");
 		
 		InputStream content = httpResponse.getEntity().getContent();
@@ -140,8 +139,7 @@ public class FolderSyncScenarioTest {
 	}
 	
 	@Test
-	@RunAsClient
-	public void testFolderSyncScenarioWithNullCertificate(@ArquillianResource URL baseURL) throws Exception {
+	public void testFolderSyncScenarioWithNullCertificate() throws Exception {
 		HttpResponse httpResponse = folderSyncScenarioWithRequest(baseURL, "request_jaures_certificate_null.txt");
 		
 		InputStream content = httpResponse.getEntity().getContent();
@@ -150,8 +148,7 @@ public class FolderSyncScenarioTest {
 	}
 	
 	@Test
-	@RunAsClient
-	public void testFolderSyncScenarioWithoutCertificate(@ArquillianResource URL baseURL) throws Exception {
+	public void testFolderSyncScenarioWithoutCertificate() throws Exception {
 		HttpResponse httpResponse = folderSyncScenarioWithRequest(baseURL, "request_jaures_certificate_none.txt");
 		
 		InputStream content = httpResponse.getEntity().getContent();
@@ -159,7 +156,7 @@ public class FolderSyncScenarioTest {
 		assertThat(IOUtils.toString(content, Charsets.UTF_8)).isEqualTo("{\"status\":0,\"messages\":[]}");
 	}
 
-	private HttpResponse folderSyncScenarioWithRequest(URL baseURL, String certificate) throws Exception {
+	private HttpResponse folderSyncScenarioWithRequest(String baseURL, String certificate) throws Exception {
 		InputStream requestInputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(certificate);
 		byte[] requestContent = ByteStreams.toByteArray(requestInputStream);
 
@@ -168,13 +165,7 @@ public class FolderSyncScenarioTest {
 		return httpClient.execute(httpPost);
 	}
 
-	private String buildRequestUrl(URL baseURL) {
-		return baseURL.toExternalForm() + "foldersync?serviceUrl=" + SpushnikTestUtils.buildServiceUrl(opushServer.getPort());
-	}
-	
-	@Deployment
-	public static WebArchive createDeployment() throws Exception {
-		// Deployed once for the whole test class, unexpected data may be remaining between tests
-		return SpushnikWebArchive.buildInstance();
+	private String buildRequestUrl(String baseURL) {
+		return baseURL + "foldersync?serviceUrl=" + SpushnikTestUtils.buildServiceUrl(opushServer.getPort());
 	}
 }

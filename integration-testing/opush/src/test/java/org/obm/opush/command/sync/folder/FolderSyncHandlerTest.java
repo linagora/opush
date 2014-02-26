@@ -46,7 +46,7 @@ import java.util.List;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.easymock.IMocksControl;
-import org.fest.util.Files;
+import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

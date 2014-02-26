@@ -39,7 +39,7 @@ import static org.obm.push.spushnik.SpushnikTestUtils.buildServiceUrl;
 import java.util.Properties;
 
 import org.easymock.IMocksControl;
-import org.fest.util.Files;
+import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

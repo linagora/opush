@@ -1,3 +1,4 @@
+package org.obm;
 /* ***** BEGIN LICENSE BLOCK *****
  * 
  * Copyright (C) 2011-2014  Linagora
@@ -29,29 +30,30 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env.arquillian;
 
-import org.obm.opush.env.AbstractOpushEnv;
 
-import com.google.common.base.Throwables;
+import org.obm.configuration.ConfigurationService;
+import org.obm.configuration.TransactionConfiguration;
 
-public abstract class ArquillianOpushModule  extends AbstractOpushEnv {
+import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
+
+public final class ConfigurationModule extends AbstractModule {
+
+	public interface PolicyConfigurationProvider extends Provider<String> {}
 	
-	public ArquillianOpushModule() {
-		super();
+	private final TransactionConfiguration transactionConfiguration;
+	private final ConfigurationService configurationService;
+
+	public ConfigurationModule(Configuration configuration) {
+		this.configurationService = new StaticConfigurationService(configuration);
+		this.transactionConfiguration = new StaticConfigurationService.Transaction(configuration.transaction);
 	}
 	
 	@Override
-	protected void onModuleInstalled() {
-		try {
-			super.onModuleInstalled();
-
-			expectedBehaviour();
-			mocksControl.replay();
-		} catch (Exception e) {
-			Throwables.propagate(e);
-		}
+	protected void configure() {
+		bind(TransactionConfiguration.class).toInstance(transactionConfiguration);
+		bind(ConfigurationService.class).toInstance(configurationService);
 	}
-
-	protected abstract void expectedBehaviour() throws Exception;
+	
 }

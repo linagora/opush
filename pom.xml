@@ -101,34 +101,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency> <!-- keep bom ordered and at the top of the dependencies -->
-				<groupId>org.jboss.shrinkwrap.descriptors</groupId>
-				<artifactId>shrinkwrap-descriptors-bom</artifactId>
-				<version>2.0.0-alpha-5</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.shrinkwrap</groupId>
-				<artifactId>shrinkwrap-bom</artifactId>
-				<version>1.2.0</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.shrinkwrap.resolver</groupId>
-				<artifactId>shrinkwrap-resolver-bom</artifactId>
-				<version>${shrinkwrap.resolvers.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian</groupId>
-				<artifactId>arquillian-bom</artifactId>
-				<version>${arquillian.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
 				<artifactId>annotations</artifactId>
@@ -212,11 +184,6 @@
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
 				<artifactId>utils</artifactId>
-				<version>${obm.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.linagora.obm.integration-testing</groupId>
-				<artifactId>arquillian-bundle</artifactId>
 				<version>${obm.version}</version>
 			</dependency>
 			<dependency>
@@ -534,11 +501,6 @@
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-plus</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-servlet</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
@@ -552,17 +514,6 @@
 						<artifactId>javax.servlet</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-webapp</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian.container</groupId>
-				<artifactId>arquillian-jetty-embedded-6.1</artifactId>
-				<version>1.0.0.CR2</version>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.ow2.asm</groupId>

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2013-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,17 +31,42 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik;
 
-import org.obm.push.spushnik.resources.FolderSyncScenario;
-import org.obm.push.spushnik.service.CredentialsService;
+import org.obm.configuration.VMArgumentsUtils;
 
-import com.google.inject.Binder;
-import com.google.inject.Module;
+import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 
-public class GuiceModule implements Module {
+public class Main {
 
-	@Override
-	public void configure(Binder binder) {
-		binder.bind(FolderSyncScenario.class);
-		binder.bind(CredentialsService.class);
+	private static final int DEFAULT_SERVER_PORT = 8083; 
+
+	public static void main(String... args) throws Exception {
+		start(Objects.firstNonNull(
+				VMArgumentsUtils.integerArgumentValue("spushnikPort"), DEFAULT_SERVER_PORT))
+			.join();
+	}
+
+	public static SpushnikServer start(int serverPort) throws Exception {
+		/******************************************************************
+		 * EVERY CHANGES DONE THERE CAN SILENTLY BREAK SPUSHNIK START UP *
+		 ******************************************************************/
+		SpushnikServer server = new SpushnikServer(serverPort, SpushnikModule.class);
+		registerSigTermHandler(server);
+		server.start();
+		return server;
+	}
+
+	private static void registerSigTermHandler(final SpushnikServer server) {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run() {
+				try {
+					server.stop();
+				} catch (Exception e) {
+					Throwables.propagate(e);
+				}
+			}
+		});
 	}
 }

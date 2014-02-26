@@ -23,10 +23,6 @@
 			<artifactId>greenmail-imap-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.linagora.obm.integration-testing</groupId>
-			<artifactId>utils-integration-testing</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>client-opush</artifactId>
 		</dependency>
@@ -90,18 +86,6 @@
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-plus</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.container</groupId>
-			<artifactId>arquillian-jetty-embedded-9</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

@@ -40,7 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.easymock.IMocksControl;
-import org.fest.util.Files;
+import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
