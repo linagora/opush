@@ -31,16 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
-import java.io.IOException;
+import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
 
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
 
-import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.dao.testsuite.ContinuationTransactionMapTest;
 import org.obm.transaction.TransactionManagerRule;
@@ -48,16 +49,18 @@ import org.slf4j.Logger;
 
 public class ContinuationTransactionMapImplTest extends ContinuationTransactionMapTest {
 
-	@Rule public TemporaryFolder tempFolder =  new TemporaryFolder();
-
 	@Rule public TransactionManagerRule transactionManagerRule = new TransactionManagerRule();
 	
 	private NonTransactionalObjectStoreManager objectStoreManager;
+	private IMocksControl control;
 	
 	@Before
-	public void init() throws NotSupportedException, SystemException, IOException {
-		Logger logger = EasyMock.createNiceMock(Logger.class);
-		OpushConfiguration opushConfiguration = new EhCacheOpushConfiguration().mock(tempFolder);
+	public void init() throws NotSupportedException, SystemException {
+		control = createControl();
+		Logger logger = createNiceMock(Logger.class);
+		OpushConfiguration opushConfiguration = control.createMock(OpushConfiguration.class);
+		expect(opushConfiguration.transactionTimeoutInSeconds()).andReturn(200).anyTimes();
+		control.replay();
 
 		objectStoreManager = new NonTransactionalObjectStoreManager(opushConfiguration, logger);
 		continuationTransactionMap = new ContinuationTransactionMapImpl<TestingContinuation>(objectStoreManager);
