@@ -163,7 +163,7 @@ public class ResponderImplTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void sendResponseFileWithNullContentType() throws Throwable {
+	public void sendResponseFileWithNullContentType() {
 		String contentType = null;
 		byte[] data = {1, 2, 3, 4, 5};
 
@@ -177,14 +177,14 @@ public class ResponderImplTest {
 		
 		try {
 			responder.sendResponseFile(contentType, new ByteArrayInputStream(data));
-		} catch (Throwable t) {
+		} catch (NullPointerException t) {
 			EasyMock.verify(servletResponse, intEncoder, wbxmlTools);
 			throw t;
 		}
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void sendResponseFileWithNullStream() throws Throwable {
+	public void sendResponseFileWithNullStream() {
 		String contentType = "application/pdf";
 
 		HttpServletResponse servletResponse = EasyMock.createMock(HttpServletResponse.class);
@@ -197,7 +197,7 @@ public class ResponderImplTest {
 		
 		try {
 			responder.sendResponseFile(contentType, null);
-		} catch (Throwable t) {
+		} catch (NullPointerException t) {
 			EasyMock.verify(servletResponse, intEncoder, wbxmlTools);
 			throw t;
 		}

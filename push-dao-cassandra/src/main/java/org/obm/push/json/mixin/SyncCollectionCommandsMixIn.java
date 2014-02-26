@@ -41,11 +41,9 @@ import com.google.common.collect.ImmutableListMultimap;
 
 public abstract class SyncCollectionCommandsMixIn<T extends SyncCollectionCommand> {
 
-	@SuppressWarnings("unused")
 	@JsonIgnore
 	private ImmutableListMultimap<SyncCommand, T> commandsByType;
 
-	@SuppressWarnings("unused")
 	@JsonIgnore
 	private List<T> commands;
 	

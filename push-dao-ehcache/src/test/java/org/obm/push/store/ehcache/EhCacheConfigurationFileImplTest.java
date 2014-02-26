@@ -86,13 +86,13 @@ public class EhCacheConfigurationFileImplTest {
 	}
 
 	@Test(expected=IllegalStateException.class)
-	public void testMaxMemoryInMBWhenHigherThanXmx() throws Exception {
+	public void testMaxMemoryInMBWhenHigherThanXmx() {
 		expect(iniFile.getIntValue("maxMemoryInMB", -1)).andReturn(Integer.MAX_VALUE);
 		
 		control.replay();
 		try {
 			testee().maxMemoryInMB();
-		} catch (Exception e) {
+		} catch (IllegalStateException e) {
 			control.verify();
 			throw e;
 		}
@@ -135,26 +135,26 @@ public class EhCacheConfigurationFileImplTest {
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testPercentageWhenMoreThanOneHundred() throws Exception {
+	public void testPercentageWhenMoreThanOneHundred() {
 		expect(iniFile.getIntegerValue("cacheName", null)).andReturn(101);
 		
 		control.replay();
 		try {
 			testee().percentageAllowedToCache("cacheName");
-		} catch (Exception e) {
+		} catch (IllegalStateException e) {
 			control.verify();
 			throw e;
 		}
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testPercentageWhenNegative() throws Exception {
+	public void testPercentageWhenNegative() {
 		expect(iniFile.getIntegerValue("cacheName", null)).andReturn(-1);
 		
 		control.replay();
 		try {
 			testee().percentageAllowedToCache("cacheName");
-		} catch (Exception e) {
+		} catch (IllegalStateException e) {
 			control.verify();
 			throw e;
 		}
