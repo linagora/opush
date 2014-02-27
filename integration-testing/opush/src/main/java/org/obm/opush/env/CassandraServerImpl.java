@@ -56,5 +56,6 @@ public class CassandraServerImpl extends CassandraCQLUnit implements CassandraSe
 	@Override 
 	public void stop() {
 		super.after();
+		cluster.close();
 	}
 }

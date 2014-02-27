@@ -57,7 +57,7 @@ public class CassandraSessionProvider implements Provider<Session>, LifecycleLis
 	@Override
 	public void shutdown() throws Exception {
 		if (cassandraSessionSupplier.hasBeenSupplied()) {
-			cassandraSessionSupplier.get().shutdown();
+			cassandraSessionSupplier.get().close();
 		}
 	}
 }
