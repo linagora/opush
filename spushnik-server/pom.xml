@@ -156,6 +156,117 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>rpm</goal>
+						</goals>
+						<configuration>
+							<name>${project.build.finalName}</name>
+							<version>${version}</version>
+							<!-- REQUIRED FOR RELEASES -->
+							<!--<release>${version}</release>-->
+							<group>Applications/Internet</group>
+							<copyright>AGPLv3</copyright>
+							<vendor>obm.org</vendor>
+							<url>http://www.obm.org</url>
+							<summary>Opush probe</summary>
+							<description>This package contains a Java webapp probe able to check the status of an Opush server instance.
+
+OBM is a global groupware, messaging and CRM application. It is intended to
+be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+simple contact database. OBM also features integration with PDAs, smartphones,
+Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</description>
+							<requires>
+								<require>java-1.7.0-openjdk</require>
+							</requires>
+
+							<mappings>
+								
+								<!-- WEBAPP -->
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/</directory>
+									<filemode>755</filemode>
+									<username>spushnik</username>
+									<groupname>spushnik</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/${project.build.finalName}.jar</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/lib</directory>
+									<filemode>755</filemode>
+									<username>spushnik</username>
+									<groupname>spushnik</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/lib</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/</directory>
+									<filemode>755</filemode>
+									<username>spushnik</username>
+									<groupname>spushnik</groupname>
+									<sources>
+										<source>
+											<location>src/rpm/resources/spushnik-start.sh</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/etc/rc.d/init.d/</directory>
+									<filemode>755</filemode>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>src/rpm/resources/spushnik.centos.sh</location>
+											<destination>spushnik</destination>
+										</source>
+									</sources>
+								</mapping>
+								
+								<!-- DIRECTORIES TO CREATE -->
+								<mapping>
+									<directory>/var/log/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>spushnik</username>
+									<groupname>spushnik</groupname>
+								</mapping>
+								<mapping>
+									<directory>/var/run/${project.build.finalName}</directory>
+									<filemode>755</filemode>
+									<username>spushnik</username>
+									<groupname>spushnik</groupname>
+								</mapping>
+							</mappings>
+							
+							<!-- RPM SCRIPTS -->
+							<preremoveScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/preremove.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</preremoveScriptlet>
+							<postremoveScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/postremove.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</postremoveScriptlet>
+							<preinstallScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/preinstall.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</preinstallScriptlet>
+							
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
