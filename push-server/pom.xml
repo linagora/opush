@@ -186,13 +186,18 @@
 								<!-- SAMPLE CONFIGURATION FILES -->
 								<data>
 									<type>directory</type>
-									<src>${project.parent.basedir}/config-sample/</src>
+									<src>${basedir}/src/configuration/etc/</src>
 									<mapper>
 										<type>perm</type>
 										<user>opush</user>
 										<group>opush</group>
 										<prefix>/usr/share/o-push/debian-conf</prefix>
 									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${basedir}/src/configuration/default</src>
+									<dst>/usr/share/o-push/debian-conf/default</dst>
 								</data>
 								
 								<!-- LINTIAN OVERRIDE FILE -->
@@ -251,28 +256,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<configuration>true</configuration>
 									<sources>
 										<source>
-											<location>${project.parent.basedir}/config-sample/cassandra.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/ehcache_conf.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/ldap_conf.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/logback.xml</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/mail_conf.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/policy.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/remote_console.ini</location>
-										</source>
-										<source>
-											<location>${project.parent.basedir}/config-sample/sync_perms.ini</location>
+											<location>${basedir}/src/configuration/etc/</location>
 										</source>
 									</sources>
 								</mapping>
@@ -284,7 +268,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<configuration>true</configuration>
 									<sources>
 										<source>
-											<location>${project.parent.basedir}/config-sample/default</location>
+											<location>${basedir}/src/configuration/default</location>
 											<destination>opush</destination>
 										</source>
 									</sources>
