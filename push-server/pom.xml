@@ -128,7 +128,7 @@
 						</goals>
 						<configuration>
 							<verbose>false</verbose>
-							<deb>${project.build.directory}/${project.build.finalName}_${version}.deb</deb>
+							<deb>${project.build.directory}/${project.build.finalName}_${opush.packaging.version}.deb</deb>
 							<controlDir>${basedir}/src/deb/control</controlDir>
 							<dataSet>
 							
@@ -222,9 +222,8 @@
 						</goals>
 						<configuration>
 							<name>${project.build.finalName}</name>
-							<version>${version}</version>
-							<!-- REQUIRED FOR RELEASES -->
-							<!--<release>${version}</release>-->
+							<version>${opush.packaging.version}</version>
+							<release>${opush.packaging.release}</release>
 							<group>Applications/Internet</group>
 							<copyright>AGPLv3</copyright>
 							<vendor>obm.org</vendor>

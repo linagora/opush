@@ -1,5 +1,5 @@
 Package: spushnik
-Version: [[version]]
+Version: [[opush.packaging.version]]-[[opush.packaging.release]]
 Section: net
 Priority: optional
 Architecture: all
