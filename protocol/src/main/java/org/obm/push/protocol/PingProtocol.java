@@ -33,6 +33,7 @@ package org.obm.push.protocol;
 
 import java.util.LinkedHashSet;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionRequest;
@@ -112,7 +113,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 	}
 
 	@Override
-	public Document encodeResponse(PingResponse pingResponse) {
+	public Document encodeResponse(Device device, PingResponse pingResponse) {
 		Document document = DOMUtils.createDoc(null, "Ping");
 		Element root = document.getDocumentElement();
 		

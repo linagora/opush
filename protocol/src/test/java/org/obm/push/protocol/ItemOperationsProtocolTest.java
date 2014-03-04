@@ -49,7 +49,6 @@ import javax.xml.parsers.FactoryConfigurationError;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.IApplicationData;
@@ -58,9 +57,6 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.User;
-import org.obm.push.bean.User.Factory;
-import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
@@ -83,14 +79,11 @@ import com.google.common.base.Charsets;
 public class ItemOperationsProtocolTest {
 
 	private ItemOperationsProtocol itemOperationsProtocol;
-	private UserDataRequest udr;
+	private Device device;
 
 	@Before
 	public void setup() {
-		User user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
-		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
-		Credentials credentials = new Credentials(user, "test");
-		udr = new UserDataRequest(credentials, "Sync", device);
+		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
 		itemOperationsProtocol = new ItemOperationsProtocol.Factory(null).create(device, true);
 	}
 	
@@ -162,8 +155,8 @@ public class ItemOperationsProtocolTest {
 		replay(applicationDataEncoder);
 
 		ItemOperationsProtocol protocol = new ItemOperationsProtocol.Factory(applicationDataEncoder)
-			.create(udr.getDevice(), isMultipart);
-		Document doc = protocol.encodeResponse(response);
+			.create(device, isMultipart);
+		Document doc = protocol.encodeResponse(device, response);
 		
 		verify(applicationDataEncoder);
 		
@@ -209,8 +202,8 @@ public class ItemOperationsProtocolTest {
 		replay(applicationDataEncoder);
 
 		ItemOperationsProtocol protocol = new ItemOperationsProtocol.Factory(applicationDataEncoder)
-			.create(udr.getDevice(), isMultipart);
-		Document doc = protocol.encodeResponse(response);
+			.create(device, isMultipart);
+		Document doc = protocol.encodeResponse(device, response);
 
 		verify(applicationDataEncoder);
 		
@@ -255,8 +248,8 @@ public class ItemOperationsProtocolTest {
 
 		EncoderFactory applicationDataEncoder = createMock(EncoderFactory.class);
 		ItemOperationsProtocol protocol = new ItemOperationsProtocol.Factory(applicationDataEncoder)
-			.create(udr.getDevice(), isMultipart);
-		Document doc = protocol.encodeResponse(response);
+			.create(device, isMultipart);
+		Document doc = protocol.encodeResponse(device, response);
 
 		assertThat(DOMUtils.serialize(doc)).isEqualTo(
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -291,8 +284,8 @@ public class ItemOperationsProtocolTest {
 
 		EncoderFactory applicationDataEncoder = createMock(EncoderFactory.class);
 		ItemOperationsProtocol protocol = new ItemOperationsProtocol.Factory(applicationDataEncoder)
-			.create(udr.getDevice(), isMultipart);
-		Document doc = protocol.encodeResponse(response);
+			.create(device, isMultipart);
+		Document doc = protocol.encodeResponse(device, response);
 
 		assertThat(DOMUtils.serialize(doc)).isEqualTo(
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -370,8 +363,8 @@ public class ItemOperationsProtocolTest {
 		replay(applicationDataEncoder);
 
 		ItemOperationsProtocol protocol = new ItemOperationsProtocol.Factory(applicationDataEncoder)
-			.create(udr.getDevice(), isMultipart);
-		Document doc = protocol.encodeResponse(response);
+			.create(device, isMultipart);
+		Document doc = protocol.encodeResponse(device, response);
 
 		verify(applicationDataEncoder);
 		return doc;

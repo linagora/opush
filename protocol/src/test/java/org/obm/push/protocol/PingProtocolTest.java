@@ -33,10 +33,15 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import javax.xml.transform.TransformerException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionRequest;
@@ -53,10 +58,12 @@ import com.google.common.collect.ImmutableSet;
 public class PingProtocolTest {
 	
 	private PingProtocol pingProtocol;
+	private Device device;
 	
 	@Before
 	public void init() {
 		pingProtocol = new PingProtocol();
+		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
 	}
 	
 	@Test
@@ -99,7 +106,7 @@ public class PingProtocolTest {
 				"</Ping>";
 		
 		PingResponse pingResponse = pingProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = pingProtocol.encodeResponse(pingResponse);
+		Document encodeResponse = pingProtocol.encodeResponse(device, pingResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}
@@ -154,7 +161,7 @@ public class PingProtocolTest {
 				.pingStatus(PingStatus.NO_CHANGES)
 				.build();
 		
-		assertThat(DOMUtils.serialize(pingProtocol.encodeResponse(pingResponse))).isEqualTo(
+		assertThat(DOMUtils.serialize(pingProtocol.encodeResponse(device, pingResponse))).isEqualTo(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Ping>" +
 					"<Status>1</Status>" +
@@ -172,7 +179,7 @@ public class PingProtocolTest {
 			.pingStatus(PingStatus.CHANGES_OCCURED)
 			.build();
 		
-		assertThat(DOMUtils.serialize(pingProtocol.encodeResponse(pingResponse))).isEqualTo(
+		assertThat(DOMUtils.serialize(pingProtocol.encodeResponse(device, pingResponse))).isEqualTo(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Ping>" +
 					"<Status>2</Status>" +

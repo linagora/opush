@@ -33,8 +33,13 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.autodiscover.AutodiscoverRequest;
 import org.obm.push.bean.autodiscover.AutodiscoverResponse;
 import org.obm.push.utils.DOMUtils;
@@ -91,7 +96,8 @@ public class AutodiscoverProtocolTest {
 				"</Autodiscover>";
 		
 		AutodiscoverResponse autodiscoverResponse = autodiscoverProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = autodiscoverProtocol.encodeResponse(autodiscoverResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = autodiscoverProtocol.encodeResponse(device, autodiscoverResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

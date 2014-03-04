@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.exception.activesync.NoDocumentException;
@@ -104,7 +105,7 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 	}
 
 	@Override	
-	public Document encodeResponse(MoveItemsResponse moveItemsResponse) {
+	public Document encodeResponse(Device device, MoveItemsResponse moveItemsResponse) {
 		Document reply = DOMUtils.createDoc(null, "MoveItems");
 		Element root = reply.getDocumentElement();
 		

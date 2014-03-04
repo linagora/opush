@@ -32,65 +32,49 @@
 package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createControl;
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import javax.xml.transform.TransformerException;
 
-import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
-import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
-import org.obm.push.bean.User;
-import org.obm.push.bean.User.Factory;
-import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
-import org.obm.push.exception.activesync.PartialException;
-import org.obm.push.protocol.bean.AnalysedSyncRequest;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ContactDecoder;
 import org.obm.push.protocol.data.ContactEncoder;
 import org.obm.push.protocol.data.DecoderFactory;
 import org.obm.push.protocol.data.EncoderFactory;
-import org.obm.push.protocol.data.SyncAnalyser;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.protocol.data.SyncEncoder;
 import org.obm.push.protocol.data.ms.MSEmailDecoder;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -100,33 +84,14 @@ public class SyncProtocolTest {
 
 	@Inject EncoderFactory encoderFactory;
 
-	private final int DEFAULT_WINDOW_SIZE = 100;
 	
-	private User user;
 	private Device device;
-	private Credentials credentials;
-	private UserDataRequest udr;
-	private String mailbox;
-	private String password;
-
-	private IMocksControl mocks;
-	private SyncedCollectionDao syncedCollectionDao;
-	private CollectionDao collectionDao;
-	private ICollectionPathHelper collectionPathHelper;
+	private SyncProtocol testee;
 	
 	@Before
 	public void setUp() {
-	    mailbox = "to@localhost.com";
-	    password = "password";
-		user = Factory.create().createUser(mailbox, mailbox, "displayName");
 		device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), ProtocolVersion.V121);
-		credentials = new Credentials(user, password);
-		udr = new UserDataRequest(credentials, "noCommand", device);
-		
-		mocks = createControl();
-		syncedCollectionDao = mocks.createMock(SyncedCollectionDao.class);
-		collectionDao = mocks.createMock(CollectionDao.class);
-		collectionPathHelper = mocks.createMock(ICollectionPathHelper.class);
+		testee = new SyncProtocol(new SyncDecoderTest(), new SyncEncoderTest(), new EncoderFactoryTest());
 	}
 
 	@Test
@@ -201,8 +166,7 @@ public class SyncProtocolTest {
 	}
 
 	private String encodeResponse(SyncCollectionResponse collectionResponse) throws TransformerException {
-		Document endcodedResponse = new SyncProtocol(null, null, null, null, udr)
-			.encodeResponse(syncResponse(collectionResponse));
+		Document endcodedResponse = testee.encodeResponse(device, syncResponse(collectionResponse));
 		return DOMUtils.serialize(endcodedResponse);
 	}
 	
@@ -225,10 +189,7 @@ public class SyncProtocolTest {
 	@Test(expected=NoDocumentException.class)
 	public void testDecodeRequestWithNullDocument() {
 		Document request = null;
-		
-		SyncDecoder syncDecoder = createStrictMock(SyncDecoder.class);
-		
-		new SyncProtocol(syncDecoder, null, null, null, null).decodeRequest(request);
+		testee.decodeRequest(request);
 	}
 	
 	@Test
@@ -248,8 +209,9 @@ public class SyncProtocolTest {
 		SyncDecoder syncDecoder = createStrictMock(SyncDecoder.class);
 		expect(syncDecoder.decodeSync(request)).andReturn(null);
 		replay(syncDecoder);
+		SyncProtocol syncProtocol = new SyncProtocol(syncDecoder, null, null);
 		
-		new SyncProtocol(syncDecoder, null, null, null, null).decodeRequest(request);
+		syncProtocol.decodeRequest(request);
 
 		verify(syncDecoder);
 	}
@@ -270,8 +232,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getWaitInSecond()).isEqualTo(0);
 	}
@@ -292,19 +253,10 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(syncingCollectionId, syncingCollectionSyncKey);
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
-
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		syncProtocol.decodeRequest(request);
+		testee.decodeRequest(request);
 	}
 
-	@Test(expected=PartialException.class)
 	public void testPartialRequest() throws Exception {
-		int syncingCollectionId = 3;
-		String syncingCollectionSyncKey = "1234-5678";
 		Document request = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
@@ -312,14 +264,9 @@ public class SyncProtocolTest {
 					"<Wait>1</Wait>" +
 				"</Sync>");
 
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(syncingCollectionId, syncingCollectionSyncKey);
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
-
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		syncProtocol.analyzeRequest(udr, syncRequest);
+		SyncRequest syncRequest = testee.decodeRequest(request);
+		assertThat(syncRequest.getWaitInMinute()).isEqualTo(1);
+		assertThat(syncRequest.getCollections()).isEmpty();
 	}
 
 	@Test
@@ -337,8 +284,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		SyncCollectionRequest expectedSyncCollection = SyncCollectionRequest.builder()
 			.collectionId(syncingCollectionId)
@@ -367,8 +313,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		assertThat(syncRequest.getWindowSize()).isEqualTo(150);
@@ -393,8 +338,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -422,8 +366,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -456,8 +399,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -491,8 +433,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -528,8 +469,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -562,8 +502,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -592,12 +531,8 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -624,12 +559,7 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>");
 
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
-
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
+		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
@@ -672,27 +602,11 @@ public class SyncProtocolTest {
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.CONTACTS, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange);
 	}
 
@@ -752,29 +666,12 @@ public class SyncProtocolTest {
 				.serverId("456")
 				.applicationData(expectedMSContact2)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.CONTACTS, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.addCommand(expectedSyncCollectionChange2)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
-		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse collection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
+		assertThat(collection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
 	}
 
 	@Test
@@ -814,27 +711,11 @@ public class SyncProtocolTest {
 				.serverId("123")
 				.applicationData(expectedMSContact)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.CONTACTS, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
-
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
+		SyncResponse syncRequest = testee.decodeResponse(request);
 		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncRequest.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncRequest.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange);
 	}
 
@@ -895,27 +776,11 @@ public class SyncProtocolTest {
 				.applicationData(expectedMSContact2)
 				.build();
 		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.CONTACTS, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.addCommand(expectedSyncCollectionChange2)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
-
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
 	}
 
@@ -945,27 +810,11 @@ public class SyncProtocolTest {
 				.serverId("123")
 				.applicationData(null)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.EMAIL, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange);
 		assertThat(syncCollection.getFetchIds()).containsOnly("123");
 	}
@@ -1005,28 +854,11 @@ public class SyncProtocolTest {
 				.serverId("456")
 				.applicationData(null)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.EMAIL, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.addCommand(expectedSyncCollectionChange2)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
-
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
 		assertThat(syncCollection.getFetchIds()).containsOnly("123", "456");
 	}
@@ -1057,27 +889,11 @@ public class SyncProtocolTest {
 				.serverId("123")
 				.applicationData(null)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.EMAIL, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
-
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange);
 	}
 
@@ -1116,29 +932,11 @@ public class SyncProtocolTest {
 				.serverId("456")
 				.applicationData(null)
 				.build();
-		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.EMAIL, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionChange)
-					.addCommand(expectedSyncCollectionChange2)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType();
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
 
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
 	}
 
@@ -1260,33 +1058,10 @@ public class SyncProtocolTest {
 				.applicationData(null)
 				.build();
 		
-		SyncedCollectionDao syncedCollectionDao = mockReadThenWriteSyncedCollectionCache(
-				syncingCollectionId, 
-				syncingCollectionSyncKey, 
-				DEFAULT_WINDOW_SIZE, 
-				PIMDataType.CONTACTS, 
-				SyncCollectionCommandsResponse.builder()
-					.addCommand(expectedSyncCollectionAdd)
-					.addCommand(expectedSyncCollectionAdd2)
-					.addCommand(expectedSyncCollectionChange)
-					.addCommand(expectedSyncCollectionChange2)
-					.addCommand(expectedSyncCollectionFetch)
-					.addCommand(expectedSyncCollectionFetch2)
-					.addCommand(expectedSyncCollectionDelete)
-					.addCommand(expectedSyncCollectionDelete2)
-					.build());
-		CollectionDao collectionDao = mockFindCollectionPathForId(PIMDataType.CONTACTS, syncingCollectionId);
-		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperRecognizeDataType(PIMDataType.CONTACTS);
-		replay(syncedCollectionDao, collectionDao, collectionPathHelper);
+		SyncResponse syncResponse = testee.decodeResponse(request);
 		
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest syncRequest = syncProtocol.decodeRequest(request);
-		AnalysedSyncRequest analyzedRequest = syncProtocol.analyzeRequest(udr, syncRequest);
-
-		verify(syncedCollectionDao, collectionDao, collectionPathHelper);
-		
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		AnalysedSyncCollection syncCollection = analyzedRequest.getSync().getCollection(syncingCollectionId);
+		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
+		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(
 				expectedSyncCollectionAdd, expectedSyncCollectionAdd2,
 				expectedSyncCollectionChange, expectedSyncCollectionChange2,
@@ -1304,9 +1079,8 @@ public class SyncProtocolTest {
 					"<Wait>30</Wait>" +
 				"</Sync>";
 		
-		SyncProtocol syncProtocol = newSyncProtocol();
-		SyncRequest decodedSyncRequest = syncProtocol.decodeRequest(DOMUtils.parse(request));
-		Document encodedRequest = syncProtocol.encodeRequest(decodedSyncRequest);
+		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
+		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
 		
 		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
 	}
@@ -1334,9 +1108,8 @@ public class SyncProtocolTest {
 				"</Sync>";
 		
 		
-		SyncProtocol syncProtocol = newSyncProtocol(syncedCollectionDao, collectionDao, collectionPathHelper);
-		SyncRequest decodedSyncRequest = syncProtocol.decodeRequest(DOMUtils.parse(request));
-		Document encodedRequest = syncProtocol.encodeRequest(decodedSyncRequest);
+		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
+		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
 		
 		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
 	}
@@ -1349,8 +1122,7 @@ public class SyncProtocolTest {
 					"<Status>13</Status>" +
 				"</Sync>";
 
-		SyncProtocol syncProtocol = newSyncProtocol(null, null, null);
-		SyncResponse decodedSyncResponse = syncProtocol.decodeResponse(DOMUtils.parse(response));
+		SyncResponse decodedSyncResponse = testee.decodeResponse(DOMUtils.parse(response));
 		
 		assertThat(decodedSyncResponse.getStatus()).isEqualTo(SyncStatus.PARTIAL_REQUEST);
 	}
@@ -1363,8 +1135,7 @@ public class SyncProtocolTest {
 					"<Status>11</Status>" +
 				"</Sync>";
 
-		SyncProtocol syncProtocol = newSyncProtocol(null, null, null);
-		SyncResponse decodedSyncResponse = syncProtocol.decodeResponse(DOMUtils.parse(response));
+		SyncResponse decodedSyncResponse = testee.decodeResponse(DOMUtils.parse(response));
 		
 		assertThat(decodedSyncResponse.getStatus()).isEqualTo(SyncStatus.NOT_YET_PROVISIONNED);
 	}
@@ -1377,71 +1148,6 @@ public class SyncProtocolTest {
 			.build();
 	}
 	
-	private SyncProtocol newSyncProtocol() {
-		return newSyncProtocol(null, null, null);
-	}
-	
-	private SyncProtocol newSyncProtocol(SyncedCollectionDao syncedCollectionDao, CollectionDao collectionDao,
-			ICollectionPathHelper collectionPathHelper) {
-		SyncDecoder syncDecoder = new SyncDecoderTest();
-		SyncEncoder syncEncoder = new SyncEncoderTest();
-		EncoderFactory encoderFactory = new EncoderFactoryTest();
-		SyncAnalyser syncAnalyser = new SyncAnalyserTest(syncedCollectionDao, collectionDao, collectionPathHelper);
-		return new SyncProtocol(syncDecoder, syncAnalyser, syncEncoder, encoderFactory, udr);
-	}
-
-	private CollectionDao mockFindCollectionPathForId(int syncingCollectionId) throws Exception {
-		return mockFindCollectionPathForId(PIMDataType.EMAIL, syncingCollectionId);
-	}
-
-	private CollectionDao mockFindCollectionPathForId(PIMDataType pimDataType, int syncingCollectionId) throws Exception {
-		String foundPath = collectionPath(pimDataType, syncingCollectionId);
-		CollectionDao collectionDao = createMock(CollectionDao.class);
-		expect(collectionDao.getCollectionPath(syncingCollectionId)).andReturn(foundPath);
-		return collectionDao;
-	}
-
-	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(int collectionId, String syncKey) {
-		return mockReadThenWriteSyncedCollectionCache(collectionId, syncKey, DEFAULT_WINDOW_SIZE, PIMDataType.EMAIL,
-				SyncCollectionCommandsResponse.builder().build());
-	}
-
-	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(int collectionId, String syncKey, Integer windowSize, PIMDataType dataType, SyncCollectionCommandsResponse syncCollectionCommands) {
-		return mockReadThenWriteSyncedCollectionCache(collectionId,
-				AnalysedSyncCollection.builder()
-					.collectionId(collectionId)
-					.collectionPath(collectionPath(dataType, collectionId))
-					.dataType(dataType)
-					.syncKey(new SyncKey(syncKey))
-					.windowSize(windowSize)
-					.commands(syncCollectionCommands)
-					.status(SyncStatus.OK)
-					.build());
-	}
-
-	private SyncedCollectionDao mockReadThenWriteSyncedCollectionCache(
-			int collectionId, AnalysedSyncCollection syncCollection) {
-		SyncedCollectionDao syncedCollectionDao = createMock(SyncedCollectionDao.class);
-		expect(syncedCollectionDao.get(credentials, device, collectionId)).andReturn(null);
-		syncedCollectionDao.put(credentials, device, syncCollection);
-		expectLastCall();
-		return syncedCollectionDao;
-	}
-	
-	private ICollectionPathHelper mockCollectionPathHelperRecognizeDataType() {
-		return mockCollectionPathHelperRecognizeDataType(PIMDataType.EMAIL);
-	}
-
-	private ICollectionPathHelper mockCollectionPathHelperRecognizeDataType(PIMDataType pimDataType) {
-		ICollectionPathHelper collectionPathHelper = createMock(ICollectionPathHelper.class);
-		expect(collectionPathHelper.recognizePIMDataType(anyObject(String.class))).andReturn(pimDataType);
-		return collectionPathHelper;
-	}
-
-	private String collectionPath(PIMDataType pimDataType, int collectionId) {
-		return "obm:\\\\" + user.getLoginAtDomain() + "\\" + pimDataType.asCollectionPathValue() + "\\" + collectionId;
-	}
-	
 	static class SyncDecoderTest extends SyncDecoder {
 
 		protected SyncDecoderTest() {
@@ -1450,17 +1156,6 @@ public class SyncProtocolTest {
 	}
 	
 	static class SyncEncoderTest extends SyncEncoder {}
-	
-	static class SyncAnalyserTest extends SyncAnalyser {
-
-		protected SyncAnalyserTest(
-				SyncedCollectionDao syncedCollectionStoreService,
-				CollectionDao collectionDao,
-				ICollectionPathHelper collectionPathHelper) {
-			super(syncedCollectionStoreService, collectionDao, collectionPathHelper, new DecoderFactoryTest());
-		}
-
-	}
 	
 	static class DecoderFactoryTest extends DecoderFactory {
 

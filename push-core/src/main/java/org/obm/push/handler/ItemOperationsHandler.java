@@ -123,7 +123,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 		try {
 			ItemOperationsRequest itemOperationRequest = protocol.decodeRequest(doc);
 			ItemOperationsResponse response = doTheJob(udr, itemOperationRequest);
-			Document document = protocol.encodeResponse(response);
+			Document document = protocol.encodeResponse(udr.getDevice(), response);
 			sendResponse(responder, document, response, acceptGZip, acceptMultipart);
 		} catch (CollectionNotFoundException e) {
 			sendErrorResponse(responder, protocol, ItemOperationsStatus.DOCUMENT_LIBRARY_STORE_UNKNOWN, e);

@@ -36,6 +36,7 @@ import java.util.List;
 
 import javax.xml.parsers.FactoryConfigurationError;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.SyncKey;
@@ -145,7 +146,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 	}
 
 	@Override
-	public Document encodeResponse(FolderSyncResponse folderSyncResponse) throws FactoryConfigurationError {
+	public Document encodeResponse(Device device, FolderSyncResponse folderSyncResponse) throws FactoryConfigurationError {
 		Document ret = DOMUtils.createDoc(null, "FolderSync");
 		Element root = ret.getDocumentElement();
 		

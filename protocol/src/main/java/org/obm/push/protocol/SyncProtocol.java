@@ -38,23 +38,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
-import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.NoDocumentException;
-import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
-import org.obm.push.protocol.bean.AnalysedSyncRequest;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
-import org.obm.push.protocol.data.SyncAnalyser;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.protocol.data.SyncEncoder;
 import org.obm.push.utils.DOMUtils;
@@ -62,48 +59,21 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncResponse> {
 
-	@Singleton
-	public static class Factory {
-		
-		private final SyncDecoder syncDecoder;
-		private final SyncAnalyser syncAnalyser;
-		private final SyncEncoder syncEncoder;
-		private final EncoderFactory encoderFactory;
-
-		@Inject
-		public Factory(SyncDecoder syncDecoder, SyncAnalyser syncAnalyser,
-				SyncEncoder syncEncoder, EncoderFactory encoderFactory) {
-			this.syncDecoder = syncDecoder;
-			this.syncAnalyser = syncAnalyser;
-			this.syncEncoder = syncEncoder;
-			this.encoderFactory = encoderFactory;
-		}
-		
-		public SyncProtocol create(UserDataRequest udr) {
-			return new SyncProtocol(syncDecoder, syncAnalyser, syncEncoder, encoderFactory, udr);
-		}
-	}
-	
 	private final SyncDecoder syncDecoder;
-	private final SyncAnalyser syncAnalyser;
 	private final SyncEncoder syncEncoder;
 	private final EncoderFactory encoderFactory;
-	private final UserDataRequest udr;
 
-	@VisibleForTesting SyncProtocol(SyncDecoder syncDecoder, SyncAnalyser syncAnalyser, 
-			SyncEncoder syncEncoder, EncoderFactory encoderFactory, UserDataRequest udr) {
+	@Inject
+	@VisibleForTesting SyncProtocol(SyncDecoder syncDecoder,
+			SyncEncoder syncEncoder, EncoderFactory encoderFactory) {
 		this.syncDecoder = syncDecoder;
-		this.syncAnalyser = syncAnalyser;
 		this.syncEncoder = syncEncoder;
 		this.encoderFactory = encoderFactory;
-		this.udr = udr;
 	}
 	
 	@Override
@@ -115,16 +85,8 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		return syncDecoder.decodeSync(doc);
 	}
 	
-	public AnalysedSyncRequest analyzeRequest(UserDataRequest userDataRequest, SyncRequest syncRequest) 
-			throws PartialException, ProtocolException, DaoException, CollectionPathException {
-		Preconditions.checkNotNull(userDataRequest);
-		Preconditions.checkNotNull(syncRequest);
-		
-		return new AnalysedSyncRequest( syncAnalyser.analyseSync(userDataRequest, syncRequest) );
-	}
-	
 	@Override
-	public Document encodeResponse(SyncResponse syncResponse) throws ProtocolException {
+	public Document encodeResponse(Device device, SyncResponse syncResponse) throws ProtocolException {
 		try {
 			Document reply = DOMUtils.createDoc(null, "Sync");
 			Element root = reply.getDocumentElement();
@@ -157,10 +119,10 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 						}
 
 						if (collectionResponse.getFetchIds().isEmpty()) {
-							buildUpdateItemChange(collectionResponse, 
+							buildUpdateItemChange(device, collectionResponse, 
 									Maps.newHashMap(syncResponse.getProcessedClientIds()), ce);
 						} else {
-							buildFetchItemChange(collectionResponse, ce);
+							buildFetchItemChange(device, collectionResponse, ce);
 						}
 					}
 					
@@ -192,25 +154,25 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		return ret;
 	}
 
-	private void buildFetchItemChange(SyncCollectionResponse c, Element ce) throws IOException {
+	private void buildFetchItemChange(Device device, SyncCollectionResponse c, Element ce) throws IOException {
 		
 		Element commands = DOMUtils.createElement(ce, "Responses");
 		for (ItemChange ic : c.getItemFetchs()) {
 			Element add = DOMUtils.createElement(commands, "Fetch");
 			DOMUtils.createElementAndText(add, "ServerId", ic.getServerId());
 			DOMUtils.createElementAndText(add, "Status", c.getStatus().asSpecificationValue());
-			serializeChange(add, ic);
+			serializeChange(device, add, ic);
 		}
 	}
 	
-	private void serializeChange(Element col, ItemChange ic) throws IOException {
+	private void serializeChange(Device device, Element col, ItemChange ic) throws IOException {
 		if (ic.getData() != null) {
 			Element apData = DOMUtils.createElement(col, "ApplicationData");
-			encoderFactory.encode(udr.getDevice(), apData, ic.getData(), true);
+			encoderFactory.encode(device, apData, ic.getData(), true);
 		}
 	}
 	
-	private void buildUpdateItemChange(SyncCollectionResponse c, Map<String, String> processedClientIds, 
+	private void buildUpdateItemChange(Device device, SyncCollectionResponse c, Map<String, String> processedClientIds, 
 			Element ce) throws IOException {
 		
 		
@@ -239,7 +201,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 				String commandName = selectCommandName(ic);
 				Element command = DOMUtils.createElement(commands, commandName);
 				DOMUtils.createElementAndText(command, "ServerId", ic.getServerId());
-				serializeChange(command, ic);
+				serializeChange(device, command, ic);
 			}
 			processedClientIds.remove(ic.getServerId());
 		}

@@ -33,8 +33,13 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -47,10 +52,12 @@ import org.w3c.dom.Document;
 public class FolderSyncProtocolTest {
 	
 	private FolderSyncProtocol folderSyncProtocol;
+	private Device device;
 	
 	@Before
 	public void init() {
 		folderSyncProtocol = new FolderSyncProtocol();
+		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
 	}
 
 	@Test
@@ -93,7 +100,7 @@ public class FolderSyncProtocolTest {
 				"</FolderSync>";
 		
 		FolderSyncResponse folderSyncResponse = folderSyncProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = folderSyncProtocol.encodeResponse(folderSyncResponse);
+		Document encodeResponse = folderSyncProtocol.encodeResponse(device, folderSyncResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}
@@ -132,7 +139,7 @@ public class FolderSyncProtocolTest {
 	
 	@Test
 	public void testEncodeStatusOK() throws Exception {
-		Document encodedDocument = folderSyncProtocol.encodeResponse(FolderSyncResponse.builder()
+		Document encodedDocument = folderSyncProtocol.encodeResponse(device, FolderSyncResponse.builder()
 				.newSyncKey(new SyncKey("1234"))
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder().build())
@@ -151,7 +158,7 @@ public class FolderSyncProtocolTest {
 	
 	@Test
 	public void testEncodeStatusInvalidSyncKey() throws Exception {
-		Document encodedDocument = folderSyncProtocol.encodeResponse(FolderSyncResponse.builder()
+		Document encodedDocument = folderSyncProtocol.encodeResponse(device, FolderSyncResponse.builder()
 				.newSyncKey(new SyncKey("1234"))
 				.status(FolderSyncStatus.INVALID_SYNC_KEY)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder().build())

@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.SearchResult;
 import org.obm.push.bean.SearchStatus;
 import org.obm.push.bean.StoreName;
@@ -142,7 +143,7 @@ public class SearchProtocol implements ActiveSyncProtocol<SearchRequest, SearchR
 	}
 
 	@Override
-	public Document encodeResponse(SearchResponse response) {
+	public Document encodeResponse(Device device, SearchResponse response) {
 		Document search = DOMUtils.createDoc(null, "Search");
 		Element r = search.getDocumentElement();
 		r.setAttribute("xmlns:GAL", "GAL");

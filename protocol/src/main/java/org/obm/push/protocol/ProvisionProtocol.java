@@ -35,6 +35,7 @@ import javax.xml.parsers.FactoryConfigurationError;
 
 import org.obm.push.Policy;
 import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
 import org.obm.push.bean.ProvisionPolicyStatus;
 import org.obm.push.bean.ProvisionStatus;
 import org.obm.push.exception.InvalidPolicyKeyException;
@@ -128,7 +129,7 @@ public class ProvisionProtocol implements ActiveSyncProtocol<ProvisionRequest, P
 	}
 
 	@Override
-	public Document encodeResponse(ProvisionResponse provisionResponse) throws FactoryConfigurationError {
+	public Document encodeResponse(Device device, ProvisionResponse provisionResponse) throws FactoryConfigurationError {
 		Document ret = DOMUtils.createDoc(null, "Provision");
 		Element root = ret.getDocumentElement();
 		DOMUtils.createElementAndText(root, "Status", provisionResponse.getStatus().getSpecificationValue());

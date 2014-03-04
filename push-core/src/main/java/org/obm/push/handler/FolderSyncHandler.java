@@ -88,7 +88,7 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 		try {
 			FolderSyncRequest folderSyncRequest = protocol.decodeRequest(doc);
 			FolderSyncResponse folderSyncResponse = doTheJob(udr, folderSyncRequest);
-			Document ret = protocol.encodeResponse(folderSyncResponse);
+			Document ret = protocol.encodeResponse(udr.getDevice(), folderSyncResponse);
 			sendResponse(responder, ret);
 			
 		} catch (InvalidSyncKeyException e) {

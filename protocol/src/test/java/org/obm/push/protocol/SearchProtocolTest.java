@@ -35,12 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 import javax.xml.parsers.FactoryConfigurationError;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.StoreName;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.exception.activesync.XMLValidationException;
@@ -156,7 +160,8 @@ public class SearchProtocolTest {
 				"</Search>";
 		
 		SearchResponse searchResponse = searchProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = searchProtocol.encodeResponse(searchResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = searchProtocol.encodeResponse(device, searchResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

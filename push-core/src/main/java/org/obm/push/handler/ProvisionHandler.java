@@ -90,7 +90,7 @@ public class ProvisionHandler extends WbxmlRequestHandler {
 			ProvisionRequest provisionRequest = provisioningProtocol.decodeRequest(doc);
 			logger.info("required {}", provisionRequest.toString());
 			ProvisionResponse provisionResponse = doTheJob(provisionRequest, udr);
-			Document ret = provisioningProtocol.encodeResponse(provisionResponse);
+			Document ret = provisioningProtocol.encodeResponse(udr.getDevice(), provisionResponse);
 			sendResponse(responder, ret);
 		} catch (InvalidPolicyKeyException e) {
 			sendErrorResponse(responder, ProvisionStatus.PROTOCOL_ERROR, e, provisioningProtocol);

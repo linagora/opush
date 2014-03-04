@@ -103,7 +103,7 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 		try {
 			GetItemEstimateRequest estimateRequest = protocol.decodeRequest(doc);
 			GetItemEstimateResponse response = doTheJob(udr, estimateRequest);
-			Document document = protocol.encodeResponse(response);
+			Document document = protocol.encodeResponse(udr.getDevice(), response);
 			sendResponse(responder, document);
 
 		} catch (InvalidSyncKeyException e) {

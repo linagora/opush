@@ -94,7 +94,7 @@ public class SearchHandler extends WbxmlRequestHandler {
 		try {
 			SearchRequest searchRequest = protocol.decodeRequest(doc);
 			SearchResponse response = search(udr, searchRequest);
-			Document document = protocol.encodeResponse(response);
+			Document document = protocol.encodeResponse(udr.getDevice(), response);
 			sendResponse(responder, document);
 		} catch (XMLValidationException e) {
 			logger.error("Protocol violation", e);

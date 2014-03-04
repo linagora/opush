@@ -34,6 +34,7 @@ package org.obm.push.protocol;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.obm.push.bean.Device;
 import org.obm.push.bean.autodiscover.AutodiscoverProtocolException;
 import org.obm.push.bean.autodiscover.AutodiscoverRequest;
 import org.obm.push.bean.autodiscover.AutodiscoverResponse;
@@ -189,7 +190,7 @@ public class AutodiscoverProtocol implements ActiveSyncProtocol<AutodiscoverRequ
 	}
 
 	@Override
-	public Document encodeResponse(AutodiscoverResponse autodiscoverResponse) throws AutodiscoverProtocolException {
+	public Document encodeResponse(Device device, AutodiscoverResponse autodiscoverResponse) throws AutodiscoverProtocolException {
 		Document autodiscover = DOMUtils.createDoc(null, "Autodiscover");
 		Element autodiscoverElement = autodiscover.getDocumentElement();
 		autodiscoverElement.setAttribute(AUTODISCOVER_NS, AUTODISCOVER_NS_VALUE);

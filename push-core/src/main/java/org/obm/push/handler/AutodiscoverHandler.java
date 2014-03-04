@@ -72,7 +72,7 @@ public class AutodiscoverHandler extends XmlRequestHandler {
 		try {
 			autodiscoverRequest = protocol.decodeRequest(doc);
 			AutodiscoverResponse autodiscoverResponse = doTheJob(udr, autodiscoverRequest);
-			Document ret = protocol.encodeResponse(autodiscoverResponse);
+			Document ret = protocol.encodeResponse(udr.getDevice(), autodiscoverResponse);
 			sendResponse(responder, ret);
 		} catch (NoDocumentException e) {
 			logger.error(e.getMessage(), e);

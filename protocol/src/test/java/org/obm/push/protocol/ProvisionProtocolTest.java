@@ -33,11 +33,15 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import javax.xml.parsers.FactoryConfigurationError;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.ProvisionStatus;
 import org.obm.push.exception.InvalidPolicyKeyException;
 import org.obm.push.protocol.bean.ProvisionRequest;
@@ -161,7 +165,8 @@ public class ProvisionProtocolTest {
 				"</Provision>";
 		
 		ProvisionResponse provisionResponse = provisionProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = provisionProtocol.encodeResponse(provisionResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = provisionProtocol.encodeResponse(device, provisionResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

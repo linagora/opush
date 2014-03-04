@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import org.obm.push.bean.Device;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.w3c.dom.Document;
 
@@ -42,6 +43,6 @@ public interface ActiveSyncProtocol<X, Y> {
 	
 	Y decodeResponse(Document responseDocument) throws ProtocolException;
 
-	Document encodeResponse(Y response) throws ProtocolException;
+	Document encodeResponse(Device device, Y response) throws ProtocolException;
 	
 }

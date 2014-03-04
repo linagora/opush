@@ -174,7 +174,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 		
 		try {
 			PingResponse response = buildResponse(sendHierarchyChange, continuation);
-			Document document = protocol.encodeResponse(response);
+			Document document = protocol.encodeResponse(udr.getDevice(), response);
 			sendResponse(responder, document);
 		} catch (FolderSyncRequiredException e) {
 			sendError(udr.getDevice(), responder, PingStatus.FOLDER_SYNC_REQUIRED);

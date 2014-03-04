@@ -151,7 +151,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 	}
 
 	@Override
-	public Document encodeResponse(ItemOperationsResponse response) throws ProtocolException {
+	public Document encodeResponse(Device device, ItemOperationsResponse response) throws ProtocolException {
 		try {
 			Document document = DOMUtils.createDoc(null, "ItemOperations");
 			Element root = document.getDocumentElement();

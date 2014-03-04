@@ -58,6 +58,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ServerErrorException;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
@@ -451,5 +452,18 @@ public class SyncAnalyserTest {
 				"</Collections>" +
 			"</Sync>");
 	}
-	
+
+	@Test(expected=PartialException.class)
+	public void testPartialRequest() throws Exception {
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Partial/>" +
+					"<Wait>1</Wait>" +
+				"</Sync>");
+
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		syncAnalyser.analyseSync(udr, syncRequest);
+	}
+
 }

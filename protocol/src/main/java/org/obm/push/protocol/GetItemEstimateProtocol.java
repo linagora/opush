@@ -34,6 +34,7 @@ package org.obm.push.protocol;
 import javax.xml.parsers.FactoryConfigurationError;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.PIMDataType;
@@ -119,7 +120,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 	}
 
 	@Override
-	public Document encodeResponse(GetItemEstimateResponse response) {
+	public Document encodeResponse(Device device, GetItemEstimateResponse response) {
 		final Document document = createDocument();
 		for (Estimate estimate: response.getEstimates()) {
 			final Element responseElement = createResponseNode(document);

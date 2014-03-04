@@ -33,10 +33,15 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.AttendeeStatus;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.protocol.bean.MeetingHandlerRequest;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
@@ -92,7 +97,8 @@ public class MeetingProtocolTest {
 				"</MeetingResponse>";
 		
 		MeetingHandlerResponse meetingResponse = meetingProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = meetingProtocol.encodeResponse(meetingResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = meetingProtocol.encodeResponse(device, meetingResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

@@ -451,7 +451,7 @@ public class MeetingResponseHandlerTest {
 			.itemChanges(Lists.newArrayList(itemChangeMeetingResponse))
 			.build();
 		
-		Document encodeResponses = protocol.encodeResponse(response);
+		Document encodeResponses = protocol.encodeResponse(singleUserFixture.jaures.device, response);
 		return DOMUtils.serialize(encodeResponses);
 	}
 

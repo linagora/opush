@@ -33,8 +33,13 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
 import org.obm.push.utils.DOMUtils;
@@ -88,7 +93,8 @@ public class MoveItemsProtocolTest {
 				"</MoveItems>";
 		
 		MoveItemsResponse moveItemsResponse = moveItemsProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = moveItemsProtocol.encodeResponse(moveItemsResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = moveItemsProtocol.encodeResponse(device, moveItemsResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

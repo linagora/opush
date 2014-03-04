@@ -33,9 +33,14 @@ package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Properties;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.protocol.bean.GetItemEstimateRequest;
 import org.obm.push.protocol.bean.GetItemEstimateResponse;
@@ -76,7 +81,8 @@ public class GetItemEstimateProtocolTest {
 
 		
 		GetItemEstimateResponse getItemEstimateResponse = getItemEstimateProtocol.decodeResponse(DOMUtils.parse(initialDocument));
-		Document encodeResponse = getItemEstimateProtocol.encodeResponse(getItemEstimateResponse);
+		Device device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		Document encodeResponse = getItemEstimateProtocol.encodeResponse(device, getItemEstimateResponse);
 		
 		assertThat(initialDocument).isEqualTo(DOMUtils.serialize(encodeResponse));
 	}

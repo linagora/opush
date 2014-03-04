@@ -33,6 +33,7 @@ package org.obm.push.protocol;
 
 import org.apache.commons.lang.StringUtils;
 import org.obm.push.bean.AttendeeStatus;
+import org.obm.push.bean.Device;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.bean.MeetingResponseStatus;
 import org.obm.push.exception.activesync.NoDocumentException;
@@ -132,7 +133,7 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 	}
 
 	@Override
-	public Document encodeResponse(MeetingHandlerResponse meetingResponse) {
+	public Document encodeResponse(Device device, MeetingHandlerResponse meetingResponse) {
 		Document reply = DOMUtils.createDoc(null, "MeetingResponse");
 		Element root = reply.getDocumentElement();
 		for (ItemChangeMeetingResponse item: meetingResponse.getItemChanges()) {

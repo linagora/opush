@@ -91,6 +91,7 @@ import org.obm.push.protocol.bean.AnalysedSyncRequest;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
+import org.obm.push.protocol.data.SyncAnalyser;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.service.DateService;
 import org.obm.push.state.StateMachine;
@@ -103,6 +104,7 @@ import org.w3c.dom.Document;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -114,7 +116,7 @@ import com.google.inject.name.Named;
 @Singleton
 public class SyncHandler extends WbxmlRequestHandler implements IContinuationHandler {
 
-	private final SyncProtocol.Factory syncProtocolFactory;
+	private final SyncProtocol syncProtocol;
 	private final MonitoredCollectionDao monitoredCollectionService;
 	private final ItemTrackingDao itemTrackingDao;
 	private final ICollectionPathHelper collectionPathHelper;
@@ -122,37 +124,38 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final boolean enablePush;
 	private final SyncKeyFactory syncKeyFactory;
 	private final DateService dateService;
+	private final SyncAnalyser syncAnalyser;
 
 	@Inject SyncHandler(IBackend backend, EncoderFactory encoderFactory,
 			IContentsImporter contentsImporter, IContentsExporter contentsExporter,
 			StateMachine stMachine,
-			MonitoredCollectionDao monitoredCollectionService, SyncProtocol.Factory syncProtocolFactory,
+			MonitoredCollectionDao monitoredCollectionService, SyncProtocol syncProtocol,
 			CollectionDao collectionDao, ItemTrackingDao itemTrackingDao,
 			WBXMLTools wbxmlTools, DOMDumper domDumper, ICollectionPathHelper collectionPathHelper,
 			ContinuationService continuationService,
 			@Named("enable-push") boolean enablePush,
 			SyncKeyFactory syncKeyFactory,
-			DateService dateService) {
+			DateService dateService, SyncAnalyser syncAnalyser) {
 		
 		super(backend, encoderFactory, contentsImporter, contentsExporter, 
 				stMachine, collectionDao, wbxmlTools, domDumper);
 		
 		this.monitoredCollectionService = monitoredCollectionService;
-		this.syncProtocolFactory = syncProtocolFactory;
+		this.syncProtocol = syncProtocol;
 		this.itemTrackingDao = itemTrackingDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.continuationService = continuationService;
 		this.enablePush = enablePush;
 		this.syncKeyFactory = syncKeyFactory;
 		this.dateService = dateService;
+		this.syncAnalyser = syncAnalyser;
 	}
 
 	@Override
 	public void process(IContinuation continuation, UserDataRequest udr, Document doc, ActiveSyncRequest request, Responder responder) {
-		SyncProtocol syncProtocol = syncProtocolFactory.create(udr);
 		try {
 			SyncRequest syncRequest = syncProtocol.decodeRequest(doc);
-			AnalysedSyncRequest analyzedSyncRequest = syncProtocol.analyzeRequest(udr, syncRequest);
+			AnalysedSyncRequest analyzedSyncRequest = analyzeRequest(udr, syncRequest);
 			
 			continuationService.cancel(udr.getDevice());
 			SyncClientCommands clientCommands = processClientCommands(udr, analyzedSyncRequest.getSync());
@@ -161,7 +164,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			} else {
 				SyncResponse syncResponse = doTheJob(udr, analyzedSyncRequest.getSync().getCollections(), 
 						clientCommands, continuation);
-				sendResponse(responder, syncProtocol.encodeResponse(syncResponse));
+				sendResponse(responder, syncProtocol.encodeResponse(udr.getDevice(), syncResponse));
 			}
 		} catch (InvalidServerId e) {
 			sendError(udr.getDevice(), responder, SyncStatus.PROTOCOL_ERROR, continuation, e);
@@ -206,6 +209,14 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		} 
 	}
 
+	public AnalysedSyncRequest analyzeRequest(UserDataRequest userDataRequest, SyncRequest syncRequest) 
+			throws PartialException, ProtocolException, DaoException, CollectionPathException {
+		Preconditions.checkNotNull(userDataRequest);
+		Preconditions.checkNotNull(syncRequest);
+		
+		return new AnalysedSyncRequest( syncAnalyser.analyseSync(userDataRequest, syncRequest) );
+	}
+	
 	private void sendResponse(Responder responder, Document document) {
 		responder.sendWBXMLResponse("AirSync", document);
 	}
@@ -366,10 +377,9 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	public void sendResponse(UserDataRequest udr, Responder responder, boolean sendHierarchyChange, IContinuation continuation) {
 		try {
 			if (enablePush) {
-				SyncProtocol syncProtocol = syncProtocolFactory.create(udr);
 				SyncResponse syncResponse = doTheJob(udr, monitoredCollectionService.list(udr.getCredentials(), udr.getDevice()),
 						SyncClientCommands.empty(), continuation);
-				sendResponse(responder, syncProtocol.encodeResponse(syncResponse));
+				sendResponse(responder, syncProtocol.encodeResponse(udr.getDevice(), syncResponse));
 			} else {
 				//Push is not supported, after the heartbeat interval is over, we ask the phone to retry
 				sendError(udr.getDevice(), responder, SyncStatus.NEED_RETRY.asSpecificationValue(), continuation);
@@ -520,7 +530,6 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	public void sendError(Device device, Responder responder, String errorStatus, IContinuation continuation) {
 		try {
 			logger.info("Resp for requestId = {}", continuation.getReqId());
-			SyncProtocol syncProtocol = syncProtocolFactory.create(continuation.getUserDataRequest());
 			responder.sendWBXMLResponse("AirSync", syncProtocol.encodeResponse(errorStatus) );
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
