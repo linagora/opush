@@ -1,0 +1,44 @@
+#!/bin/bash -e
+
+. /usr/share/debconf/confmodule
+
+db_input high obm-conf/dbhost || true
+db_input high obm-conf/dbtype || true
+db_input high obm-conf/dbname || true
+db_input high obm-conf/dbuser || true
+db_go || true
+
+check_alphanumeric() {
+  DB_RET=$1
+  KEY=$2
+  while [[ -z "$DB_RET" || $(echo $DB_RET | tr -d '[:alnum:]') ]] ; do
+    db_input high obm-conf/${KEY} || true
+    db_go || true 
+    db_get obm-conf/${KEY} || true
+    DB_RET="$RET"
+  done
+}
+
+while [ ! ${have_app_pass} ] ; do
+    #get password
+    db_input high obm-conf/dbpasswd || true
+    db_go || true
+    db_get obm-conf/dbpasswd || true
+    DB_RET="$RET"
+    check_alphanumeric $DB_RET "dbpasswd"
+    pass1=${DB_RET}
+    #get password confirm
+    db_input high obm-conf/dbpasswd_verify || true
+    db_go || true
+    db_get obm-conf/dbpasswd_verify || true
+    pass2="$RET"
+    #test if password match
+    
+    if [ "${pass1}" = "${pass2}" ]; then
+	have_app_pass="yes"
+    else
+	db_input high obm-conf/passwords-do-not-match || true
+	db_go || true
+    fi
+done
+

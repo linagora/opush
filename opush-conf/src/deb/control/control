@@ -1,17 +1,13 @@
-Package: opush
+Package: opush-conf
 Version: [[opush.packaging.version]]-[[opush.packaging.release]]
 Section: net
 Priority: optional
 Architecture: all
-Build-Depends: java-sdk
-Depends: obm-conf|opush-conf, openjdk-7-jre-headless
-Provides: obm-opush
-Replaces: obm-opush ( << 2.6 )
-Conflicts: obm-opush ( << 2.6 ), obm-jetty
+Replaces: obm-conf
+Conflicts: obm-conf
 Maintainer: Matthieu Baechler <mbaechler@linagora.com>
 Description: Active Sync server for Open Business Management
- This package embed a web application to synchronize OBM data with
- PDA and smartphones.
+ This package helps to generate a first configuration for opush
  .
  OBM is a global groupware, messaging and CRM application. It is intended to
  be an Exchange Or Notes/Domino Mail replacement, but can also be used as a

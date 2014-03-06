@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+# Disable output redirection
+#DEBCONF_REDIR=0
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+NEWFILE=${TEMPDIR}/opush.ini
+CONFIG=/etc/opush/opush.ini
+TEMPLATE=/usr/share/opush-conf/samples/opush.ini
+cp "${TEMPLATE}" "${NEWFILE}"
+db_get obm-conf/dbhost
+sed -i -e "s|@DBHOST@|$RET|g" ${NEWFILE}
+db_get obm-conf/dbtype
+sed -i -e "s|@DBTYPE@|$RET|g" ${NEWFILE}
+db_get obm-conf/dbname
+sed -i -e "s|@DBNAME@|$RET|g" ${NEWFILE}
+db_get obm-conf/dbuser
+sed -i -e "s|@DBUSER@|$RET|g" ${NEWFILE}
+db_get obm-conf/dbpasswd
+sed -i -e "s|@DBPASSWORD@|$RET|g" ${NEWFILE}
+ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
+ucfr opush-conf "${CONFIG}"
+
+
+#DEBHELPER#
+
+exit 0
+

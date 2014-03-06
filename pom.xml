@@ -99,6 +99,7 @@
 		<module>push-gatling</module>
 		<module>spushnik-server</module>
 		<module>obm-backend</module>
+		<module>opush-conf</module>
 	</modules>
 
 	<dependencyManagement>
