@@ -19,7 +19,7 @@
 	</prerequisites>
 
 	<properties>
-		<obm.version>2.6.0-SNAPSHOT</obm.version>
+		<obm.version>2.6.0-alpha0</obm.version>
 		<opush.release>2.6.0</opush.release>
 		<opush.version>${opush.release}-SNAPSHOT</opush.version>
 		<opush.packaging.version>${opush.release}~git${mvngit.commit.committer.date}.${mvngit.commit.abbrev}</opush.packaging.version>
