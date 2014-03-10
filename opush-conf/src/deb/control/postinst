@@ -21,6 +21,8 @@ db_get obm-conf/dbuser
 sed -i -e "s|@DBUSER@|$RET|g" ${NEWFILE}
 db_get obm-conf/dbpasswd
 sed -i -e "s|@DBPASSWORD@|$RET|g" ${NEWFILE}
+db_get obm-conf/externalurl
+sed -i -e "s|@EXTERNALURL@|$RET|g" ${NEWFILE}
 ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
 ucfr opush-conf "${CONFIG}"
 

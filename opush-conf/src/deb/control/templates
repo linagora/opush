@@ -44,3 +44,10 @@ Template: obm-conf/passwords-do-not-match
 Type: note
 Description: Passwords do not match.
  The passwords you supplied do not match.  Please try again.
+
+Template: obm-conf/externalurl
+Type: string
+default: extranet.mycompany.com
+Description: external url of OBM:
+ .
+ You have to set here the external URL of OBM.
