@@ -41,8 +41,9 @@ if [ -r /etc/default/rcS ]; then
 fi
 
 if [ -z "$JAVA_HOME" ]; then
-	JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+	JAVA_HOME="/usr/lib/jvm/java-7-openjdk-"`dpkg --print-architecture`
 fi
+
 if [ -z "$SHUTDOWN_TIMEOUT" ]; then
 	SHUTDOWN_TIMEOUT=10
 fi

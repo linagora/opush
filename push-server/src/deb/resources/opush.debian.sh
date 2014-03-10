@@ -48,8 +48,9 @@ if [ -z "$OPUSH_PORT" ]; then
 	OPUSH_PORT=8082
 fi
 if [ -z "$JAVA_HOME" ]; then
-	JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+	JAVA_HOME="/usr/lib/jvm/java-7-openjdk-"`dpkg --print-architecture`
 fi
+
 if [ ! -d "$TMP_DIR" ]; then
 	TMP_DIR="/tmp"
 fi
