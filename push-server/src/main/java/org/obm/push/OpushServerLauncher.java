@@ -31,7 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import java.nio.file.Paths;
+
+import org.obm.configuration.ConfigurationService;
+import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.configuration.VMArgumentsUtils;
+import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.configuration.OpushConfigurationLoader;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
@@ -40,6 +46,7 @@ import com.google.inject.Injector;
 
 public class OpushServerLauncher {
 
+	private static final String OPUSH_CONFIGURATION_PATH = "/etc/opush/opush.ini";
 	private static final int DEFAULT_SERVER_PORT = 8082; 
 	private static final int SERVER_PORT = Objects.firstNonNull( 
 			VMArgumentsUtils.integerArgumentValue("opushPort"), DEFAULT_SERVER_PORT);
@@ -48,7 +55,11 @@ public class OpushServerLauncher {
 		/******************************************************************
 		 * EVERY CHANGES DONE THERE CAN SILENTLY BREAK THE OPUSH START UP *
 		 ******************************************************************/
-		Injector injector = Guice.createInjector(new OpushContainerModule(SERVER_PORT), new OpushModule());
+		GlobalAppConfiguration<OpushConfiguration> configuration = 
+				OpushConfigurationLoader.loadFromFiles(
+					Paths.get(OPUSH_CONFIGURATION_PATH), 
+					Paths.get(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH));
+		Injector injector = Guice.createInjector(new OpushContainerModule(SERVER_PORT), new OpushModule(configuration));
 		OpushServer opushServer = new OpushServerLauncher().start(injector);
 		opushServer.join();
 	}

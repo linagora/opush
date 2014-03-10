@@ -30,20 +30,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
-import org.obm.configuration.ConfigurationService;
-import org.obm.configuration.DatabaseConfigurationImpl;
-import org.obm.configuration.DefaultTransactionConfiguration;
 import org.obm.configuration.GlobalAppConfiguration;
-import org.obm.configuration.LocatorConfigurationImpl;
 import org.obm.healthcheck.HealthCheckDefaultHandlersModule;
 import org.obm.healthcheck.HealthCheckModule;
-import org.obm.push.configuration.LoggerModule;
-import org.obm.push.configuration.OpushConfiguration;
-import org.obm.push.configuration.OpushConfigurationImpl;
 import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.BackendConfigurationFileImpl;
 import org.obm.push.configuration.DatabaseBackend;
+import org.obm.push.configuration.LoggerModule;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.store.ehcache.EhCacheDaoModule;
 import org.obm.push.store.jdbc.JdbcDaoModule;
 import org.obm.push.store.jdbc.OpushDatabaseModule;
@@ -54,31 +49,18 @@ import com.google.inject.name.Names;
 
 public class OpushModule extends AbstractModule {
 
-	private static final String APPLICATION_NAME = "opush";
-
 	private final GlobalAppConfiguration<OpushConfiguration> opushConfiguration;
 	private final BackendConfiguration backendConfiguration;
 	private Module databaseModule;
 	
-	public OpushModule() {
-		this(buildConfiguration(), backendConfiguration(), new OpushDatabaseModule());
+	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration) {
+		this(opushConfiguration, backendConfiguration(), new OpushDatabaseModule());
 	}
 
 	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration, BackendConfiguration backendConfiguration, Module databaseModule) {
 		this.opushConfiguration = opushConfiguration;
 		this.backendConfiguration = backendConfiguration;
 		this.databaseModule = databaseModule;
-	}
-	
-	private static GlobalAppConfiguration<OpushConfiguration> buildConfiguration() {
-		OpushConfigurationImpl mainConfiguration = 
-				new OpushConfigurationImpl.Factory().create(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH, APPLICATION_NAME);
-		return 	GlobalAppConfiguration.<OpushConfiguration>builder()
-					.mainConfiguration(mainConfiguration)
-					.locatorConfiguration(new LocatorConfigurationImpl.Factory().create(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH))
-					.databaseConfiguration(new DatabaseConfigurationImpl.Factory().create(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH))
-					.transactionConfiguration(new DefaultTransactionConfiguration.Factory().create(APPLICATION_NAME, mainConfiguration))
-					.build();
 	}
 	
 	private static BackendConfiguration backendConfiguration() {

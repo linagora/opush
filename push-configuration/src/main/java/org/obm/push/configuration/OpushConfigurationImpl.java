@@ -126,7 +126,11 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 
 	@Override
 	public String getActiveSyncServletUrl() {
-		return "https://" + getExternalUrl() + "/" + ASCMD;
+		String externalUrl = getExternalUrl();
+		if (externalUrl == null) {
+			throw new InvalidConfigurationEntry(EXTERNAL_URL_KEY);
+		}
+		return "https://" + externalUrl + "/" + ASCMD;
 	}
 
 	private String getExternalUrl() {

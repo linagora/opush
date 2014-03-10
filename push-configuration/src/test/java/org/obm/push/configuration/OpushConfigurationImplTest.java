@@ -71,6 +71,20 @@ public class OpushConfigurationImplTest {
 		assertThat(activeSyncServletUrl).isEqualTo("https://" + externalUrl + "/" + OpushConfigurationImpl.ASCMD);
 	}
 	
+	@Test(expected=InvalidConfigurationEntry.class)
+	public void testGetActiveSyncServletUrlNullExternalUrl() {
+		expect(iniFile.getStringValue(OpushConfigurationImpl.EXTERNAL_URL_KEY))
+			.andReturn(null);
+		
+		control.replay();
+		try {
+			opushConfigurationImpl.getActiveSyncServletUrl();
+		} catch (InvalidConfigurationEntry e) {
+			control.verify();
+			throw e;
+		}
+	}
+	
 	@Test
 	public void testGetObmSyncUrl() {
 		String host = "myhost";
