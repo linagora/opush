@@ -60,14 +60,12 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	@Override
 	public void createFolderSnapshot(Integer folderSyncStateId, Iterable<Integer> collectionIds) 
 			throws DaoException {
+		String statement = "INSERT INTO opush_folder_snapshot " +
+				"(folder_sync_state_id, collection_id) VALUES (?, ?)";
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"INSERT INTO opush_folder_snapshot " +
-					"(folder_sync_state_id, collection_id) VALUES (?, ?)");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+
 			ps.setInt(1, folderSyncStateId);
 			for (Integer collectionId : collectionIds) {
 				ps.setInt(2, collectionId);
@@ -75,140 +73,123 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 
 	@Override
 	public List<Integer> getFolderSnapshot(Integer folderSyncStateId) throws DaoException {
-		List<Integer> collectionIds = Lists.newArrayList();
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT collection_id FROM opush_folder_snapshot " +
-					"WHERE folder_sync_state_id = ?"); 
+		String statement = "SELECT collection_id FROM opush_folder_snapshot " +
+				"WHERE folder_sync_state_id = ?";
+
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+ 
 			ps.setInt(1, folderSyncStateId);
 
-			rs = ps.executeQuery();
-			while (rs.next()) {
-				collectionIds.add(rs.getInt("collection_id"));
+			try (ResultSet rs = ps.executeQuery()) {
+				List<Integer> collectionIds = Lists.newArrayList();
+				while (rs.next()) {
+					collectionIds.add(rs.getInt("collection_id"));
+				}
+				return collectionIds;
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
-		return collectionIds;
 	}
 
 	@Override
 	public List<Integer> getFolderSnapshot(String folderSyncKey) throws DaoException {
-		List<Integer> collectionIds = Lists.newArrayList();
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT collection_id FROM opush_folder_snapshot " +
-					"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
-					"WHERE sync_key = ?"); 
+		String statement = "SELECT collection_id FROM opush_folder_snapshot " +
+				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
+				"WHERE sync_key = ?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, folderSyncKey);
 
-			rs = ps.executeQuery();
-			while (rs.next()) {
-				collectionIds.add(rs.getInt("collection_id"));
+			try (ResultSet rs = ps.executeQuery()) {
+				List<Integer> collectionIds = Lists.newArrayList();
+				while (rs.next()) {
+					collectionIds.add(rs.getInt("collection_id"));
+				}
+				return collectionIds;
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
-		return collectionIds;
 	}
 
 	@Override
 	public Integer getFolderSyncStateId(Integer collectionId, Device device) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT folder_sync_state_id FROM opush_folder_snapshot " +
-					"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
-					"WHERE collection_id = ? " +
-					"AND device_id = ?"); 
+		String statement = "SELECT folder_sync_state_id FROM opush_folder_snapshot " +
+				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
+				"WHERE collection_id = ? " +
+				"AND device_id = ?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setInt(1, collectionId);
 			ps.setInt(2, device.getDatabaseId());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getInt("folder_sync_state_id");
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt("folder_sync_state_id");
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
 
 	@Override
 	public String getFolderSyncKey(Integer collectionId, Device device) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT sync_key FROM opush_folder_sync_state " +
-					"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.folder_sync_state_id = opush_folder_sync_state.id " +
-					"WHERE collection_id = ? " +
-					"AND device_id = ?"); 
+		String statement = "SELECT sync_key FROM opush_folder_sync_state " +
+				"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.folder_sync_state_id = opush_folder_sync_state.id " +
+				"WHERE collection_id = ? " +
+				"AND device_id = ?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) { 
+		
 			ps.setInt(1, collectionId);
 			ps.setInt(2, device.getDatabaseId());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getString("sync_key");
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getString("sync_key");
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
 
 	@Override
 	public String getFolderSyncKey(String collection, Device device) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT sync_key FROM opush_folder_sync_state " +
-					"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.folder_sync_state_id = opush_folder_sync_state.id " +
-					"INNER JOIN opush_folder_mapping ON opush_folder_mapping.id = opush_folder_snapshot.collection_id " +
-					"WHERE collection = ? " +
-					"AND opush_folder_sync_state.device_id = ?"); 
+		String statement = "SELECT sync_key FROM opush_folder_sync_state " +
+				"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.folder_sync_state_id = opush_folder_sync_state.id " +
+				"INNER JOIN opush_folder_mapping ON opush_folder_mapping.id = opush_folder_snapshot.collection_id " +
+				"WHERE collection = ? " +
+				"AND opush_folder_sync_state.device_id = ?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) { 
+		
 			ps.setString(1, collection);
 			ps.setInt(2, device.getDatabaseId());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getString("sync_key");
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getString("sync_key");
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}

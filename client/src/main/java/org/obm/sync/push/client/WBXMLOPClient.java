@@ -222,12 +222,8 @@ public class WBXMLOPClient extends OPClient {
 	}
 
 	private byte[] getResponse(HttpResponse response) throws IOException {
-		InputStream responseStream = null;
-		try {
-			responseStream = getResponseStream(response);
+		try (InputStream responseStream = getResponseStream(response)) {
 			return ByteStreams.toByteArray(responseStream);
-		} finally {
-			IOUtils.closeQuietly(responseStream);
 		}
 	}
 

@@ -71,26 +71,21 @@ public class ItemTrackingDaoJdbcImpl extends AbstractJdbcImpl implements ItemTra
 	
 	private void markItems(ItemSyncState itemSyncState, Set<ServerId> serverIds, boolean addition)
 			throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			
-			PreparedStatement insert = con.prepareStatement(
-					"INSERT INTO opush_synced_item (sync_state_id, item_id, addition) VALUES (?, ?, ?)");
+		String statement = "INSERT INTO opush_synced_item (sync_state_id, item_id, addition) VALUES (?, ?, ?)";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+		
 			for (ServerId serverId: serverIds) {
 				checkServerId(serverId);
-				insert.setInt(1, itemSyncState.getId());
-				insert.setInt(2, serverId.getItemId());
-				insert.setBoolean(3, addition);
-				insert.addBatch();
+				ps.setInt(1, itemSyncState.getId());
+				ps.setInt(2, serverId.getItemId());
+				ps.setBoolean(3, addition);
+				ps.addBatch();
 			}
-			insert.executeBatch();
+			ps.executeBatch();
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 
@@ -120,16 +115,10 @@ public class ItemTrackingDaoJdbcImpl extends AbstractJdbcImpl implements ItemTra
 	
 	@Override
 	public boolean isServerIdSynced(ItemSyncState itemSyncState, ServerId serverId) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
+		try (Connection con = dbcp.getConnection()) {
 			return isServerIdSynced(selectServerId(con), itemSyncState, serverId);
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 	
@@ -137,16 +126,12 @@ public class ItemTrackingDaoJdbcImpl extends AbstractJdbcImpl implements ItemTra
 		
 		select.setInt(1, serverId.getItemId());
 		select.setInt(2, itemSyncState.getId());
-		ResultSet resultSet = select.executeQuery();
-		try {
+		try (ResultSet resultSet = select.executeQuery()){
 			if (resultSet.next()) {
 				return resultSet.getBoolean("addition");
 			} else {
 				return false;
 			}
-		}
-		finally {
-			resultSet.close();
 		}
 	}
 }

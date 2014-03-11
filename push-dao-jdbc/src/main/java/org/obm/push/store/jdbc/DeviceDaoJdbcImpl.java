@@ -65,31 +65,29 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 	@Override
 	public Device getDevice(User user, DeviceId deviceId, String userAgent, ProtocolVersion protocolVersion) 
 			throws DaoException {
+		String statement = "SELECT id, identifier, type FROM opush_device "
+				+ "INNER JOIN UserObm ON owner=userobm_id "
+				+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
+				+ "WHERE identifier=? AND userobm_login=? AND domain_name=?";
 	
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT id, identifier, type FROM opush_device "
-					+ "INNER JOIN UserObm ON owner=userobm_id "
-					+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
-					+ "WHERE identifier=? AND userobm_login=? AND domain_name=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, deviceId.getDeviceId());
 			ps.setString(2, user.getLogin());
 			ps.setString(3, user.getDomain());
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				Integer databaseId = rs.getInt("id");
-				String devId = rs.getString("identifier");
-				String devType = rs.getString("type");
-				
-				return deviceFactory.create(databaseId, devType, userAgent, new DeviceId(devId), protocolVersion);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					Integer databaseId = rs.getInt("id");
+					String devId = rs.getString("identifier");
+					String devType = rs.getString("type");
+					
+					return deviceFactory.create(databaseId, devType, userAgent, new DeviceId(devId), protocolVersion);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
@@ -97,20 +95,19 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 	@Override
 	public void registerNewDevice(User user, DeviceId deviceId,
 			String deviceType) throws DaoException {
+		String statement = "INSERT INTO opush_device (identifier, type, owner) "
+				+ "SELECT ?, ?, userobm_id FROM UserObm "
+				+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
+				+ "WHERE userobm_login=? AND domain_name=?";
 
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_device (identifier, type, owner) "
-					+ "SELECT ?, ?, userobm_id FROM UserObm "
-					+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
-					+ "WHERE userobm_login=? AND domain_name=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, deviceId.getDeviceId());
 			ps.setString(2, deviceType);
 			ps.setString(3, user.getLogin());
 			ps.setString(4, user.getDomain());
+			
 			int updateStatus = ps.executeUpdate();
 			if (updateStatus == 0) {
 				throw new IllegalStateException("unknown user " + user.getLoginAtDomain());
@@ -119,35 +116,31 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 	
 	@Override
 	public boolean syncAuthorized(User user, DeviceId deviceId) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT policy FROM opush_sync_perms "
-					+ "INNER JOIN UserObm u ON opush_sync_perms.owner=userobm_id "
-					+ "INNER JOIN Domain d ON userobm_domain_id=domain_id "
-					+ "INNER JOIN opush_device od ON device_id=id "
-					+ "WHERE od.identifier=? AND u.userobm_login=? AND d.domain_name=?");
+		String statement = "SELECT policy FROM opush_sync_perms "
+				+ "INNER JOIN UserObm u ON opush_sync_perms.owner=userobm_id "
+				+ "INNER JOIN Domain d ON userobm_domain_id=domain_id "
+				+ "INNER JOIN opush_device od ON device_id=id "
+				+ "WHERE od.identifier=? AND u.userobm_login=? AND d.domain_name=?";
+
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, deviceId.getDeviceId());
 			ps.setString(2, user.getLogin());
 			ps.setString(3, user.getDomain());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return true;
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return true;
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 		logger.info(user + " isn't authorized to synchronize in OBM-UI");
 		return false;
@@ -155,31 +148,29 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 
 	@Override
 	public Long getPolicyKey(User user, DeviceId deviceId, PolicyStatus status) {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT policy FROM opush_sync_perms "
-					+ "INNER JOIN UserObm ON opush_sync_perms.owner=userobm_id "
-					+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
-					+ "INNER JOIN opush_device ON device_id=id "
-					+ "WHERE identifier=? AND userobm_login=? AND domain_name=? "
-					+ "AND policy IS NOT NULL "
-					+ "AND pending_accept=?");
+		String statement = "SELECT policy FROM opush_sync_perms "
+				+ "INNER JOIN UserObm ON opush_sync_perms.owner=userobm_id "
+				+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
+				+ "INNER JOIN opush_device ON device_id=id "
+				+ "WHERE identifier=? AND userobm_login=? AND domain_name=? "
+				+ "AND policy IS NOT NULL "
+				+ "AND pending_accept=?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			int index = 1;
 			ps.setString(index++, deviceId.getDeviceId());
 			ps.setString(index++, user.getLogin());
 			ps.setString(index++, user.getDomain());
 			ps.setBoolean(index++, policyStatusToPendingAccept(status));
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getLong("policy");
+			
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getLong("policy");
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
@@ -196,19 +187,16 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 
 	@Override
 	public long allocateNewPolicyKey(User user, DeviceId deviceId, PolicyStatus status) throws DaoException {
+		String statement = "INSERT INTO opush_sync_perms (policy, device_id, owner, pending_accept) "
+				+ "SELECT ?, id, owner, ? FROM opush_device "
+				+ "INNER JOIN UserObm ON owner=userobm_id "
+				+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
+				+ "WHERE userobm_login=? AND domain_name=? AND identifier=?";
 
 		long newPolicyKeyId = allocateNewPolicyKey();
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_sync_perms (policy, device_id, owner, pending_accept) "
-					+ "SELECT ?, id, owner, ? FROM opush_device "
-					+ "INNER JOIN UserObm ON owner=userobm_id "
-					+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
-					+ "WHERE userobm_login=? AND domain_name=? AND identifier=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 
 			int index = 1;
 			ps.setLong(index++, newPolicyKeyId);
@@ -224,78 +212,60 @@ public class DeviceDaoJdbcImpl extends AbstractJdbcImpl implements DeviceDao {
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 
 	private long allocateNewPolicyKey() throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_sec_policy (id, device_password_enabled) VALUES(DEFAULT, DEFAULT)");
+		String statement = "INSERT INTO opush_sec_policy (id, device_password_enabled) VALUES(DEFAULT, DEFAULT)";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			if (ps.executeUpdate() != 1) {
 				throw new DaoException("Cannot find the new generated id in result set");
 			}
 			return dbcp.lastInsertId(con);
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 
 	@Override
 	public void removePolicyKey(User user, Device device) throws DaoException {
-		Integer deviceDbId = device.getDatabaseId();
+		String statement = "DELETE FROM opush_sec_policy "
+				+ "WHERE id IN ( "
+				+ "SELECT policy FROM opush_sync_perms "
+				+ "INNER JOIN UserObm ON owner=userobm_id "
+				+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
+				+ "WHERE userobm_login=? AND domain_name=? AND device_id=?);";
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("DELETE FROM opush_sec_policy "
-					+ "WHERE id IN ( "
-						+ "SELECT policy FROM opush_sync_perms "
-						+ "INNER JOIN UserObm ON owner=userobm_id "
-						+ "INNER JOIN Domain ON userobm_domain_id=domain_id "
-						+ "WHERE userobm_login=? AND domain_name=? AND device_id=?);");
-
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, user.getLogin());
 			ps.setString(2, user.getDomain());
-			ps.setInt(3, deviceDbId);
+			ps.setInt(3, device.getDatabaseId());
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 
 	@Override
 	public void removeUnknownDeviceSyncPerm(User user, Device device) {
-		Integer deviceDbId = device.getDatabaseId();
+		String statement = "DELETE FROM opush_sync_perms " +
+				"WHERE device_id IN (" +
+				"SELECT id FROM opush_device " +
+				"INNER JOIN UserObm ON owner=userobm_id " +
+				"WHERE device_id = ? AND policy IS NULL)";
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"DELETE FROM opush_sync_perms " +
-					"WHERE device_id IN (" +
-					"SELECT id FROM opush_device " +
-					"INNER JOIN UserObm ON owner=userobm_id " +
-					"WHERE device_id = ? AND policy IS NULL)");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			
-			ps.setInt(1, deviceDbId);
+			ps.setInt(1, device.getDatabaseId());
 			ps.executeUpdate();
+			
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 }

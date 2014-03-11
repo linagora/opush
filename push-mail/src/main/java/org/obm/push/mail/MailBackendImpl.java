@@ -49,7 +49,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Message;
 import org.obm.breakdownduration.bean.Watch;
@@ -699,9 +698,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@VisibleForTesting void sendEmail(UserDataRequest udr, SendEmail email, boolean saveInSent) {
-		InputStream emailStream = null;
-		try {
-			emailStream = loadEmailInMemory(email);
+		try (InputStream emailStream = loadEmailInMemory(email)) {
 			smtpSender.sendEmail(udr, validateFrom(email.getFrom()), email.getTo(), email.getCc(), email.getCci(), emailStream);
 			if (saveInSent) {
 				emailStream.reset();
@@ -719,8 +716,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throw new ProcessingEmailException(e);
 		} catch (IllegalCharsetNameException e) {
 			throw new ProcessingEmailException(e);
-		} finally {
-			IOUtils.closeQuietly(emailStream);
 		}
 	}
 

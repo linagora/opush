@@ -1553,8 +1553,9 @@ public class CalendarBackendTest {
 
 		try {
 			calendarBackend.handleMeetingResponse(userDataRequest, iCalendar, AttendeeStatus.ACCEPT);
-		} finally {
+		} catch (ICalendarConverterException e) {
 			mockControl.verify();
+			throw e;
 		}
 	}
 	

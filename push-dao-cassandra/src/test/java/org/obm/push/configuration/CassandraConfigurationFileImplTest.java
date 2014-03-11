@@ -62,8 +62,9 @@ public class CassandraConfigurationFileImplTest {
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
 			cassandraConfigurationFileImpl.seeds();
-		} finally {
+		} catch (NullPointerException e) {
 			control.verify();
+			throw e;
 		}
 	}
 	
@@ -132,8 +133,9 @@ public class CassandraConfigurationFileImplTest {
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
 			cassandraConfigurationFileImpl.keyspace();
-		} finally {
+		} catch(NullPointerException e) {
 			control.verify();
+			throw e;
 		}
 	}
 	
@@ -160,8 +162,9 @@ public class CassandraConfigurationFileImplTest {
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
 			cassandraConfigurationFileImpl.user();
-		} finally {
+		} catch (NullPointerException e) {
 			control.verify();
+			throw e;
 		}
 	}
 	
@@ -188,8 +191,9 @@ public class CassandraConfigurationFileImplTest {
 			control.replay();
 			CassandraConfigurationFileImpl cassandraConfigurationFileImpl = new CassandraConfigurationFileImpl(iniFile);
 			cassandraConfigurationFileImpl.password();
-		} finally {
+		} catch (NullPointerException e) {
 			control.verify();
+			throw e;
 		}
 	}
 

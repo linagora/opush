@@ -52,22 +52,15 @@ public class TransactionDateProvider extends AbstractJdbcImpl implements DatePro
 
 	@Override
 	public Date getDate() {
-		Statement st = null;
-		ResultSet rs = null;
-		Connection con = null;
-		
-		try {
-			con = dbcp.getConnection();
-			st = con.createStatement();
-			rs = st.executeQuery("SELECT now()");
+		try (Connection con = dbcp.getConnection();
+			Statement st = con.createStatement();
+			ResultSet rs = st.executeQuery("SELECT now()")) {
 			
 			rs.next();
 			
 			return OpushJDBCUtils.getDate(rs, rs.getMetaData().getColumnName(1));
 		} catch (Exception e) {
 			throw Throwables.propagate(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, st, rs);
 		}
 	}
 

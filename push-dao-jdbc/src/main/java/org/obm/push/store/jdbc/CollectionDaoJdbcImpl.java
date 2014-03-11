@@ -81,59 +81,46 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 
 	@Override
 	public List<String> getUserCollections(FolderSyncState folderSyncState) throws DaoException {
-		List<String> userCollections = Lists.newArrayList();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT collection FROM opush_folder_mapping " +
-					"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.collection_id = opush_folder_mapping.id " +
-					"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = opush_folder_snapshot.folder_sync_state_id " +
-					"WHERE opush_folder_sync_state.sync_key = ?");
-			ps.setString(1, folderSyncState.getSyncKey().getSyncKey());
-			ResultSet resultSet = ps.executeQuery();
+		String statement = "SELECT collection FROM opush_folder_mapping " +
+				"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.collection_id = opush_folder_mapping.id " +
+				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = opush_folder_snapshot.folder_sync_state_id " +
+				"WHERE opush_folder_sync_state.sync_key = ?";
 
-			while (resultSet.next()) {
-				userCollections.add(resultSet.getString("collection"));
+		List<String> userCollections = Lists.newArrayList();
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			ps.setString(1, folderSyncState.getSyncKey().getSyncKey());
+			try (ResultSet resultSet = ps.executeQuery()) {
+				while (resultSet.next()) {
+					userCollections.add(resultSet.getString("collection"));
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 		return userCollections;
 	}
 
  	@Override
 	public int addCollectionMapping(Device device, String collection) throws DaoException {
-		Integer id = device.getDatabaseId();
-		Integer ret = null;
-		Connection con = null;
-		PreparedStatement ps = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_folder_mapping (device_id, collection) VALUES (?, ?)");
-			ps.setInt(1, id);
+ 		String statement = "INSERT INTO opush_folder_mapping (device_id, collection) VALUES (?, ?)";
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			ps.setInt(1, device.getDatabaseId());
 			ps.setString(2, collection);
 			ps.executeUpdate();
-			ret = dbcp.lastInsertId(con);
+			return dbcp.lastInsertId(con);
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
-		return ret;
 	}
 	
 	@Override
 	public void resetCollection(Device device, Integer collectionId) throws DaoException {
-		final Integer devDbId = device.getDatabaseId();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("DELETE FROM opush_sync_state WHERE device_id=? AND collection_id=?");
-			ps.setInt(1, devDbId);
+		String statement = "DELETE FROM opush_sync_state WHERE device_id=? AND collection_id=?";
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			ps.setInt(1, device.getDatabaseId());
 			ps.setInt(2, collectionId);
 			Stopwatch stopwatch = Stopwatch.createStarted();
 			ps.executeUpdate();
@@ -143,53 +130,40 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 			logger.warn("Deletion time: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 	
 	@Override
 	public String getCollectionPath(Integer collectionId)
 			throws CollectionNotFoundException, DaoException {
-		String ret = null;
+		String statement = "SELECT collection FROM opush_folder_mapping WHERE id=?";
 
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT collection FROM opush_folder_mapping WHERE id=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setInt(1, collectionId);
-			rs = ps.executeQuery();
-
-			if (rs.next()) {
-				ret = rs.getString(1);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getString(1);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
-		if (ret == null) {
-			throw new CollectionNotFoundException("Collection with id["
-					+ collectionId + "] can not be found.");
-		}
-		return ret;
+		throw new CollectionNotFoundException("Collection with id[" + collectionId + "] can not be found.");
 	}
 
 	@Override
 	public ItemSyncState updateState(Device device, Integer collectionId, SyncKey syncKey, Date syncDate) throws DaoException {
-		final Integer devDbId = device.getDatabaseId();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_sync_state (sync_key, device_id, last_sync, collection_id) VALUES (?, ?, ?, ?)");
+		String statement = "INSERT INTO opush_sync_state (sync_key, device_id, last_sync, collection_id) VALUES (?, ?, ?, ?)";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+		
 			ps.setString(1, syncKey.getSyncKey());
-			ps.setInt(2, devDbId);
+			ps.setInt(2, device.getDatabaseId());
 			ps.setTimestamp(3, new Timestamp(syncDate.getTime()));
 			ps.setInt(4, collectionId);
+			
 			if (ps.executeUpdate() == 0) {
 				throw new DaoException("No SyncState inserted");
 			} else {
@@ -201,111 +175,91 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 
 	@Override
 	public FolderSyncState allocateNewFolderSyncState(Device device, SyncKey newSyncKey) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
+		String statement = "INSERT INTO opush_folder_sync_state (sync_key, device_id) VALUES (?, ?)";
 		
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_folder_sync_state" +
-					" (sync_key, device_id) VALUES (?, ?)");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, newSyncKey.getSyncKey());
 			ps.setInt(2, device.getDatabaseId());
 			ps.executeUpdate();
-			FolderSyncState folderSyncState = FolderSyncState.builder()
+
+			return FolderSyncState.builder()
 					.syncKey(newSyncKey)
 					.id(dbcp.lastInsertId(con))
 					.build();
-			return folderSyncState;
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 	
 	@Override
 	public ItemSyncState findItemStateForKey(SyncKey syncKey) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		String statement = "SELECT " + SYNC_STATE_FIELDS + " FROM " + SYNC_STATE_ITEM_TABLE + " WHERE sync_key=?";
 
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT " + SYNC_STATE_FIELDS 
-					+ " FROM " + SYNC_STATE_ITEM_TABLE + " WHERE sync_key=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, syncKey.getSyncKey());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return buildItemSyncState(rs);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return buildItemSyncState(rs);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
 
 	@Override
 	public FolderSyncState findFolderStateForKey(SyncKey syncKey) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		String statement = "SELECT " + SYNC_STATE_FOLDER_FIELDS + " FROM " + SYNC_STATE_FOLDER_TABLE + " WHERE sync_key=?";
 
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT " + SYNC_STATE_FOLDER_FIELDS 
-					+ " FROM " + SYNC_STATE_FOLDER_TABLE + " WHERE sync_key=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setString(1, syncKey.getSyncKey());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				SyncKey rsSyncKey = new SyncKey(rs.getString("sync_key"));
-				FolderSyncState folderSyncState = FolderSyncState.builder()
-						.syncKey(rsSyncKey)
-						.id(rs.getInt("id"))
-						.build();
-				return folderSyncState;
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					SyncKey rsSyncKey = new SyncKey(rs.getString("sync_key"));
+					return FolderSyncState.builder()
+							.syncKey(rsSyncKey)
+							.id(rs.getInt("id"))
+							.build();
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
 
 	@Override
 	public ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT " + SYNC_STATE_FIELDS + " FROM opush_sync_state " +
-					"WHERE device_id=? AND collection_id=? ORDER BY last_sync DESC LIMIT 1");
+		String statement = "SELECT " + SYNC_STATE_FIELDS + " FROM opush_sync_state " +
+				"WHERE device_id=? AND collection_id=? ORDER BY last_sync DESC LIMIT 1";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setInt(1, device.getDatabaseId());
 			ps.setInt(2, collectionId);
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return buildItemSyncState(rs);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return buildItemSyncState(rs);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
@@ -323,29 +277,24 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 
 	@Override
 	public Integer getCollectionMapping(Device device, String collection) throws DaoException {
-		Integer devDbId = device.getDatabaseId();
-		Integer ret = null;
+		String statement = "SELECT opush_folder_mapping.id FROM opush_folder_mapping " +
+				"WHERE device_id = ? AND collection = ?";
 
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT opush_folder_mapping.id FROM opush_folder_mapping " +
-					"WHERE device_id = ? " +
-					"AND collection = ?");
-			ps.setInt(1, devDbId);
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
+			ps.setInt(1, device.getDatabaseId());
 			ps.setString(2, collection);
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				ret = rs.getInt(1);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt(1);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
-		return ret;
+		return null;
 	}
 
 	@Override
@@ -365,25 +314,21 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 				+ "inner join Domain on userobm_domain_id=domain_id "
 				+ "where deletedevent_timestamp >= ? ";
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
 		Timestamp ts  = getGMTTimestamp(lastSync);
 		int idx = 1;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(query);
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(query)) {
+			
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
-			rs = ps.executeQuery();
-			return getCalendarChangedCollectionsFromResultSet(rs, lastSync);
+			try (ResultSet rs = ps.executeQuery()) {
+				return getCalendarChangedCollectionsFromResultSet(rs, lastSync);
+			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 	
@@ -397,24 +342,20 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 		+ "	inner join AddressBook ab on ab.id=sa.addressbook_id "
 		+ "	where ab.timeupdate >= ? or ab.timecreate >= ? or sa.timestamp >= ? ";
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
 		Timestamp ts  = getGMTTimestamp(lastSync);
-		
 		int idx = 1;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(query);
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(query)) {
+			
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
 			ps.setTimestamp(idx++, ts);
-			rs = ps.executeQuery();
-			return getContactChangedCollectionsFromResultSet(rs, lastSync);
+			try (ResultSet rs = ps.executeQuery()) {
+				return getContactChangedCollectionsFromResultSet(rs, lastSync);
+			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 	}
 	

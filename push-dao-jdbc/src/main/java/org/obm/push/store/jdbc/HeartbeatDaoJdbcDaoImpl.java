@@ -57,25 +57,21 @@ public class HeartbeatDaoJdbcDaoImpl extends AbstractJdbcImpl implements Heartbe
 
 	@Override
 	public Long findLastHeartbeat(Device device) throws DaoException {
+		String statement = "SELECT last_heartbeat FROM opush_ping_heartbeat WHERE device_id=?";
 		final Integer devDbId = device.getDatabaseId();
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT last_heartbeat FROM opush_ping_heartbeat WHERE device_id=?");
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
+			
 			ps.setInt(1, devDbId);
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getLong("last_heartbeat");
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getLong("last_heartbeat");
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 		return null;
 	}
@@ -83,23 +79,19 @@ public class HeartbeatDaoJdbcDaoImpl extends AbstractJdbcImpl implements Heartbe
 	@Override
 	public void updateLastHeartbeat(Device device, long heartbeat) throws DaoException {
 		final Integer devDbId = device.getDatabaseId();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("DELETE FROM opush_ping_heartbeat WHERE device_id=? ");
-			ps.setInt(1, devDbId);
-			ps.executeUpdate();
-
-			ps.close();
-			ps = con.prepareStatement("INSERT INTO opush_ping_heartbeat (device_id, last_heartbeat) VALUES (?, ?)");
-			ps.setInt(1, devDbId);
-			ps.setLong(2, heartbeat);
-			ps.executeUpdate();
+		
+		try (Connection con = dbcp.getConnection()) {
+			try (PreparedStatement ps = con.prepareStatement("DELETE FROM opush_ping_heartbeat WHERE device_id=? ")) {
+				ps.setInt(1, devDbId);
+				ps.executeUpdate();
+			}
+			try (PreparedStatement ps = con.prepareStatement("INSERT INTO opush_ping_heartbeat (device_id, last_heartbeat) VALUES (?, ?)")) {
+				ps.setInt(1, devDbId);
+				ps.setLong(2, heartbeat);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 	

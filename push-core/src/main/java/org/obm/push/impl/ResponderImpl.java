@@ -166,9 +166,7 @@ public class ResponderImpl implements Responder {
 		Preconditions.checkNotNull(files);
 		
 		resp.setContentType("application/vnd.ms-sync.multipart");
-		OutputStream out = null;
-		try {
-			out = getOutputStream(gzip);
+		try (OutputStream out = getOutputStream(gzip)) {
 			byte[] wbxml = wbxmlTools.toWbxml(defaultNamespace, doc);
 
 			List<byte[]> fileByte = constructByteArraysList(files, wbxml);
@@ -185,8 +183,6 @@ public class ResponderImpl implements Responder {
 			logger.warn(e.getMessage(), e);
 		} catch (WBXmlException e) {
 			logger.error(e.getMessage(), e);
-		} finally {
-			IOUtils.closeQuietly(out);
 		}
 	}
 

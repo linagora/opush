@@ -101,8 +101,9 @@ public class MailboxTimeoutTest {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		try {
 			mailboxService.fetchUIDNext(udr, inboxPath);
-		} finally {
+		} catch (TimeoutException e) {
 			assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS)).isGreaterThanOrEqualTo(5000).isLessThan(6000);
+			throw e;
 		}
 	}
 }

@@ -58,22 +58,19 @@ public class CalendarDaoJdbcImpl extends AbstractJdbcImpl implements CalendarDao
 	
 	@Override
 	public EventExtId getEventExtIdFor(MSEventUid msEventUid, Device device) throws DaoException, EventNotFoundException {
-		PreparedStatement ps = null;
-		Connection con = null;
-		ResultSet rs = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT event_ext_id FROM opush_event_mapping WHERE event_uid=? AND device_id=?");
+		String statement = "SELECT event_ext_id FROM opush_event_mapping WHERE event_uid=? AND device_id=?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setString(1, msEventUid.serializeToString());
 			ps.setInt(2, device.getDatabaseId());
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return new EventExtId(rs.getString(1));
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return new EventExtId(rs.getString(1));
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		String msg = String.format("No ExtId mapping found for Uid:{%s} and Device:{%s}", msEventUid.serializeToString(), device.getDatabaseId());
 		throw new EventNotFoundException(msg);
@@ -82,22 +79,19 @@ public class CalendarDaoJdbcImpl extends AbstractJdbcImpl implements CalendarDao
 	@Override
 	public MSEventUid getMSEventUidFor(EventExtId eventExtId, Device device)
 			throws DaoException {
-		PreparedStatement ps = null;
-		Connection con = null;
-		ResultSet rs = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("SELECT event_uid FROM opush_event_mapping WHERE event_ext_id=? AND device_id=?");
+		String statement = "SELECT event_uid FROM opush_event_mapping WHERE event_ext_id=? AND device_id=?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setString(1, eventExtId.getExtId());
 			ps.setInt(2, device.getDatabaseId());
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return new MSEventUid(rs.getString(1));
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return new MSEventUid(rs.getString(1));
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
@@ -106,11 +100,9 @@ public class CalendarDaoJdbcImpl extends AbstractJdbcImpl implements CalendarDao
 	public void insertExtIdMSEventUidMapping(EventExtId eventExtId,
 			MSEventUid msEventUid, Device device, byte[] hashedExtId) throws DaoException {
 		
-		Connection con = null;
-		PreparedStatement ps = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_event_mapping (device_id, event_ext_id, event_uid, event_ext_id_hash) VALUES (?, ?, ?, ?)");
+		String statement = "INSERT INTO opush_event_mapping (device_id, event_ext_id, event_uid, event_ext_id_hash) VALUES (?, ?, ?, ?)";
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setInt(1, device.getDatabaseId());
 			ps.setString(2, eventExtId.getExtId());
 			ps.setString(3, msEventUid.serializeToString());
@@ -118,8 +110,6 @@ public class CalendarDaoJdbcImpl extends AbstractJdbcImpl implements CalendarDao
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 }

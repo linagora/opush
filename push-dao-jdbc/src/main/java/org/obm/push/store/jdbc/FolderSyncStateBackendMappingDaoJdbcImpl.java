@@ -64,39 +64,35 @@ public class FolderSyncStateBackendMappingDaoJdbcImpl extends AbstractJdbcImpl i
 
 	@Override
 	public Date getLastSyncDate(PIMDataType dataType, FolderSyncState folderSyncState)	throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			con = dbcp.getConnection();
-			ps = con.prepareStatement(
-					"SELECT MAX(last_sync) FROM opush_folder_sync_state_backend_mapping " +
-					"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
-					"WHERE data_type = ? " + 
-					"AND opush_folder_sync_state.sync_key = ?"); 
+		String statement = "SELECT MAX(last_sync) FROM opush_folder_sync_state_backend_mapping " +
+				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
+				"WHERE data_type = ? " + 
+				"AND opush_folder_sync_state.sync_key = ?";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) { 
+		
 			ps.setObject(1, dbcp.getJdbcObject(dataType.getDbFieldName(), dataType.getDbValue()));
 			ps.setString(2, folderSyncState.getSyncKey().getSyncKey());
 
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return OpushJDBCUtils.getDate(rs, 1);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return OpushJDBCUtils.getDate(rs, 1);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, rs);
 		}
 		return null;
 	}
 
 	@Override
 	public void createMapping(PIMDataType dataType, FolderSyncState folderSyncState) throws DaoException {
-		Connection con = null;
-		PreparedStatement ps = null;
-		try{
-			con = dbcp.getConnection();
-			ps = con.prepareStatement("INSERT INTO opush_folder_sync_state_backend_mapping " + 
-						"(data_type, folder_sync_state_id, last_sync) VALUES (?, ?, ?)");
+		String statement = "INSERT INTO opush_folder_sync_state_backend_mapping " + 
+				"(data_type, folder_sync_state_id, last_sync) VALUES (?, ?, ?)";
+		
+		try (Connection con = dbcp.getConnection();
+				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setObject(1, dbcp.getJdbcObject(dataType.getDbFieldName(), dataType.getDbValue()));
 			ps.setInt(2, folderSyncState.getId());
  			ps.setTimestamp(3, DateUtils.toTimestamp(dateProvider.getDate()));
@@ -105,8 +101,6 @@ public class FolderSyncStateBackendMappingDaoJdbcImpl extends AbstractJdbcImpl i
 			} 
 		} catch (SQLException e) {
 			throw new DaoException(e);
-		} finally {
-			OpushJDBCUtils.cleanup(con, ps, null);
 		}
 	}
 }

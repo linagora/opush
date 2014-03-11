@@ -139,8 +139,9 @@ public class GlobalObjectIdTests {
 		control.replay();
 		try {
 			new GlobalObjectId(mockInputStream, 49152);
-		} finally {
+		} catch (IOException e) {
 			control.verify();
+			throw e;
 		}
 	}
 
@@ -158,8 +159,9 @@ public class GlobalObjectIdTests {
 		control.replay();
 		try {
 			new GlobalObjectId(mockInputStream, 49152);
-		} finally {
+		} catch (IOException e) {
 			control.verify();
+			throw e;
 		}
 	}
 
@@ -180,8 +182,9 @@ public class GlobalObjectIdTests {
 		control.replay();
 		try {
 			new GlobalObjectId(mockInputStream, 49152);
-		} finally {
+		} catch (IOException e) {
 			control.verify();
+			throw e;
 		}
 	}
 

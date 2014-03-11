@@ -493,8 +493,9 @@ public class EmailViewPartsFetcherImplTest {
 		control.replay();
 		try {
 			assertThat(emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy())).isNull();
-		} finally {
+		} catch (EmailViewPartsFetcherException e) {
 			control.verify();
+			throw e;
 		}
 	}
 	
@@ -600,8 +601,9 @@ public class EmailViewPartsFetcherImplTest {
 		control.replay();
 		try {
 			emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy());
-		} finally {
+		} catch (IllegalArgumentException e) {
 			control.verify();
+			throw e;
 		}
 	}
 	
@@ -1159,8 +1161,9 @@ public class EmailViewPartsFetcherImplTest {
 		control.replay();
 		try {
 			emailViewPartsFetcherImpl.fetch(1, new StrictMatchBodyPreferencePolicy());
-		} finally {
+		} catch (EmailViewBuildException e) {
 			control.verify();
+			throw e;
 		}
 	}
 
