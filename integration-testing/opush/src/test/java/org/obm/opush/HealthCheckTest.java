@@ -83,7 +83,7 @@ public class HealthCheckTest {
 		mocksControl.replay();
 		opushServer.start();
 		HttpResponse response = 
-				Request.Get("http://localhost:" + opushServer.getPort() + "/healthcheck/java/version")
+				Request.Get("http://localhost:" + opushServer.getPort() + "/opush/healthcheck/java/version")
 						.execute()
 						.returnResponse();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);

@@ -149,7 +149,7 @@ public class OpushContainerModule extends AbstractModule {
 	
 	private ServletContextHandler buildServletContext(Injector injector) {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/");
+		context.setContextPath("/opush/");
 		context.addFilter(new FilterHolder(injector.getInstance(GuiceFilter.class)), "/*", EnumSet.allOf(DispatcherType.class));
 		context.addServlet(DefaultServlet.class, "/");
 		context.addEventListener(buildCleanupListener(injector));

@@ -75,7 +75,7 @@ public class XMLOPClient extends OPClient {
 	}
 
 	private static String buildServiceUrl(int port) {
-		return "http://localhost:" + port + "/Autodiscover/";
+		return "http://localhost:" + port + "/opush/Autodiscover/";
 	}
 
 	@Override

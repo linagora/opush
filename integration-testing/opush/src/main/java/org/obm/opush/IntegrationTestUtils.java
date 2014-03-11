@@ -175,7 +175,7 @@ public class IntegrationTestUtils {
 				user.password, 
 				user.deviceId, 
 				user.deviceType, 
-				user.userAgent, "localhost", port, "/ActiveSyncServlet/",
+				user.userAgent, "localhost", port, "/opush/ActiveSyncServlet/",
 				new WBXMLTools(),
 				protocolVersion);
 	}

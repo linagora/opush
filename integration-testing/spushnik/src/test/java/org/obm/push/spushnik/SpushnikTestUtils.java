@@ -38,7 +38,7 @@ public class SpushnikTestUtils {
 	}
 
 	public static String buildServiceUrl(String ip, int port) {
-		return buildServiceUrl("/ActiveSyncServlet/", ip, port);
+		return buildServiceUrl("/opush/ActiveSyncServlet/", ip, port);
 	}
 
 	public static String buildServiceUrl(String webApp, String ip, int port) {
