@@ -45,6 +45,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.exception.DaoException;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.utils.DateUtils;
+import org.obm.push.utils.JDBCUtils;
 import org.obm.sync.date.DateProvider;
 
 import com.google.inject.Inject;
@@ -77,7 +78,7 @@ public class FolderSyncStateBackendMappingDaoJdbcImpl extends AbstractJdbcImpl i
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					return OpushJDBCUtils.getDate(rs, 1);
+					return JDBCUtils.getDate(rs, 1);
 				}
 			}
 		} catch (SQLException e) {

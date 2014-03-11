@@ -54,6 +54,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.store.CollectionDao;
+import org.obm.push.utils.JDBCUtils;
 import org.obm.sync.calendar.EventType;
 
 import com.google.common.base.Joiner;
@@ -265,7 +266,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 	
 	private ItemSyncState buildItemSyncState(ResultSet rs) throws SQLException {
-		Date lastSync = OpushJDBCUtils.getDate(rs, "last_sync");
+		Date lastSync = JDBCUtils.getDate(rs, "last_sync");
 		SyncKey syncKey = new SyncKey(rs.getString("sync_key"));
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(syncKey)
@@ -365,7 +366,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 		Date dbDate = lastSync;
 		while (rs.next()) {
 			final String email = getEmail(rs);
-			dbDate = OpushJDBCUtils.getDate(rs, rs.getMetaData().getColumnName(3));
+			dbDate = JDBCUtils.getDate(rs, rs.getMetaData().getColumnName(3));
 			EventType type = EventType.valueOf(rs.getString(4));
 			
 			StringBuilder colPath = getBaseCollectionPath(email);
@@ -393,7 +394,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 		Date dbDate = lastSync;
 		while (rs.next()) {
 			final String email = getEmail(rs);
-			dbDate = OpushJDBCUtils.getDate(rs, rs.getMetaData().getColumnName(3));
+			dbDate = JDBCUtils.getDate(rs, rs.getMetaData().getColumnName(3));
 			
 			StringBuilder colPath = getBaseCollectionPath(email);
 			colPath.append("contacts");
