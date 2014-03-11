@@ -43,6 +43,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.cassandra.PublicCassandraService;
 import org.obm.push.cassandra.schema.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
@@ -53,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class CassandraSchemaDaoTest {
 
 	private static final String KEYSPACE = "opush";
-	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(WindowingDaoCassandraImpl.class);
+	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(CassandraSchemaDao.class);
 	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
 	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoTest.class);
@@ -66,7 +67,8 @@ public class CassandraSchemaDaoTest {
 	public void init() {
 		control = createControl();
 		dateProvider = control.createMock(DateProvider.class);
-		schemaDao = new CassandraSchemaDao(cassandraCQLUnit.session, new PublicJSONService(), logger, dateProvider);
+		schemaDao = new CassandraSchemaDao(cassandraCQLUnit.session, new PublicJSONService(), logger, 
+				new PublicCassandraService(cassandraCQLUnit.session), dateProvider);
 	}
 	
 	@Test(expected=NoVersionException.class)

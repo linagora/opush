@@ -45,6 +45,7 @@ import java.util.List;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.cassandra.CassandraService;
 import org.obm.push.cassandra.schema.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
@@ -73,17 +74,21 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 	private static final int SINGLE_ROW_ID = 1;
 	private static final int ONE_RESULT = 1;
 	
+	private final CassandraService cassandraService;
 	private final DateProvider dateProvider;
 
 	@Inject
 	@VisibleForTesting CassandraSchemaDao(Session session, JSONService jsonService, 
 			@Named(LoggerModule.CASSANDRA)Logger logger,
+			CassandraService cassandraService,
 			DateProvider dateProvider) {
 		super(session, jsonService, logger);
+		this.cassandraService = cassandraService;
 		this.dateProvider = dateProvider;
 	}
 
 	public VersionUpdate getCurrentVersion() {
+		cassandraService.errorIfNoTable(TABLE.get());
 		Select query = select(VERSION, DATE).from(TABLE.get())
 				.where(eq(ID, SINGLE_ROW_ID))
 				.limit(ONE_RESULT)
@@ -101,6 +106,7 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 	}
 
 	public List<VersionUpdate> getHistory() {
+		cassandraService.errorIfNoTable(TABLE.get());
 		Select query = select(VERSION, DATE).from(TABLE.get())
 				.where(eq(ID, SINGLE_ROW_ID))
 				.orderBy(desc(VERSION));
@@ -115,6 +121,7 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 	}
 
 	public void updateVersion(Version target) {
+		cassandraService.errorIfNoTable(TABLE.get());
 		Insert query = insertInto(TABLE.get())
 				.value(ID, SINGLE_ROW_ID)
 				.value(VERSION, target.get())
