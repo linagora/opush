@@ -34,6 +34,17 @@ package org.obm.push.cassandra.dao;
 
 public interface CassandraStructure {
 	
+	interface Schema {
+		Table TABLE = Table.of("schema_version");
+		String[] PK = { Columns.ID, Columns.VERSION }; 
+		
+		interface Columns {
+			String ID = "id";
+			String VERSION = "version";
+			String DATE = "date";
+		}
+	}
+
 	interface SyncedCollection {
 		Table TABLE = Table.of("synced_collection");
 		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 

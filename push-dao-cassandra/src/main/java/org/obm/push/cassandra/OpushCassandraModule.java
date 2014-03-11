@@ -31,7 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
+import org.obm.push.cassandra.dao.CassandraStructure.Schema;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable;
 import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
@@ -62,6 +64,7 @@ public class OpushCassandraModule extends AbstractModule {
 		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
 		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE)
 		.put(WindowingDaoCassandraImpl.class, WindowingIndex.TABLE, Windowing.TABLE)
+		.put(CassandraSchemaDao.class, Schema.TABLE)
 		.build();
 	
 	@Override

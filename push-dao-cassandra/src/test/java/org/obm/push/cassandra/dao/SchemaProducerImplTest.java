@@ -165,7 +165,13 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n");
+			"ALTER TABLE windowing_index VERSION 3\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test
@@ -213,7 +219,13 @@ public class SchemaProducerImplTest {
 			"	change_type text,\n" +
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
-			");\n");
+			");\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test
@@ -263,7 +275,13 @@ public class SchemaProducerImplTest {
 			"	change_type text,\n" +
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
-			");\n");
+			");\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test
@@ -315,7 +333,13 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n");
+			"ALTER TABLE windowing_index VERSION 3\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test
@@ -481,7 +505,13 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n");
+			"ALTER TABLE windowing_index VERSION 3\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test
@@ -533,7 +563,13 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n");
+			"ALTER TABLE windowing_index VERSION 3\n" +
+			"CREATE TABLE schema_version (\n" +
+			"	id int,\n" +
+			"	version int,\n" +
+			"	date timestamp,\n" +
+			"	PRIMARY KEY ((id), version)\n" +
+			") with clustering order by (version desc);\n");
 	}
 	
 	@Test

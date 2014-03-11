@@ -46,8 +46,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.obm.push.cassandra.schema.NoVersionException;
 import org.obm.push.cassandra.schema.DaoTables;
+import org.obm.push.cassandra.schema.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.utils.FileUtils;
 
@@ -75,7 +75,7 @@ public class SchemaProducerImpl implements SchemaProducer {
 	@Inject
 	@VisibleForTesting SchemaProducerImpl(DaoTables tablesOfDao) {
 		this.tablesOfDao = tablesOfDao;
-		versionDirectory = versionDirectory();
+		this.versionDirectory = versionDirectory();
 	}
 	
 	protected URL versionDirectory() {
