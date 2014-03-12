@@ -34,11 +34,13 @@ package org.obm.push.cassandra.dao;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.TABLE;
+import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.TABLE;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.COLLECTION_ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.CREDENTIALS;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.DEVICE;
+
+import java.util.Set;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -55,17 +57,23 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
-public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao implements SyncedCollectionDao, CassandraStructure {
+public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao implements SyncedCollectionDao, CassandraStructure, CassandraDao {
 
 	@Inject  
 	@VisibleForTesting SyncedCollectionDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
+	}
+
+	@Override
+	public Set<Table> tables() {
+		return ImmutableSet.of(Table.of(TABLE));
 	}
 
 	@Override

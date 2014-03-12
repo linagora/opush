@@ -48,6 +48,7 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_KIND;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -74,13 +75,14 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
-public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements WindowingDao, CassandraStructure {
+public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements WindowingDao, CassandraStructure, CassandraDao {
 	
 	private static final int NO_PENDING_CHANGES = 0;
 	private static final int ONLY_ONE_ITEM = 1;
@@ -90,6 +92,11 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	@VisibleForTesting WindowingDaoCassandraImpl(Session session, JSONService jsonService,
 			@Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
+	}
+
+	@Override
+	public Set<Table> tables() {
+		return ImmutableSet.of(Table.of(WindowingIndex.TABLE), Table.of(Windowing.TABLE));
 	}
 
 	@Override

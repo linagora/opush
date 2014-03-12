@@ -41,6 +41,7 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex.Column
 import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Columns.ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Columns.SNAPSHOT;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -60,17 +61,23 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
-public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements SnapshotDao, CassandraStructure {
+public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements SnapshotDao, CassandraStructure, CassandraDao {
 
 	@Inject  
 	@VisibleForTesting SnapshotDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
+	}
+
+	@Override
+	public Set<Table> tables() {
+		return ImmutableSet.of(Table.of(SnapshotIndex.TABLE), Table.of(SnapshotTable.TABLE));
 	}
 
 	@Override

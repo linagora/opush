@@ -63,13 +63,18 @@ import com.google.inject.name.Named;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
-public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao implements MonitoredCollectionDao, CassandraStructure {
+public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao implements MonitoredCollectionDao, CassandraStructure, CassandraDao {
 
 	@Inject  
 	@VisibleForTesting MonitoredCollectionDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
 	}
 
+	@Override
+	public Set<Table> tables() {
+		return ImmutableSet.of(Table.of(TABLE));
+	}
+	
 	@Override
 	public Set<AnalysedSyncCollection> list(Credentials credentials, Device device) {
 		Where query = select(ANALYSED_SYNC_COLLECTIONS).from(TABLE)
