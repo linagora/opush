@@ -34,7 +34,7 @@ package org.obm.push.cassandra.dao;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.TABLE;
+import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.TABLE;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.COLLECTION_ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.CREDENTIALS;

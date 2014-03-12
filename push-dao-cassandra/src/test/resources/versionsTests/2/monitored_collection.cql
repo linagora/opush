@@ -1,0 +1,1 @@
+ALTER TABLE monitored_collection VERSION 2

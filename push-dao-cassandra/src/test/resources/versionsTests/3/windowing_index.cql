@@ -1,0 +1,1 @@
+ALTER TABLE windowing_index VERSION 3

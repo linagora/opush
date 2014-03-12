@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,23 +31,30 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
-import org.cassandraunit.CassandraCQLUnit;
-import org.junit.Before;
-import org.junit.Rule;
-import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.InputStream;
+import java.io.StringReader;
 
-public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
+import org.apache.commons.io.input.ReaderInputStream;
+import org.cassandraunit.dataset.CQLDataSet;
+import org.cassandraunit.dataset.cql.AbstractCQLDataSet;
 
-	private static final String KEYSPACE = "opush";
-	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(MonitoredCollectionDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
-	
-	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
-	
-	@Before
-	public void init() {
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+
+public class SchemaCQLDataSet extends AbstractCQLDataSet implements CQLDataSet {
+
+	private final String schema;
+
+	public SchemaCQLDataSet(String schema, String keyspace) {
+		super(null, keyspace);
+		this.schema = schema;
+	}
+
+	@Override
+	protected InputStream getInputDataSetLocation(String dataSetLocation) {
+		if (Strings.isNullOrEmpty(schema)) {
+			return new ReaderInputStream(new StringReader(""), Charsets.UTF_8);
+		}
+		return new ReaderInputStream(new StringReader(schema), Charsets.UTF_8);
 	}
 }

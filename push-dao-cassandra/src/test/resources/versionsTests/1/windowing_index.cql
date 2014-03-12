@@ -1,0 +1,1 @@
+../../../../../../push-server/src/main/resources/versions/1/windowing_index.cql

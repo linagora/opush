@@ -5,9 +5,3 @@ CREATE TABLE snapshot_index (
 	snapshot_id uuid,
 	PRIMARY KEY ((device_id), collection_id, sync_key)
 );
-
-CREATE TABLE snapshot (
-	id uuid,
-	snapshot text,
-	PRIMARY KEY (id)
-);

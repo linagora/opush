@@ -32,7 +32,6 @@
 package org.obm.push.cassandra.dao;
 
 import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.obm.push.dao.testsuite.SyncedCollectionDaoTest;
@@ -42,8 +41,8 @@ import org.slf4j.LoggerFactory;
 public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTest {
 
 	private static final String KEYSPACE = "opush";
-	private static final String SYNCED_COLLECTION_CQL = "synced_collection.cql";
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet(SYNCED_COLLECTION_CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(SyncedCollectionDaoCassandraImpl.class);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
 	private Logger logger = LoggerFactory.getLogger(SyncedCollectionDaoCassandraImplTest.class);
 	

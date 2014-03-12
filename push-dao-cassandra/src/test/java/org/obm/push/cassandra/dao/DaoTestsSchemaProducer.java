@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,23 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
-import org.cassandraunit.CassandraCQLUnit;
-import org.junit.Before;
-import org.junit.Rule;
-import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class DaoTestsSchemaProducer {
 
-public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
+	private final SchemaProducerImpl schemaProducerImpl;
 
-	private static final String KEYSPACE = "opush";
-	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(MonitoredCollectionDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	public DaoTestsSchemaProducer() {
+		schemaProducerImpl = new SchemaProducerImpl(new MonitoredCollectionDaoCassandraImpl(null, null, null),
+				new SnapshotDaoCassandraImpl(null, null, null),
+				new SyncedCollectionDaoCassandraImpl(null, null, null),
+				new WindowingDaoCassandraImpl(null, null, null));
+	}
 	
-	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
-	
-	@Before
-	public void init() {
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
+		return schemaProducerImpl.lastSchemaForDAO(clazz);
 	}
 }

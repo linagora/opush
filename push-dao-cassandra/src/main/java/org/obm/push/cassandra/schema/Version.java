@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,25 +29,51 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra.schema;
 
-import org.cassandraunit.CassandraCQLUnit;
-import org.junit.Before;
-import org.junit.Rule;
-import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
-public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
-
-	private static final String KEYSPACE = "opush";
-	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(MonitoredCollectionDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+public class Version implements Comparable<Version> {
 	
-	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
+	public static Version of(int version) {
+		return new Version(version);
+	}
+
+	private final int version;
 	
-	@Before
-	public void init() {
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+	private Version(int version) {
+		Preconditions.checkArgument(version >= 1);
+		this.version = version;
+	}
+	
+	public int get() {
+		return version;
+	}
+	
+	@Override
+	public int compareTo(Version o) {
+		return version - o.version;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(version);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
+		if (object instanceof Version) {
+			Version that = (Version) object;
+			return Objects.equal(this.version, that.version);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("version", version)
+			.toString();
 	}
 }

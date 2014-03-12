@@ -154,6 +154,16 @@
 									</mapper>
 								</data>
 								<data>
+									<type>directory</type>
+									<src>${project.build.resources[0].directory}/versions</src>
+									<mapper>
+										<type>perm</type>
+										<user>opush</user>
+										<group>opush</group>
+										<prefix>/usr/share/${project.build.finalName}/versions</prefix>
+									</mapper>
+								</data>
+								<data>
 									<type>file</type>
 									<src>src/deb/resources/opush.debian.sh</src>
 									<dst>/etc/init.d/opush</dst>
@@ -291,6 +301,17 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<sources>
 										<source>
 											<location>${project.build.directory}/lib</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/versions</directory>
+									<filemode>755</filemode>
+									<username>opush</username>
+									<groupname>opush</groupname>
+									<sources>
+										<source>
+											<location>${project.build.resources[0].directory}/versions</location>
 										</source>
 									</sources>
 								</mapping>

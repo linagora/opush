@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,25 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra.schema;
 
-import org.cassandraunit.CassandraCQLUnit;
-import org.junit.Before;
-import org.junit.Rule;
-import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
+import org.junit.Test;
 
-	private static final String KEYSPACE = "opush";
-	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(MonitoredCollectionDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
-	
-	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
-	
-	@Before
-	public void init() {
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+public class VersionTest {
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testZeroVersionThrowsException() {
+		Version.of(0);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNegativeVersionThrowsException() {
+		Version.of(-1);
+	}
+
+	@Test
+	public void testVersion() {
+		assertThat(Version.of(1).get()).isEqualTo(1);
 	}
 }

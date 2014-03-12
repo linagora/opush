@@ -1,0 +1,1 @@
+ALTER TABLE snapshot VERSION 3
