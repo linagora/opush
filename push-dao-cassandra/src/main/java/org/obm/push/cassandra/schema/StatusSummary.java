@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -34,38 +34,79 @@ package org.obm.push.cassandra.schema;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-public class Version implements Comparable<Version> {
+public class StatusSummary {
+
+	public static enum Status {
+		NOT_INITIALIZED,
+		UPGRADE_REQUIRED,
+		UPGRADE_AVAILABLE,
+		UP_TO_DATE
+	}
 	
-	public static Version of(int version) {
-		return new Version(version);
+	public static Builder status(Status status) {
+		return new Builder(status);
+	}
+	
+	public static class Builder {
+		
+		private final Status status;
+		private VersionUpdate currentVersion;
+		private Version upgradeAvailable;
+
+		private Builder(Status status) {
+			this.status = status;
+		}
+		
+		public Builder currentVersion(VersionUpdate currentVersion) {
+			this.currentVersion = currentVersion;
+			return this;
+		}
+
+		public Builder upgradeAvailable(Version upgradeAvailable) {
+			this.upgradeAvailable = upgradeAvailable;
+			return this;
+		}
+		
+		public StatusSummary build() {
+			Preconditions.checkNotNull(status, "status is required");
+			return new StatusSummary(status, currentVersion, upgradeAvailable);
+		}
+	}
+	
+	private final StatusSummary.Status status;
+	private final VersionUpdate currentVersion;
+	private final Version upgradeAvailable;
+
+	private StatusSummary(Status status, VersionUpdate currentVersion, Version upgradeAvailable) {
+		this.status = status;
+		this.currentVersion = currentVersion;
+		this.upgradeAvailable = upgradeAvailable;
+	}
+	
+	public StatusSummary.Status getStatus() {
+		return status;
 	}
 
-	private final int version;
-	
-	private Version(int version) {
-		Preconditions.checkArgument(version >= 1);
-		this.version = version;
+	public VersionUpdate getCurrentVersion() {
+		return currentVersion;
 	}
-	
-	public int get() {
-		return version;
+
+	public Version getUpgradeAvailable() {
+		return upgradeAvailable;
 	}
 	
 	@Override
-	public int compareTo(Version o) {
-		return version - o.version;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(version);
+	public final int hashCode(){
+		return Objects.hashCode(status, currentVersion, upgradeAvailable);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof Version) {
-			Version that = (Version) object;
-			return Objects.equal(this.version, that.version);
+		if (object instanceof StatusSummary) {
+			StatusSummary that = (StatusSummary) object;
+			return Objects.equal(this.status, that.status)
+				&& Objects.equal(this.currentVersion, that.currentVersion)
+				&& Objects.equal(this.upgradeAvailable, that.upgradeAvailable);
 		}
 		return false;
 	}
@@ -73,15 +114,9 @@ public class Version implements Comparable<Version> {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("version", version)
+			.add("status", status)
+			.add("currentVersion", currentVersion)
+			.add("upgradeAvailable", upgradeAvailable)
 			.toString();
-	}
-
-	public boolean isLessThan(Version version) {
-		return compareTo(version) < 0;
-	}
-
-	public boolean isGreaterThanOrEqual(Version version) {
-		return compareTo(version) >= 0;
 	}
 }

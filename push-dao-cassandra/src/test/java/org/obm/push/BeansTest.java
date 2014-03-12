@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,59 +29,36 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import org.junit.Before;
+import org.junit.Test;
+import org.obm.push.cassandra.schema.StatusSummary;
+import org.obm.push.cassandra.schema.Version;
+import org.obm.push.cassandra.schema.VersionUpdate;
+import org.obm.sync.bean.EqualsVerifierUtils;
 
-public class Version implements Comparable<Version> {
-	
-	public static Version of(int version) {
-		return new Version(version);
-	}
+import com.google.common.collect.ImmutableList;
 
-	private final int version;
+
+public class BeansTest {
+
+	private EqualsVerifierUtils equalsVerifierUtilsTest;
 	
-	private Version(int version) {
-		Preconditions.checkArgument(version >= 1);
-		this.version = version;
-	}
-	
-	public int get() {
-		return version;
-	}
-	
-	@Override
-	public int compareTo(Version o) {
-		return version - o.version;
+	@Before
+	public void init() {
+		equalsVerifierUtilsTest = new EqualsVerifierUtils();
 	}
 	
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(version);
+	@Test
+	public void test() {
+		ImmutableList<Class<?>> list = 
+				ImmutableList.<Class<?>>builder()
+					.add(Version.class)
+					.add(VersionUpdate.class) 
+					.add(StatusSummary.class) 
+					.build();
+		equalsVerifierUtilsTest.test(list);
 	}
 	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof Version) {
-			Version that = (Version) object;
-			return Objects.equal(this.version, that.version);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("version", version)
-			.toString();
-	}
-
-	public boolean isLessThan(Version version) {
-		return compareTo(version) < 0;
-	}
-
-	public boolean isGreaterThanOrEqual(Version version) {
-		return compareTo(version) >= 0;
-	}
 }

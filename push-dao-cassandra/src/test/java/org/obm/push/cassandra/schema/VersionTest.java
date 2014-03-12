@@ -1,6 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
+<<<<<<< HEAD
  * Copyright (C) 2014  Linagora
+=======
+ * Copyright (C) 2014 Linagora
+>>>>>>> 6cce91c... OBMFULL-5830 Add status command
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -50,5 +54,35 @@ public class VersionTest {
 	@Test
 	public void testVersion() {
 		assertThat(Version.of(1).get()).isEqualTo(1);
+	}
+	
+	@Test
+	public void isLessThanWhenLess() {
+		assertThat(Version.of(4).isLessThan(Version.of(5))).isTrue();
+	}
+	
+	@Test
+	public void isLessThanWhenEquals() {
+		assertThat(Version.of(5).isLessThan(Version.of(5))).isFalse();
+	}
+	
+	@Test
+	public void isLessThanWhenGreater() {
+		assertThat(Version.of(5).isLessThan(Version.of(4))).isFalse();
+	}
+	
+	@Test
+	public void isGreaterThanOrEqualWhenLess() {
+		assertThat(Version.of(4).isGreaterThanOrEqual(Version.of(5))).isFalse();
+	}
+	
+	@Test
+	public void isGreaterThanOrEqualWhenEquals() {
+		assertThat(Version.of(5).isGreaterThanOrEqual(Version.of(5))).isTrue();
+	}
+	
+	@Test
+	public void isGreaterThanOrEqualWhenGreater() {
+		assertThat(Version.of(5).isGreaterThanOrEqual(Version.of(4))).isTrue();
 	}
 }
