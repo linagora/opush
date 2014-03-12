@@ -105,4 +105,37 @@
 			<artifactId>jackson-datatype-guava</artifactId>
 		</dependency>
 	</dependencies>
+
+	<profiles>
+		<profile>
+<!-- Usage
+mvn clean install -P generate-cassandra-schema -DfromVersion=versA -DtoVersion=versB
+-->
+			<id>generate-cassandra-schema</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2.1</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+					        	<mainClass>org.obm.push.cassandra.dao.CQLSchemaGenerator</mainClass>
+							<arguments>
+								<argument>${project.build.directory}</argument>
+								<argument>${project.build.resources[0].directory}</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
