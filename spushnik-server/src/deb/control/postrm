@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-invoke-rc.d spushnik stop 2>&1 	
+if [ -f /etc/init.d/spushnik ]; then
+	invoke-rc.d spushnik stop 2>&1
+fi 	
 
 exit 0
 

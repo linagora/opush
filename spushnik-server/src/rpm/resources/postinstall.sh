@@ -1,13 +1,5 @@
-#!/bin/bash
-set -e
+#!/bin/sh -e
 
 if [ ! -f /etc/init.d/spushnik ]; then
 	ln -s /etc/spushnik/spushnik.sh /etc/init.d/spushnik 
 fi
-
-invoke-rc.d spushnik start	 3>1
-
-#DEBHELPER#
-
-exit 0
-

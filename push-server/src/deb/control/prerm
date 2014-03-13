@@ -1,3 +1,5 @@
 #!/bin/sh -e
 
-invoke-rc.d opush stop 3>1
+if [ -f /etc/init.d/opush ]; then
+	invoke-rc.d opush stop 3>1
+fi

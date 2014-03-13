@@ -119,6 +119,17 @@
 								<data>
 									<type>file</type>
 									<src>src/deb/resources/spushnik.debian.sh</src>
+									<dst>/etc/spushnik/spushnik.sh</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+										<user>root</user>
+										<group>root</group>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>src/deb/resources/spushnik.debian.sh</src>
 									<dst>/etc/init.d/spushnik</dst>
 									<mapper>
 										<type>perm</type>
@@ -256,6 +267,10 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 								<scriptFile>${basedir}/src/rpm/resources/postremove.sh</scriptFile>
 								<fileEncoding>utf-8</fileEncoding>
 							</postremoveScriptlet>
+							<postinstallScriptlet>
+								<scriptFile>${basedir}/src/rpm/resources/postinstall.sh</scriptFile>
+								<fileEncoding>utf-8</fileEncoding>
+							</postinstallScriptlet>
 							<preinstallScriptlet>
 								<scriptFile>${basedir}/src/rpm/resources/preinstall.sh</scriptFile>
 								<fileEncoding>utf-8</fileEncoding>
