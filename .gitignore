@@ -1,5 +1,6 @@
 *.pyc
 target
+*eclipse-build*
 .project
 java/.classpath
 .classpath
