@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,32 +29,50 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush;
+package org.obm.opush.env;
 
-import org.obm.opush.env.CassandraServer;
-import org.obm.push.cassandra.CassandraSessionSupplier;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
+import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
+import org.obm.guice.GuiceRunnerDelegation;
+import org.obm.push.OpushContainerModule.OpushHttpCapability;
 
-import com.datastax.driver.core.Session;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 
-@Singleton
-public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
+public class OpushGuiceRunner extends GuiceRunner {
 
-	private CassandraServer cassandraServer;
-
-	@Inject
-	private CassandraSessionSupplierImpl(CassandraServer cassandraServer) {
-		this.cassandraServer = cassandraServer;
-	}
-	
-	@Override
-	public Session get() {
-		return cassandraServer.getClientSession();
+	public OpushGuiceRunner(Class<?> klass) throws InitializationError {
+		super(klass, new OpushGuiceRunnerDelegation());
 	}
 
-	@Override
-	public boolean hasBeenSupplied() {
-		return cassandraServer.getClientSession() != null;
+	public static class OpushGuiceRunnerDelegation extends GuiceRunnerDelegation {
+
+		@Override
+		protected GuiceStatement buildGuiceStatement(Statement base, Object target, GuiceModule moduleAnnotation) {
+			return new OpushGuiceStatement(moduleAnnotation.value(), target, base);
+		}
+
+		public static class OpushGuiceStatement extends GuiceStatement { 
+			
+			public OpushGuiceStatement(Class<? extends Module> module, Object target, Statement next) {
+				super(module, target, next);
+			}
+
+			@Override
+			public void evaluate() throws Throwable {
+				Injector baseInjector = Guice.createInjector(instantiateModule());
+				Injector httpInjector = baseInjector.getInstance(OpushHttpCapability.class).enableByExtendingInjector();
+				httpInjector.injectMembers(target);
+				next.evaluate();
+			}
+
+			protected Module instantiateModule() throws InstantiationException, IllegalAccessException {
+				return module.newInstance();
+			}
+		}
+
 	}
 }

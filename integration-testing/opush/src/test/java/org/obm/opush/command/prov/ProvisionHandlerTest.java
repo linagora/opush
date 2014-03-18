@@ -44,21 +44,21 @@ import java.util.Properties;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.assertj.core.util.Files;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.easymock.IMocksControl;
-import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushConfigurationFixture;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
@@ -79,7 +79,7 @@ import org.obm.sync.push.client.ProvisionResponse;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class ProvisionHandlerTest {
 

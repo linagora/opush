@@ -47,9 +47,9 @@ import javax.xml.transform.TransformerException;
 import org.apache.http.HttpStatus;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.assertj.core.util.Files;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,11 +57,11 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.icalendar.ICalendar;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.ChangedCollections;
@@ -106,7 +106,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class MeetingResponseHandlerTest {
 

@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.configuration.VMArgumentsUtils;
+import org.obm.push.OpushContainerModule.OpushHttpCapability;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationLoader;
 
@@ -59,8 +60,10 @@ public class OpushServerLauncher {
 				OpushConfigurationLoader.loadFromFiles(
 					Paths.get(OPUSH_CONFIGURATION_PATH), 
 					Paths.get(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH));
-		Injector injector = Guice.createInjector(new OpushContainerModule(SERVER_PORT), new OpushModule(configuration));
-		OpushServer opushServer = new OpushServerLauncher().start(injector);
+		Injector baseInjector = Guice.createInjector(new OpushContainerModule(SERVER_PORT), new OpushModule(configuration));
+		Injector fullInjector = baseInjector.getInstance(OpushHttpCapability.class).enableByExtendingInjector();
+		
+		OpushServer opushServer = new OpushServerLauncher().start(fullInjector);
 		opushServer.join();
 	}
 

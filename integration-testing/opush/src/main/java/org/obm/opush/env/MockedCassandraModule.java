@@ -29,32 +29,53 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush;
+package org.obm.opush.env;
 
-import org.obm.opush.env.CassandraServer;
+import org.easymock.IMocksControl;
+import org.obm.guice.AbstractOverrideModule;
+import org.obm.opush.CassandraSessionSupplierImpl;
 import org.obm.push.cassandra.CassandraSessionSupplier;
+import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
+import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
+import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
+import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 
 import com.datastax.driver.core.Session;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.Provides;
 
-@Singleton
-public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
+public class MockedCassandraModule extends AbstractOverrideModule {
 
-	private CassandraServer cassandraServer;
+	private final CassandraServer cassandraServer;
 
-	@Inject
-	private CassandraSessionSupplierImpl(CassandraServer cassandraServer) {
-		this.cassandraServer = cassandraServer;
+	public MockedCassandraModule(IMocksControl mocksControl) {
+		super(mocksControl);
+		cassandraServer = new CassandraServer() {
+
+			@Override
+			public Session getClientSession() {
+				return null;
+			}
+
+			@Override
+			public void start() throws Exception {
+			}
+
+			@Override
+			public void stop() {
+			}};
 	}
 	
-	@Override
-	public Session get() {
-		return cassandraServer.getClientSession();
+	@Provides
+	public CassandraServer getCassandraServer() {
+		return cassandraServer;
 	}
 
 	@Override
-	public boolean hasBeenSupplied() {
-		return cassandraServer.getClientSession() != null;
+	protected void configureImpl() {
+		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
+		bindWithMock(SyncedCollectionDaoCassandraImpl.class);
+		bindWithMock(WindowingDaoCassandraImpl.class);
+		bindWithMock(SnapshotDaoCassandraImpl.class);
+		bindWithMock(MonitoredCollectionDaoCassandraImpl.class);
 	}
 }

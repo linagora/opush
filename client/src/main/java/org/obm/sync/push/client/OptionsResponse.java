@@ -32,15 +32,22 @@
 package org.obm.sync.push.client;
 
 import org.apache.http.Header;
+import org.apache.http.StatusLine;
 
 import com.google.common.base.Objects;
 
 public class OptionsResponse {
 		
 	private final Iterable<Header> headers;
+	private final StatusLine statusLine;
 
-	public OptionsResponse(Iterable<Header> headers) {
+	public OptionsResponse(StatusLine statusLine, Iterable<Header> headers) {
+		this.statusLine = statusLine;
 		this.headers = headers;
+	}
+	
+	public StatusLine getStatusLine() {
+		return statusLine;
 	}
 
 	public Iterable<Header> getHeaders() {
@@ -49,14 +56,18 @@ public class OptionsResponse {
 
 	@Override
 	public int hashCode(){
-		return Objects.hashCode(headers);
+		return Objects.hashCode(statusLine, headers);
 	}
 	
 	@Override
 	public boolean equals(Object object){
+		if (this == object) {
+			return true;
+		}
 		if (object instanceof OptionsResponse) {
 			OptionsResponse that = (OptionsResponse) object;
-			return Objects.equal(headers, that.headers);
+			return Objects.equal(headers, that.headers)
+				&& Objects.equal(statusLine, that.statusLine);
 		}
 		return false;
 	}
@@ -64,6 +75,7 @@ public class OptionsResponse {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
+				.add("statusLine", statusLine)
 				.add("headers", headers)
 				.toString();
 	}

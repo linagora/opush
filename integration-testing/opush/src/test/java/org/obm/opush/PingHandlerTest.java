@@ -57,8 +57,8 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.easymock.IMocksControl;
 import org.assertj.core.util.Files;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -67,9 +67,9 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.env.DefaultOpushModule;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
@@ -100,7 +100,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class PingHandlerTest {
 

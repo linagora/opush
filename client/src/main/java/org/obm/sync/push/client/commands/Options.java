@@ -73,7 +73,7 @@ public class Options implements IEasCommand<OptionsResponse> {
 				for (Header h : hs) {
 					logger.info("resp head[" + h.getName() + "] => "+ h.getValue());
 				}
-				return new OptionsResponse(ImmutableSet.copyOf(hs));
+				return new OptionsResponse(statusLine, ImmutableSet.copyOf(hs));
 			} finally {
 				request.releaseConnection();
 			}

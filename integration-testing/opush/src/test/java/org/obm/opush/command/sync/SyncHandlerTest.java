@@ -78,12 +78,12 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.env.CassandraServer;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
@@ -134,7 +134,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @GuiceModule(SyncHandlerTestModule.class)
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 public class SyncHandlerTest {
 
 	@Inject SingleUserFixture singleUserFixture;

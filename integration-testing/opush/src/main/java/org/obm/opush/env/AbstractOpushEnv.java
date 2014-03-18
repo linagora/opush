@@ -52,7 +52,6 @@ import org.obm.opush.env.OpushStaticConfiguration.Backend;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
-import org.obm.opush.env.OpushConfigurationFixture;
 import org.obm.push.exception.DaoException;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -127,7 +126,7 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 		return new DaoModule(mocksControl);
 	}
 
-	protected OpushCassandraModule cassandra() {
+	protected AbstractOverrideModule cassandra() {
 		return new OpushCassandraModule(mocksControl);
 	}
 

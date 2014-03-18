@@ -45,8 +45,8 @@ import java.util.Date;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.easymock.IMocksControl;
 import org.assertj.core.util.Files;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -55,9 +55,9 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.env.CassandraServer;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
@@ -100,7 +100,7 @@ import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 @GuiceModule(MailBackendImapTimeoutTestModule.class)
 public class MailBackendImapTimeoutTest {
 

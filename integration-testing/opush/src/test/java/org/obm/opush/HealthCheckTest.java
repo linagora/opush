@@ -39,8 +39,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.easymock.IMocksControl;
 import org.assertj.core.util.Files;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,14 +48,14 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 
 import com.google.inject.Inject;
 
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class HealthCheckTest {
 

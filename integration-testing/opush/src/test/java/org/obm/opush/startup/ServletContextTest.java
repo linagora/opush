@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,13 +29,14 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush;
+package org.obm.opush.startup;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 
-import org.apache.http.Header;
+import java.io.IOException;
+
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.easymock.IMocksControl;
@@ -45,60 +46,71 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
+import org.obm.guice.GuiceRunner;
+import org.obm.opush.SingleUserFixture;
+import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.NoCassandraOpushModule;
+import org.obm.push.OpushContainerModule.OpushHttpCapability;
 import org.obm.push.OpushServer;
+import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.OptionsResponse;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import com.google.inject.ConfigurationException;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
-@RunWith(OpushGuiceRunner.class)
-@GuiceModule(DefaultOpushModule.class)
-public class OptionsHandlerTest {
+@RunWith(GuiceRunner.class)
+@GuiceModule(NoCassandraOpushModule.class)
+public class ServletContextTest {
 
-	@Inject	SingleUserFixture user;
-	@Inject	OpushServer opushServer;
-	@Inject IMocksControl mocksControl;
+	@Inject	SingleUserFixture singleUserFixture;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject Injector injector;
+	@Inject IMocksControl mocksControl;
+	
 	private CloseableHttpClient httpClient;
-
+	private OpushUser user;
+	
 	@Before
-	public void init() throws Exception {
-		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
+	public void setUp() {
 		httpClient = HttpClientBuilder.create().build();
-		cassandraServer.start();
+		user = singleUserFixture.jaures;
 	}
 	
 	@After
-	public void shutdown() throws Exception {
-		opushServer.stop();
-		cassandraServer.stop();
+	public void tearDown() throws IOException {
 		httpClient.close();
+		LifecycleListenerHelper.shutdownListeners(injector);
+	}
+	
+	@Test(expected=ConfigurationException.class)
+	public void noOpushServerByDefault() {
+		assertThat(injector.getInstance(OpushHttpCapability.class)).isNotNull();
+		injector.getInstance(OpushServer.class);
 	}
 	
 	@Test
-	public void testOptionsProtocolVersions() throws Exception {
-		mocksControl.replay();
-		opushServer.start();
-		
-		OPClient opClient = buildWBXMLOpushClient(user.jaures, opushServer.getPort(), httpClient);
-		OptionsResponse options = opClient.options();
-		
-		assertThat(Iterables.tryFind(options.getHeaders(), new Predicate<Header>() {
+	public void isOpushServerManagedByExtendedInjector() {
+		OpushHttpCapability httpCapability = injector.getInstance(OpushHttpCapability.class);
+		assertThat(httpCapability.enableByExtendingInjector().getInstance(OpushServer.class)).isNotNull();
+	}
 
-			@Override
-			public boolean apply(Header input) {
-				if ("MS-ASProtocolVersions".equals(input.getName()) && "12.0,12.1".equals(input.getValue())) {
-					return true;
-				}
-				return false;
-			}
-			
-		}).isPresent()).isTrue();
+	@Test
+	public void hasServletContextAfterEnablingIt() throws Exception {
+		expect(policyConfigurationProvider.get()).andReturn("");
+		mocksControl.replay();
+		OpushHttpCapability httpCapability = injector.getInstance(OpushHttpCapability.class);
+		OpushServer opushServer = httpCapability.enableByExtendingInjector().getInstance(OpushServer.class);
+		opushServer.start();
+
+		try {
+			OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+			OptionsResponse options = opClient.options();
+			assertThat(options.getStatusLine().getStatusCode()).isEqualTo(200);
+		} finally {
+			opushServer.stop();
+			mocksControl.verify();
+		}
 	}
 }

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,32 +29,19 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush;
+package org.obm.opush.env;
 
-import org.obm.opush.env.CassandraServer;
-import org.obm.push.cassandra.CassandraSessionSupplier;
+import org.obm.guice.AbstractOverrideModule;
 
-import com.datastax.driver.core.Session;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
-@Singleton
-public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
-
-	private CassandraServer cassandraServer;
-
-	@Inject
-	private CassandraSessionSupplierImpl(CassandraServer cassandraServer) {
-		this.cassandraServer = cassandraServer;
+public class NoCassandraOpushModule extends AbstractOpushEnv {
+	
+	public NoCassandraOpushModule() {
+		super();
 	}
 	
 	@Override
-	public Session get() {
-		return cassandraServer.getClientSession();
-	}
-
-	@Override
-	public boolean hasBeenSupplied() {
-		return cassandraServer.getClientSession() != null;
+	protected AbstractOverrideModule cassandra() {
+		return new MockedCassandraModule(getMocksControl());
 	}
 }

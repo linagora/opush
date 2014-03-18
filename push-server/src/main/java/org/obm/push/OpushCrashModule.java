@@ -88,7 +88,13 @@ public class OpushCrashModule extends AbstractModule {
 
 		@Override
 		public void shutdown() throws Exception {
-			bootstrap.destroy();
+			if (needsShutdown()) {
+				bootstrap.destroy();
+			}
+		}
+
+		private boolean needsShutdown() {
+			return bootstrap.getContext() != null;
 		}
 
 	}

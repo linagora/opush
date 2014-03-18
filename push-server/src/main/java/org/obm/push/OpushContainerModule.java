@@ -29,50 +29,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
-import java.util.EnumSet;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.component.LifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle.Listener;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.obm.configuration.VMArgumentsUtils;
-import org.obm.push.configuration.LoggerModule;
-import org.obm.push.configuration.OpushConfiguration;
-import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
-import org.slf4j.Logger;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
-
-import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.servlet.GuiceFilter;
 
 public class OpushContainerModule extends AbstractModule {
 
-	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(1);
 	private static final int JETTY_SELECTED_PORT = 0;
-	private static final int POOL_THREAD_SIZE = Objects.firstNonNull( 
-			VMArgumentsUtils.integerArgumentValue("threadPoolSize"), 200);
-
 	private final int port;
 
 	public OpushContainerModule() {
@@ -89,109 +57,23 @@ public class OpushContainerModule extends AbstractModule {
 	protected void configure() {}
 
 	@Provides @Singleton
-	protected OpushServer buildServer(Injector injector, 
-			OpushConfiguration configuration,
-			@Named(LoggerModule.CONTAINER) Logger logger) {
-		
-		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
-		jetty.setStopAtShutdown(true);
-		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
-		
-		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
-		httpConnector.setPort(port);
-		jetty.addConnector(httpConnector);
-		jetty.setHandler(buildHandlers(injector, configuration, logger));
-
-		return new OpushServer() {
-			
-			@Override
-			public void stop() throws Exception {
-				jetty.stop();
-			}
-			
-			@Override
-			public void start() throws Exception {
-				jetty.start();
-			}
-			
-			@Override
-			public void join() throws Exception {
-				jetty.join();
-			}
-
-			@Override
-			public int getPort() {
-				if (jetty.isRunning()) {
-					return httpConnector.getLocalPort();
-				}
-				throw new IllegalStateException("Could not get server's listening port. Start the server first.");
-			}
-		};
+	protected OpushHttpCapability providesHttpCapability(Injector injector) {
+		return new OpushHttpCapability(injector, port);
 	}
 
-	private Handler buildHandlers(Injector injector, OpushConfiguration configuration, Logger logger) {
-		HandlerCollection handlers = new HandlerCollection();
-		handlers.addLifeCycleListener(buildLifeCycleListener(logger));
-		handlers.addHandler(buildServletContext(injector));
-		handlers.addHandler(buildRequestLogger(configuration));
-		return handlers;
-	}
+	public static class OpushHttpCapability {
+		
+		private final Injector injector;
+		private final int port;
 
-	private RequestLogHandler buildRequestLogger(OpushConfiguration configuration) {
-		RequestLogHandler requestLogHandler = new RequestLogHandler();
-		if (configuration.isRequestLoggerEnabled()) {
-			RequestLogImpl requestLog = new RequestLogImpl();
-			requestLog.setResource("/logback-access.xml");
-			requestLogHandler.setRequestLog(requestLog);
+		public OpushHttpCapability(Injector injector, int port) {
+			this.injector = injector;
+			this.port = port;
 		}
-		return requestLogHandler;
-	}
-	
-	private ServletContextHandler buildServletContext(Injector injector) {
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/opush/");
-		context.addFilter(new FilterHolder(injector.getInstance(GuiceFilter.class)), "/*", EnumSet.allOf(DispatcherType.class));
-		context.addServlet(DefaultServlet.class, "/");
-		context.addEventListener(buildCleanupListener(injector));
-		return context;
-	}
-
-	private ServletContextListener buildCleanupListener(final Injector injector) {
-		return new ServletContextListener() {
-
-			@Override
-			public void contextInitialized(ServletContextEvent sce) {
-			}
-
-			@Override
-			public void contextDestroyed(ServletContextEvent sce) {
-				LifecycleListenerHelper.shutdownListeners(injector);
-			}
-		};
-	}
-
-	private Listener buildLifeCycleListener(final Logger logger) {
-		return new Listener() {
-			@Override
-			public void lifeCycleStopping(LifeCycle event) {
-				logger.info("Application stopping");
-			}
-			@Override
-			public void lifeCycleStopped(LifeCycle event) {
-				logger.info("Application stopped");
-			}
-			@Override
-			public void lifeCycleStarting(LifeCycle event) {
-				logger.info("Application starting");
-			}
-			@Override
-			public void lifeCycleStarted(LifeCycle event) {
-				logger.info("Application started");
-			}
-			@Override
-			public void lifeCycleFailure(LifeCycle event, Throwable cause) {
-				logger.error("Application failure", cause);
-			}
-		};
+		
+		public Injector enableByExtendingInjector() {
+			return injector.createChildInjector(new OpushJettyModule(port));
+		}
+		
 	}
 }

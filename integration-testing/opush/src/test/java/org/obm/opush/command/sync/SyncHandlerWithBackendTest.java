@@ -61,9 +61,9 @@ import javax.transaction.SystemException;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.assertj.core.util.Files;
 import org.easymock.IMocksControl;
 import org.easymock.internal.matchers.Equals;
-import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,13 +73,13 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.annotations.transactional.TransactionProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.SingleUserFixture;
 import org.obm.opush.SingleUserFixture.OpushUser;
 import org.obm.opush.env.CassandraServer;
+import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
@@ -146,7 +146,7 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 
 @GuiceModule(SyncHandlerWithBackendTestModule.class)
-@RunWith(GuiceRunner.class)
+@RunWith(OpushGuiceRunner.class)
 public class SyncHandlerWithBackendTest {
 
 	private final static int ONE_WINDOWS_SIZE = 1;
