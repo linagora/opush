@@ -31,15 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
+import org.obm.push.cassandra.OpushCassandraModule;
+
 public class DaoTestsSchemaProducer {
 
 	private final SchemaProducerImpl schemaProducerImpl;
 
 	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(new MonitoredCollectionDaoCassandraImpl(null, null, null),
-				new SnapshotDaoCassandraImpl(null, null, null),
-				new SyncedCollectionDaoCassandraImpl(null, null, null),
-				new WindowingDaoCassandraImpl(null, null, null));
+		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
 	}
 	
 	public String schemaForDAO(Class<? extends CassandraDao> clazz) {

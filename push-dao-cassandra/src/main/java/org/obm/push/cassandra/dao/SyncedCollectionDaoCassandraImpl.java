@@ -40,8 +40,6 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Col
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.CREDENTIALS;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.DEVICE;
 
-import java.util.Set;
-
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
@@ -57,7 +55,6 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -72,13 +69,8 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 	}
 
 	@Override
-	public Set<Table> tables() {
-		return ImmutableSet.of(Table.of(TABLE));
-	}
-
-	@Override
 	public void put(Credentials credentials, Device device, AnalysedSyncCollection collection) {
-		Insert query = insertInto(TABLE)
+		Insert query = insertInto(TABLE.get())
 				.value(CREDENTIALS, jsonService.serialize(credentials))
 				.value(DEVICE, jsonService.serialize(device))
 				.value(COLLECTION_ID, collection.getCollectionId())
@@ -89,7 +81,7 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 	
 	@Override
 	public AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId) {
-		Where query = select(ANALYSED_SYNC_COLLECTION).from(TABLE)
+		Where query = select(ANALYSED_SYNC_COLLECTION).from(TABLE.get())
 				.where(eq(CREDENTIALS, jsonService.serialize(credentials)))
 				.and(eq(DEVICE, jsonService.serialize(device)))
 				.and(eq(COLLECTION_ID, collectionId));

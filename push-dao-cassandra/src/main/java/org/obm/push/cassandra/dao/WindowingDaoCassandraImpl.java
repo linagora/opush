@@ -48,7 +48,6 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_KIND;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -75,7 +74,6 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -92,11 +90,6 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	@VisibleForTesting WindowingDaoCassandraImpl(Session session, JSONService jsonService,
 			@Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
-	}
-
-	@Override
-	public Set<Table> tables() {
-		return ImmutableSet.of(Table.of(WindowingIndex.TABLE), Table.of(Windowing.TABLE));
 	}
 
 	@Override
@@ -133,7 +126,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 
 	private ResultSet selectWindowingIndex(WindowingKey key) {
 		Where statement = select(WINDOWING_ID, WINDOWING_KIND, WINDOWING_INDEX)
-			.from(WindowingIndex.TABLE)
+			.from(WindowingIndex.TABLE.get())
 			.where(eq(USER, key.getUser().getLoginAtDomain()))
 			.and(eq(DEVICE_ID, key.getDeviceId().getDeviceId()))
 			.and(eq(COLLECTION_ID, key.getCollectionId()))
@@ -172,7 +165,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 
 	private ResultSet selectChanges(int maxSize, UUID windowingId, int windowingIndex) {
 		Select statement = select(CHANGE_TYPE, CHANGE_VALUE)
-				.from(Windowing.TABLE)
+				.from(Windowing.TABLE.get())
 				.where(eq(ID, windowingId))
 				.and(gte(CHANGE_INDEX, windowingIndex))
 				.limit(maxSize);
@@ -231,7 +224,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	private void insertNewIndex(WindowingKey key, SyncKey newSyncKey, UUID windowingId, 
 			PIMDataType windowingKind, int newWindowingIndex) {
 		
-		Insert statement = insertInto(WindowingIndex.TABLE)
+		Insert statement = insertInto(WindowingIndex.TABLE.get())
 			.value(USER, key.getUser().getLoginAtDomain())
 			.value(DEVICE_ID, key.getDeviceId().getDeviceId())
 			.value(COLLECTION_ID, key.getCollectionId())
@@ -262,7 +255,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	private void addInsertStatementInBatch(BatchStatement batch, UUID windowingUUID, int changeIndex, WindowingItem item, ChangeType changeType) {
-		Insert statement = insertInto(Windowing.TABLE)
+		Insert statement = insertInto(Windowing.TABLE.get())
 			.value(ID, windowingUUID)
 			.value(CHANGE_INDEX, changeIndex)
 			.value(CHANGE_TYPE, changeType.asValue())
@@ -286,7 +279,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		logger.debug("Windowing index found Id:{} Kind:{} Index:{}", windowingId, windowingDataType, windowingIndex);
 		
 		Statement statement = select().countAll()
-				.from(Windowing.TABLE)
+				.from(Windowing.TABLE.get())
 				.where(eq(ID, windowingId))
 				.and(gte(CHANGE_INDEX, windowingIndex));
 		ResultSet resultSet = session.execute(statement);

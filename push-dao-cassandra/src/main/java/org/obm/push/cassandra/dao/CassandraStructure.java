@@ -35,7 +35,7 @@ package org.obm.push.cassandra.dao;
 public interface CassandraStructure {
 	
 	interface SyncedCollection {
-		String TABLE = "synced_collection";
+		Table TABLE = Table.of("synced_collection");
 		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 
 		
 		interface Columns {
@@ -47,7 +47,7 @@ public interface CassandraStructure {
 	}
 	
 	interface MonitoredCollection {
-		String TABLE = "monitored_collection";
+		Table TABLE = Table.of("monitored_collection");
 		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE };
 		
 		interface Columns {
@@ -58,7 +58,7 @@ public interface CassandraStructure {
 	}
 	
 	interface Windowing {
-		String TABLE = "windowing";
+		Table TABLE = Table.of("windowing");
 		String[] PK = { Columns.ID, Columns.CHANGE_INDEX };
 		
 		interface Columns {
@@ -70,7 +70,7 @@ public interface CassandraStructure {
 	}
 	
 	interface WindowingIndex {
-		String TABLE = "windowing_index";
+		Table TABLE = Table.of("windowing_index");
 		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.SYNC_KEY };
 		
 		interface Columns {
@@ -85,7 +85,7 @@ public interface CassandraStructure {
 	}
 	
 	interface SnapshotTable {
-		String TABLE = "snapshot";
+		Table TABLE = Table.of("snapshot");
 		String[] PK = { Columns.ID };
 		
 		interface Columns {
@@ -95,7 +95,7 @@ public interface CassandraStructure {
 	}
 	
 	interface SnapshotIndex {
-		String TABLE = "snapshot_index";
+		Table TABLE = Table.of("snapshot_index");
 		String[] PK = { Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.SYNC_KEY };
 		
 		interface Columns {

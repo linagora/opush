@@ -43,12 +43,11 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 
 import org.obm.push.cassandra.schema.NoVersionException;
+import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.utils.FileUtils;
 
@@ -58,7 +57,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableSortedSet.Builder;
 import com.google.inject.Inject;
@@ -71,22 +69,13 @@ public class SchemaProducerImpl implements SchemaProducer {
 	private static final String VERSIONS = "versions";
 	private static final String VERSIONS_DIRECTORY = "/usr/share/opush/versions/";
 	
-	private final Map<Class<? extends CassandraDao>, Set<Table>> daoTablesMap; 
 	private final URL versionDirectory;
+	private final DaoTables tablesOfDao;
 	
 	@Inject
-	@VisibleForTesting SchemaProducerImpl(MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl,
-			SnapshotDaoCassandraImpl snapshotDaoCassandraImpl,
-			SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl,
-			WindowingDaoCassandraImpl windowingDaoCassandraImpl) {
-		
+	@VisibleForTesting SchemaProducerImpl(DaoTables tablesOfDao) {
+		this.tablesOfDao = tablesOfDao;
 		versionDirectory = versionDirectory();
-		
-		daoTablesMap = ImmutableMap.<Class<? extends CassandraDao>, Set<Table>> of(
-				monitoredCollectionDaoCassandraImpl.getClass(), monitoredCollectionDaoCassandraImpl.tables(), 
-				snapshotDaoCassandraImpl.getClass(), snapshotDaoCassandraImpl.tables(),
-				syncedCollectionDaoCassandraImpl.getClass(), syncedCollectionDaoCassandraImpl.tables(),
-				windowingDaoCassandraImpl.getClass(), windowingDaoCassandraImpl.tables());
 	}
 	
 	protected URL versionDirectory() {
@@ -141,8 +130,8 @@ public class SchemaProducerImpl implements SchemaProducer {
 	@Override
 	public String lastSchema() {
 		StringBuilder schema = new StringBuilder();
-		for (Entry<Class<? extends CassandraDao>, Set<Table>> entry : daoTablesMap.entrySet()) {
-			schema.append(lastSchemaForDAO(entry.getKey()));
+		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
+			schema.append(lastSchemaForDAO(dao));
 		}
 		return schema.toString();
 	}
@@ -150,8 +139,8 @@ public class SchemaProducerImpl implements SchemaProducer {
 	@Override
 	public String schema(Version version) {
 		StringBuilder schema = new StringBuilder();
-		for (Entry<Class<? extends CassandraDao>, Set<Table>> entry : daoTablesMap.entrySet()) {
-			schema.append(schemaForDAO(entry.getKey(), version));
+		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
+			schema.append(schemaForDAO(dao, version));
 		}
 		return schema.toString();
 	}
@@ -185,7 +174,7 @@ public class SchemaProducerImpl implements SchemaProducer {
 	public String lastSchemaForDAO(Class<? extends CassandraDao> clazz) {
 		StringBuilder schema = new StringBuilder();
 		for (Version version : versionsAvailable()) {
-			schema.append(loadDaoScripts(daoTablesMap.get(clazz), version));
+			schema.append(loadDaoScripts(tablesOfDao.getTables(clazz), version));
 		}
 		return schema.toString();
 	}
@@ -215,7 +204,7 @@ public class SchemaProducerImpl implements SchemaProducer {
 	public String schemaForDAO(Class<? extends CassandraDao> clazz, final Version version) {
 		StringBuilder schema = new StringBuilder();
 		for (Version vers : versionsToApply(version)) {
-			schema.append(loadDaoScripts(daoTablesMap.get(clazz), vers));
+			schema.append(loadDaoScripts(tablesOfDao.getTables(clazz), vers));
 		}
 		return schema.toString();
 	}
@@ -224,9 +213,9 @@ public class SchemaProducerImpl implements SchemaProducer {
 	public String schema(Version fromVersion, Version toVersion) {
 		StringBuilder schema = new StringBuilder();
 		List<Version> versionsToApply = versionsToApply(fromVersion, toVersion);
-		for (Entry<Class<? extends CassandraDao>, Set<Table>> entry : daoTablesMap.entrySet()) {
+		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
 			for (Version version : versionsToApply) {
-				schema.append(loadDaoScripts(entry.getValue(), version));
+				schema.append(loadDaoScripts(tablesOfDao.getTables(dao), version));
 			}
 		}
 		return schema.toString();

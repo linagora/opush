@@ -38,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.obm.configuration.VMArgumentsUtils;
+import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.cassandra.schema.Version;
 
 import com.google.common.base.Preconditions;
@@ -106,25 +107,13 @@ public class CQLSchemaGenerator {
 	}
 	
 	private void generate() {
-		schemaProducer().writeSchema(fromVersion, toVersion);
-	}
-		
-	private MavenSchemaProducer schemaProducer() {
-		return new MavenSchemaProducer(new MonitoredCollectionDaoCassandraImpl(null, null, null),
-				new SnapshotDaoCassandraImpl(null, null, null),
-				new SyncedCollectionDaoCassandraImpl(null, null, null),
-				new WindowingDaoCassandraImpl(null, null, null));
+		new MavenSchemaProducer().writeSchema(fromVersion, toVersion);
 	}
 
 	public class MavenSchemaProducer extends SchemaProducerImpl {
 
-		public MavenSchemaProducer(
-				MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl,
-				SnapshotDaoCassandraImpl snapshotDaoCassandraImpl,
-				SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl,
-				WindowingDaoCassandraImpl windowingDaoCassandraImpl) {
-			super(monitoredCollectionDaoCassandraImpl, snapshotDaoCassandraImpl,
-					syncedCollectionDaoCassandraImpl, windowingDaoCassandraImpl);
+		public MavenSchemaProducer() {
+			super(OpushCassandraModule.TABLES_OF_DAO);
 		}
 		
 		@Override

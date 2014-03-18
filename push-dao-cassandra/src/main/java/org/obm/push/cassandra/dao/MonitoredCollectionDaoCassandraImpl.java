@@ -71,13 +71,8 @@ public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao im
 	}
 
 	@Override
-	public Set<Table> tables() {
-		return ImmutableSet.of(Table.of(TABLE));
-	}
-	
-	@Override
 	public Set<AnalysedSyncCollection> list(Credentials credentials, Device device) {
-		Where query = select(ANALYSED_SYNC_COLLECTIONS).from(TABLE)
+		Where query = select(ANALYSED_SYNC_COLLECTIONS).from(TABLE.get())
 				.where(eq(CREDENTIALS, jsonService.serialize(credentials)))
 				.and(eq(DEVICE, jsonService.serialize(device)));
 		logger.debug("Getting {}", query.getQueryString());
@@ -93,7 +88,7 @@ public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao im
 
 	@Override
 	public void put(Credentials credentials, Device device, Set<AnalysedSyncCollection> collections) {
-		Insert query = insertInto(TABLE)
+		Insert query = insertInto(TABLE.get())
 				.value(CREDENTIALS, jsonService.serialize(credentials))
 				.value(DEVICE, jsonService.serialize(device))
 				.value(ANALYSED_SYNC_COLLECTIONS, jsonService.serializeSet(collections));

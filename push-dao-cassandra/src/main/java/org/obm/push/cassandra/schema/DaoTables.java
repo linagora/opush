@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,9 +29,52 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra.schema;
 
+import java.util.Set;
 
-public interface CassandraDao {
+import org.obm.push.cassandra.dao.CassandraDao;
+import org.obm.push.cassandra.dao.Table;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+public class DaoTables {
+
+	public static Builder builder() {
+		return new Builder();
+	}
+	
+	public static class Builder {
+		
+		ImmutableMap.Builder<Class<? extends CassandraDao>, Set<Table>> daoToTables;
+		
+		public Builder() {
+			daoToTables = ImmutableMap.builder();
+		}
+		
+		public Builder put(Class<? extends CassandraDao> daoClass, Table... tables) {
+			daoToTables.put(daoClass, ImmutableSet.copyOf(tables));
+			return this;
+		}
+		
+		public DaoTables build() {
+			return new DaoTables(daoToTables.build());
+		}
+		
+	}
+
+	private final ImmutableMap<Class<? extends CassandraDao>, Set<Table>> daoToTables;
+	
+	private DaoTables(ImmutableMap<Class<? extends CassandraDao>, Set<Table>> daoToTables) {
+		this.daoToTables = daoToTables;
+	}
+	
+	public Set<Class<? extends CassandraDao>> getDAOs() {
+		return daoToTables.keySet();
+	}
+	
+	public Set<Table> getTables(Class<? extends CassandraDao> daoClass) {
+		return daoToTables.get(daoClass);
+	}
 }

@@ -41,7 +41,6 @@ import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex.Column
 import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Columns.ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable.Columns.SNAPSHOT;
 
-import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -61,7 +60,6 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -73,11 +71,6 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	@Inject  
 	@VisibleForTesting SnapshotDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
 		super(session, jsonService, logger);
-	}
-
-	@Override
-	public Set<Table> tables() {
-		return ImmutableSet.of(Table.of(SnapshotIndex.TABLE), Table.of(SnapshotTable.TABLE));
 	}
 
 	@Override
@@ -121,7 +114,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	private UUID selectSnapshotId(SnapshotKey snapshotKey) {
-		Where statement = select(SNAPSHOT_ID).from(SnapshotIndex.TABLE)
+		Where statement = select(SNAPSHOT_ID).from(SnapshotIndex.TABLE.get())
 				.where(eq(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId()))
 				.and(eq(COLLECTION_ID, snapshotKey.getCollectionId()))
 				.and(eq(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey())));
@@ -135,7 +128,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	private ResultSet selectSnapshot(UUID snapshotId) {
-		Where statement = select(SNAPSHOT).from(SnapshotTable.TABLE)
+		Where statement = select(SNAPSHOT).from(SnapshotTable.TABLE.get())
 				.where(eq(ID, snapshotId));
 		logger.debug("Select snapshot query: {}", statement.getQueryString());
 		return session.execute(statement);
@@ -143,7 +136,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 
 	private UUID insertSnapshot(Snapshot snapshot) {
 		UUID snapshotId = UUID.randomUUID();
-		Insert statement = insertInto(SnapshotTable.TABLE)
+		Insert statement = insertInto(SnapshotTable.TABLE.get())
 				.value(ID, snapshotId)
 				.value(SNAPSHOT, jsonService.serialize(snapshot));
 		logger.debug("Inserting {}", statement.getQueryString());
@@ -152,7 +145,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	private void insertNewIndex(SnapshotKey snapshotKey, UUID snapshotId) {
-		Insert statement = insertInto(SnapshotIndex.TABLE)
+		Insert statement = insertInto(SnapshotIndex.TABLE.get())
 			.value(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId())
 			.value(COLLECTION_ID, snapshotKey.getCollectionId())
 			.value(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey()))

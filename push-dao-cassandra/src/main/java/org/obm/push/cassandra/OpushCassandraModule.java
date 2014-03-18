@@ -31,10 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
+import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
+import org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable;
+import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
+import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
+import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
+import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
 import org.obm.push.store.MonitoredCollectionDao;
@@ -45,9 +52,17 @@ import org.obm.sync.LifecycleListener;
 
 import com.datastax.driver.core.Session;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.multibindings.Multibinder;
 
 public class OpushCassandraModule extends AbstractModule {
+	
+	public static final DaoTables TABLES_OF_DAO = DaoTables.builder()
+		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE)
+		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
+		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE)
+		.put(WindowingDaoCassandraImpl.class, WindowingIndex.TABLE, Windowing.TABLE)
+		.build();
 	
 	@Override
 	protected void configure() {
@@ -65,6 +80,13 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(MonitoredCollectionDao.class).to(MonitoredCollectionDaoCassandraImpl.class);
 		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
 		bind(SnapshotDao.class).to(SnapshotDaoCassandraImpl.class);
+		bind(DaoTables.class).toProvider(new Provider<DaoTables>() {
+
+			@Override
+			public DaoTables get() {
+				return TABLES_OF_DAO;
+			}
+		}).asEagerSingleton();
 	}
 
 	private void bindSession() {

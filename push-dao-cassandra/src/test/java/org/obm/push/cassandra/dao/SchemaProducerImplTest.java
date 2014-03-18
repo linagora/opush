@@ -32,6 +32,7 @@
 package org.obm.push.cassandra.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.obm.push.cassandra.OpushCassandraModule.TABLES_OF_DAO;
 
 import java.io.File;
 import java.net.URL;
@@ -42,44 +43,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.cassandra.schema.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
-import org.obm.push.json.JSONService;
-import org.slf4j.Logger;
 
-import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
 
 public class SchemaProducerImplTest {
 
 	private SchemaProducerImpl schemaProducerImpl;
-	private MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl;
-	private SnapshotDaoCassandraImpl snapshotDaoCassandraImpl;
-	private SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl;
-	private WindowingDaoCassandraImpl windowingDaoCassandraImpl;
 
 	@Before
 	public void setup() {
-		Session serssion = null;
-		JSONService jsonService = null;
-		Logger logger = null;
-		monitoredCollectionDaoCassandraImpl = new MonitoredCollectionDaoCassandraImpl(serssion, jsonService, logger);
-		snapshotDaoCassandraImpl = new SnapshotDaoCassandraImpl(serssion, jsonService, logger);
-		syncedCollectionDaoCassandraImpl = new SyncedCollectionDaoCassandraImpl(serssion, jsonService, logger);
-		windowingDaoCassandraImpl = new WindowingDaoCassandraImpl(serssion, jsonService, logger);
-		schemaProducerImpl = new TestResourcesSchemaProducerImpl(monitoredCollectionDaoCassandraImpl, 
-				snapshotDaoCassandraImpl, 
-				syncedCollectionDaoCassandraImpl, 
-				windowingDaoCassandraImpl);
+		schemaProducerImpl = new TestResourcesSchemaProducerImpl();
 	}
 	
 	public class TestResourcesSchemaProducerImpl extends SchemaProducerImpl {
 
-		TestResourcesSchemaProducerImpl(
-				MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl,
-				SnapshotDaoCassandraImpl snapshotDaoCassandraImpl,
-				SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl,
-				WindowingDaoCassandraImpl windowingDaoCassandraImpl) {
-			super(monitoredCollectionDaoCassandraImpl, snapshotDaoCassandraImpl,
-					syncedCollectionDaoCassandraImpl, windowingDaoCassandraImpl);
+		TestResourcesSchemaProducerImpl() {
+			super(TABLES_OF_DAO);
 		}
 
 		@Override
@@ -90,13 +69,8 @@ public class SchemaProducerImplTest {
 	
 	public class NoVersionExceptionSchemaProducerImpl extends SchemaProducerImpl {
 
-		NoVersionExceptionSchemaProducerImpl(
-				MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl,
-				SnapshotDaoCassandraImpl snapshotDaoCassandraImpl,
-				SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl,
-				WindowingDaoCassandraImpl windowingDaoCassandraImpl) {
-			super(monitoredCollectionDaoCassandraImpl, snapshotDaoCassandraImpl,
-					syncedCollectionDaoCassandraImpl, windowingDaoCassandraImpl);
+		NoVersionExceptionSchemaProducerImpl() {
+			super(TABLES_OF_DAO);
 		}
 
 		@Override
@@ -107,13 +81,8 @@ public class SchemaProducerImplTest {
 	
 	public class BadVersionsFolderSchemaProducerImpl extends SchemaProducerImpl {
 
-		BadVersionsFolderSchemaProducerImpl(
-				MonitoredCollectionDaoCassandraImpl monitoredCollectionDaoCassandraImpl,
-				SnapshotDaoCassandraImpl snapshotDaoCassandraImpl,
-				SyncedCollectionDaoCassandraImpl syncedCollectionDaoCassandraImpl,
-				WindowingDaoCassandraImpl windowingDaoCassandraImpl) {
-			super(monitoredCollectionDaoCassandraImpl, snapshotDaoCassandraImpl,
-					syncedCollectionDaoCassandraImpl, windowingDaoCassandraImpl);
+		BadVersionsFolderSchemaProducerImpl() {
+			super(TABLES_OF_DAO);
 		}
 
 		@Override
@@ -124,10 +93,7 @@ public class SchemaProducerImplTest {
 	
 	@Test(expected=NoVersionException.class)
 	public void testVersionDirectoriesThrowsException() {
-		SchemaProducerImpl schemaProducerImpl = new NoVersionExceptionSchemaProducerImpl(monitoredCollectionDaoCassandraImpl, 
-				snapshotDaoCassandraImpl, 
-				syncedCollectionDaoCassandraImpl, 
-				windowingDaoCassandraImpl);
+		SchemaProducerImpl schemaProducerImpl = new NoVersionExceptionSchemaProducerImpl();
 		schemaProducerImpl.versionDirectories();
 	}
 	
@@ -139,10 +105,7 @@ public class SchemaProducerImplTest {
 	
 	@Test
 	public void testVersionsAvailableWhenBadVersionsFolder() {
-		SchemaProducerImpl schemaProducerImpl = new BadVersionsFolderSchemaProducerImpl(monitoredCollectionDaoCassandraImpl, 
-				snapshotDaoCassandraImpl, 
-				syncedCollectionDaoCassandraImpl, 
-				windowingDaoCassandraImpl);
+		SchemaProducerImpl schemaProducerImpl = new BadVersionsFolderSchemaProducerImpl();
 		SortedSet<Version> versionsAvailable = schemaProducerImpl.versionsAvailable();
 		assertThat(versionsAvailable).isEmpty();
 	}
@@ -382,7 +345,8 @@ public class SchemaProducerImplTest {
 	
 	@Test
 	public void testLoadDaoScriptsVersion1WithTablesFromDao() {
-		String scripts = schemaProducerImpl.loadDaoScripts(monitoredCollectionDaoCassandraImpl.tables(), Version.of(1));
+		String scripts = schemaProducerImpl.loadDaoScripts(
+				TABLES_OF_DAO.getTables(MonitoredCollectionDaoCassandraImpl.class), Version.of(1));
 		assertThat(scripts).isEqualTo(
 			"CREATE TABLE monitored_collection (\n" +
 			"	credentials text,\n" +
@@ -394,7 +358,8 @@ public class SchemaProducerImplTest {
 	
 	@Test
 	public void testLoadDaoScriptsVersion2WithTablesFromDao() {
-		String scripts = schemaProducerImpl.loadDaoScripts(monitoredCollectionDaoCassandraImpl.tables(), Version.of(2));
+		String scripts = schemaProducerImpl.loadDaoScripts(
+				TABLES_OF_DAO.getTables(MonitoredCollectionDaoCassandraImpl.class), Version.of(2));
 		assertThat(scripts).isEqualTo(
 			"ALTER TABLE monitored_collection VERSION 2\n");
 	}
