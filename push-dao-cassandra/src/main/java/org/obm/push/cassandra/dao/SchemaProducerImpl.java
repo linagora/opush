@@ -195,10 +195,10 @@ public class SchemaProducerImpl implements SchemaProducer {
 					@Override
 					public boolean apply(Version version) {
 						if (fromVersion == null) {
-							return version.get() <= toVersion.get();
+							return toVersion.isGreaterThanOrEqual(version);
 						}
-						return fromVersion.get() <= version.get()
-								&& version.get() <= toVersion.get();
+						return fromVersion.isLessThan(version)
+								&& toVersion.isGreaterThanOrEqual(version);
 					}
 				})
 				.toList();

@@ -415,7 +415,7 @@ public class SchemaProducerImplTest {
 	@Test
 	public void testVersionsToApply() {
 		List<Version> versions = schemaProducerImpl.versionsToApply(Version.of(2), Version.of(3));
-		assertThat(versions).containsExactly(Version.of(2), Version.of(3));
+		assertThat(versions).containsExactly(Version.of(3));
 	}
 	
 	@Test
@@ -518,54 +518,6 @@ public class SchemaProducerImplTest {
 	public void testSchemaFrom1To3() {
 		String schema = schemaProducerImpl.schema(Version.of(1), Version.of(3));
 		assertThat(schema).isEqualTo(
-			"CREATE TABLE monitored_collection (\n" +
-			"	credentials text,\n" +
-			"	device text,\n" +
-			"	analysed_sync_collections set<text>,\n" +
-			"	PRIMARY KEY (credentials, device)\n" +
-			");\n" +
-			"CREATE TABLE snapshot_index (\n" +
-			"	device_id text,\n" +
-			"	collection_id int,\n" +
-			"	sync_key uuid,\n" +
-			"	snapshot_id uuid,\n" +
-			"	PRIMARY KEY ((device_id), collection_id, sync_key)\n" +
-			");\n" +
-			"CREATE TABLE snapshot (\n" +
-			"	id uuid,\n" +
-			"	snapshot text,\n" +
-			"	PRIMARY KEY (id)\n" +
-			");\n" +
-			"CREATE TABLE synced_collection (\n" +
-			"	credentials text,\n" +
-			"	device text,\n" +
-			"	collection_id int,\n" +
-			"	analysed_sync_collection text,\n" +
-			"	PRIMARY KEY (credentials, device, collection_id)\n" +
-			");\n" +
-			"CREATE TABLE windowing_index (\n" +
-			"	user text,\n" +
-			"	device_id text,\n" +
-			"	collection_id int,\n" +
-			"	sync_key uuid,\n" +
-			"	windowing_id uuid,\n" +
-			"	windowing_kind text,\n" +
-			"	windowing_index int,\n" +
-			"	PRIMARY KEY (user, device_id, collection_id, sync_key)\n" +
-			");\n" +
-			"CREATE TABLE windowing (\n" +
-			"	id uuid,\n" +
-			"	change_index int,\n" +
-			"	change_type text,\n" +
-			"	change_value text,\n" +
-			"	PRIMARY KEY ((id), change_index, change_type)\n" +
-			");\n" +
-			"CREATE TABLE schema_version (\n" +
-			"	id int,\n" +
-			"	version int,\n" +
-			"	date timestamp,\n" +
-			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n" +
 			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"ALTER TABLE snapshot VERSION 2\n" +
 			"ALTER TABLE snapshot VERSION 3\n" +
@@ -575,17 +527,13 @@ public class SchemaProducerImplTest {
 	@Test
 	public void testSchemaFrom2To2() {
 		String schema = schemaProducerImpl.schema(Version.of(2), Version.of(2));
-		assertThat(schema).isEqualTo(
-			"ALTER TABLE monitored_collection VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 2\n");
+		assertThat(schema).isEmpty();
 	}
 	
 	@Test
 	public void testSchemaFrom2To3() {
 		String schema = schemaProducerImpl.schema(Version.of(2), Version.of(3));
 		assertThat(schema).isEqualTo(
-			"ALTER TABLE monitored_collection VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
 			"ALTER TABLE snapshot VERSION 3\n" +
 			"ALTER TABLE windowing_index VERSION 3\n");
 	}
@@ -593,8 +541,6 @@ public class SchemaProducerImplTest {
 	@Test
 	public void testSchemaFrom3To3() {
 		String schema = schemaProducerImpl.schema(Version.of(3), Version.of(3));
-		assertThat(schema).isEqualTo(
-			"ALTER TABLE snapshot VERSION 3\n" +
-			"ALTER TABLE windowing_index VERSION 3\n");
+		assertThat(schema).isEmpty();
 	}
 }
