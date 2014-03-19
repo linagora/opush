@@ -2,7 +2,7 @@ import org.crsh.text.ui.UIBuilder
 import org.obm.push.cassandra.schema.StatusSummary.Status
 import org.obm.push.cassandra.schema.CQLScriptExecutionStatus
 import org.obm.push.cassandra.schema.VersionUpdate
-import org.obm.push.cassandra.exception.SchemeOperationException
+import org.obm.push.cassandra.exception.SchemaOperationException
 
 @Usage("Cassandra schema management")
 class schema extends CRaSHCommand {
@@ -57,14 +57,45 @@ class schema extends CRaSHCommand {
     def statusSummary = schemaService.getStatus()
     
     if (statusSummary.getStatus() == Status.NOT_INITIALIZED) {
-      try {
+      try {    
         schemaService.install();
         out << "Your schema has been installed"
-      } catch (SchemeOperationException e) {
-        out << "An error occured when installing the schema"
+      } catch (SchemaOperationException e) {
+        out << "An error occurred when installing the schema"
       }
     } else {
       out << "The schema is already installed, use the status command to find if upgrades are available"
+    }
+  }
+
+  @Usage("Update Cassandra schema")
+  @Command
+  public void update() {
+    def schemaService = context.attributes.beans["org.obm.push.cassandra.schema.CassandraSchemaService"]
+    def statusSummary = schemaService.getStatus()
+    
+    switch (statusSummary.getStatus()) {
+    
+      case Status.UP_TO_DATE:
+         out << "Nothing to do, your schema is already at the last version"
+         break
+         
+      case Status.UPGRADE_AVAILABLE:
+      case Status.UPGRADE_REQUIRED:
+         try {
+           schemaService.update();
+           out << "Your schema has been updated"
+         } catch (SchemaOperationException e) {
+           out << "An error occurred when updating the schema"
+         }
+         break
+         
+      case Status.NOT_INITIALIZED:
+         out << "Your schema is not initialized"
+         break
+         
+      default:
+         out << "ERROR: Sorry, the command returned an unexpected response: ${statusSummary.toString()}"
     }
   }
 }

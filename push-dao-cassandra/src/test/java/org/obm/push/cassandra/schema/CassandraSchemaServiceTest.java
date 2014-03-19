@@ -40,12 +40,14 @@ import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
 
 import java.net.InetAddress;
+import java.util.Date;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.SchemaProducer;
+import org.obm.push.cassandra.exception.BadVersionException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
 import org.obm.push.cassandra.exception.SchemaOperationException;
@@ -268,5 +270,96 @@ public class CassandraSchemaServiceTest {
 		mocks.replay();
 		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, session, null, null).subQueries(schema);
 		assertThat(subQueries).containsOnly(subQuery, subQuery2, subQuery3);
+	}
+	
+	@Test
+	public void update() {
+		String schema = "schema";
+		Version toVersion = Version.of(2);
+		Version currentVersion = Version.of(1);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
+				.date(new Date(System.currentTimeMillis()));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
+		expect(session.execute(schema)).andReturn(null);
+		schemaDao.updateVersion(toVersion);
+		expectLastCall();
+		
+		mocks.replay();
+		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+		mocks.verify();
+		
+		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
+	}
+	
+	@Test
+	public void updateNothingToDo() {
+		Version version = Version.of(2);
+		VersionUpdate versionUpdate = VersionUpdate.version(version)
+				.date(new Date(System.currentTimeMillis()));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		
+		mocks.replay();
+		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).update();
+		mocks.verify();
+		
+		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
+	}
+	
+	@Test(expected=BadVersionException.class)
+	public void updateBadVersioning() {
+		Version toVersion = Version.of(1);
+		Version currentVersion = Version.of(2);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
+				.date(new Date(System.currentTimeMillis()));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		
+		try {
+			mocks.replay();
+			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+		} catch (BadVersionException e) {
+			mocks.verify();
+			throw e;
+		}
+	}
+	
+	@Test(expected=SchemaOperationException.class)
+	public void updateInvalidScript() {
+		String schema = "schema";
+		Version toVersion = Version.of(2);
+		Version currentVersion = Version.of(1);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
+				.date(new Date(System.currentTimeMillis()));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
+		expect(session.execute(schema)).andThrow(new InvalidQueryException("invalid"));
+		
+		try {
+			mocks.replay();
+			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+		} catch (SchemaOperationException e) {
+			mocks.verify();
+			throw e;
+		}
+	}
+	
+	@Test(expected=SchemaOperationException.class)
+	public void updateNoHostAvailable() {
+		String schema = "schema";
+		Version toVersion = Version.of(2);
+		Version currentVersion = Version.of(1);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
+				.date(new Date(System.currentTimeMillis()));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
+		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		
+		try {
+			mocks.replay();
+			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+		} catch (SchemaOperationException e) {
+			mocks.verify();
+			throw e;
+		}
 	}
 }

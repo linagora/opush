@@ -42,6 +42,7 @@ import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.SchemaProducer;
+import org.obm.push.cassandra.exception.BadVersionException;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
@@ -107,19 +108,23 @@ public class CassandraSchemaService {
 	public CQLScriptExecutionStatus install() throws SchemaOperationException {
 		try {
 			String schema = schemaProducer.schema(latestVersionUpdate);
-			LOGGER.debug("Last Cassandra schema: {}", schema);
 			if (Strings.isNullOrEmpty(schema)) {
 				throw new InstallSchemaNotFoundException();
 			}
 			
-			for (String subQuery : subQueries(schema)) {
-				session.execute(subQuery);
-			}
+			executeCQL(schema);
 			
 			schemaDao.updateVersion(latestVersionUpdate);
 			return CQLScriptExecutionStatus.OK;
 		} catch (Exception e) {
 			throw new SchemaOperationException(e);
+		}
+	}
+
+	private void executeCQL(String cql) {
+		LOGGER.debug("Execute Cassandra CQL: {}", cql);
+		for (String subQuery : subQueries(cql)) {
+			session.execute(subQuery);
 		}
 	}
 
@@ -135,5 +140,26 @@ public class CassandraSchemaService {
 				return true;
 			}
 		});
+	}
+	
+	public CQLScriptExecutionStatus update() throws SchemaOperationException {
+		try {
+			Version currentVersion = schemaDao.getCurrentVersion().getVersion();
+			if (currentVersion.equals(latestVersionUpdate)) {
+				return CQLScriptExecutionStatus.OK;
+			}
+			if (latestVersionUpdate.isLessThan(currentVersion)) {
+				throw new BadVersionException(currentVersion, latestVersionUpdate); 
+			}
+			
+			executeCQL(schemaProducer.schema(currentVersion, latestVersionUpdate));
+			
+			schemaDao.updateVersion(latestVersionUpdate);
+			return CQLScriptExecutionStatus.OK;
+		} catch (BadVersionException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SchemaOperationException(e);
+		}
 	}
 }
