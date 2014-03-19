@@ -46,7 +46,7 @@ import java.util.List;
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.CassandraService;
-import org.obm.push.cassandra.schema.NoVersionException;
+import org.obm.push.cassandra.exception.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
 import org.obm.push.configuration.LoggerModule;

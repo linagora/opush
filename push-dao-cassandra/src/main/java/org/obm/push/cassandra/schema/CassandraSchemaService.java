@@ -41,9 +41,20 @@ import static org.obm.push.cassandra.schema.StatusSummary.Status.UP_TO_DATE;
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
+import org.obm.push.cassandra.dao.SchemaProducer;
+import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
+import org.obm.push.cassandra.exception.NoVersionException;
+import org.obm.push.cassandra.exception.SchemaOperationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.Session;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -51,18 +62,26 @@ import com.google.inject.name.Named;
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
 public class CassandraSchemaService {
+	
+	private final static Logger LOGGER = LoggerFactory.getLogger(CassandraSchemaService.class);
 
 	private final CassandraSchemaDao schemaDao;
+	private final SchemaProducer schemaProducer;
+	private final Session session;
 	private final Version minimalVersionUpdate;
 	private final Version latestVersionUpdate;
 
 	@Inject
 	@VisibleForTesting CassandraSchemaService(
 			CassandraSchemaDao schemaDao,
+			SchemaProducer schemaProducer,
+			Session session,
 			@Named(MINIMAL_SCHEMA_VERSION_NAME) Version minimalVersionUpdate,
 			@Named(LATEST_SCHEMA_VERSION_NAME) Version latestVersionUpdate) {
 		
 		this.schemaDao = schemaDao;
+		this.schemaProducer = schemaProducer;
+		this.session = session;
 		this.minimalVersionUpdate = minimalVersionUpdate;
 		this.latestVersionUpdate = latestVersionUpdate;
 	}
@@ -85,4 +104,36 @@ public class CassandraSchemaService {
 		}
 	}
 
+	public CQLScriptExecutionStatus install() throws SchemaOperationException {
+		try {
+			String schema = schemaProducer.schema(latestVersionUpdate);
+			LOGGER.debug("Last Cassandra schema: {}", schema);
+			if (Strings.isNullOrEmpty(schema)) {
+				throw new InstallSchemaNotFoundException();
+			}
+			
+			for (String subQuery : subQueries(schema)) {
+				session.execute(subQuery);
+			}
+			
+			schemaDao.updateVersion(latestVersionUpdate);
+			return CQLScriptExecutionStatus.OK;
+		} catch (Exception e) {
+			throw new SchemaOperationException(e);
+		}
+	}
+
+	@VisibleForTesting Iterable<String> subQueries(String schema) {
+		Iterable<String> subQueries = Splitter.on(";").trimResults().split(schema);
+		return Iterables.filter(subQueries, new Predicate<String>() {
+
+			@Override
+			public boolean apply(String query) {
+				if (Strings.isNullOrEmpty(query) || System.lineSeparator().equals(query)) {
+					return false;
+				}
+				return true;
+			}
+		});
+	}
 }

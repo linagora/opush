@@ -1,6 +1,8 @@
 import org.crsh.text.ui.UIBuilder
 import org.obm.push.cassandra.schema.StatusSummary.Status
+import org.obm.push.cassandra.schema.CQLScriptExecutionStatus
 import org.obm.push.cassandra.schema.VersionUpdate
+import org.obm.push.cassandra.exception.SchemeOperationException
 
 @Usage("Cassandra schema management")
 class schema extends CRaSHCommand {
@@ -46,5 +48,23 @@ class schema extends CRaSHCommand {
      return versionUpdate ? 
      	"${versionUpdate.getVersion().get()} updated the ${versionUpdate.getDate()}":
      	"None"
+  }
+
+  @Usage("Install Cassandra schema")
+  @Command
+  public void install() {
+    def schemaService = context.attributes.beans["org.obm.push.cassandra.schema.CassandraSchemaService"]
+    def statusSummary = schemaService.getStatus()
+    
+    if (statusSummary.getStatus() == Status.NOT_INITIALIZED) {
+      try {
+        schemaService.install();
+        out << "Your schema has been installed"
+      } catch (SchemeOperationException e) {
+        out << "An error occured when installing the schema"
+      }
+    } else {
+      out << "The schema is already installed, use the status command to find if upgrades are available"
+    }
   }
 }

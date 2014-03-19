@@ -29,8 +29,11 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.cassandra.exception;
 
-public class NoVersionException extends RuntimeException {
+public class SchemaOperationException extends RuntimeException {
 
+	public SchemaOperationException(Exception e) {
+		super(e);
+	}
 }

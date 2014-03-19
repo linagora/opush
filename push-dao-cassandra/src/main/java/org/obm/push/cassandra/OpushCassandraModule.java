@@ -40,6 +40,8 @@ import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
+import org.obm.push.cassandra.dao.SchemaProducer;
+import org.obm.push.cassandra.dao.SchemaProducerImpl;
 import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
@@ -80,6 +82,7 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(Version.class).annotatedWith(Names.named(LATEST_SCHEMA_VERSION_NAME)).toInstance(LATEST_SCHEMA_VERSION);
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
+		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
 		bindSession();
 		bindDao();
 		

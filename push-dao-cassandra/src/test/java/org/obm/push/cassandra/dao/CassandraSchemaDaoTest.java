@@ -44,7 +44,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.obm.push.cassandra.PublicCassandraService;
-import org.obm.push.cassandra.schema.NoVersionException;
+import org.obm.push.cassandra.exception.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
 import org.obm.sync.date.DateProvider;
