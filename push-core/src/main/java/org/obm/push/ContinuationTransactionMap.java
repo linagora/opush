@@ -31,17 +31,72 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import java.util.concurrent.ConcurrentMap;
+
+import org.obm.push.ElementNotFoundException;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.User;
 
-public interface ContinuationTransactionMap<CONTINUATION_TYPE> {
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
+import com.google.common.collect.MapMaker;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
+public class ContinuationTransactionMap<T> {
+
+	public static class Key {
+		
+		private final User user;
+		private final Device device;
+		
+		public Key(User user, Device device) {
+			this.user = user;
+			this.device = device;
+		}
+		
+		@Override
+		public int hashCode(){
+			return Objects.hashCode(user, device);
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			if (this == object) {
+				return true;
+			}
+			if (object instanceof Key) {
+				Key that = (Key) object;
+				return Objects.equal(this.user, that.user) && 
+						Objects.equal(this.device, that.device);
+			}
+			return false;
+		}
+	}
 	
-	CONTINUATION_TYPE getContinuationForDevice(User user, Device device) throws ElementNotFoundException ;
+
+	private final ConcurrentMap<Key, T> continuations;
 	
-	/**
-	 * @return whether there already was a previous entry for the couple device-continuation_type 
-	 */
-	boolean putContinuationForDevice(User user, Device device, CONTINUATION_TYPE continuation) ;
+	@Inject
+	@VisibleForTesting ContinuationTransactionMap() {
+		continuations = new MapMaker().<Key, T>makeMap();
+	}
 	
-	void delete(User user, Device device);
+	public T getContinuationForDevice(User user, Device device) throws ElementNotFoundException {
+		T element = continuations.get(new Key(user, device));
+		if (element == null) {
+			throw new ElementNotFoundException();
+		}
+		return element;
+	}
+
+	
+	public boolean putContinuationForDevice(User user, Device device, T continuation) {
+		return continuations.put(new Key(user, device), continuation) != null;
+	}
+	
+	public void delete(User user, Device device) {
+		continuations.remove(new Key(user, device));
+	}
 }

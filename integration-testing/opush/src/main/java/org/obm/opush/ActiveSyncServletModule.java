@@ -34,7 +34,6 @@ package org.obm.opush;
 import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.push.OpushContainerModule;
 import org.obm.push.OpushModule;
-import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.utils.DOMUtils;
 
@@ -50,12 +49,11 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 	@Inject DOMUtils domUtils;
 	
 	protected abstract GlobalAppConfiguration<OpushConfiguration> opushConfiguration();
-	protected abstract BackendConfiguration backendConfiguration();
 	protected abstract Module overrideModule() throws Exception;
 	protected abstract void onModuleInstalled();
 	
 	protected void configure() {
-		OverriddenModuleBuilder override = Modules.override(new OpushModule(opushConfiguration(), backendConfiguration(), noDatabase()), new PendingQueryFilterModule());
+		OverriddenModuleBuilder override = Modules.override(new OpushModule(opushConfiguration(), noDatabase()), new PendingQueryFilterModule());
 		try {
 			install(new OpushContainerModule());
 			install(override.with(overrideModule()));

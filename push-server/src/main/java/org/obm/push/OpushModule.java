@@ -34,12 +34,8 @@ import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.healthcheck.HealthCheckDefaultHandlersModule;
 import org.obm.healthcheck.HealthCheckModule;
 import org.obm.push.cassandra.OpushCassandraModule;
-import org.obm.push.configuration.BackendConfiguration;
-import org.obm.push.configuration.BackendConfigurationFileImpl;
-import org.obm.push.configuration.DatabaseBackend;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
-import org.obm.push.store.ehcache.EhCacheDaoModule;
 import org.obm.push.store.jdbc.JdbcDaoModule;
 import org.obm.push.store.jdbc.OpushDatabaseModule;
 
@@ -50,21 +46,15 @@ import com.google.inject.name.Names;
 public class OpushModule extends AbstractModule {
 
 	private final GlobalAppConfiguration<OpushConfiguration> opushConfiguration;
-	private final BackendConfiguration backendConfiguration;
 	private Module databaseModule;
 	
 	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration) {
-		this(opushConfiguration, backendConfiguration(), new OpushDatabaseModule());
+		this(opushConfiguration, new OpushDatabaseModule());
 	}
 
-	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration, BackendConfiguration backendConfiguration, Module databaseModule) {
+	public OpushModule(GlobalAppConfiguration<OpushConfiguration> opushConfiguration, Module databaseModule) {
 		this.opushConfiguration = opushConfiguration;
-		this.backendConfiguration = backendConfiguration;
 		this.databaseModule = databaseModule;
-	}
-	
-	private static BackendConfiguration backendConfiguration() {
-		return new BackendConfigurationFileImpl.Factory().create();
 	}
 	
 	@Override
@@ -77,19 +67,9 @@ public class OpushModule extends AbstractModule {
 		install(new OpushCrashModule());
 		install(new HealthCheckModule());
 		install(new HealthCheckDefaultHandlersModule());
-		opushDaoModule();
+		install(new OpushCassandraModule());
 		install(new JdbcDaoModule(databaseModule));
 		bind(Boolean.class).annotatedWith(Names.named("enable-push")).toInstance(false);
  	}
 
-	private void opushDaoModule() {
-		if (isCassandraBackendEnable()) {
-			install(new OpushCassandraModule());
-		}
-		install(new EhCacheDaoModule());
-	}
-
-	private boolean isCassandraBackendEnable() {
-		return DatabaseBackend.CASSANDRA.equals(backendConfiguration.getDatabaseBackend());
-	}
 }

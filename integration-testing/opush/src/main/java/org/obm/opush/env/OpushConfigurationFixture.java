@@ -35,10 +35,6 @@ import org.obm.Configuration;
 
 public class OpushConfigurationFixture extends Configuration {
 
-	public static class Backend {
-		public String databaseBackend = "cassandra";
-	}
-
 	public static class Cassandra {
 		public String seed = "localhost";
 		public String keyspace = "opush";
@@ -69,6 +65,5 @@ public class OpushConfigurationFixture extends Configuration {
 	public Mail mail = new Mail();
 	public RemoteConsole remoteConsole = new RemoteConsole();
 	public Cassandra cassandra = new Cassandra();
-	public Backend backend = new Backend();
 	
 }

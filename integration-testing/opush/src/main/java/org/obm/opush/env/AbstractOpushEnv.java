@@ -48,9 +48,7 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ActiveSyncServletModule;
-import org.obm.opush.env.OpushStaticConfiguration.Backend;
 import org.obm.push.bean.ChangedCollections;
-import org.obm.push.configuration.BackendConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.store.CollectionDao;
@@ -195,11 +193,6 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 		};
 	}
 	
-	@Override
-	protected BackendConfiguration backendConfiguration() {
-		return new Backend(configuration.backend);
-	}
-
 	protected OpushConfigurationModule configuration() {
 		return new OpushConfigurationModule(configuration, mocksControl);
 	}
