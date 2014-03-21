@@ -42,4 +42,6 @@ public interface ContinuationService {
 	void resume(Device device);
 	
 	void cancel(Device device);
+
+	void running(Device device);
 }

@@ -200,6 +200,7 @@ public class ActiveSyncServletTest {
 	private ActiveSyncServlet createActiveSyncServlet(UserDataRequest userDataRequest) throws DaoException, IOException {
 		SessionService sessionService = createSessionService(userDataRequest);
 		LoggerService loggerService = mocksControl.createMock(LoggerService.class);
+		ContinuationService continationService = mocksControl.createMock(ContinuationService.class);
 		IBackend backend = createBackend();
 		DeviceService deviceService = createDeviceService();
 		ResponderImpl.Factory responderFactory = createResponderFactory();
@@ -208,6 +209,6 @@ public class ActiveSyncServletTest {
 		
 		Logger logger = createLogger();
 		
-		return new ActiveSyncServlet(sessionService, backend, deviceService, policyService, responderFactory, handlers, loggerService, logger, httpErrorResponder, resourcesServices);
+		return new ActiveSyncServlet(sessionService, continationService, backend, deviceService, policyService, responderFactory, handlers, loggerService, logger, httpErrorResponder, resourcesServices);
 	}
 }

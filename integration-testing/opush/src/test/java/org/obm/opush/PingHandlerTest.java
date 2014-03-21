@@ -48,6 +48,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.http.client.fluent.Async;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.util.Files;
@@ -68,6 +71,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -75,6 +79,7 @@ import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -85,6 +90,8 @@ import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.NotAllowedException;
+import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.utils.DOMUtils;
@@ -110,13 +117,21 @@ public class PingHandlerTest {
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject PingProtocol pingProtocol;
+	@Inject CassandraServer cassandraServer;
 	
 	private List<OpushUser> fakeTestUsers;
 	private int pingOnCollectionId;
 	private CloseableHttpClient httpClient;
+	private ExecutorService threadpool;
+	private Async async;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
+		cassandraServer.start();
+
+		threadpool = Executors.newFixedThreadPool(4);
+		async = Async.newInstance().use(threadpool);
 		httpClient = HttpClientBuilder.create().build();
 		fakeTestUsers = Arrays.asList(singleUserFixture.jaures);
 		pingOnCollectionId = 1432;
@@ -127,6 +142,8 @@ public class PingHandlerTest {
 	@After
 	public void shutdown() throws Exception {
 		opushServer.stop();
+		cassandraServer.stop();
+		threadpool.shutdown();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
 	}
@@ -255,6 +272,25 @@ public class PingHandlerTest {
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkFolderSyncRequiredResponse(response);
+	}
+	
+	@Test
+	public void testPingAfterPingTimeout() throws Exception {
+		int heartbeat = 5;
+
+		prepareMockHasChanges(1);
+
+		opushServer.start();
+
+		OPClient opClient = buildWBXMLOpushClient(singleUserFixture.jaures, opushServer.getPort(), httpClient);
+		
+		Future<PingResponse> response1 = opClient.pingASync(async, pingProtocol, Integer.valueOf(pingOnCollectionId).toString(), heartbeat);
+		PingResponse pingResponse1 = response1.get(heartbeat * 2,  TimeUnit.SECONDS);
+		Future<PingResponse> response2 = opClient.pingASync(async, pingProtocol, Integer.valueOf(pingOnCollectionId).toString(), heartbeat);
+		PingResponse pingResponse2 = response2.get(heartbeat * 2,  TimeUnit.SECONDS);
+		
+		assertThat(pingResponse1.getPingStatus()).isEqualTo(PingStatus.NO_CHANGES);
+		assertThat(pingResponse2.getPingStatus()).isEqualTo(PingStatus.NO_CHANGES);
 	}
 	
 	private void prepareMockNoChange() throws DaoException, CollectionNotFoundException, 

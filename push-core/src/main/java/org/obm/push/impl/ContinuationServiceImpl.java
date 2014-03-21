@@ -64,6 +64,7 @@ public class ContinuationServiceImpl implements ContinuationService {
 		if (hasPreviousElement) {
 			logger.error("Continuation was already cached for device {}", userDataRequest.getDevice());
 		}
+		
 		continuation.suspend(userDataRequest, secondsTimeout);
 	}
 
@@ -92,5 +93,10 @@ public class ContinuationServiceImpl implements ContinuationService {
 		} catch (ElementNotFoundException e) {
 			logger.debug("cancel device {} not found", device);
 		}
+	}
+	
+	@Override
+	public void running(Device device) {
+		continuationTransactionMap.delete(device);
 	}
 }

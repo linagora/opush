@@ -83,6 +83,7 @@ public class ActiveSyncServlet extends HttpServlet {
 	private final Handlers handlers;
 	private final SessionService sessionService;
 	private final DeviceService deviceService;
+	private final ContinuationService continuationService;
 	
 	private final ResponderImpl.Factory responderFactory;
 	private final IBackend backend;
@@ -93,8 +94,10 @@ public class ActiveSyncServlet extends HttpServlet {
 	private final PolicyService policyService;
 	private final Set<ResourcesService> resourcesServices;
 
+
 	@Inject
 	@VisibleForTesting ActiveSyncServlet(SessionService sessionService, 
+			ContinuationService continuationService,
 			IBackend backend, DeviceService deviceService,
 			PolicyService policyService,
 			ResponderImpl.Factory responderFactory, Handlers handlers,
@@ -105,6 +108,7 @@ public class ActiveSyncServlet extends HttpServlet {
 		super();
 		
 		this.sessionService = sessionService;
+		this.continuationService = continuationService;
 		this.backend = backend;
 		this.deviceService = deviceService;
 		this.policyService = policyService;
@@ -196,6 +200,9 @@ public class ActiveSyncServlet extends HttpServlet {
 		if (udr == null) {
 			return;
 		}
+
+		continuationService.running(udr.getDevice());
+
 		loggerService.startSession(udr.getUser(), c.getReqId(), udr.getCommand());
 		logger.debug("continuation");
 		IContinuationHandler ph = c.getLastContinuationHandler();
