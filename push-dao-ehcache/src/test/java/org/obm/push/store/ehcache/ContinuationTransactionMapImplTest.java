@@ -31,46 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
-import static org.easymock.EasyMock.createControl;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-
-import javax.transaction.NotSupportedException;
-import javax.transaction.SystemException;
-
-import org.easymock.IMocksControl;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
-import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.dao.testsuite.ContinuationTransactionMapTest;
-import org.obm.transaction.TransactionManagerRule;
-import org.slf4j.Logger;
 
 public class ContinuationTransactionMapImplTest extends ContinuationTransactionMapTest {
 
-	@Rule public TransactionManagerRule transactionManagerRule = new TransactionManagerRule();
-	
-	private NonTransactionalObjectStoreManager objectStoreManager;
-	private IMocksControl control;
-	
 	@Before
-	public void init() throws NotSupportedException, SystemException {
-		control = createControl();
-		Logger logger = createNiceMock(Logger.class);
-		OpushConfiguration opushConfiguration = control.createMock(OpushConfiguration.class);
-		expect(opushConfiguration.transactionTimeoutInSeconds()).andReturn(200).anyTimes();
-		control.replay();
-
-		objectStoreManager = new NonTransactionalObjectStoreManager(opushConfiguration, logger);
-		continuationTransactionMap = new ContinuationTransactionMapImpl<TestingContinuation>(objectStoreManager);
-		
-		transactionManagerRule.getTransactionManager().begin();
+	public void init() {
+		continuationTransactionMap = new ContinuationTransactionMapImpl<TestingContinuation>();
 	}
 	
-	@After
-	public void cleanup() throws IllegalStateException, SecurityException, SystemException {
-		transactionManagerRule.getTransactionManager().rollback();
-		objectStoreManager.shutdown();
-	}
 }

@@ -31,8 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.store.ehcache;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.Element;
+import java.util.concurrent.ConcurrentMap;
 
 import org.obm.push.ContinuationTransactionMap;
 import org.obm.push.ElementNotFoundException;
@@ -40,40 +39,68 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.User;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
+import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class ContinuationTransactionMapImpl<T> implements ContinuationTransactionMap<T> {
 
-	protected final Cache store;
+	public static class Key {
+		
+		private final User user;
+		private final Device device;
+		
+		public Key(User user, Device device) {
+			this.user = user;
+			this.device = device;
+		}
+		
+		@Override
+		public int hashCode(){
+			return Objects.hashCode(user, device);
+		}
+		
+		@Override
+		public boolean equals(Object object) {
+			if (this == object) {
+				return true;
+			}
+			if (object instanceof Key) {
+				Key that = (Key) object;
+				return Objects.equal(this.user, that.user) && 
+						Objects.equal(this.device, that.device);
+			}
+			return false;
+		}
+	}
 	
-	@Inject  
-	@VisibleForTesting ContinuationTransactionMapImpl(NonTransactionalObjectStoreManager nonTransactionalObjectStoreManager) {
-		store = nonTransactionalObjectStoreManager.getStore(NonTransactionalObjectStoreManager.PENDING_CONTINUATIONS);
+
+	private final ConcurrentMap<Key, T> continuations;
+	
+	@Inject
+	@VisibleForTesting ContinuationTransactionMapImpl() {
+		continuations = new MapMaker().<Key, T>makeMap();
 	}
 	
 	@Override
 	public T getContinuationForDevice(User user, Device device) throws ElementNotFoundException {
-		Element element = store.get(key(user, device));
+		T element = continuations.get(new Key(user, device));
 		if (element == null) {
 			throw new ElementNotFoundException();
 		}
-		return (T) element.getObjectValue();
+		return element;
 	}
 
 	
 	@Override
 	public boolean putContinuationForDevice(User user, Device device, T continuation) {
-		Element previousElement = store.get(key(user, device));
-		store.put(new Element(key(user, device), continuation));
-		return previousElement != null;
+		return continuations.put(new Key(user, device), continuation) != null;
 	}
 	
 	@Override
 	public void delete(User user, Device device) {
-		store.remove(key(user, device));
-	}
-
-	private Element key(User user, Device device) {
-		return new Element(user, device);
+		continuations.remove(new Key(user, device));
 	}
 }
