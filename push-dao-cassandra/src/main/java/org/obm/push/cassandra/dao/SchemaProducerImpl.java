@@ -130,8 +130,10 @@ public class SchemaProducerImpl implements SchemaProducer {
 	@Override
 	public String lastSchema() {
 		StringBuilder schema = new StringBuilder();
-		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
-			schema.append(lastSchemaForDAO(dao));
+		for (Version version : versionsAvailable()) {
+			for (Class<? extends CassandraDao> clazz : tablesOfDao.getDAOs()) {
+				schema.append(loadDaoScripts(tablesOfDao.getTables(clazz), version));
+			}
 		}
 		return schema.toString();
 	}
@@ -139,8 +141,10 @@ public class SchemaProducerImpl implements SchemaProducer {
 	@Override
 	public String schema(Version version) {
 		StringBuilder schema = new StringBuilder();
-		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
-			schema.append(schemaForDAO(dao, version));
+		for (Version versionToApply : versionsToApply(version)) {
+			for (Class<? extends CassandraDao> clazz : tablesOfDao.getDAOs()) {
+				schema.append(loadDaoScripts(tablesOfDao.getTables(clazz), versionToApply));
+			}
 		}
 		return schema.toString();
 	}
@@ -213,9 +217,9 @@ public class SchemaProducerImpl implements SchemaProducer {
 	public String schema(Version fromVersion, Version toVersion) {
 		StringBuilder schema = new StringBuilder();
 		List<Version> versionsToApply = versionsToApply(fromVersion, toVersion);
-		for (Class<? extends CassandraDao> dao : tablesOfDao.getDAOs()) {
-			for (Version version : versionsToApply) {
-				schema.append(loadDaoScripts(tablesOfDao.getTables(dao), version));
+		for (Version version : versionsToApply) {
+			for (Class<? extends CassandraDao> clazz : tablesOfDao.getDAOs()) {
+				schema.append(loadDaoScripts(tablesOfDao.getTables(clazz), version));
 			}
 		}
 		return schema.toString();

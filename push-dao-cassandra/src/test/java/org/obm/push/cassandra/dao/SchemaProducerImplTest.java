@@ -126,7 +126,6 @@ public class SchemaProducerImplTest {
 			"	analysed_sync_collections set<text>,\n" +
 			"	PRIMARY KEY (credentials, device)\n" +
 			");\n" +
-			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"CREATE TABLE snapshot_index (\n" +
 			"	device_id text,\n" +
 			"	collection_id int,\n" +
@@ -139,8 +138,6 @@ public class SchemaProducerImplTest {
 			"	snapshot text,\n" +
 			"	PRIMARY KEY (id)\n" +
 			");\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 3\n" +
 			"CREATE TABLE synced_collection (\n" +
 			"	credentials text,\n" +
 			"	device text,\n" +
@@ -165,13 +162,16 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n" +
 			"CREATE TABLE schema_version (\n" +
 			"	id int,\n" +
 			"	version int,\n" +
 			"	date timestamp,\n" +
 			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n");
+			") with clustering order by (version desc);\n" +
+			"ALTER TABLE monitored_collection VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 3\n" +
+			"ALTER TABLE windowing_index VERSION 3\n");
 	}
 	
 	@Test
@@ -238,7 +238,6 @@ public class SchemaProducerImplTest {
 			"	analysed_sync_collections set<text>,\n" +
 			"	PRIMARY KEY (credentials, device)\n" +
 			");\n" +
-			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"CREATE TABLE snapshot_index (\n" +
 			"	device_id text,\n" +
 			"	collection_id int,\n" +
@@ -251,7 +250,6 @@ public class SchemaProducerImplTest {
 			"	snapshot text,\n" +
 			"	PRIMARY KEY (id)\n" +
 			");\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
 			"CREATE TABLE synced_collection (\n" +
 			"	credentials text,\n" +
 			"	device text,\n" +
@@ -281,7 +279,9 @@ public class SchemaProducerImplTest {
 			"	version int,\n" +
 			"	date timestamp,\n" +
 			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n");
+			") with clustering order by (version desc);\n" +
+			"ALTER TABLE monitored_collection VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 2\n");
 	}
 	
 	@Test
@@ -294,7 +294,6 @@ public class SchemaProducerImplTest {
 			"	analysed_sync_collections set<text>,\n" +
 			"	PRIMARY KEY (credentials, device)\n" +
 			");\n" +
-			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"CREATE TABLE snapshot_index (\n" +
 			"	device_id text,\n" +
 			"	collection_id int,\n" +
@@ -307,8 +306,6 @@ public class SchemaProducerImplTest {
 			"	snapshot text,\n" +
 			"	PRIMARY KEY (id)\n" +
 			");\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 3\n" +
 			"CREATE TABLE synced_collection (\n" +
 			"	credentials text,\n" +
 			"	device text,\n" +
@@ -333,13 +330,16 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n" +
 			"CREATE TABLE schema_version (\n" +
 			"	id int,\n" +
 			"	version int,\n" +
 			"	date timestamp,\n" +
 			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n");
+			") with clustering order by (version desc);\n" +
+			"ALTER TABLE monitored_collection VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 3\n" +
+			"ALTER TABLE windowing_index VERSION 3\n");
 	}
 	
 	@Test
@@ -466,7 +466,6 @@ public class SchemaProducerImplTest {
 			"	analysed_sync_collections set<text>,\n" +
 			"	PRIMARY KEY (credentials, device)\n" +
 			");\n" +
-			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"CREATE TABLE snapshot_index (\n" +
 			"	device_id text,\n" +
 			"	collection_id int,\n" +
@@ -479,8 +478,6 @@ public class SchemaProducerImplTest {
 			"	snapshot text,\n" +
 			"	PRIMARY KEY (id)\n" +
 			");\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 3\n" +
 			"CREATE TABLE synced_collection (\n" +
 			"	credentials text,\n" +
 			"	device text,\n" +
@@ -505,13 +502,16 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n" +
 			"CREATE TABLE schema_version (\n" +
 			"	id int,\n" +
 			"	version int,\n" +
 			"	date timestamp,\n" +
 			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n");
+			") with clustering order by (version desc);\n" +
+			"ALTER TABLE monitored_collection VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 3\n" +
+			"ALTER TABLE windowing_index VERSION 3\n");
 	}
 	
 	@Test
@@ -524,7 +524,6 @@ public class SchemaProducerImplTest {
 			"	analysed_sync_collections set<text>,\n" +
 			"	PRIMARY KEY (credentials, device)\n" +
 			");\n" +
-			"ALTER TABLE monitored_collection VERSION 2\n" +
 			"CREATE TABLE snapshot_index (\n" +
 			"	device_id text,\n" +
 			"	collection_id int,\n" +
@@ -537,8 +536,6 @@ public class SchemaProducerImplTest {
 			"	snapshot text,\n" +
 			"	PRIMARY KEY (id)\n" +
 			");\n" +
-			"ALTER TABLE snapshot VERSION 2\n" +
-			"ALTER TABLE snapshot VERSION 3\n" +
 			"CREATE TABLE synced_collection (\n" +
 			"	credentials text,\n" +
 			"	device text,\n" +
@@ -563,13 +560,16 @@ public class SchemaProducerImplTest {
 			"	change_value text,\n" +
 			"	PRIMARY KEY ((id), change_index, change_type)\n" +
 			");\n" +
-			"ALTER TABLE windowing_index VERSION 3\n" +
 			"CREATE TABLE schema_version (\n" +
 			"	id int,\n" +
 			"	version int,\n" +
 			"	date timestamp,\n" +
 			"	PRIMARY KEY ((id), version)\n" +
-			") with clustering order by (version desc);\n");
+			") with clustering order by (version desc);\n" +
+			"ALTER TABLE monitored_collection VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 2\n" +
+			"ALTER TABLE snapshot VERSION 3\n" +
+			"ALTER TABLE windowing_index VERSION 3\n");
 	}
 	
 	@Test
