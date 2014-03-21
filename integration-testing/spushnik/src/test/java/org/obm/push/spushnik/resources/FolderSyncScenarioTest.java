@@ -54,7 +54,7 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.SingleUserFixture;
+import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -72,7 +72,7 @@ import com.google.inject.Inject;
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -99,7 +99,7 @@ public class FolderSyncScenarioTest {
 		spushnikServer.start();
 		baseURL = "http://localhost:" + spushnikServer.getPort() + "/spushnik/";
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
-		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, singleUserFixture.jaures);
+		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, users.jaures);
 		mocksControl.replay();
 		cassandraServer.start();
 		opushServer.start();

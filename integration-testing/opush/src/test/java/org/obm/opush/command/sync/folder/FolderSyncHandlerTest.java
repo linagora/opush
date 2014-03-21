@@ -54,8 +54,8 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -81,7 +81,7 @@ import com.google.inject.Inject;
 @GuiceModule(FolderSyncHandlerTestModule.class)
 public class FolderSyncHandlerTest {
 	
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -95,7 +95,7 @@ public class FolderSyncHandlerTest {
 
 	@Before
 	public void init() throws Exception {
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		userAsList = Arrays.asList(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 		cassandraServer.start();

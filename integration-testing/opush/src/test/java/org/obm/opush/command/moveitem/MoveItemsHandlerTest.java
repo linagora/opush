@@ -55,8 +55,8 @@ import org.obm.opush.ImapConnectionCounter;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.PendingQueriesLock;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -79,7 +79,7 @@ import com.icegreen.greenmail.util.GreenMailUtil;
 @GuiceModule(MailBackendTestModule.class)
 public class MoveItemsHandlerTest {
 
-	@Inject	SingleUserFixture singleUserFixture;
+	@Inject	Users users;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject GreenMail greenMail;
@@ -106,7 +106,7 @@ public class MoveItemsHandlerTest {
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
 		greenMailUser = greenMail.setUser(mailbox, user.password);

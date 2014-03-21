@@ -58,7 +58,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.icalendar.ICalendar;
-import org.obm.opush.SingleUserFixture;
+import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushGuiceRunner;
@@ -110,7 +110,7 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class MeetingResponseHandlerTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject MeetingProtocol protocol;
@@ -296,7 +296,7 @@ public class MeetingResponseHandlerTest {
 	private Document postMeetingAcceptedResponse()
 			throws TransformerException, WBXmlException, IOException, HttpRequestException, SAXException  {
 		
-		OPClient opClient = buildWBXMLOpushClient(singleUserFixture.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
 		Document document = buildMeetingAcceptedResponse();
 
 		Document serverResponse = opClient.postXml("MeetingResponse", document, "MeetingResponse");
@@ -341,7 +341,7 @@ public class MeetingResponseHandlerTest {
 	
 	private void prepareMockForCommonNeeds() throws Exception {
 		
-		mockUsersAccess(classToInstanceMap, Sets.newHashSet(singleUserFixture.jaures));
+		mockUsersAccess(classToInstanceMap, Sets.newHashSet(users.jaures));
 		expectCollectionDaoUnchange(classToInstanceMap.get(CollectionDao.class));
 		expectMailbackendGiveEmailForAnyIds(classToInstanceMap.get(MailBackend.class));
 		expectMailbackendGettingInvitation(classToInstanceMap.get(MailBackend.class));
@@ -451,7 +451,7 @@ public class MeetingResponseHandlerTest {
 			.itemChanges(Lists.newArrayList(itemChangeMeetingResponse))
 			.build();
 		
-		Document encodeResponses = protocol.encodeResponse(singleUserFixture.jaures.device, response);
+		Document encodeResponses = protocol.encodeResponse(users.jaures.device, response);
 		return DOMUtils.serialize(encodeResponses);
 	}
 

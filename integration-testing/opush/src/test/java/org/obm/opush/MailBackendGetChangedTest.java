@@ -64,7 +64,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -103,7 +103,7 @@ import com.icegreen.greenmail.util.GreenMailUtil;
 @GuiceModule(MailBackendTestModule.class)
 public class MailBackendGetChangedTest {
 
-	@Inject	SingleUserFixture singleUserFixture;
+	@Inject	Users users;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject GreenMail greenMail;
@@ -136,7 +136,7 @@ public class MailBackendGetChangedTest {
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
 		greenMailUser = greenMail.setUser(mailbox, user.password);

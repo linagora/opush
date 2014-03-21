@@ -59,8 +59,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.PendingQueriesLock;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushGuiceRunner;
@@ -92,7 +92,7 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class PushContinuationTest {
 
-	@Inject	SingleUserFixture singleUserFixture;
+	@Inject	Users users;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject PendingQueriesLock pendingQueries;
@@ -124,7 +124,7 @@ public class PushContinuationTest {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
 		
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		inboxCollectionId = 1234;
 		inboxCollectionIdAsString = String.valueOf(inboxCollectionId);
 

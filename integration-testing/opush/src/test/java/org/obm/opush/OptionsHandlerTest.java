@@ -60,7 +60,7 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class OptionsHandlerTest {
 
-	@Inject	SingleUserFixture user;
+	@Inject	Users users;
 	@Inject	OpushServer opushServer;
 	@Inject IMocksControl mocksControl;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
@@ -86,7 +86,7 @@ public class OptionsHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(user.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
 		OptionsResponse options = opClient.options();
 		
 		assertThat(Iterables.tryFind(options.getHeaders(), new Predicate<Header>() {

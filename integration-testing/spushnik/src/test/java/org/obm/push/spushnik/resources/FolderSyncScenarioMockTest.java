@@ -48,7 +48,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.IntegrationTestUtils;
-import org.obm.opush.SingleUserFixture;
+import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -74,7 +74,7 @@ import com.google.inject.Inject;
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioMockTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -98,15 +98,15 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testScenarii() throws Exception {
-		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, singleUserFixture.jaures);
+		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, users.jaures);
 		mocksControl.replay();
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
 				buildServiceUrl(opushServer.getPort()),
 				Credentials.builder()
-					.loginAtDomain(singleUserFixture.jaures.user.getLoginAtDomain())
-					.password(singleUserFixture.jaures.password)
+					.loginAtDomain(users.jaures.user.getLoginAtDomain())
+					.password(users.jaures.password)
 					.build());
 		
 		assertThat(checkResult.getStatus()).isEqualTo(CheckStatus.OK.asSpecificationValue());
@@ -115,20 +115,20 @@ public class FolderSyncScenarioMockTest {
 	@Test
 	public void testErrorInBackend() throws Exception {
 		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				singleUserFixture.jaures);
-		User user = singleUserFixture.jaures.user;
+				users.jaures);
+		User user = users.jaures.user;
 		DeviceId deviceId = new DeviceId("spushnik");
 		Device device = new Device(user.hashCode(), 
 				"spushnikProbe", 
 				deviceId, 
 				new Properties(), 
-				singleUserFixture.jaures.deviceProtocolVersion);
+				users.jaures.deviceProtocolVersion);
 		// First provisionning
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user, 
 				deviceId, 
 				"spushnikAgent",
-				singleUserFixture.jaures.deviceProtocolVersion))
+				users.jaures.deviceProtocolVersion))
 			.andReturn(device).anyTimes();
 		expect(deviceDao.getPolicyKey(user, deviceId, PolicyStatus.PENDING))
 			.andReturn(null).once();
@@ -164,7 +164,7 @@ public class FolderSyncScenarioMockTest {
 				buildServiceUrl(opushServer.getPort()),
 				Credentials.builder()
 					.loginAtDomain(user.getLoginAtDomain())
-					.password(singleUserFixture.jaures.password)
+					.password(users.jaures.password)
 					.build());
 		
 		assertThat(checkResult.getStatus()).isEqualTo(CheckStatus.ERROR.asSpecificationValue());
@@ -173,7 +173,7 @@ public class FolderSyncScenarioMockTest {
 	@Test
 	public void testBadOpushPort() throws Exception {
 		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				singleUserFixture.jaures);
+				users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -181,8 +181,8 @@ public class FolderSyncScenarioMockTest {
 		CheckResult checkResult = folderSyncScenario.run(
 				buildServiceUrl(opushServer.getPort() +1),
 				Credentials.builder()
-					.loginAtDomain(singleUserFixture.jaures.user.getLoginAtDomain())
-					.password(singleUserFixture.jaures.password)
+					.loginAtDomain(users.jaures.user.getLoginAtDomain())
+					.password(users.jaures.password)
 					.build());
 		
 		assertThat(checkResult.getStatus()).isEqualTo(CheckStatus.ERROR.asSpecificationValue());
@@ -191,7 +191,7 @@ public class FolderSyncScenarioMockTest {
 	@Test
 	public void testBadOpushAddress() throws Exception {
 		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				singleUserFixture.jaures);
+				users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -199,8 +199,8 @@ public class FolderSyncScenarioMockTest {
 		CheckResult checkResult = folderSyncScenario.run(
 				buildServiceUrl("123.456.0.1", opushServer.getPort()),
 				Credentials.builder()
-					.loginAtDomain(singleUserFixture.jaures.user.getLoginAtDomain())
-					.password(singleUserFixture.jaures.password)
+					.loginAtDomain(users.jaures.user.getLoginAtDomain())
+					.password(users.jaures.password)
 					.build()); 
 		
 		assertThat(checkResult.getStatus()).isEqualTo(CheckStatus.ERROR.asSpecificationValue());
@@ -209,7 +209,7 @@ public class FolderSyncScenarioMockTest {
 	@Test
 	public void testBadWebApp() throws Exception {
 		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				singleUserFixture.jaures);
+				users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -217,8 +217,8 @@ public class FolderSyncScenarioMockTest {
 		CheckResult checkResult = folderSyncScenario.run(
 				buildServiceUrl("/VeryBad/", "127.0.0.1", opushServer.getPort()),
 				Credentials.builder()
-					.loginAtDomain(singleUserFixture.jaures.user.getLoginAtDomain())
-					.password(singleUserFixture.jaures.password)
+					.loginAtDomain(users.jaures.user.getLoginAtDomain())
+					.password(users.jaures.password)
 					.build());  
 				
 		assertThat(checkResult.getStatus()).isEqualTo(CheckStatus.ERROR.asSpecificationValue());

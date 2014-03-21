@@ -53,8 +53,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.opush.env.OpushConfigurationFixture;
@@ -83,7 +83,7 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class ProvisionHandlerTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -96,7 +96,7 @@ public class ProvisionHandlerTest {
 
 	@Before
 	public void init() throws Exception {
-		fakeTestUsers = Arrays.asList(singleUserFixture.jaures);
+		fakeTestUsers = Arrays.asList(users.jaures);
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
 	}
@@ -112,7 +112,7 @@ public class ProvisionHandlerTest {
 	@Test
 	public void testFirstProvisionSendPolicy() throws Exception {
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig").anyTimes();		
@@ -135,7 +135,7 @@ public class ProvisionHandlerTest {
 	@Test
 	public void testCheckDefault12Dot1Policy() throws Exception {
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig").anyTimes();
 		
@@ -204,7 +204,7 @@ public class ProvisionHandlerTest {
 	@Test
 	public void testCheckModified12Dot1Policy() throws Exception {
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 		expect(policyConfigurationProvider.get()).andReturn(getClass().getResource("modifiedPolicy.properties").getFile());
 
@@ -273,7 +273,7 @@ public class ProvisionHandlerTest {
 	@Test
 	public void testCheckDefault12Dot0Policy() throws Exception {
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		user.deviceProtocolVersion = ProtocolVersion.V120;
 		user.device = new Device.Factory().create(1, user.deviceType, user.userAgent, user.deviceId, user.deviceProtocolVersion);
 		mockProvisionNeeds(user);
@@ -315,7 +315,7 @@ public class ProvisionHandlerTest {
 	public void testFirstProvisionWithNotAllowedUnknownDevice() throws Exception {
 		configuration.syncPerms.allowUnknownDevice = false;
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig").anyTimes();
 		
@@ -346,7 +346,7 @@ public class ProvisionHandlerTest {
 	@Test
 	public void testFirstProvisionIsIdempotent() throws Exception {
 		long nextPolicyKeyGenerated = 115l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig").anyTimes();
 		
@@ -374,7 +374,7 @@ public class ProvisionHandlerTest {
 	public void acknowledgeIsAllowedOnlyOnPendingPolicyKey() throws Exception {
 		long pendingPolicyKey = 123l;
 		long acknowledgedPolicyKey = 321l;
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		mockProvisionNeeds(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfig").anyTimes();
 		
@@ -406,7 +406,7 @@ public class ProvisionHandlerTest {
 	
 	@Test
 	public void testSecondProvisionDoesntSendPolicy() throws Exception {
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		long userRegistredPolicyKey = 5410l;
 		long nextPolicyKeyGenerated = 16510l;
 		
@@ -434,7 +434,7 @@ public class ProvisionHandlerTest {
 
 	@Test
 	public void testSecondProvisionSentCorrectStatusWhenNotExpectedPolicyKey() throws Exception {
-		OpushUser user = singleUserFixture.jaures;
+		OpushUser user = users.jaures;
 		long userRegistredPolicyKey = 4015l;
 		long acknowledgingPolicyKey = 5410l;
 

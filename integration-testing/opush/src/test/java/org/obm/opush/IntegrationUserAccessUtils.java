@@ -37,7 +37,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.util.Collection;
 import java.util.Properties;
 
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users.OpushUser;
 import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
 import org.obm.push.store.DeviceDao;

@@ -35,7 +35,7 @@ import org.obm.push.bean.User;
 
 import com.google.inject.Inject;
 
-public class SingleUserFixture {
+public class Users {
 
 	
 	public static class OpushUser {
@@ -49,7 +49,7 @@ public class SingleUserFixture {
 	public final OpushUser jaures;
 	
 	@Inject
-	public SingleUserFixture(User.Factory userFactory) {
+	public Users(User.Factory userFactory) {
 		jaures = new OpushUser();
 		jaures.user = userFactory.createUser("jaures@sfio.fr", "jaures@sfio.fr", "Jean Jaures");
 		jaures.password = "jaures";

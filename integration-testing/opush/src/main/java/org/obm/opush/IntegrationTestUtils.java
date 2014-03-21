@@ -47,7 +47,7 @@ import java.util.Properties;
 import javax.mail.Session;
 
 import org.apache.http.client.HttpClient;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users.OpushUser;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;

@@ -39,7 +39,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.util.Properties;
 
 import org.obm.opush.IntegrationTestUtils;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users.OpushUser;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;

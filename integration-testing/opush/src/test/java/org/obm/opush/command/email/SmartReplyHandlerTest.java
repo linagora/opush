@@ -55,8 +55,8 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -78,7 +78,7 @@ import com.icegreen.greenmail.util.GreenMail;
 @GuiceModule(MailBackendTestModule.class)
 public class SmartReplyHandlerTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -101,7 +101,7 @@ public class SmartReplyHandlerTest {
 	public void setUp() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		greenMail.start();
 		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), user.password);
 		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);

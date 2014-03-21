@@ -58,7 +58,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
@@ -100,7 +100,7 @@ import com.icegreen.greenmail.util.ServerSetup;
 @GuiceModule(MailBackendHandlerTestModule.class)
 public class MailBackendHandlerTest {
 
-	@Inject	SingleUserFixture singleUserFixture;
+	@Inject	Users users;
 	@Inject	OpushServer opushServer;
 	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject GreenMail greenMail;
@@ -124,11 +124,11 @@ public class MailBackendHandlerTest {
 	public void init() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
-		mailbox = singleUserFixture.jaures.user.getLoginAtDomain();
-		greenMailUser = greenMail.setUser(mailbox, singleUserFixture.jaures.password);
+		mailbox = users.jaures.user.getLoginAtDomain();
+		greenMailUser = greenMail.setUser(mailbox, users.jaures.password);
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
@@ -176,7 +176,7 @@ public class MailBackendHandlerTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", smtpServerSetup);
 		greenMail.waitForIncomingEmail(2);
 
-		OPClient opClient = buildWBXMLOpushClient(singleUserFixture.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
 		opClient.deleteEmail(decoder, syncEmailSyncKey, serverId, serverId + syncEmailId);
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
@@ -207,7 +207,7 @@ public class MailBackendHandlerTest {
 	private void mockCollectionDao(int serverId, ItemSyncState syncState) throws Exception {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(serverId))
-			.andReturn(IntegrationTestUtils.buildEmailInboxCollectionPath(singleUserFixture.jaures)).anyTimes();
+			.andReturn(IntegrationTestUtils.buildEmailInboxCollectionPath(users.jaures)).anyTimes();
 		
 		expect(collectionDao.findItemStateForKey(anyObject(SyncKey.class)))
 			.andReturn(syncState).anyTimes();
@@ -218,7 +218,7 @@ public class MailBackendHandlerTest {
 		expect(collectionDao.getCollectionMapping(eq(user.device), anyObject(String.class)))
 			.andReturn(serverId).anyTimes();
 		
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(singleUserFixture.jaures), ImmutableList.of(serverId));
+		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(users.jaures), ImmutableList.of(serverId));
 	}
 
 	private void mockItemTrackingDao() throws Exception {

@@ -47,8 +47,8 @@ import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.SingleUserFixture;
-import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.opush.Users;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.NoCassandraOpushModule;
 import org.obm.push.OpushContainerModule.OpushHttpCapability;
 import org.obm.push.OpushServer;
@@ -64,7 +64,7 @@ import com.google.inject.Injector;
 @GuiceModule(NoCassandraOpushModule.class)
 public class ServletContextTest {
 
-	@Inject	SingleUserFixture singleUserFixture;
+	@Inject	Users users;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject Injector injector;
 	@Inject IMocksControl mocksControl;
@@ -75,7 +75,7 @@ public class ServletContextTest {
 	@Before
 	public void setUp() {
 		httpClient = HttpClientBuilder.create().build();
-		user = singleUserFixture.jaures;
+		user = users.jaures;
 	}
 	
 	@After

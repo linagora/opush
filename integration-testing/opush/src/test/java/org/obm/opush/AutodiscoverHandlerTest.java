@@ -74,7 +74,7 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class AutodiscoverHandlerTest {
 
-	@Inject SingleUserFixture singleUserFixture;
+	@Inject Users users;
 	@Inject OpushServer opushServer;
 	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
@@ -106,9 +106,9 @@ public class AutodiscoverHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = IntegrationTestUtils.buildOpushClient(singleUserFixture.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = IntegrationTestUtils.buildOpushClient(users.jaures, opushServer.getPort(), httpClient);
 		
-		String emailAddress = singleUserFixture.jaures.user.getEmail();
+		String emailAddress = users.jaures.user.getEmail();
 		Document document = opClient.postXml("Autodiscover", buildAutodiscoverCommand(emailAddress), "Autodiscover", null, false);
 		
 		checkAutodiscoverResponse(document, externalUrl, formatCultureParameter(Locale.getDefault()));
@@ -143,17 +143,17 @@ public class AutodiscoverHandlerTest {
 
 	private void mockDeviceDao() throws DaoException {
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
-		IntegrationTestUtils.expectUserDeviceAccess(deviceDao, singleUserFixture.jaures);
+		IntegrationTestUtils.expectUserDeviceAccess(deviceDao, users.jaures);
 	}
 
 	private void mockCollectionDaoNoChange() throws CollectionNotFoundException, DaoException {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(singleUserFixture.jaures), Collections.<Integer>emptySet());
+		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(users.jaures), Collections.<Integer>emptySet());
 	}
 	
 	private void mockLoginService() throws AuthFault {
 		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
-		IntegrationTestUtils.expectUserLoginFromOpush(loginClient, singleUserFixture.jaures);
+		IntegrationTestUtils.expectUserLoginFromOpush(loginClient, users.jaures);
 	}
 	
 	private Document buildAutodiscoverCommand(String emailAddress)

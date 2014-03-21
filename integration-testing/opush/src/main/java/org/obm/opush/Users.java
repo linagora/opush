@@ -44,7 +44,7 @@ import org.obm.sync.auth.AccessToken;
 
 import com.google.inject.Inject;
 
-public class SingleUserFixture {
+public class Users {
 
 	
 	public static class OpushUser {
@@ -67,15 +67,15 @@ public class SingleUserFixture {
 	public final OpushUser jaures;
 	
 	@Inject
-	public SingleUserFixture(User.Factory userFactory, AccessTokenResource.Factory accessTokenResourceFactory) {
+	public Users(User.Factory userFactory, AccessTokenResource.Factory accessTokenResourceFactory) {
 		this.userFactory = userFactory;
 		this.accessTokenResourceFactory = accessTokenResourceFactory;
-		jaures = buildUser("jaures");
+		jaures = buildUser("jaures", "jaur3s", "Jean Jaures");
 	}
 
-	public OpushUser buildUser(String password) {
+	public OpushUser buildUser(String login, String password, String fullname) {
 		OpushUser user = new OpushUser();
-		user.user = userFactory.createUser("jaures@sfio.fr", "jaures@sfio.fr", "Jean Jaures");
+		user.user = userFactory.createUser(login + "@sfio.fr", login + "@sfio.fr", fullname);
 		user.password = password;
 		user.deviceType = "BellLabsWiredPhone";
 		user.deviceId = new DeviceId("blwp123");
