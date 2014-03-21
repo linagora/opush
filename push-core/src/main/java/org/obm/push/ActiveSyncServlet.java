@@ -201,7 +201,7 @@ public class ActiveSyncServlet extends HttpServlet {
 			return;
 		}
 
-		continuationService.running(udr.getDevice());
+		continuationService.running(udr.getUser(), udr.getDevice());
 
 		loggerService.startSession(udr.getUser(), c.getReqId(), udr.getCommand());
 		logger.debug("continuation");

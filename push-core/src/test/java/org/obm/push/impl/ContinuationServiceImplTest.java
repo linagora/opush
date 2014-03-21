@@ -53,12 +53,14 @@ import org.obm.push.bean.UserDataRequest;
 
 public class ContinuationServiceImplTest {
 	
-	private Device device;
 	private IMocksControl control;
-
+	private Device device;
+	private User user;
+	
 	@Before
 	public void setUp() {
 		control = createControl();
+		user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
 	}
 	
@@ -74,7 +76,7 @@ public class ContinuationServiceImplTest {
 		expectLastCall();
 		
 		ContinuationTransactionMap<IContinuation> continuationTransactionMap = mockContinuationTransactionMap();
-		expect(continuationTransactionMap.putContinuationForDevice(device, continuation)).andReturn(false);
+		expect(continuationTransactionMap.putContinuationForDevice(user, device, continuation)).andReturn(false);
 		
 		control.replay();
 		
@@ -95,7 +97,7 @@ public class ContinuationServiceImplTest {
 		expectLastCall();
 		
 		ContinuationTransactionMap<IContinuation> continuationTransactionMap = mockContinuationTransactionMap();
-		expect(continuationTransactionMap.putContinuationForDevice(device, continuation)).andReturn(true);
+		expect(continuationTransactionMap.putContinuationForDevice(user, device, continuation)).andReturn(true);
 		
 		control.replay();
 		
@@ -105,7 +107,7 @@ public class ContinuationServiceImplTest {
 	}
 	
 	private UserDataRequest getFakeUserDataRequest() {
-		User user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
+		
 		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test"), "Cmd", device);
 		return udr;
 	}
@@ -117,14 +119,14 @@ public class ContinuationServiceImplTest {
 		expectLastCall();
 		
 		ContinuationTransactionMap<IContinuation> continuationTransactionMap = mockContinuationTransactionMap();
-		expect(continuationTransactionMap.getContinuationForDevice(device))
+		expect(continuationTransactionMap.getContinuationForDevice(user, device))
 			.andReturn(continuation);
-		continuationTransactionMap.delete(device);
+		continuationTransactionMap.delete(user, device);
 		expectLastCall();
 		
 		control.replay();
 		
-		continuationService(continuationTransactionMap).resume(device);
+		continuationService(continuationTransactionMap).resume(user, device);
 		
 		control.verify();
 	}
@@ -136,14 +138,14 @@ public class ContinuationServiceImplTest {
 		expectLastCall();
 		
 		ContinuationTransactionMap<IContinuation> continuationTransactionMap = mockContinuationTransactionMap();
-		expect(continuationTransactionMap.getContinuationForDevice(device))
+		expect(continuationTransactionMap.getContinuationForDevice(user, device))
 			.andReturn(continuation);
-		continuationTransactionMap.delete(device);
+		continuationTransactionMap.delete(user, device);
 		expectLastCall();
 		
 		control.replay();
 		
-		continuationService(continuationTransactionMap).cancel(device);
+		continuationService(continuationTransactionMap).cancel(user, device);
 		
 		control.verify();
 	}

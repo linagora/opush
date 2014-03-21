@@ -38,8 +38,6 @@ import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationTestUtils.expectUserCollectionsNeverChange;
 import static org.obm.opush.IntegrationUserAccessUtils.expectUserLoginFromOpush;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -91,12 +89,10 @@ public class ProvisionHandlerTest {
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject CassandraServer cassandraServer;
 
-	private List<OpushUser> fakeTestUsers;
 	private CloseableHttpClient httpClient;
 
 	@Before
 	public void init() throws Exception {
-		fakeTestUsers = Arrays.asList(users.jaures);
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
 	}
@@ -463,7 +459,7 @@ public class ProvisionHandlerTest {
 		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
 		expectUserLoginFromOpush(loginClient, user);
 		
-		expectUserCollectionsNeverChange(classToInstanceMap.get(CollectionDao.class), fakeTestUsers, Sets.<Integer>newHashSet());
+		expectUserCollectionsNeverChange(classToInstanceMap.get(CollectionDao.class), user, Sets.<Integer>newHashSet());
 		
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, 

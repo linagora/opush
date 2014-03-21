@@ -132,7 +132,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 	private void doTheJob(IContinuation continuation, UserDataRequest udr, AnalysedPingRequest pingRequest) 
 			throws DaoException, CollectionNotFoundException, CollectionPathException {
 		
-		continuationService.cancel(udr.getDevice());
+		continuationService.cancel(udr.getUser(),  udr.getDevice());
 		startEmailMonitoringThreadIfNeeded(udr, pingRequest);
 		monitoreCollection(udr, pingRequest);
 		suspendContinuation(continuation, udr, pingRequest);

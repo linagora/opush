@@ -36,6 +36,7 @@ import org.obm.push.ContinuationTransactionMap;
 import org.obm.push.ElementNotFoundException;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,46 +58,46 @@ public class ContinuationServiceImpl implements ContinuationService {
 
 	@Override
 	public void suspend(UserDataRequest userDataRequest, IContinuation continuation, long secondsTimeout, String cancellingStatus) {
-		logger.debug("suspend {} {} {}", userDataRequest.getDevice(), secondsTimeout, cancellingStatus);
+		logger.debug("suspend {} {} {} {}", userDataRequest.getUser(), userDataRequest.getDevice(), secondsTimeout, cancellingStatus);
 		continuation.error(cancellingStatus);
 		
-		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(userDataRequest.getDevice(), continuation);
+		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(userDataRequest.getUser(), userDataRequest.getDevice(), continuation);
 		if (hasPreviousElement) {
-			logger.error("Continuation was already cached for device {}", userDataRequest.getDevice());
+			logger.error("Continuation was already cached for device {} and user ", userDataRequest.getDevice(), userDataRequest.getUser());
 		}
 		
 		continuation.suspend(userDataRequest, secondsTimeout);
 	}
 
 	@Override
-	public void resume(Device device) {
+	public void resume(User user, Device device) {
 		try {
-			logger.debug("resume {}", device);
+			logger.info("resume {} {}", device, user);
 			
-			IContinuation continuation = continuationTransactionMap.getContinuationForDevice(device);
-			continuationTransactionMap.delete(device);
+			IContinuation continuation = continuationTransactionMap.getContinuationForDevice(user, device);
+			continuationTransactionMap.delete(user, device);
 			continuation.resume();
 		} catch (ElementNotFoundException e) {
-			logger.debug("resume device {} not found", device);
+			logger.info("resume device {} for user {} not found", device, user);
 		}
 		
 	}
 
 	@Override
-	public void cancel(Device device) {
+	public void cancel(User user, Device device) {
 		try {
-			logger.debug("cancel {} {}", device);
+			logger.info("cancel {} {}", device, user);
 			
-			IContinuation continuation = continuationTransactionMap.getContinuationForDevice(device);
-			continuationTransactionMap.delete(device);
+			IContinuation continuation = continuationTransactionMap.getContinuationForDevice(user, device);
+			continuationTransactionMap.delete(user, device);
 			continuation.resume();
 		} catch (ElementNotFoundException e) {
-			logger.debug("cancel device {} not found", device);
+			logger.info("cancel device {} for user {} not found", device, user);
 		}
 	}
 	
 	@Override
-	public void running(Device device) {
-		continuationTransactionMap.delete(device);
+	public void running(User user, Device device) {
+		continuationTransactionMap.delete(user, device);
 	}
 }

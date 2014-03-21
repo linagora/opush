@@ -67,7 +67,6 @@ import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @RunWith(OpushGuiceRunner.class)
@@ -148,7 +147,7 @@ public class AutodiscoverHandlerTest {
 
 	private void mockCollectionDaoNoChange() throws CollectionNotFoundException, DaoException {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(users.jaures), Collections.<Integer>emptySet());
+		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, Collections.<Integer>emptySet());
 	}
 	
 	private void mockLoginService() throws AuthFault {

@@ -44,6 +44,7 @@ import org.obm.push.ElementNotFoundException;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.User;
 
 import com.google.inject.Inject;
 
@@ -55,40 +56,53 @@ public abstract class ContinuationTransactionMapTest {
 	public final static String PENDING_CONTINUATIONS = "pendingContinuation";
 	public final static String KEY_ID_REQUEST = "key_id_request";
 	private Device device;
+	private User user;
 	
 	@Before
 	public void setUp() {
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		user = User.builder().email("jean.jaures@sfio.fr").domain("sfio.fr").login("jjaures").build();
 	}
 	
 	@Test
 	public void testGetContinuationForDevice() throws ElementNotFoundException {
 		TestingContinuation expectedContinuation = new TestingContinuation();
-		continuationTransactionMap.putContinuationForDevice(device, expectedContinuation);
+		continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
 		
-		assertThat(continuationTransactionMap.getContinuationForDevice(device)).isEqualTo(expectedContinuation);
+		assertThat(continuationTransactionMap.getContinuationForDevice(user, device)).isEqualTo(expectedContinuation);
 	}
 	
 	@Test (expected=ElementNotFoundException.class)
 	public void testGetContinuationForDeviceElementNotFound() throws ElementNotFoundException {
-		continuationTransactionMap.getContinuationForDevice(device);
+		continuationTransactionMap.getContinuationForDevice(user, device);
 	}
 	
 	@Test
 	public void testPutContinuationForDevice() {
 		TestingContinuation expectedContinuation = new TestingContinuation();
-		continuationTransactionMap.putContinuationForDevice(device, expectedContinuation);
+		continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
 
-		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(device, expectedContinuation);
+		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
 		
 		assertThat(hasPreviousElement).isTrue();
+	}
+	
+	@Test
+	public void testPutContinuationForDeviceButDifferentUser() {
+		TestingContinuation expectedContinuation = new TestingContinuation();
+		continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
+		User blum = User.builder().email("leon.blum@sfio.fr").domain("sfio.fr").login("bblum").build();
+		
+		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(blum, device, expectedContinuation);
+		
+		assertThat(hasPreviousElement).isFalse();
 	}
 	
 	@Test
 	public void testPutContinuationForDeviceNoCachedElement() {
 		TestingContinuation expectedContinuation = new TestingContinuation();
 		
-		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(device, expectedContinuation);
+		boolean hasPreviousElement = continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
 		
 		assertThat(hasPreviousElement).isFalse();
 	}
@@ -96,17 +110,17 @@ public abstract class ContinuationTransactionMapTest {
 	@Test(expected=ElementNotFoundException.class)
 	public void testDelete() throws ElementNotFoundException {
 		TestingContinuation expectedContinuation = new TestingContinuation();
-		continuationTransactionMap.putContinuationForDevice(device, expectedContinuation);
+		continuationTransactionMap.putContinuationForDevice(user, device, expectedContinuation);
 		
-		continuationTransactionMap.delete(device);
+		continuationTransactionMap.delete(user, device);
 
-		continuationTransactionMap.getContinuationForDevice(device);
+		continuationTransactionMap.getContinuationForDevice(user, device);
 	}
 
 	@Test(expected=ElementNotFoundException.class)
 	public void testDeleteNotCachedElement() throws ElementNotFoundException {
-		continuationTransactionMap.delete(device);
-		continuationTransactionMap.getContinuationForDevice(device);
+		continuationTransactionMap.delete(user, device);
+		continuationTransactionMap.getContinuationForDevice(user, device);
 	}
 	
 	public static class TestingContinuation {}

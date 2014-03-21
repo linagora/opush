@@ -32,15 +32,16 @@
 package org.obm.push;
 
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 
 public interface ContinuationTransactionMap<CONTINUATION_TYPE> {
 	
-	CONTINUATION_TYPE getContinuationForDevice(Device device) throws ElementNotFoundException ;
+	CONTINUATION_TYPE getContinuationForDevice(User user, Device device) throws ElementNotFoundException ;
 	
 	/**
 	 * @return whether there already was a previous entry for the couple device-continuation_type 
 	 */
-	boolean putContinuationForDevice(Device device, CONTINUATION_TYPE continuation) ;
+	boolean putContinuationForDevice(User user, Device device, CONTINUATION_TYPE continuation) ;
 	
-	void delete(Device device);
+	void delete(User user, Device device);
 }

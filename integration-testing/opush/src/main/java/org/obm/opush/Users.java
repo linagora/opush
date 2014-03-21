@@ -65,12 +65,14 @@ public class Users {
 	private final AccessTokenResource.Factory accessTokenResourceFactory;
 
 	public final OpushUser jaures;
+	public final OpushUser blum;
 	
 	@Inject
 	public Users(User.Factory userFactory, AccessTokenResource.Factory accessTokenResourceFactory) {
 		this.userFactory = userFactory;
 		this.accessTokenResourceFactory = accessTokenResourceFactory;
 		jaures = buildUser("jaures", "jaur3s", "Jean Jaures");
+		blum = buildUser("blum", "b1um", "Léon Blum");
 	}
 
 	public OpushUser buildUser(String login, String password, String fullname) {

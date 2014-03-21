@@ -33,15 +33,17 @@ package org.obm.push;
 
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 
 public interface ContinuationService {
 	
 	void suspend(UserDataRequest userDataRequest, IContinuation continuation, long secondsTimeout, String cancellingStatus);
 	
-	void resume(Device device);
+	void resume(User user, Device device);
 	
-	void cancel(Device device);
+	void cancel(User user, Device device);
 
-	void running(Device device);
+	void running(User user, Device device);
+
 }

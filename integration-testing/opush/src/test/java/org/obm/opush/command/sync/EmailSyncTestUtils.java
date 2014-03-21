@@ -164,7 +164,9 @@ public class EmailSyncTestUtils {
 		mockContentsExporter(contentsExporterBackend, delta);
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		expectUserCollectionsNeverChange(collectionDao, fakeTestUsers, syncEmailCollectionsIds);
+		for (OpushUser user: fakeTestUsers) {
+			expectUserCollectionsNeverChange(collectionDao, user, syncEmailCollectionsIds);
+		}
 		mockCollectionDaoForEmailSync(collectionDao, syncEmailSyncKey, syncEmailCollectionsIds);
 		
 		ItemTrackingDao itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);

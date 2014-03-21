@@ -37,6 +37,7 @@ import net.sf.ehcache.Element;
 import org.obm.push.ContinuationTransactionMap;
 import org.obm.push.ElementNotFoundException;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
@@ -51,23 +52,28 @@ public class ContinuationTransactionMapImpl<T> implements ContinuationTransactio
 	}
 	
 	@Override
-	public T getContinuationForDevice(Device device) throws ElementNotFoundException {
-		Element element = store.get(device);
+	public T getContinuationForDevice(User user, Device device) throws ElementNotFoundException {
+		Element element = store.get(key(user, device));
 		if (element == null) {
 			throw new ElementNotFoundException();
 		}
 		return (T) element.getObjectValue();
 	}
+
 	
 	@Override
-	public boolean putContinuationForDevice(Device device, T continuation) {
-		Element previousElement = store.get(device);
-		store.put(new Element(device, continuation));
+	public boolean putContinuationForDevice(User user, Device device, T continuation) {
+		Element previousElement = store.get(key(user, device));
+		store.put(new Element(key(user, device), continuation));
 		return previousElement != null;
 	}
 	
 	@Override
-	public void delete(Device device) {
-		store.remove(device);
+	public void delete(User user, Device device) {
+		store.remove(key(user, device));
+	}
+
+	private Element key(User user, Device device) {
+		return new Element(user, device);
 	}
 }

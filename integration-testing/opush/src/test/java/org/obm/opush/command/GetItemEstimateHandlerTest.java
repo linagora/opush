@@ -44,7 +44,6 @@ import static org.obm.opush.command.sync.EmailSyncTestUtils.mockItemTrackingDao;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -59,7 +58,6 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users;
-import org.obm.opush.Users.OpushUser;
 import org.obm.opush.command.sync.EmailSyncTestUtils;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushGuiceRunner;
@@ -100,13 +98,10 @@ public class GetItemEstimateHandlerTest {
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject CassandraServer cassandraServer;
 	
-	private List<OpushUser> fakeTestUsers;
 	private CloseableHttpClient httpClient;
 
 	@Before
 	public void init() throws Exception {
-		fakeTestUsers = Arrays.asList(users.jaures);
-
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
@@ -179,7 +174,7 @@ public class GetItemEstimateHandlerTest {
 		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
 
 		DataDelta delta = DataDelta.builder().syncDate(new Date()).syncKey(syncKey).build();
-		EmailSyncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, fakeTestUsers, classToInstanceMap);
+		EmailSyncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, Arrays.asList(users.jaures), classToInstanceMap);
 		mocksControl.replay();
 		opushServer.start();
 	}
@@ -193,7 +188,7 @@ public class GetItemEstimateHandlerTest {
 		
 		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
 
-		mockUsersAccess(classToInstanceMap, fakeTestUsers);
+		mockUsersAccess(classToInstanceMap, Arrays.asList(users.jaures));
 		
 		mockEmailSyncWithHierarchyChangedException(syncKey, syncEmailCollectionsIds);
 		
@@ -214,7 +209,7 @@ public class GetItemEstimateHandlerTest {
 			throws DaoException, ConversionException, FilterTypeChangedException {
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		expectUserCollectionsNeverChange(collectionDao, fakeTestUsers, syncEmailCollectionsIds);
+		expectUserCollectionsNeverChange(collectionDao, users.jaures, syncEmailCollectionsIds);
 		mockCollectionDaoForEmailSync(collectionDao, syncKey, syncEmailCollectionsIds);
 		
 		ItemTrackingDao itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);

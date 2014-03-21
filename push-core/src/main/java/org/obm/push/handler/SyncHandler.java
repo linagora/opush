@@ -157,7 +157,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			SyncRequest syncRequest = syncProtocol.decodeRequest(doc);
 			AnalysedSyncRequest analyzedSyncRequest = analyzeRequest(udr, syncRequest);
 			
-			continuationService.cancel(udr.getDevice());
+			continuationService.cancel(udr.getUser(), udr.getDevice());
 			SyncClientCommands clientCommands = processClientCommands(udr, analyzedSyncRequest.getSync());
 			if (analyzedSyncRequest.getSync().getWaitInSecond() > 0) {
 				registerWaitingSync(continuation, udr, analyzedSyncRequest.getSync());

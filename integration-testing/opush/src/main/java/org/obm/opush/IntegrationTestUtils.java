@@ -120,7 +120,7 @@ public class IntegrationTestUtils {
 	}
 	
 	public static void expectUserCollectionsNeverChange(CollectionDao collectionDao,
-			Collection<OpushUser> users, Collection<Integer> unchangedCollectionsIds)
+			OpushUser user, Collection<Integer> unchangedCollectionsIds)
 			throws DaoException, CollectionNotFoundException {
 		
 		Date lastSync = new Date();
@@ -134,13 +134,11 @@ public class IntegrationTestUtils {
 		expect(collectionDao.getCalendarChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
 
 		int otherCollectionId = anyInt();
-		for (OpushUser opushUser: users) {
-			for (Integer unchangedCollectionId : unchangedCollectionsIds) {
-				String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(opushUser);  
-				expect(collectionDao.getCollectionPath(unchangedCollectionId)).andReturn(collectionPath).anyTimes();
-			}
-			expect(collectionDao.getCollectionPath(otherCollectionId)).andThrow(new CollectionNotFoundException()).anyTimes();
+		for (Integer unchangedCollectionId : unchangedCollectionsIds) {
+			String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);  
+			expect(collectionDao.getCollectionPath(unchangedCollectionId)).andReturn(collectionPath).anyTimes();
 		}
+		expect(collectionDao.getCollectionPath(otherCollectionId)).andThrow(new CollectionNotFoundException()).anyTimes();
 	}
 
 	public static void expectAllocateFolderState(CollectionDao collectionDao, FolderSyncState folderSyncState) throws DaoException {

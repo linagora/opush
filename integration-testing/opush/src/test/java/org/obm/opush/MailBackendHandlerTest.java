@@ -87,7 +87,6 @@ import org.obm.sync.push.client.OPClient;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
@@ -218,7 +217,7 @@ public class MailBackendHandlerTest {
 		expect(collectionDao.getCollectionMapping(eq(user.device), anyObject(String.class)))
 			.andReturn(serverId).anyTimes();
 		
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, Sets.newHashSet(users.jaures), ImmutableList.of(serverId));
+		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, ImmutableList.of(serverId));
 	}
 
 	private void mockItemTrackingDao() throws Exception {
