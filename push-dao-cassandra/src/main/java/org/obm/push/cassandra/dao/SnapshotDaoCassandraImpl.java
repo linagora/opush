@@ -61,6 +61,7 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -68,9 +69,10 @@ import com.google.inject.name.Named;
 @Watch(BreakdownGroups.CASSANDRA)
 public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements SnapshotDao, CassandraStructure, CassandraDao {
 
-	@Inject  
-	@VisibleForTesting SnapshotDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
-		super(session, jsonService, logger);
+	@Inject
+	@VisibleForTesting SnapshotDaoCassandraImpl(Provider<Session> sessionProvider, 
+			JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
+		super(sessionProvider, jsonService, logger);
 	}
 
 	@Override
@@ -120,7 +122,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 				.and(eq(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey())));
 		logger.debug("Select snapshot index query: {}", statement.getQueryString());
 
-		ResultSet snapshotIndexResultSet = session.execute(statement);
+		ResultSet snapshotIndexResultSet = getSession().execute(statement);
 		if (snapshotIndexResultSet.isExhausted()) {
 			return null;
 		}
@@ -131,7 +133,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 		Where statement = select(SNAPSHOT).from(SnapshotTable.TABLE.get())
 				.where(eq(ID, snapshotId));
 		logger.debug("Select snapshot query: {}", statement.getQueryString());
-		return session.execute(statement);
+		return getSession().execute(statement);
 	}
 
 	private UUID insertSnapshot(Snapshot snapshot) {
@@ -140,7 +142,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 				.value(ID, snapshotId)
 				.value(SNAPSHOT, jsonService.serialize(snapshot));
 		logger.debug("Inserting {}", statement.getQueryString());
-		session.execute(statement);
+		getSession().execute(statement);
 		return snapshotId;
 	}
 
@@ -151,6 +153,6 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 			.value(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey()))
 			.value(SNAPSHOT_ID, snapshotId);
 		logger.debug("Inserting {}", statement.getQueryString());
-		session.execute(statement);
+		getSession().execute(statement);
 	}
 }

@@ -33,9 +33,6 @@ package org.obm.opush.startup;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-
-import java.io.IOException;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -49,25 +46,24 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
-import org.obm.opush.env.NoCassandraOpushModule;
-import org.obm.push.OpushContainerModule.OpushHttpCapability;
+import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.env.CassandraServer;
+import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
-import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.OptionsResponse;
 
-import com.google.inject.ConfigurationException;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 @RunWith(GuiceRunner.class)
-@GuiceModule(NoCassandraOpushModule.class)
+@GuiceModule(DefaultOpushModule.class)
 public class ServletContextTest {
 
+	@Inject OpushServer opushServer;
+	@Inject CassandraServer cassandraServer;
 	@Inject	Users users;
+	@Inject IMocksControl control;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject Injector injector;
-	@Inject IMocksControl mocksControl;
 	
 	private CloseableHttpClient httpClient;
 	private OpushUser user;
@@ -76,41 +72,31 @@ public class ServletContextTest {
 	public void setUp() {
 		httpClient = HttpClientBuilder.create().build();
 		user = users.jaures;
+		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
 	}
 	
 	@After
-	public void tearDown() throws IOException {
+	public void tearDown() throws Exception {
 		httpClient.close();
-		LifecycleListenerHelper.shutdownListeners(injector);
-	}
-	
-	@Test(expected=ConfigurationException.class)
-	public void noOpushServerByDefault() {
-		assertThat(injector.getInstance(OpushHttpCapability.class)).isNotNull();
-		injector.getInstance(OpushServer.class);
-	}
-	
-	@Test
-	public void isOpushServerManagedByExtendedInjector() {
-		OpushHttpCapability httpCapability = injector.getInstance(OpushHttpCapability.class);
-		assertThat(httpCapability.enableByExtendingInjector().getInstance(OpushServer.class)).isNotNull();
+		cassandraServer.stop();
+		opushServer.stop();
 	}
 
 	@Test
-	public void hasServletContextAfterEnablingIt() throws Exception {
-		expect(policyConfigurationProvider.get()).andReturn("");
-		mocksControl.replay();
-		OpushHttpCapability httpCapability = injector.getInstance(OpushHttpCapability.class);
-		OpushServer opushServer = httpCapability.enableByExtendingInjector().getInstance(OpushServer.class);
+	public void opushHttpServerIsUp() throws Exception {
+		cassandraServer.start();
+		control.replay();
 		opushServer.start();
-
-		try {
-			OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
-			OptionsResponse options = opClient.options();
-			assertThat(options.getStatusLine().getStatusCode()).isEqualTo(200);
-		} finally {
-			opushServer.stop();
-			mocksControl.verify();
-		}
+		OPClient opClient = IntegrationTestUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OptionsResponse options = opClient.options();
+		assertThat(options.getStatusLine().getStatusCode()).isEqualTo(200);
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void opushNoCassandraSchemaIsUp() throws Exception {
+		cassandraServer.startWithoutSchema();
+		control.replay();
+		opushServer.start();
+		opushServer.getHttpPort();
 	}
 }

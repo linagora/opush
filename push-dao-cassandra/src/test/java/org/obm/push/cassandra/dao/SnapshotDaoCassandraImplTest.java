@@ -48,7 +48,8 @@ public class SnapshotDaoCassandraImplTest extends SnapshotDaoTest {
 	
 	@Before
 	public void init() {
-		snapshotDao = new SnapshotDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		snapshotDao = new SnapshotDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
 	}
 	
 }

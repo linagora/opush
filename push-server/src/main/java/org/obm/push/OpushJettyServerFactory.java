@@ -57,33 +57,32 @@ import org.slf4j.Logger;
 import ch.qos.logback.access.jetty.RequestLogImpl;
 
 import com.google.common.base.Objects;
-import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.servlet.GuiceFilter;
 
-public class OpushJettyModule extends AbstractModule {
+public class OpushJettyServerFactory {
 
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(1);
 	private static final int POOL_THREAD_SIZE = Objects.firstNonNull( 
 			VMArgumentsUtils.integerArgumentValue("threadPoolSize"), 200);
 
-	private final int port;
+	private final Injector injector;
+	private final OpushConfiguration configuration;
+	private final Logger logger;
 
-	public OpushJettyModule(int port) {
-		this.port = port;
-	}
-	
-	@Override
-	protected void configure() {}
-	
-	@Provides @Singleton
-	protected OpushServer buildServer(Injector injector, 
+	@Inject
+	protected OpushJettyServerFactory(Injector injector, 
 			OpushConfiguration configuration,
 			@Named(LoggerModule.CONTAINER) Logger logger) {
-		
+		this.injector = injector;
+		this.configuration = configuration;
+		this.logger = logger;
+	}
+	
+	
+	public OpushServer buildServer(int port) {
 		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
@@ -111,7 +110,7 @@ public class OpushJettyModule extends AbstractModule {
 			}
 
 			@Override
-			public int getPort() {
+			public int getHttpPort() {
 				if (jetty.isRunning()) {
 					return httpConnector.getLocalPort();
 				}

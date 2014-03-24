@@ -67,8 +67,9 @@ public class CassandraSchemaDaoTest {
 	public void init() {
 		control = createControl();
 		dateProvider = control.createMock(DateProvider.class);
-		schemaDao = new CassandraSchemaDao(cassandraCQLUnit.session, new PublicJSONService(), logger, 
-				new PublicCassandraService(cassandraCQLUnit.session), dateProvider);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
+				new PublicCassandraService(sessionProvider), dateProvider);
 	}
 	
 	@Test(expected=NoVersionException.class)

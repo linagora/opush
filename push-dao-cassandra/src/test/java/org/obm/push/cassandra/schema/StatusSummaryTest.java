@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,53 +29,34 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env;
+package org.obm.push.cassandra.schema;
 
-import org.easymock.IMocksControl;
-import org.obm.guice.AbstractOverrideModule;
-import org.obm.opush.CassandraSessionSupplierImpl;
-import org.obm.push.cassandra.CassandraSessionSupplier;
-import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
-import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
-import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
-import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.datastax.driver.core.Session;
-import com.google.inject.Provides;
+import org.junit.Test;
+import org.obm.push.cassandra.schema.StatusSummary.Status;
 
-public class MockedCassandraModule extends AbstractOverrideModule {
 
-	private final CassandraServer cassandraServer;
+public class StatusSummaryTest {
 
-	public MockedCassandraModule(IMocksControl mocksControl) {
-		super(mocksControl);
-		cassandraServer = new CassandraServer() {
-
-			@Override
-			public Session getClientSession() {
-				return null;
-			}
-
-			@Override
-			public void start() throws Exception {
-			}
-
-			@Override
-			public void stop() {
-			}};
+	@Test
+	public void allowsStartupWhenNotInitialized() {
+		assertThat(Status.NOT_INITIALIZED.allowsStartup()).isFalse();
 	}
 	
-	@Provides
-	public CassandraServer getCassandraServer() {
-		return cassandraServer;
+	@Test
+	public void allowsStartupWhenUpgradeRequired() {
+		assertThat(Status.UPGRADE_REQUIRED.allowsStartup()).isFalse();
 	}
-
-	@Override
-	protected void configureImpl() {
-		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
-		bindWithMock(SyncedCollectionDaoCassandraImpl.class);
-		bindWithMock(WindowingDaoCassandraImpl.class);
-		bindWithMock(SnapshotDaoCassandraImpl.class);
-		bindWithMock(MonitoredCollectionDaoCassandraImpl.class);
+	
+	@Test
+	public void allowsStartupWhenUpgradeAvailable() {
+		assertThat(Status.UPGRADE_AVAILABLE.allowsStartup()).isTrue();
 	}
+	
+	@Test
+	public void allowsStartupWhenUpToDate() {
+		assertThat(Status.UP_TO_DATE.allowsStartup()).isTrue();
+	}
+	
 }

@@ -1,6 +1,11 @@
+package org.obm.push.cassandra;
+import org.cassandraunit.dataset.CQLDataSet;
+
+import com.google.common.collect.ImmutableList;
+
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,19 +34,31 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env;
 
-import org.obm.guice.AbstractOverrideModule;
+public class EmptyKeyspaceDataset implements CQLDataSet {
 
+	private String keyspace;
 
-public class NoCassandraOpushModule extends AbstractOpushEnv {
-	
-	public NoCassandraOpushModule() {
-		super();
+	public EmptyKeyspaceDataset(String keyspace) {
+		this.keyspace = keyspace;
+	}
+
+	public java.util.List<String> getCQLStatements() {
+		return ImmutableList.of();
 	}
 	
 	@Override
-	protected AbstractOverrideModule cassandra() {
-		return new MockedCassandraModule(getMocksControl());
+	public String getKeyspaceName() {
+		return keyspace;
+	}
+	
+	@Override
+	public boolean isKeyspaceCreation() {
+		return true;
+	}
+	
+	@Override
+	public boolean isKeyspaceDeletion() {
+		return true;
 	}
 }

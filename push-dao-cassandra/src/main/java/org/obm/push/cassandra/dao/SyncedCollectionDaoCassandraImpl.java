@@ -56,6 +56,7 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -64,8 +65,9 @@ import com.google.inject.name.Named;
 public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao implements SyncedCollectionDao, CassandraStructure, CassandraDao {
 
 	@Inject  
-	@VisibleForTesting SyncedCollectionDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
-		super(session, jsonService, logger);
+	@VisibleForTesting SyncedCollectionDaoCassandraImpl(Provider<Session> sessionProvider, 
+			JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
+		super(sessionProvider, jsonService, logger);
 	}
 
 	@Override
@@ -76,7 +78,7 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 				.value(COLLECTION_ID, collection.getCollectionId())
 				.value(ANALYSED_SYNC_COLLECTION, jsonService.serialize(collection));
 		logger.debug("Inserting {}", query.getQueryString());
-		session.execute(query);
+		getSession().execute(query);
 	}
 	
 	@Override
@@ -86,7 +88,7 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 				.and(eq(DEVICE, jsonService.serialize(device)))
 				.and(eq(COLLECTION_ID, collectionId));
 		logger.debug("Getting {}", query.getQueryString());
-		ResultSet resultSet = session.execute(query);
+		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {
 			logger.debug("No result found, returning null");
 			return null;

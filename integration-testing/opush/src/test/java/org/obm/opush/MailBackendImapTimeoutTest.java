@@ -56,8 +56,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users.OpushUser;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
@@ -100,7 +100,7 @@ import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendImapTimeoutTestModule.class)
 public class MailBackendImapTimeoutTest {
 
@@ -207,7 +207,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.syncEmail(syncDecoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
@@ -261,7 +261,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(syncKey);
 		
@@ -291,7 +291,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		GetItemEstimateSingleFolderResponse itemEstimateResponse = opClient.getItemEstimateOnMailFolder(syncKey, inboxCollectionId);
 		
@@ -308,7 +308,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		ItemOperationResponse itemOperationResponse = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
 		
@@ -325,7 +325,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		MeetingHandlerResponse meetingHandlerResponse = opClient.meetingResponse(inboxCollectionIdAsString, inboxCollectionId + emailId1);
 		
@@ -349,7 +349,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		MoveItemsResponse moveItemsResponse = opClient.moveItems(
 				new Move(inboxCollectionId + emailId1, inboxCollectionId, trashCollectionId));
@@ -383,7 +383,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		PingResponse pingResponse = opClient.ping(pingProtocol, inboxCollectionIdAsString, heartbeat);
 		

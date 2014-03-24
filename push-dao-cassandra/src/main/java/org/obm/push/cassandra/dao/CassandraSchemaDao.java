@@ -64,6 +64,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -78,11 +79,11 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 	private final DateProvider dateProvider;
 
 	@Inject
-	@VisibleForTesting CassandraSchemaDao(Session session, JSONService jsonService, 
+	@VisibleForTesting public CassandraSchemaDao(Provider<Session> sessionProvider, JSONService jsonService, 
 			@Named(LoggerModule.CASSANDRA)Logger logger,
 			CassandraService cassandraService,
 			DateProvider dateProvider) {
-		super(session, jsonService, logger);
+		super(sessionProvider, jsonService, logger);
 		this.cassandraService = cassandraService;
 		this.dateProvider = dateProvider;
 	}
@@ -132,7 +133,7 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 
 	private ResultSet executeWithQuorum(Statement statement) {
 		statement.setConsistencyLevel(ConsistencyLevel.QUORUM);
-		return session.execute(statement);
+		return getSession().execute(statement);
 	}
 	
 	private VersionUpdate rowToSchemaUpdate(Row schemaUpdateRow) {

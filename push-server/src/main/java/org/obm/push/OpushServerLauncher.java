@@ -36,7 +36,6 @@ import java.nio.file.Paths;
 import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.configuration.VMArgumentsUtils;
-import org.obm.push.OpushContainerModule.OpushHttpCapability;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationLoader;
 
@@ -60,21 +59,21 @@ public class OpushServerLauncher {
 				OpushConfigurationLoader.loadFromFiles(
 					Paths.get(OPUSH_CONFIGURATION_PATH), 
 					Paths.get(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH));
-		Injector baseInjector = Guice.createInjector(new OpushContainerModule(SERVER_PORT), new OpushModule(configuration));
-		Injector fullInjector = baseInjector.getInstance(OpushHttpCapability.class).enableByExtendingInjector();
 		
-		OpushServer opushServer = new OpushServerLauncher().start(fullInjector);
-		opushServer.join();
+		
+		Injector injector = Guice.createInjector(new ServerFactoryModule(SERVER_PORT), new OpushModule(configuration));
+		OpushServer opushServer = injector.getInstance(OpushServer.class);
+		
+		start(opushServer).join();
 	}
 
-	public OpushServer start(Injector injector) throws Exception {
-		OpushServer server = injector.getInstance(OpushServer.class);
+	public static OpushServer start(OpushServer server) throws Exception {
 		registerSigTermHandler(server);
 		server.start();
 		return server;
 	}
 
-	private void registerSigTermHandler(final OpushServer server) {
+	private static void registerSigTermHandler(final OpushServer server) {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 
 			@Override

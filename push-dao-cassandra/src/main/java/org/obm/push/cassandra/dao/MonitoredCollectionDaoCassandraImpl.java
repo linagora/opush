@@ -58,6 +58,7 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -66,8 +67,9 @@ import com.google.inject.name.Named;
 public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao implements MonitoredCollectionDao, CassandraStructure, CassandraDao {
 
 	@Inject  
-	@VisibleForTesting MonitoredCollectionDaoCassandraImpl(Session session, JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
-		super(session, jsonService, logger);
+	@VisibleForTesting MonitoredCollectionDaoCassandraImpl(Provider<Session> sessionProvider, 
+			JSONService jsonService, @Named(LoggerModule.CASSANDRA)Logger logger) {
+		super(sessionProvider, jsonService, logger);
 	}
 
 	@Override
@@ -76,7 +78,7 @@ public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao im
 				.where(eq(CREDENTIALS, jsonService.serialize(credentials)))
 				.and(eq(DEVICE, jsonService.serialize(device)));
 		logger.debug("Getting {}", query.getQueryString());
-		ResultSet resultSet = session.execute(query);
+		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {
 			logger.debug("No result found, returning empty set");
 			return ImmutableSet.<AnalysedSyncCollection> of();
@@ -93,6 +95,6 @@ public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao im
 				.value(DEVICE, jsonService.serialize(device))
 				.value(ANALYSED_SYNC_COLLECTIONS, jsonService.serializeSet(collections));
 		logger.debug("Inserting {}", query.getQueryString());
-		session.execute(query);
+		getSession().execute(query);
 	}
 }

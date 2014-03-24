@@ -48,6 +48,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Before
 	public void init() {
-		syncedCollectionDao = new SyncedCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		syncedCollectionDao = new SyncedCollectionDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
 	}
 }

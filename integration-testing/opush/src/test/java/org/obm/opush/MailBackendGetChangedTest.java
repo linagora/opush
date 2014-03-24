@@ -65,8 +65,8 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users.OpushUser;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
@@ -99,7 +99,7 @@ import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendTestModule.class)
 public class MailBackendGetChangedTest {
 
@@ -210,7 +210,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -284,7 +284,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -354,7 +354,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -421,7 +421,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		mailboxService.setDeletedFlag(user.userDataRequest, inboxCollectionPath, MessageSet.singleton(1l));
 		for (Resource resource : user.userDataRequest.getResources().values()) {
@@ -495,7 +495,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -567,7 +567,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -627,7 +627,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -688,7 +688,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -762,7 +762,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
@@ -827,7 +827,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
@@ -903,7 +903,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
@@ -981,7 +981,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendNEmailsToImapServer(numberOfEmails);
 		
 		SyncResponse initialSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, windowSize);
@@ -1052,7 +1052,7 @@ public class MailBackendGetChangedTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);

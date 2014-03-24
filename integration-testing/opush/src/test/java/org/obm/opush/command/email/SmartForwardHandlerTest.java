@@ -53,12 +53,12 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.ServerId;
@@ -67,7 +67,6 @@ import org.obm.push.service.EventService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.client.user.UserClient;
-import org.obm.sync.date.DateProvider;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.common.collect.Lists;
@@ -77,7 +76,7 @@ import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendTestModule.class)
 public class SmartForwardHandlerTest {
 
@@ -88,7 +87,6 @@ public class SmartForwardHandlerTest {
 	@Inject Configuration configuration;
 	@Inject GreenMail greenMail;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject DateProvider dateProvider;
 	@Inject CassandraServer cassandraServer;
 	
 	private OpushUser user;
@@ -360,6 +358,6 @@ public class SmartForwardHandlerTest {
 	}
 	
 	private OPClient opClient() {
-		return buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		return buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 	}
 }

@@ -51,6 +51,7 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
@@ -58,7 +59,6 @@ import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
@@ -77,7 +77,7 @@ import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendTestModule.class)
 public class ItemOperationHandlerTest {
 
@@ -145,7 +145,7 @@ public class ItemOperationHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
 		mocksControl.verify();
 
@@ -172,7 +172,7 @@ public class ItemOperationHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(
 				inboxCollectionId, MSEmailBodyType.HTML, inboxCollectionId + emailId1);
 		mocksControl.verify();
@@ -201,7 +201,7 @@ public class ItemOperationHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(
 				inboxCollectionId, MSEmailBodyType.MIME, inboxCollectionId + emailId1);
 		mocksControl.verify();
@@ -236,7 +236,7 @@ public class ItemOperationHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data", "email 2 body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId2);
 		mocksControl.verify();
@@ -266,7 +266,7 @@ public class ItemOperationHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data", "email 2 body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId,
 				inboxCollectionId + emailId1,

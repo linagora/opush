@@ -58,8 +58,9 @@ public class CassandraSchemaDaoNoTableTest {
 	@Before
 	public void init() {
 		DateProvider dateProvider = createMock(DateProvider.class);
-		schemaDao = new CassandraSchemaDao(cassandraCQLUnit.session, new PublicJSONService(), logger, 
-				new PublicCassandraService(cassandraCQLUnit.session), dateProvider);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
+				new PublicCassandraService(sessionProvider), dateProvider);
 	}
 
 	@Test(expected=NoTableException.class)

@@ -57,11 +57,11 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.icalendar.ICalendar;
 import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.ChangedCollections;
@@ -106,7 +106,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class MeetingResponseHandlerTest {
 
@@ -296,7 +296,7 @@ public class MeetingResponseHandlerTest {
 	private Document postMeetingAcceptedResponse()
 			throws TransformerException, WBXmlException, IOException, HttpRequestException, SAXException  {
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = buildMeetingAcceptedResponse();
 
 		Document serverResponse = opClient.postXml("MeetingResponse", document, "MeetingResponse");

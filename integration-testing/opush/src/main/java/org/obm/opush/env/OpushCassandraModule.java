@@ -31,25 +31,48 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.env;
 
+import java.util.Date;
+
 import org.easymock.IMocksControl;
+import org.obm.DateUtils;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.CassandraSessionSupplierImpl;
+import org.obm.push.cassandra.CassandraService;
 import org.obm.push.cassandra.CassandraSessionSupplier;
+import org.obm.push.cassandra.dao.CassandraSchemaDao;
+import org.obm.push.configuration.LoggerModule;
+import org.obm.push.json.JSONService;
+import org.obm.sync.date.DateProvider;
+import org.slf4j.Logger;
 
+import com.datastax.driver.core.Session;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 public class OpushCassandraModule extends AbstractOverrideModule {
 
-	private final CassandraServerImpl cassandraServer;
-
 	public OpushCassandraModule(IMocksControl mocksControl) {
 		super(mocksControl);
-		cassandraServer = new CassandraServerImpl();
 	}
 	
-	@Provides
-	public CassandraServer getCassandraServer() {
-		return cassandraServer;
+	@Provides @Singleton
+	public CassandraSchemaDao buildSchemaDao(Provider<Session> sessionProvider, JSONService jsonService, 
+			@Named(LoggerModule.CASSANDRA)Logger logger,
+			CassandraService cassandraService) {
+		return new CassandraSchemaDao(sessionProvider, jsonService, logger, cassandraService, new DateProvider() {
+			
+			@Override
+			public Date getDate() {
+				return DateUtils.date("2004-12-14T22:00:00");
+			}
+		});
+	}
+	
+	@Provides @Singleton
+	public CassandraServer getCassandraServer(CassandraServerImpl cassandraServerImpl) {
+		return cassandraServerImpl;
 	}
 
 	@Override

@@ -57,6 +57,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -68,21 +69,21 @@ public class CassandraSchemaService {
 
 	private final CassandraSchemaDao schemaDao;
 	private final SchemaProducer schemaProducer;
-	private final Session session;
+	private final Provider<Session> sessionProvider;
 	private final Version minimalVersionUpdate;
 	private final Version latestVersionUpdate;
 
 	@Inject
-	@VisibleForTesting CassandraSchemaService(
+	public CassandraSchemaService(
 			CassandraSchemaDao schemaDao,
 			SchemaProducer schemaProducer,
-			Session session,
+			Provider<Session> session,
 			@Named(MINIMAL_SCHEMA_VERSION_NAME) Version minimalVersionUpdate,
 			@Named(LATEST_SCHEMA_VERSION_NAME) Version latestVersionUpdate) {
 		
 		this.schemaDao = schemaDao;
 		this.schemaProducer = schemaProducer;
-		this.session = session;
+		this.sessionProvider = session;
 		this.minimalVersionUpdate = minimalVersionUpdate;
 		this.latestVersionUpdate = latestVersionUpdate;
 	}
@@ -122,6 +123,7 @@ public class CassandraSchemaService {
 	}
 
 	private void executeCQL(String cql) {
+		Session session = this.sessionProvider.get();
 		LOGGER.debug("Execute Cassandra CQL: {}", cql);
 		for (String subQuery : subQueries(cql)) {
 			session.execute(subQuery);

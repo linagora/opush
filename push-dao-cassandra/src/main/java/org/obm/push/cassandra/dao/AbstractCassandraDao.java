@@ -36,21 +36,27 @@ import org.slf4j.Logger;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
+import com.google.inject.Provider;
 
 public abstract class AbstractCassandraDao {
 
 	protected static final int COUNT_SELECT_ONLY_INDEX = 0;
 	
-	protected final Session session;
 	protected final JSONService jsonService;
 	protected final Logger logger;
 
-	protected AbstractCassandraDao(Session session, JSONService jsonService, Logger logger) {
-		this.session = session;
+	private final Provider<Session> sessionProvider;
+
+	protected AbstractCassandraDao(Provider<Session> sessionProvider, JSONService jsonService, Logger logger) {
+		this.sessionProvider = sessionProvider;
 		this.jsonService = jsonService;
 		this.logger = logger;
 	}
 
+	public Session getSession() {
+		return sessionProvider.get();
+	}
+	
 	protected long getCountSelectOnlyValue(ResultSet resultSet) {
 		return resultSet.one().getLong(COUNT_SELECT_ONLY_INDEX);
 	}

@@ -37,5 +37,7 @@ public interface CassandraServer {
 	
 	void start() throws Exception ;
 	
+	public void startWithoutSchema() throws Exception;
+	
 	void stop();
 }

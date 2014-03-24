@@ -59,8 +59,8 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users.OpushUser;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
@@ -95,7 +95,7 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendHandlerTestModule.class)
 public class MailBackendHandlerTest {
 
@@ -175,7 +175,7 @@ public class MailBackendHandlerTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", smtpServerSetup);
 		greenMail.waitForIncomingEmail(2);
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.deleteEmail(decoder, syncEmailSyncKey, serverId, serverId + syncEmailId);
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);

@@ -66,7 +66,8 @@ public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 	
 	@Before
 	public void init() {
-		testee = new WindowingDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		testee = new WindowingDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
 		testeeImpl = (WindowingDaoCassandraImpl)testee;
 		mocks = createControl();
 	}

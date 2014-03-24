@@ -56,8 +56,8 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
@@ -77,7 +77,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(FolderSyncHandlerTestModule.class)
 public class FolderSyncHandlerTest {
 	
@@ -130,7 +130,7 @@ public class FolderSyncHandlerTest {
 		mocksControl.replay();
 		
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(initialSyncKey);
 		
 		mocksControl.verify();
@@ -162,7 +162,7 @@ public class FolderSyncHandlerTest {
 		
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();
@@ -209,7 +209,7 @@ public class FolderSyncHandlerTest {
 		
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();
@@ -247,7 +247,7 @@ public class FolderSyncHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();

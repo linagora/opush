@@ -75,6 +75,7 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -87,9 +88,9 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	private static final int STARTING_WINDOWING_INDEX = 0;
 	
 	@Inject  
-	@VisibleForTesting WindowingDaoCassandraImpl(Session session, JSONService jsonService,
+	@VisibleForTesting WindowingDaoCassandraImpl(Provider<Session> sessionProvider, JSONService jsonService,
 			@Named(LoggerModule.CASSANDRA)Logger logger) {
-		super(session, jsonService, logger);
+		super(sessionProvider, jsonService, logger);
 	}
 
 	@Override
@@ -132,7 +133,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 			.and(eq(COLLECTION_ID, key.getCollectionId()))
 			.and(eq(SYNC_KEY, UUID.fromString(key.getSyncKey().getSyncKey())));
 		logger.debug("Select windowing index query: {}", statement.getQueryString());
-		return session.execute(statement);
+		return getSession().execute(statement);
 	}
 
 	private <T extends WindowingItem> WindowingChangesBuilder<T> popChanges(
@@ -170,7 +171,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 				.and(gte(CHANGE_INDEX, windowingIndex))
 				.limit(maxSize);
 		logger.debug("Select changes query: {}", statement.getQueryString());
-		return session.execute(statement);
+		return getSession().execute(statement);
 	}
 
 	private <T extends WindowingItem> int 
@@ -233,7 +234,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 			.value(WINDOWING_KIND, windowingKind.asXmlValue())
 			.value(WINDOWING_INDEX, newWindowingIndex);
 		logger.debug("Inserting {}", statement.getQueryString());
-		session.execute(statement);
+		getSession().execute(statement);
 	}
 
 	private UUID insertWindowingChanges(WindowingChanges<?> changes) {
@@ -250,7 +251,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		for (WindowingItem item : changes.deletions()) {
 			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.DELETE);
 		}
-		session.execute(batch);
+		getSession().execute(batch);
 		return windowingUUID;
 	}
 
@@ -282,7 +283,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 				.from(Windowing.TABLE.get())
 				.where(eq(ID, windowingId))
 				.and(gte(CHANGE_INDEX, windowingIndex));
-		ResultSet resultSet = session.execute(statement);
+		ResultSet resultSet = getSession().execute(statement);
 		if (resultSet.isExhausted()) {
 			return NO_PENDING_CHANGES;
 		}

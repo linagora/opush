@@ -48,14 +48,14 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class HealthCheckTest {
 
@@ -83,7 +83,7 @@ public class HealthCheckTest {
 		mocksControl.replay();
 		opushServer.start();
 		HttpResponse response = 
-				Request.Get("http://localhost:" + opushServer.getPort() + "/opush/healthcheck/java/version")
+				Request.Get("http://localhost:" + opushServer.getHttpPort() + "/opush/healthcheck/java/version")
 						.execute()
 						.returnResponse();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);

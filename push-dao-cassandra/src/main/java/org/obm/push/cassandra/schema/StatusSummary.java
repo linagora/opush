@@ -37,10 +37,20 @@ import com.google.common.base.Preconditions;
 public class StatusSummary {
 
 	public static enum Status {
-		NOT_INITIALIZED,
-		UPGRADE_REQUIRED,
-		UPGRADE_AVAILABLE,
-		UP_TO_DATE
+		NOT_INITIALIZED(false),
+		UPGRADE_REQUIRED(false),
+		UPGRADE_AVAILABLE(true),
+		UP_TO_DATE(true);
+
+		private final boolean allowsStartup;
+
+		private Status(boolean allowsStartup) {
+			this.allowsStartup = allowsStartup;
+		}
+		
+		public boolean allowsStartup() {
+			return allowsStartup;
+		}
 	}
 	
 	public static Builder status(Status status) {

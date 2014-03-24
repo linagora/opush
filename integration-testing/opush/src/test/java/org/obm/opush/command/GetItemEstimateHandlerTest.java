@@ -58,9 +58,9 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.command.sync.EmailSyncTestUtils;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
@@ -86,7 +86,7 @@ import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(GetIemEstimateTestModule.class)
 public class GetItemEstimateHandlerTest {
 
@@ -123,7 +123,7 @@ public class GetItemEstimateHandlerTest {
 		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, collectionId);
@@ -141,7 +141,7 @@ public class GetItemEstimateHandlerTest {
 		Set<Integer> existingCollections = Collections.<Integer>emptySet();
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, unexistingCollectionId);
@@ -159,7 +159,7 @@ public class GetItemEstimateHandlerTest {
 		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, invalidSyncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(invalidSyncKey, collectionId);
@@ -195,7 +195,7 @@ public class GetItemEstimateHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, collectionId);

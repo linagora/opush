@@ -47,10 +47,10 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
@@ -70,7 +70,7 @@ import org.obm.sync.client.login.LoginClient;
 
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioMockTest {
 
@@ -103,7 +103,7 @@ public class FolderSyncScenarioMockTest {
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
-				buildServiceUrl(opushServer.getPort()),
+				buildServiceUrl(opushServer.getHttpPort()),
 				Credentials.builder()
 					.loginAtDomain(users.jaures.user.getLoginAtDomain())
 					.password(users.jaures.password)
@@ -161,7 +161,7 @@ public class FolderSyncScenarioMockTest {
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
-				buildServiceUrl(opushServer.getPort()),
+				buildServiceUrl(opushServer.getHttpPort()),
 				Credentials.builder()
 					.loginAtDomain(user.getLoginAtDomain())
 					.password(users.jaures.password)
@@ -179,7 +179,7 @@ public class FolderSyncScenarioMockTest {
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
-				buildServiceUrl(opushServer.getPort() +1),
+				buildServiceUrl(opushServer.getHttpPort() +1),
 				Credentials.builder()
 					.loginAtDomain(users.jaures.user.getLoginAtDomain())
 					.password(users.jaures.password)
@@ -197,7 +197,7 @@ public class FolderSyncScenarioMockTest {
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
-				buildServiceUrl("123.456.0.1", opushServer.getPort()),
+				buildServiceUrl("123.456.0.1", opushServer.getHttpPort()),
 				Credentials.builder()
 					.loginAtDomain(users.jaures.user.getLoginAtDomain())
 					.password(users.jaures.password)
@@ -215,7 +215,7 @@ public class FolderSyncScenarioMockTest {
 		opushServer.start();
 
 		CheckResult checkResult = folderSyncScenario.run(
-				buildServiceUrl("/VeryBad/", "127.0.0.1", opushServer.getPort()),
+				buildServiceUrl("/VeryBad/", "127.0.0.1", opushServer.getHttpPort()),
 				Credentials.builder()
 					.loginAtDomain(users.jaures.user.getLoginAtDomain())
 					.password(users.jaures.password)

@@ -53,12 +53,12 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ServerId;
 import org.obm.push.store.CollectionDao;
@@ -74,7 +74,7 @@ import com.icegreen.greenmail.store.SimpleStoredMessage;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(MailBackendTestModule.class)
 public class SmartReplyHandlerTest {
 
@@ -222,6 +222,6 @@ public class SmartReplyHandlerTest {
 	}
 
 	private OPClient opClient() {
-		return buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		return buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 	}
 }

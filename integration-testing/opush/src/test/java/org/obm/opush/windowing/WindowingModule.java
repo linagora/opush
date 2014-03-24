@@ -37,10 +37,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.obm.StaticConfigurationService;
 import org.obm.configuration.TransactionConfiguration;
-import org.obm.opush.env.OpushCassandraModule;
 import org.obm.opush.env.OpushConfigurationFixture;
 import org.obm.opush.env.OpushStaticConfiguration;
 import org.obm.push.cassandra.CassandraSessionProvider;
+import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
@@ -53,6 +53,7 @@ import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import com.google.inject.util.Modules;
 
 public class WindowingModule extends AbstractModule {
 
@@ -65,7 +66,8 @@ public class WindowingModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		OpushConfigurationFixture configuration = configuration();
-		install(new OpushCassandraModule(createControl()));
+		install(Modules.override(new OpushCassandraModule())
+				.with(new org.obm.opush.env.OpushCassandraModule(createControl())));
 		bind(Session.class).toProvider(CassandraSessionProvider.class);
 		bind(OpushConfiguration.class).toInstance(new OpushStaticConfiguration(configuration));
 		bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));

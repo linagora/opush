@@ -29,50 +29,21 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.opush.env;
+package org.obm.push.cassandra.dao;
 
-import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
-import org.obm.guice.GuiceModule;
-import org.obm.guice.GuiceRunner;
-import org.obm.guice.GuiceRunnerDelegation;
-import org.obm.push.OpushContainerModule.OpushHttpCapability;
+import com.datastax.driver.core.Session;
+import com.google.inject.Provider;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
+public class SessionProvider implements Provider<Session> {
 
-public class OpushGuiceRunner extends GuiceRunner {
+	private Session session;
 
-	public OpushGuiceRunner(Class<?> klass) throws InitializationError {
-		super(klass, new OpushGuiceRunnerDelegation());
+	public SessionProvider(Session session) {
+		this.session = session;
 	}
 
-	public static class OpushGuiceRunnerDelegation extends GuiceRunnerDelegation {
-
-		@Override
-		protected GuiceStatement buildGuiceStatement(Statement base, Object target, GuiceModule moduleAnnotation) {
-			return new OpushGuiceStatement(moduleAnnotation.value(), target, base);
-		}
-
-		public static class OpushGuiceStatement extends GuiceStatement { 
-			
-			public OpushGuiceStatement(Class<? extends Module> module, Object target, Statement next) {
-				super(module, target, next);
-			}
-
-			@Override
-			public void evaluate() throws Throwable {
-				Injector baseInjector = Guice.createInjector(instantiateModule());
-				Injector httpInjector = baseInjector.getInstance(OpushHttpCapability.class).enableByExtendingInjector();
-				httpInjector.injectMembers(target);
-				next.evaluate();
-			}
-
-			protected Module instantiateModule() throws InstantiationException, IllegalAccessException {
-				return module.newInstance();
-			}
-		}
-
+	@Override
+	public Session get() {
+		return session;
 	}
 }

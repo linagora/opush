@@ -40,23 +40,24 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
 public class CassandraService {
 
-	private final Session session;
+	private final Provider<Session> sessionProvider;
 
 	@Inject
-	protected CassandraService(Session session) {
-		this.session = session;
+	protected CassandraService(Provider<Session> sessionProvider) {
+		this.sessionProvider = sessionProvider;
 	}
 	
 	public void errorIfNoTable(String tableName) {
 		Where query = select("columnfamily_name").from("System", "schema_columnfamilies")
 			.where(eq("keyspace_name", "opush"))
 			.and(eq("columnfamily_name", tableName));
-		ResultSet resultSet = session.execute(query);
+		ResultSet resultSet = sessionProvider.get().execute(query);
 		if (resultSet.isExhausted()) {
 			throw new NoTableException(tableName);
 		}

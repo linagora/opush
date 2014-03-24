@@ -55,8 +55,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.spushnik.SpushnikModule;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
@@ -68,7 +68,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioTest {
 
@@ -166,6 +166,6 @@ public class FolderSyncScenarioTest {
 	}
 
 	private String buildRequestUrl(String baseURL) {
-		return baseURL + "foldersync?serviceUrl=" + SpushnikTestUtils.buildServiceUrl(opushServer.getPort());
+		return baseURL + "foldersync?serviceUrl=" + SpushnikTestUtils.buildServiceUrl(opushServer.getHttpPort());
 	}
 }

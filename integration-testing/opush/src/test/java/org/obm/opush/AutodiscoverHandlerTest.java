@@ -51,9 +51,9 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -69,7 +69,7 @@ import org.xml.sax.SAXException;
 
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class AutodiscoverHandlerTest {
 
@@ -105,7 +105,7 @@ public class AutodiscoverHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = IntegrationTestUtils.buildOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = IntegrationTestUtils.buildOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		String emailAddress = users.jaures.user.getEmail();
 		Document document = opClient.postXml("Autodiscover", buildAutodiscoverCommand(emailAddress), "Autodiscover", null, false);

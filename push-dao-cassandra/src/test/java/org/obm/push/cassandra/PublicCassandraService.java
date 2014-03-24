@@ -32,10 +32,11 @@
 package org.obm.push.cassandra;
 
 import com.datastax.driver.core.Session;
+import com.google.inject.Provider;
 
 public class PublicCassandraService extends CassandraService {
 
-	public PublicCassandraService(Session session) {
+	public PublicCassandraService(Provider<Session> session) {
 		super(session);
 	}
 }

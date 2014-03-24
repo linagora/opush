@@ -57,12 +57,14 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Provider;
 
 public class CassandraSchemaServiceTest {
 
 	private IMocksControl mocks;
 	private CassandraSchemaDao schemaDao;
 	private SchemaProducer schemaProducer;
+	private Provider<Session> sessionProvider;
 	private Session session;
 
 	@Before
@@ -70,7 +72,9 @@ public class CassandraSchemaServiceTest {
 		mocks = createControl();
 		schemaDao = mocks.createMock(CassandraSchemaDao.class);
 		schemaProducer = mocks.createMock(SchemaProducer.class);
+		sessionProvider = mocks.createMock(Provider.class);
 		session = mocks.createMock(Session.class);
+		expect(sessionProvider.get()).andReturn(session).anyTimes();
 	}
 	
 	@Test
@@ -80,7 +84,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andThrow(new NoTableException("tableName"));
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(
@@ -94,7 +98,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andThrow(new NoVersionException());
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(
@@ -109,7 +113,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(daoCurrentVersion);
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(
@@ -124,7 +128,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(daoCurrentVersion);
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(
@@ -139,7 +143,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(daoCurrentVersion);
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(
@@ -154,7 +158,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(daoCurrentVersion);
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(StatusSummary.status(Status.UPGRADE_REQUIRED)
@@ -171,7 +175,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(daoCurrentVersion);
 		
 		mocks.replay();
-		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, session, minimalVersion, latestVersion).getStatus();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
 		mocks.verify();
 		
 		assertThat(result).isEqualTo(StatusSummary.status(Status.UPGRADE_AVAILABLE)
@@ -190,7 +194,7 @@ public class CassandraSchemaServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).install();
+		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 		
 		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
@@ -205,7 +209,7 @@ public class CassandraSchemaServiceTest {
 		
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).install();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		} catch (SchemaOperationException e) {
 			mocks.verify();
 			throw e;
@@ -221,7 +225,7 @@ public class CassandraSchemaServiceTest {
 		
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).install();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		} catch (SchemaOperationException e) {
 			mocks.verify();
 			throw e;
@@ -234,7 +238,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaProducer.schema(version)).andReturn(null);
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).install();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		} catch (SchemaOperationException e) {
 			mocks.verify();
 			throw e;
@@ -245,7 +249,7 @@ public class CassandraSchemaServiceTest {
 	public void testSubQueriesEmptySchema() {
 		String schema = "";
 		mocks.replay();
-		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, session, null, null).subQueries(schema);
+		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, null).subQueries(schema);
 		assertThat(subQueries).isEmpty();
 	}
 	
@@ -255,7 +259,7 @@ public class CassandraSchemaServiceTest {
 		String schema = subQuery + ";\n";
 				
 		mocks.replay();
-		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, session, null, null).subQueries(schema);
+		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, null).subQueries(schema);
 		assertThat(subQueries).containsOnly(subQuery);
 	}
 	
@@ -268,7 +272,7 @@ public class CassandraSchemaServiceTest {
 		String schema = subQuery + separator + subQuery2 + separator + subQuery3 + separator;
 				
 		mocks.replay();
-		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, session, null, null).subQueries(schema);
+		Iterable<String> subQueries = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, null).subQueries(schema);
 		assertThat(subQueries).containsOnly(subQuery, subQuery2, subQuery3);
 	}
 	
@@ -286,7 +290,7 @@ public class CassandraSchemaServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		mocks.verify();
 		
 		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
@@ -300,7 +304,7 @@ public class CassandraSchemaServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, session, null, version).update();
+		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).update();
 		mocks.verify();
 		
 		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
@@ -316,7 +320,7 @@ public class CassandraSchemaServiceTest {
 		
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		} catch (BadVersionException e) {
 			mocks.verify();
 			throw e;
@@ -336,7 +340,7 @@ public class CassandraSchemaServiceTest {
 		
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		} catch (SchemaOperationException e) {
 			mocks.verify();
 			throw e;
@@ -356,7 +360,7 @@ public class CassandraSchemaServiceTest {
 		
 		try {
 			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, session, null, toVersion).update();
+			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		} catch (SchemaOperationException e) {
 			mocks.verify();
 			throw e;

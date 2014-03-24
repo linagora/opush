@@ -45,9 +45,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.OptionsResponse;
@@ -56,7 +56,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class OptionsHandlerTest {
 
@@ -86,7 +86,7 @@ public class OptionsHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		OptionsResponse options = opClient.options();
 		
 		assertThat(Iterables.tryFind(options.getHeaders(), new Predicate<Header>() {

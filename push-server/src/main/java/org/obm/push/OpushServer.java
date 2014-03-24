@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+
 public interface OpushServer {
 	
 	void start() throws Exception;
@@ -39,6 +40,6 @@ public interface OpushServer {
 
 	void join() throws Exception;
 	
-	int getPort();
+	int getHttpPort();
 	
 }

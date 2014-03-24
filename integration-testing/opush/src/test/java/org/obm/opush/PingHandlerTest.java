@@ -73,8 +73,8 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.DefaultOpushModule;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
@@ -107,7 +107,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class PingHandlerTest {
 
@@ -165,7 +165,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Ping>" +
@@ -202,7 +202,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		ThreadPoolExecutor threadPoolExecutor = 
 				new ThreadPoolExecutor(20, 20, 1,TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
@@ -229,7 +229,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		
@@ -249,7 +249,7 @@ public class PingHandlerTest {
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkExecutionTime(5, 6, stopwatch);
@@ -265,7 +265,7 @@ public class PingHandlerTest {
 
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkFolderSyncRequiredResponse(response);
@@ -280,7 +280,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		Future<PingResponse> response1 = opClient.pingASync(async, pingProtocol, collectionId, heartbeat);
 		PingResponse pingResponse1 = response1.get(heartbeat * 2,  TimeUnit.SECONDS);
@@ -299,8 +299,8 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClientJaures = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
-		OPClient opClientBlum = buildWBXMLOpushClient(users.blum, opushServer.getPort(), httpClient);
+		OPClient opClientJaures = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClientBlum = buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
 		
 		queriesLock.expectedQueriesBeforeUnlock(1);
 		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, Integer.valueOf(users.jaures.hashCode()).toString(), 1000);
@@ -342,7 +342,7 @@ public class PingHandlerTest {
 		Document document = buildPingCommand(heartbeatInterval, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkExecutionTime(delta, expected, stopwatch);

@@ -48,6 +48,7 @@ public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollection
 	
 	@Before
 	public void init() {
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(cassandraCQLUnit.session, new PublicJSONService(), logger);
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
 	}
 }

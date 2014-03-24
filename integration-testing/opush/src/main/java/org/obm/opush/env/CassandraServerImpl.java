@@ -30,17 +30,21 @@
 package org.obm.opush.env;
 
 import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.obm.push.cassandra.EmptyKeyspaceDataset;
+import org.obm.push.cassandra.schema.CassandraSchemaService;
 
 import com.datastax.driver.core.Session;
+import com.google.inject.Inject;
 
 public class CassandraServerImpl extends CassandraCQLUnit implements CassandraServer {
 
 	private static final String KEYSPACE = "opush";
-	private static final String FULL_CQL = "full.cql";
+	private CassandraSchemaService cassandraSchemaService;
 
-	public CassandraServerImpl() {
-		super(new ClassPathCQLDataSet(FULL_CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Inject
+	private CassandraServerImpl(CassandraSchemaService cassandraSchemaService) {
+		super(new EmptyKeyspaceDataset(KEYSPACE), "cassandra.yaml", "localhost", 9042);
+		this.cassandraSchemaService = cassandraSchemaService;
 	}
 	
 	@Override
@@ -51,7 +55,13 @@ public class CassandraServerImpl extends CassandraCQLUnit implements CassandraSe
 	@Override 
 	public void start() throws Exception {
 		super.before();
+		cassandraSchemaService.install();
 	}
+
+	public void startWithoutSchema() throws Exception {
+		super.before();
+	}
+
 	
 	@Override 
 	public void stop() {

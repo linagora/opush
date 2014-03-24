@@ -73,13 +73,13 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.annotations.transactional.TransactionProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
-import org.obm.opush.env.OpushGuiceRunner;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
@@ -146,7 +146,7 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 
 @GuiceModule(SyncHandlerWithBackendTestModule.class)
-@RunWith(OpushGuiceRunner.class)
+@RunWith(GuiceRunner.class)
 public class SyncHandlerWithBackendTest {
 
 	private final static int ONE_WINDOWS_SIZE = 1;
@@ -323,7 +323,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -501,7 +501,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, calendarCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -655,7 +655,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.syncEmail(decoder, initialSyncKey, contactCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, contactCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		
@@ -770,7 +770,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
@@ -839,7 +839,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -887,7 +887,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -930,7 +930,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -981,7 +981,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -1023,7 +1023,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -1062,7 +1062,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
@@ -1139,7 +1139,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient)
+		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.sync(decoder, firstAllocatedSyncKey,
 					new Folder(calendarCollectionIdAsString),
 					new Folder(contactCollectionIdAsString));
@@ -1202,7 +1202,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient)
+		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.sync(decoder, firstAllocatedSyncKey,
 					new Folder(calendarCollectionIdAsString),
 					new Folder(inboxCollectionIdAsString));
@@ -1309,7 +1309,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getPort(), httpClient);
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, calendarCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
