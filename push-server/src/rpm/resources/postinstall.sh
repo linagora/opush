@@ -7,11 +7,7 @@ fi
 
 # When upgrading old OPush, give valide rights to OPush folders
 rights() {
-	local GROUP=`stat -c "%G" $1`
-	local USER=`stat -c "%U" $1`
-	if [ "$GROUP" != 'opush' ] || [ "$USER" != 'opush' ]; then
-	        chown -R opush:opush $1
-	fi
+	chown -R opush:opush $1
 }
 
 rights "/etc/opush"

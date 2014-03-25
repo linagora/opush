@@ -193,6 +193,10 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 							<requires>
 								<require>java-1.7.0-openjdk</require>
 							</requires>
+							<conflicts>
+								<conflict>obm-jetty</conflict>
+								<conflict>jetty6</conflict>
+							</conflicts>
 
 							<mappings>
 								
