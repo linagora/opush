@@ -1,8 +1,4 @@
 package org.obm.push.cassandra;
-import org.cassandraunit.dataset.CQLDataSet;
-
-import com.google.common.collect.ImmutableList;
-
 /* ***** BEGIN LICENSE BLOCK *****
  * 
  * Copyright (C) 2014 Linagora
@@ -34,6 +30,10 @@ import com.google.common.collect.ImmutableList;
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
+
+import org.cassandraunit.dataset.CQLDataSet;
+
+import com.google.common.collect.ImmutableList;
 
 public class EmptyKeyspaceDataset implements CQLDataSet {
 
