@@ -35,25 +35,25 @@ import java.util.TimeZone;
 
 import org.obm.push.cassandra.schema.CassandraSchemaService;
 import org.obm.push.cassandra.schema.StatusSummary;
+import org.obm.push.cassandra.schema.StatusSummary.Status;
+import org.obm.push.configuration.LoggerModule;
 import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Names;
 
 public class ServerFactoryModule extends AbstractModule {
 
-	private static Logger logger = LoggerFactory.getLogger(ServerFactoryModule.class);
-	
 	static {
 		XTrustProvider.install();
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -79,40 +79,40 @@ public class ServerFactoryModule extends AbstractModule {
 		return new LateInjectionServer(injector, port);
 	}
 	
-	private static final class CassandraSchemaAllowStartup implements Predicate<Injector> {
-		@Override
-		public boolean apply(Injector input) {
-			StatusSummary statusSummary = input.getInstance(CassandraSchemaService.class).getStatus();
-			return statusSummary.getStatus().allowsStartup();
-		}
-	}
-	
 	public static class LateInjectionServer implements OpushServer {
 
 		private final Injector injector;
 		private final int port;
+		private final Supplier<OpushServer> realServerSupplier;
 
 		public LateInjectionServer(Injector injector, int port) {
 			this.injector = injector;
 			this.port = port;
+			this.realServerSupplier = Suppliers.memoize(new Supplier<OpushServer>() {
+				
+				@Override
+				public OpushServer get() {
+					return createServer();
+				}
+			});
 		}
 		
-		private Supplier<OpushServer> realServerSupplier = 
-				Suppliers.memoize(new Supplier<OpushServer>() {
-					@Override
-					public OpushServer get() {
-						return createServer(injector, new CassandraSchemaAllowStartup());
-					}
-				});
-		
-		@VisibleForTesting OpushServer createServer(Injector baseInjector, Predicate<Injector> predicate) {
-			if (predicate.apply(baseInjector)) {
-				OpushJettyServerFactory factory = baseInjector.getInstance(OpushJettyServerFactory.class);
-				return factory.buildServer(port);
+		@VisibleForTesting OpushServer createServer() {
+			StatusSummary statusSummary = injector.getInstance(CassandraSchemaService.class).getStatus();
+			Logger logger = injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)));
+			if (statusSummary.getStatus().allowsStartup()) {
+				return createJettyServer(statusSummary, logger);
 			} else {
-				logger.warn("Cassandra schema not installed or too old, starting administration services only");
-				return baseInjector.getInstance(NoopServer.class);
+				logger.error("Cassandra schema not installed or too old, starting administration services only");
+				return injector.getInstance(NoopServer.class);
 			}
+		}
+
+		private OpushServer createJettyServer(StatusSummary statusSummary, Logger logger) {
+			if (!statusSummary.getStatus().equals(Status.UP_TO_DATE)) {
+				logger.warn("Cassandra schema not up-to-date, the update is advised");
+			}
+			return injector.getInstance(OpushJettyServerFactory.class).buildServer(port);
 		}
 		
 		private OpushServer getRealServer() {

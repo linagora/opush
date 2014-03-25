@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -53,7 +54,7 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 
 	@Inject
 	@VisibleForTesting CassandraSessionSupplierImpl(final CassandraConfiguration cassandraConfiguration,
-			@Named(LoggerModule.CONFIGURATION)Logger configurationLogger) {
+			@Named(LoggerModule.CONFIGURATION) final Logger configurationLogger) {
 
 		configurationLogger.info("CASSANDRA SEEDS are {}", cassandraConfiguration.seeds());
 		configurationLogger.info("CASSANDRA USER is {}", cassandraConfiguration.user());
@@ -62,12 +63,17 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 
 			@Override
 			public Session get() {
-				hasBeenSupplied = true;
-				return Cluster.builder()
-						.addContactPoints(Iterables.toArray(cassandraConfiguration.seeds(), String.class))
-						.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
-						.build()
-						.connect(cassandraConfiguration.keyspace());
+				try {
+					hasBeenSupplied = true;
+					return Cluster.builder()
+							.addContactPoints(Iterables.toArray(cassandraConfiguration.seeds(), String.class))
+							.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
+							.build()
+							.connect(cassandraConfiguration.keyspace());
+				} catch (NoHostAvailableException e) {
+					configurationLogger.error("Cannot establish Cassandra connection", e);
+					throw e;
+				}
 			}
 		});
 	}

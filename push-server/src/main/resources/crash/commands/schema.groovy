@@ -21,22 +21,22 @@ class schema extends CRaSHCommand {
          break
          
       case Status.UPGRADE_AVAILABLE:
-         out << "WARN: Upgrade advised\n"
-         out << "The current schema is not up to date but this opush instance IS compatible\n"
+         out << "WARN: Update advised\n"
+         out << "This opush server IS compatible with the current schema but an update is available \n"
          out << "Current: ${inline(statusSummary.getCurrentVersion())}\n"
          out << "Latest : ${statusSummary.getUpgradeAvailable().get()}"
          break
          
       case Status.UPGRADE_REQUIRED:
-         out << "WARN: Upgrade required\n" 
-         out << "The current schema is not up to date and this opush instance IS NOT compatible\n"
+         out << "WARN: Update required\n"
+         out << "This opush server IS NOT compatible with the current schema, please update it \n" 
          out << "Current: ${inline(statusSummary.getCurrentVersion())}\n"
          out << "Latest : ${statusSummary.getUpgradeAvailable().get()}"
          break
          
       case Status.NOT_INITIALIZED:
-         out << "No schema found, you can install it using the install command\n"
-         out << "Latest schema version available is ${statusSummary.getUpgradeAvailable().get()}"
+         out << "No schema found, you can create it using the \"install\" command\n"
+         out << "The latest schema version available is ${statusSummary.getUpgradeAvailable().get()}"
          break
          
       default:
@@ -59,12 +59,12 @@ class schema extends CRaSHCommand {
     if (statusSummary.getStatus() == Status.NOT_INITIALIZED) {
       try {    
         schemaService.install();
-        out << "Your schema has been installed"
+        out << "Your schema has been installed, please restart opush to get the service up"
       } catch (SchemaOperationException e) {
-        out << "An error occurred when installing the schema"
+        out << "An error occurred when installing the schema: ${e.getMessage()}"
       }
     } else {
-      out << "The schema is already installed, use the status command to find if upgrades are available"
+      out << "The schema is already installed, use the \"status\" command to find if an update is available"
     }
   }
 
@@ -77,17 +77,15 @@ class schema extends CRaSHCommand {
     switch (statusSummary.getStatus()) {
     
       case Status.UP_TO_DATE:
-         out << "Nothing to do, your schema is already at the last version"
+         out << "Nothing to do, your schema is already at the latest version"
          break
          
       case Status.UPGRADE_AVAILABLE:
+         updateThenMessage(schemaService, "Your schema has been updated")
+         break
+         
       case Status.UPGRADE_REQUIRED:
-         try {
-           schemaService.update();
-           out << "Your schema has been updated"
-         } catch (SchemaOperationException e) {
-           out << "An error occurred when updating the schema"
-         }
+         updateThenMessage(schemaService, "Your schema has been updated, please restart opush to get the service up")
          break
          
       case Status.NOT_INITIALIZED:
@@ -97,5 +95,14 @@ class schema extends CRaSHCommand {
       default:
          out << "ERROR: Sorry, the command returned an unexpected response: ${statusSummary.toString()}"
     }
+  }
+  
+  def updateThenMessage(def schemaService, def message) {
+     try {
+       schemaService.update();
+       out << message
+     } catch (SchemaOperationException e) {
+       out << "An error occurred when updating the schema: ${e.getMessage()}"
+     }
   }
 }

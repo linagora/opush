@@ -80,7 +80,7 @@ public class OpushCassandraModule extends AbstractModule {
 	
 	@Override
 	protected void configure() {
-		bind(Version.class).annotatedWith(Names.named(MINIMAL_SCHEMA_VERSION_NAME)).toInstance(MINIMAL_SCHEMA_VERSION);
+		bind(Version.class).annotatedWith(Names.named(MINIMAL_SCHEMA_VERSION_NAME)).toInstance(minimalSchemaVersion());
 		bind(Version.class).annotatedWith(Names.named(LATEST_SCHEMA_VERSION_NAME)).toInstance(latestSchemaVersion());
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
@@ -111,10 +111,18 @@ public class OpushCassandraModule extends AbstractModule {
 	}
 	
 	@VisibleForTesting Version latestSchemaVersion() {
-		Integer latestSchemaArgument = VMArgumentsUtils.integerArgumentValue(LATEST_SCHEMA_VERSION_NAME);
-		if (latestSchemaArgument != null) {
-			return Version.of(latestSchemaArgument);
+		return versionArgumentOrDefault(LATEST_SCHEMA_VERSION_NAME, LATEST_SCHEMA_VERSION);
+	}
+	
+	@VisibleForTesting Version minimalSchemaVersion() {
+		return versionArgumentOrDefault(MINIMAL_SCHEMA_VERSION_NAME, MINIMAL_SCHEMA_VERSION);
+	}
+
+	private Version versionArgumentOrDefault(String argName, Version defaultVersion) {
+		Integer versionArgument = VMArgumentsUtils.integerArgumentValue(argName);
+		if (versionArgument != null) {
+			return Version.of(versionArgument);
 		}
-		return LATEST_SCHEMA_VERSION;
+		return defaultVersion;
 	}
 }

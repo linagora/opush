@@ -37,6 +37,20 @@ import org.junit.Test;
 import org.obm.push.cassandra.schema.Version;
 
 public class OpushCassandraModuleTest {
+	
+	@Test
+	public void testMinimalSchemaVersionFromConstant() {
+		System.setProperty(OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME, "");
+		Version version = new OpushCassandraModule().minimalSchemaVersion();
+		assertThat(version).isEqualTo(OpushCassandraModule.MINIMAL_SCHEMA_VERSION);
+	}
+	
+	@Test
+	public void testMinimalSchemaVersionFromVMArguments() {
+		System.setProperty(OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME, "2014");
+		Version version = new OpushCassandraModule().minimalSchemaVersion();
+		assertThat(version).isEqualTo(Version.of(2014));
+	}
 
 	@Test
 	public void testLatestSchemaVersionFromConstant() {
