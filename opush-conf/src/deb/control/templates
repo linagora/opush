@@ -45,6 +45,13 @@ Type: note
 Description: Passwords do not match.
  The passwords you supplied do not match.  Please try again.
 
+Template: obm-conf/ldapserver
+Type: string
+Description: Host IP address for LDAP server:
+ .
+ You have to set here the host IP address for the LDAP server
+ for contact auto-complete research.
+
 Template: obm-conf/externalurl
 Type: string
 default: extranet.mycompany.com

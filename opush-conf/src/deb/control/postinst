@@ -26,7 +26,6 @@ sed -i -e "s|@EXTERNALURL@|$RET|g" ${NEWFILE}
 ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
 ucfr opush-conf "${CONFIG}"
 
-
 #DEBHELPER#
 
 exit 0

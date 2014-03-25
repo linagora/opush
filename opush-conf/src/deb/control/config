@@ -6,6 +6,7 @@ db_input high obm-conf/dbhost || true
 db_input high obm-conf/dbtype || true
 db_input high obm-conf/dbname || true
 db_input high obm-conf/dbuser || true
+db_input high obm-conf/ldapserver || true
 db_input high obm-conf/externalurl || true
 db_go || true
 

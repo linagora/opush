@@ -21,14 +21,12 @@ sed -i -e "s/\(allow.unknown.pda\).*/\1=${perms}/" ${NEWFILE}
 ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
 ucfr opush "${CONFIG}"
 
-
 NEWFILE=${TEMPDIR}/ldap_conf.ini
 CONFIG=/etc/opush/ldap_conf.ini
 TEMPLATE=/usr/share/o-push/debian-conf/ldap_conf.ini
 cp "${TEMPLATE}" "${NEWFILE}"
-db_get obm-conf/ldapserver || true
-ldapserver="$RET"
-sed -i -e "s%\(search.ldap.url\).*%\1=${ldapserver}%" ${NEWFILE}
+db_get obm-conf/ldapserver
+sed -i -e "s|@LDAPSERVER@|$RET|g" ${NEWFILE}
 ucf --three-way --debconf-ok "$NEWFILE" "$CONFIG"
 ucfr opush "${CONFIG}"
 
