@@ -31,8 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
-
 
 import org.obm.configuration.DatabaseConfiguration;
 import org.obm.configuration.DatabaseConfigurationImpl;
@@ -43,8 +44,8 @@ import org.obm.configuration.LocatorConfigurationImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.net.InetAddresses;
 
 public class OpushConfigurationLoader {
 
@@ -53,7 +54,7 @@ public class OpushConfigurationLoader {
 	private static final String APPLICATION_NAME = "opush";
 	
 	private static GlobalAppConfiguration<OpushConfiguration> buildConfiguration(Path configurationFile) 
-			throws javax.naming.ConfigurationException {
+			throws javax.naming.ConfigurationException, UnknownHostException {
 		
 		OpushConfigurationImpl mainConfiguration = 
 				new OpushConfigurationImpl.Factory().create(configurationFile.toString(), APPLICATION_NAME);
@@ -68,27 +69,29 @@ public class OpushConfigurationLoader {
 	}
 
 	private static void checkMandatoryParameters(Path file,
-			GlobalAppConfiguration<OpushConfiguration> configuration) throws javax.naming.ConfigurationException {
+			GlobalAppConfiguration<OpushConfiguration> configuration) throws javax.naming.ConfigurationException, UnknownHostException {
 		checkMandatoryDatabaseConfiguration(file, configuration.getDatabaseConfiguration());
 		checkMandatoryLocatorConfiguration(file, configuration.getLocatorConfiguration());
 		checkMandatoryMainConfiguration(file, configuration.getConfiguration());
 	}
 
-	private static void checkMandatoryDatabaseConfiguration(Path file, DatabaseConfiguration databaseConfiguration) {
-		checkConfigurationEntry(file, "host",
-				databaseConfiguration.getDatabaseHost() != null && InetAddresses.isInetAddress(databaseConfiguration.getDatabaseHost()));
+	private static void checkMandatoryDatabaseConfiguration(Path file, DatabaseConfiguration databaseConfiguration) throws UnknownHostException {
+		checkHostAddress(file, databaseConfiguration.getDatabaseHost());
 		checkConfigurationEntry(file, "dbtype",
 				databaseConfiguration.getDatabaseSystem() != null);
 		checkConfigurationEntry(file, "user", databaseConfiguration.getDatabaseLogin() != null);
 		checkConfigurationEntry(file, "password", databaseConfiguration.getDatabasePassword() != null);
 	}
-	
 
 	private static void checkMandatoryLocatorConfiguration(Path file, 
-			LocatorConfiguration locatorConfiguration) throws javax.naming.ConfigurationException {
-		checkConfigurationEntry(file, "host",locatorConfiguration.getLocatorUrl() != null);
+			LocatorConfiguration locatorConfiguration) throws javax.naming.ConfigurationException, UnknownHostException {
+		checkHostAddress(file, locatorConfiguration.getLocatorUrl());
 	}
 	
+	@VisibleForTesting static void  checkHostAddress(Path file, String host) throws UnknownHostException {
+		checkConfigurationEntry(file, "host",
+				host != null && InetAddress.getByName(host) != null);
+	}
 
 	private static void checkMandatoryMainConfiguration(Path file, OpushConfiguration configuration) {
 		try {
