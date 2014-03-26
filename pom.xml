@@ -584,6 +584,11 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.asciidoctor</groupId>
+					<artifactId>asciidoctor-maven-plugin</artifactId>
+					<version>0.1.4</version>
+				</plugin>
+				<plugin>
 					<artifactId>jdeb</artifactId>
 					<groupId>org.vafer</groupId>
 					<version>1.1-b61a5285e5</version>
