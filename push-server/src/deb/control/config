@@ -6,5 +6,43 @@ db_input high opush/syncperms || true
 db_input high opush/cassandra-seeds || true
 db_input high opush/cassandra-keyspace || true
 db_input high opush/cassandra-user || true
-db_input high opush/cassandra-pwd || true
-db_go
+db_go || true
+
+check_not_empty() {
+  DB_RET=$1
+  KEY=$2
+  while [ -z $DB_RET ] ; do
+    db_input high opush/cassandra-pwd-empty || true
+    db_input high $KEY || true
+    db_go || true
+    db_get $KEY || true
+    DB_RET="$RET"
+  done
+}
+
+while [ ! ${have_app_pass} ] ; do
+
+    #get password
+    RET=""
+    db_input high opush/cassandra-pwd || true
+    db_go || true
+    db_get opush/cassandra-pwd || true
+    DB_RET="${RET}"
+    check_not_empty "${DB_RET}" "opush/cassandra-pwd"
+    pass1=$DB_RET
+    
+    #get password confirm
+    RET=""
+    db_input high opush/cassandra-pwd-verify || true
+    db_go || true
+    db_get opush/cassandra-pwd-verify || true
+    pass2="${RET}"
+    
+    #test if password match
+    if [ "${pass1}" = "${pass2}" ]; then
+        have_app_pass="yes"
+    else
+        db_input high opush/cassandra-pwd-do-not-match || true
+        db_go || true
+    fi
+done

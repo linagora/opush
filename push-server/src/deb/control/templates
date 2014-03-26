@@ -23,3 +23,18 @@ Template: opush/cassandra-pwd
 Type: password
 Description: Opush Cassandra user password
 
+Template: opush/cassandra-pwd-verify
+Type: password
+Description: Opush Cassandra user password verification
+ .
+ Enter the password again for verification.
+
+Template: opush/cassandra-pwd-empty
+Type: note
+Description: Password required.
+ The password you supplied is empty.  Please set one.
+
+Template: opush/cassandra-pwd-do-not-match
+Type: note
+Description: Passwords do not match.
+ The passwords you supplied do not match.  Please try again.
