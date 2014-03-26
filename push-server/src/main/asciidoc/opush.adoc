@@ -1,5 +1,9 @@
 = Opush administration guide
 Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com>; Thomas Hilaire <thilaire@linagora.com>
+:imagesdir: images
+:numbered:
+:sectlink:
+:sectids:
 
 include::debian-installation.adoc[]
 

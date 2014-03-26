@@ -1,1 +1,112 @@
-== How to use CRaSH shell
+== How to use the *CRaSH* console
+
+http://www.crashub.org/[*CRaSH*] is a console to administer or monitor an application running on the JVM.
+
+Starting with Opush 2.5.0, Opush integrates *CRaSH* to provide several administration and debug commands. It is enabled by default and is reachable using an SSH client on port +5665+.
+
+=== Granting Rights to the Admin Profile
+
+As Opush may manage multiple domains, +admin+ user's profile should have all rights on +domains+.
+
+To give all +domains+ rights to a profile, authenticate with the OBM web interface as an admin for the global domain (like +admin0+), click on +Administration+, +User profiles+ then update the +admin+ profile.
+There is a +Specific Settings+ section where you can give all rights on the +domains+ line.
+
+=== Authentication
+
+By default, authentication is done using the +global.virt+ domain. You can change this in the configuration file (see <<_configuration>>).
+
+When dealing with a single domain instance, +global.virt+ may not exist.   
+In this particular case, you have to configure the domain used for authentication (see <<_configuration>>).
+
+In order to connect to *CRaSH*, use the following command to initiate an SSH connection:
+
+	ssh user@your_server -p port
+
+where
+
+  * +user+ is an admin user of the corresponding domain
+  * +your_server+ is the IP of the Opush server
+  * +port+ is the port of *CRaSH* (default: +5665+)
+
+
+=== Configuration
+
+Initially, the configuration file +/etc/opush/remote_console.ini+ looks like this (default values):
+
+[source]
+./etc/opush/remote_console.ini
+----
+include::sources/remote_console.ini[]
+----
+
+where
+
+  * +console.enable+ may be switched to +false+ in order to disable *CRaSH*
+  * +console.ssh.port+ is the port used to connect to *CRaSH*
+  * +console.authentication.domain+ is the domain used for authentication
+
+
+=== Examples
+
+Here is a sample *CRaSH* session
+
+.*CRaSH* welcome
+image::crash_welcome.png[*CRaSH* welcome]
+
+The list of *CRaSH* commands may be displayed by the +help+ command, a help is also provided for each command with the +-h+ switch.
+For more details see the official documentation at http://www.crashub.org/
+
+.Example of the dashboard command
+image::crash_dashboard.png["CRaSH dashboard"]
+
+=== Commands
+
+The main goals of this tool are:
+
+ * monitor the Opush server (+dashboard+)
+ * display the current configuration (+system+, +jvm+)
+ * handle Cassandra schema installation and update (+cassandra+)
+
+==== Cassandra
+
+===== +schema status+
+
+This command shows status information about the schema. 
+It will give a warning if you have not installed the Cassandra schema and
+inform about optional and mandatory updates.
+
+.+status+ output when no schema is installed
+	% schema status
+	WARN: Install required
+	No schema found, you can create it using the "install" command
+	The latest schema version available is 1
+
+.+status+ output when schema is up-to-date
+	% schema status 
+	OK
+	Your schema is already at the latest version: 1 updated the Wed Mar 26 16:25:53 GMT 2014
+
+.+status+ output when an update is available
+	% schema status
+	WARN: Update advised
+	This opush server IS compatible with the current schema but an update is available
+	Current: 1 updated the Wed Mar 26 16:25:53 GMT 2014
+	Latest : 2
+
+
+===== +schema install+
+
+This command installs a Cassandra schema on a new Cassandra server. It is intended to be run only after the first Opush installation. You won't be able to use Opush until this schema is installed
+
+.+install+ output
+	% schema install 
+	Schema version 1 has been installed, please restart opush to get the service up
+
+===== +schema update+
+
+This command will update the Cassandra schema to the latest version available.
+
+.+update+ output
+	% schema update
+	Your schema has been updated from version 1 to 2
+
