@@ -83,9 +83,9 @@ public class OpushConfigurationLoader {
 		checkConfigurationEntry(file, "password", databaseConfiguration.getDatabasePassword() != null);
 	}
 
-	private static void checkMandatoryLocatorConfiguration(Path file, 
-			LocatorConfiguration locatorConfiguration) throws javax.naming.ConfigurationException, UnknownHostException {
-		checkHostAddress(file, locatorConfiguration.getLocatorUrl());
+	@VisibleForTesting static void checkMandatoryLocatorConfiguration(Path file, 
+			LocatorConfiguration locatorConfiguration) throws javax.naming.ConfigurationException {
+		checkConfigurationEntry(file, "host", locatorConfiguration.getLocatorUrl() != null);
 	}
 	
 	@VisibleForTesting static void  checkHostAddress(Path file, String host) throws UnknownHostException {

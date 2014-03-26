@@ -32,6 +32,7 @@
 package org.obm.push.configuration;
 
 import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.expect;
 
 import java.net.UnknownHostException;
 import java.nio.file.Path;
@@ -39,6 +40,7 @@ import java.nio.file.Path;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.configuration.LocatorConfiguration;
 
 
 public class OpushConfigurationLoaderTest {
@@ -75,5 +77,16 @@ public class OpushConfigurationLoaderTest {
 			mocks.verify();
 			throw e;
 		}
+	}
+	
+	@Test
+	public void testCheckMandatoryLocatorConfiguration() throws Exception {
+		LocatorConfiguration locatorConfiguration = mocks.createMock(LocatorConfiguration.class);
+		expect(locatorConfiguration.getLocatorUrl())
+			.andReturn("http://127.0.0.1:8084/obm-locator/");
+		
+		mocks.replay();
+		OpushConfigurationLoader.checkMandatoryLocatorConfiguration(file, locatorConfiguration);
+		mocks.verify();
 	}
 }
