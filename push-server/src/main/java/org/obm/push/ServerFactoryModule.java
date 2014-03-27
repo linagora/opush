@@ -110,7 +110,7 @@ public class ServerFactoryModule extends AbstractModule {
 
 		private OpushServer createJettyServer(StatusSummary statusSummary, Logger logger) {
 			if (!statusSummary.getStatus().equals(Status.UP_TO_DATE)) {
-				logger.warn("Cassandra schema not up-to-date, the update is advised");
+				logger.warn("Cassandra schema not up-to-date, update is advised");
 			}
 			return injector.getInstance(OpushJettyServerFactory.class).buildServer(port);
 		}
