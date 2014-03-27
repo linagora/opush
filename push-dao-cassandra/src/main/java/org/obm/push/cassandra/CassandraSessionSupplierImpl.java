@@ -71,7 +71,7 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 							.build()
 							.connect(cassandraConfiguration.keyspace());
 				} catch (NoHostAvailableException e) {
-					configurationLogger.error("Cannot establish Cassandra connection", e);
+					configurationLogger.error("Cannot establish Cassandra connection: {}", e.getMessage());
 					throw e;
 				}
 			}

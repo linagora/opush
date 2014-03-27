@@ -40,17 +40,14 @@ import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
 
 import java.net.InetAddress;
-import java.util.Date;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.SchemaProducer;
-import org.obm.push.cassandra.exception.BadVersionException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.exception.SchemaOperationException;
 import org.obm.push.cassandra.schema.StatusSummary.Status;
 
 import com.datastax.driver.core.Session;
@@ -151,6 +148,21 @@ public class CassandraSchemaServiceTest {
 	}
 	
 	@Test
+	public void giveRequestErrorWhenNoHostAvailable() {
+		Version minimalVersion = Version.of(1);
+		Version latestVersion = Version.of(3);
+		expect(schemaDao.getCurrentVersion()).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		
+		mocks.replay();
+		StatusSummary result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minimalVersion, latestVersion).getStatus();
+		mocks.verify();
+		
+		assertThat(result).isEqualTo(StatusSummary
+				.status(Status.EXECUTION_ERROR)
+				.message("All host(s) tried for query failed (no host was tried)").build());
+	}
+	
+	@Test
 	public void giveUpgradeRequiredWhenUnderMinimalVersion() {
 		Version minimalVersion = Version.of(2);
 		Version latestVersion = Version.of(3);
@@ -194,55 +206,56 @@ public class CassandraSchemaServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 		
-		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getMessage()).isEqualTo("Schema version 1 has been installed, please restart opush to get the service up");
 	}
 	
-	@Test(expected=SchemaOperationException.class)
+	@Test
 	public void installInvalidScript() {
 		Version version = Version.of(1);
 		String schema = "schema";
 		expect(schemaProducer.schema(version)).andReturn(schema);
-		expect(session.execute(schema)).andThrow(new InvalidQueryException("invalid"));
+		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
 		
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
-		} catch (SchemaOperationException e) {
-			mocks.verify();
-			throw e;
-		}
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		mocks.verify();
+
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo("An error occurred when installing the schema: expected message");
 	}
 	
-	@Test(expected=SchemaOperationException.class)
+	@Test
 	public void installNoHostAvailable() {
 		Version version = Version.of(1);
 		String schema = "schema";
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
 		
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
-		} catch (SchemaOperationException e) {
-			mocks.verify();
-			throw e;
-		}
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		mocks.verify();
+
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo(
+				"An error occurred when installing the schema: All host(s) tried for query failed (no host was tried)");
 	}
 	
-	@Test(expected=SchemaOperationException.class)
+	@Test
 	public void installNoInitilizationSchema() {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(null);
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
-		} catch (SchemaOperationException e) {
-			mocks.verify();
-			throw e;
-		}
+		
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		mocks.verify();
+
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo(
+				"An error occurred when installing the schema: No install schema found");
 	}
 	
 	@Test
@@ -279,10 +292,10 @@ public class CassandraSchemaServiceTest {
 	@Test
 	public void update() {
 		String schema = "schema";
+		Version minVersion = Version.of(1);
 		Version toVersion = Version.of(2);
 		Version currentVersion = Version.of(1);
-		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
-				.date(new Date(System.currentTimeMillis()));
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andReturn(null);
@@ -290,80 +303,97 @@ public class CassandraSchemaServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
 		mocks.verify();
 		
-		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getMessage()).isEqualTo("Your schema has been updated from version 1 to 2");
+	}
+
+	@Test
+	public void updateRequired() {
+		String schema = "schema";
+		Version minVersion = Version.of(2);
+		Version toVersion = Version.of(2);
+		Version currentVersion = Version.of(1);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
+		expect(session.execute(schema)).andReturn(null);
+		schemaDao.updateVersion(toVersion);
+		expectLastCall();
+		
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
+		mocks.verify();
+		
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getMessage()).isEqualTo("Your schema has been updated from version 1 to 2, please restart opush to get the service up");
 	}
 	
 	@Test
 	public void updateNothingToDo() {
 		Version version = Version.of(2);
-		VersionUpdate versionUpdate = VersionUpdate.version(version)
-				.date(new Date(System.currentTimeMillis()));
+		VersionUpdate versionUpdate = VersionUpdate.version(version).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		
 		mocks.replay();
-		CQLScriptExecutionStatus cqlScriptExecutionStatus = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).update();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, version).update();
 		mocks.verify();
 		
-		assertThat(cqlScriptExecutionStatus).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getMessage()).isEqualTo("Nothing to do, your schema is already at the latest version");
 	}
 	
-	@Test(expected=BadVersionException.class)
+	@Test
 	public void updateBadVersioning() {
 		Version toVersion = Version.of(1);
 		Version currentVersion = Version.of(2);
-		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
-				.date(new Date(System.currentTimeMillis()));
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		mocks.verify();
 		
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
-		} catch (BadVersionException e) {
-			mocks.verify();
-			throw e;
-		}
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo("Version 2 conflicts with latest version 1");
 	}
 	
-	@Test(expected=SchemaOperationException.class)
+	@Test
 	public void updateInvalidScript() {
 		String schema = "schema";
 		Version toVersion = Version.of(2);
 		Version currentVersion = Version.of(1);
-		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
-				.date(new Date(System.currentTimeMillis()));
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
-		expect(session.execute(schema)).andThrow(new InvalidQueryException("invalid"));
+		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
+
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		mocks.verify();
 		
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
-		} catch (SchemaOperationException e) {
-			mocks.verify();
-			throw e;
-		}
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo("An error occurred when updating the schema: expected message");
 	}
 	
-	@Test(expected=SchemaOperationException.class)
+	@Test
 	public void updateNoHostAvailable() {
 		String schema = "schema";
 		Version toVersion = Version.of(2);
 		Version currentVersion = Version.of(1);
-		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion)
-				.date(new Date(System.currentTimeMillis()));
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		expect(schemaProducer.schema(currentVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+
+		mocks.replay();
+		SchemaOperationResult result = new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		mocks.verify();
 		
-		try {
-			mocks.replay();
-			new CassandraSchemaService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
-		} catch (SchemaOperationException e) {
-			mocks.verify();
-			throw e;
-		}
+		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getMessage()).isEqualTo(
+				"An error occurred when updating the schema: All host(s) tried for query failed (no host was tried)");
 	}
 }

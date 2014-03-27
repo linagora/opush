@@ -34,6 +34,7 @@ package org.obm.push.cassandra.schema;
 import static org.obm.push.cassandra.OpushCassandraModule.LATEST_SCHEMA_VERSION_NAME;
 import static org.obm.push.cassandra.OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
+import static org.obm.push.cassandra.schema.StatusSummary.Status.EXECUTION_ERROR;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_AVAILABLE;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UP_TO_DATE;
@@ -42,11 +43,9 @@ import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.SchemaProducer;
-import org.obm.push.cassandra.exception.BadVersionException;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.exception.SchemaOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +57,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.ProvisionException;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -103,10 +103,18 @@ public class CassandraSchemaService {
 			return StatusSummary.status(NOT_INITIALIZED).upgradeAvailable(latestVersionUpdate).build();
 		} catch (NoVersionException e) {
 			return StatusSummary.status(UPGRADE_REQUIRED).upgradeAvailable(latestVersionUpdate).build();
+		} catch (ProvisionException e) {
+			return StatusSummary.status(EXECUTION_ERROR)
+					.message(e.getCause().getMessage())
+					.build();
+		} catch (Exception e) {
+			return StatusSummary.status(EXECUTION_ERROR)
+					.message(e.getMessage())
+					.build();
 		}
 	}
 
-	public CQLScriptExecutionStatus install() throws SchemaOperationException {
+	public SchemaOperationResult install() {
 		try {
 			String schema = schemaProducer.schema(latestVersionUpdate);
 			if (Strings.isNullOrEmpty(schema)) {
@@ -116,9 +124,11 @@ public class CassandraSchemaService {
 			executeCQL(schema);
 			
 			schemaDao.updateVersion(latestVersionUpdate);
-			return CQLScriptExecutionStatus.OK;
+			return SchemaOperationResult.success(String.format(
+					"Schema version %d has been installed, please restart opush to get the service up", latestVersionUpdate.get()));
 		} catch (Exception e) {
-			throw new SchemaOperationException(e);
+			return SchemaOperationResult.error(String.format(
+					"An error occurred when installing the schema: %s", e.getMessage()));
 		}
 	}
 
@@ -144,24 +154,30 @@ public class CassandraSchemaService {
 		});
 	}
 	
-	public CQLScriptExecutionStatus update() throws SchemaOperationException {
+	public SchemaOperationResult update() {
 		try {
 			Version currentVersion = schemaDao.getCurrentVersion().getVersion();
 			if (currentVersion.equals(latestVersionUpdate)) {
-				return CQLScriptExecutionStatus.OK;
+				return SchemaOperationResult.success("Nothing to do, your schema is already at the latest version");
 			}
 			if (latestVersionUpdate.isLessThan(currentVersion)) {
-				throw new BadVersionException(currentVersion, latestVersionUpdate); 
+				return SchemaOperationResult.error(String.format(
+						"Version %s conflicts with latest version %s", currentVersion.get(), latestVersionUpdate.get()));
 			}
 			
 			executeCQL(schemaProducer.schema(currentVersion, latestVersionUpdate));
 			
 			schemaDao.updateVersion(latestVersionUpdate);
-			return CQLScriptExecutionStatus.OK;
-		} catch (BadVersionException e) {
-			throw e;
+			if (currentVersion.isLessThan(minimalVersionUpdate)) {
+				return SchemaOperationResult.success(String.format(
+						"Your schema has been updated from version %d to %d, please restart opush to get the service up",
+						currentVersion.get(), latestVersionUpdate.get()));
+			}
+			return SchemaOperationResult.success(String.format(
+					"Your schema has been updated from version %d to %d", currentVersion.get(), latestVersionUpdate.get()));
 		} catch (Exception e) {
-			throw new SchemaOperationException(e);
+			return SchemaOperationResult.error(String.format(
+					"An error occurred when updating the schema: %s", e.getMessage()));
 		}
 	}
 }

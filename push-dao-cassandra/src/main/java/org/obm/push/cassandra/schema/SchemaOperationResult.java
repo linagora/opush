@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,11 +29,66 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.exception;
+package org.obm.push.cassandra.schema;
 
-public class SchemaOperationException extends RuntimeException {
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
-	public SchemaOperationException(Exception e) {
-		super(e);
+public class SchemaOperationResult {
+
+	public static SchemaOperationResult success(String message) {
+		return result(CQLScriptExecutionStatus.OK, message);
+	}
+
+	public static SchemaOperationResult error(String message) {
+		return result(CQLScriptExecutionStatus.ERROR, message);
+	}
+	
+	private static SchemaOperationResult result(CQLScriptExecutionStatus status, String message) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(message), "message required");
+		return new SchemaOperationResult(status, message);
+	}
+
+	private final CQLScriptExecutionStatus status;
+	private final String message;
+
+	private SchemaOperationResult(CQLScriptExecutionStatus status, String message) {
+		this.status = status;
+		this.message = message;
+	}
+	
+	public CQLScriptExecutionStatus getStatus() {
+		return status;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(status, message);
+	}
+	
+	@Override
+	public final boolean equals(Object object) {
+		if (object == this) {
+			return true;
+		}
+		if (object instanceof SchemaOperationResult) {
+			SchemaOperationResult that = (SchemaOperationResult) object;
+			return Objects.equal(this.status, that.status)
+				&& Objects.equal(this.message, that.message);
+		}
+		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("status", status)
+				.add("message", message)
+				.toString();
 	}
 }

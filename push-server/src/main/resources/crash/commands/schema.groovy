@@ -31,9 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 import org.crsh.text.ui.UIBuilder
 import org.obm.push.cassandra.schema.StatusSummary.Status
-import org.obm.push.cassandra.schema.CQLScriptExecutionStatus
 import org.obm.push.cassandra.schema.VersionUpdate
-import org.obm.push.cassandra.exception.SchemaOperationException
 
 @Usage("Cassandra schema management")
 class schema extends CRaSHCommand {
@@ -46,6 +44,10 @@ class schema extends CRaSHCommand {
     
     switch (statusSummary.getStatus()) {
     
+      case Status.EXECUTION_ERROR:
+         out << """ERROR: ${statusSummary.getMessage()}"""
+         break
+         
       case Status.UP_TO_DATE:
          out << """OK
                |Your schema is already at the latest version: ${inline(statusSummary.getCurrentVersion())}""".stripMargin()
@@ -89,12 +91,9 @@ class schema extends CRaSHCommand {
     def statusSummary = schemaService.getStatus()
     
     if (statusSummary.getStatus() == Status.NOT_INITIALIZED) {
-      try {    
-        schemaService.install();
-        out << "Your schema has been installed, please restart opush to get the service up"
-      } catch (SchemaOperationException e) {
-        out << "An error occurred when installing the schema: ${e.getMessage()}"
-      }
+      out << schemaService.install().getMessage()
+    } else if (statusSummary.getStatus() == Status.EXECUTION_ERROR) {
+      out << """ERROR: ${statusSummary.getMessage()}"""
     } else {
       out << """The schema is already installed, use the "status" command to find if an update is available""".stripMargin()
     }
@@ -108,16 +107,17 @@ class schema extends CRaSHCommand {
     
     switch (statusSummary.getStatus()) {
     
+      case Status.EXECUTION_ERROR:
+         out << """ERROR: ${statusSummary.getMessage()}"""
+         break
+         
       case Status.UP_TO_DATE:
          out << "Nothing to do, your schema is already at the latest version"
          break
          
       case Status.UPGRADE_AVAILABLE:
-         updateThenMessage(schemaService, "Your schema has been updated")
-         break
-         
       case Status.UPGRADE_REQUIRED:
-         updateThenMessage(schemaService, "Your schema has been updated, please restart opush to get the service up")
+         out << schemaService.update().getMessage()
          break
          
       case Status.NOT_INITIALIZED:
@@ -127,14 +127,5 @@ class schema extends CRaSHCommand {
       default:
          out << "ERROR: Sorry, the command returned an unexpected response: ${statusSummary.toString()}"
     }
-  }
-  
-  def updateThenMessage(def schemaService, def message) {
-     try {
-       schemaService.update();
-       out << message
-     } catch (SchemaOperationException e) {
-       out << "An error occurred when updating the schema: ${e.getMessage()}"
-     }
   }
 }

@@ -103,8 +103,25 @@ public class ServerFactoryModule extends AbstractModule {
 			if (statusSummary.getStatus().allowsStartup()) {
 				return createJettyServer(statusSummary, logger);
 			} else {
-				logger.error("Cassandra schema not installed or too old, starting administration services only");
+				logNoopServerStartup(logger, statusSummary);
 				return injector.getInstance(NoopServer.class);
+			}
+		}
+
+		private void logNoopServerStartup(Logger logger, StatusSummary statusSummary) {
+			switch (statusSummary.getStatus()) {
+			case EXECUTION_ERROR:
+				logger.error("{}, starting administration services only", statusSummary.getMessage());
+				break;
+			case NOT_INITIALIZED:
+				logger.error("Cassandra schema not installed, starting administration services only");
+				break;
+			case UPGRADE_REQUIRED:
+				logger.error("Cassandra schema too old, starting administration services only");
+				break;
+			default:
+				logger.error("Unexpected schema status {}, starting administration services only", statusSummary.getStatus());
+				break;
 			}
 		}
 

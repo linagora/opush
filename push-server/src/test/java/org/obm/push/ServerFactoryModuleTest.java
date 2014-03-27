@@ -96,7 +96,7 @@ public class ServerFactoryModuleTest {
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
 		expect(jettyFactory.buildServer(port)).andReturn(opushServer);
 		
-		logger.warn("Cassandra schema not up-to-date, the update is advised");
+		logger.warn("Cassandra schema not up-to-date, update is advised");
 		expectLastCall();
 		
 		mocks.replay();
@@ -110,7 +110,7 @@ public class ServerFactoryModuleTest {
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
 		
-		logger.error("Cassandra schema not installed or too old, starting administration services only");
+		logger.error("Cassandra schema too old, starting administration services only");
 		expectLastCall();
 		
 		mocks.replay();
@@ -124,12 +124,25 @@ public class ServerFactoryModuleTest {
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
 		
-		logger.error("Cassandra schema not installed or too old, starting administration services only");
+		logger.error("Cassandra schema not installed, starting administration services only");
 		expectLastCall();
 		
 		mocks.replay();
 		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
 		mocks.verify();
 	}
-	
+
+	@Test
+	public void printLogWhenExecutionError() {
+		StatusSummary status = StatusSummary.status(Status.EXECUTION_ERROR).message("expected message").build();
+		expect(cassandraSchemaService.getStatus()).andReturn(status);
+		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
+		
+		logger.error("{}, starting administration services only", "expected message");
+		expectLastCall();
+		
+		mocks.replay();
+		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		mocks.verify();
+	}
 }

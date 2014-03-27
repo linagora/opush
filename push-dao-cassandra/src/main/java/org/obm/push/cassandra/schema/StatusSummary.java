@@ -37,6 +37,7 @@ import com.google.common.base.Preconditions;
 public class StatusSummary {
 
 	public static enum Status {
+		EXECUTION_ERROR(false),
 		NOT_INITIALIZED(false),
 		UPGRADE_REQUIRED(false),
 		UPGRADE_AVAILABLE(true),
@@ -62,6 +63,7 @@ public class StatusSummary {
 		private final Status status;
 		private VersionUpdate currentVersion;
 		private Version upgradeAvailable;
+		private String message;
 
 		private Builder(Status status) {
 			this.status = status;
@@ -76,21 +78,28 @@ public class StatusSummary {
 			this.upgradeAvailable = upgradeAvailable;
 			return this;
 		}
+
+		public Builder message(String message) {
+			this.message = message;
+			return this;
+		}
 		
 		public StatusSummary build() {
 			Preconditions.checkNotNull(status, "status is required");
-			return new StatusSummary(status, currentVersion, upgradeAvailable);
+			return new StatusSummary(status, currentVersion, upgradeAvailable, message);
 		}
 	}
 	
 	private final StatusSummary.Status status;
 	private final VersionUpdate currentVersion;
 	private final Version upgradeAvailable;
+	private final String message;
 
-	private StatusSummary(Status status, VersionUpdate currentVersion, Version upgradeAvailable) {
+	private StatusSummary(Status status, VersionUpdate currentVersion, Version upgradeAvailable, String message) {
 		this.status = status;
 		this.currentVersion = currentVersion;
 		this.upgradeAvailable = upgradeAvailable;
+		this.message = message;
 	}
 	
 	public StatusSummary.Status getStatus() {
@@ -105,9 +114,13 @@ public class StatusSummary {
 		return upgradeAvailable;
 	}
 	
+	public String getMessage() {
+		return message;
+	}
+
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(status, currentVersion, upgradeAvailable);
+		return Objects.hashCode(status, currentVersion, upgradeAvailable, message);
 	}
 	
 	@Override
@@ -116,7 +129,8 @@ public class StatusSummary {
 			StatusSummary that = (StatusSummary) object;
 			return Objects.equal(this.status, that.status)
 				&& Objects.equal(this.currentVersion, that.currentVersion)
-				&& Objects.equal(this.upgradeAvailable, that.upgradeAvailable);
+				&& Objects.equal(this.upgradeAvailable, that.upgradeAvailable)
+				&& Objects.equal(this.message, that.message);
 		}
 		return false;
 	}
@@ -127,6 +141,7 @@ public class StatusSummary {
 			.add("status", status)
 			.add("currentVersion", currentVersion)
 			.add("upgradeAvailable", upgradeAvailable)
+			.add("message", message)
 			.toString();
 	}
 }
