@@ -1,1 +1,127 @@
 == How to install Opush on debian
+
+=== System requirements
+
+  * Opush is running on *Java* 1.7,
+this version of the JDK has been available since https://www.debian.org/releases/wheezy/[*Wheezy*] (debian _7.4_).
+  * Opush needs http://obm.org/wiki/install-obm-debian-squeeze[*OBM to be installed*] on your network, the required *OBM* components are:
+    ** *obm-storage*
+    ** *obm-locator*
+    ** *obm-sync*
+  * Opush needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
+
+
+=== Adding the Opush repository
+
+Modify your +/etc/apt/sources.list+ file by adding the Opush repository:
+[source]
+----
+deb http://deb.obm.org/opush/stable opush opush
+----
+
+
+=== Opush Installation
+
+Add the Opush GPG public key:
+[source]
+----
+$ wget -q  http://deb.obm.org/obmgpg.pub -O - | apt-key  add -
+----
+
+Update the system packages list:
+[source]
+----
+$ aptitude update
+----
+
+And finally, install Opush
+[source]
+----
+$ aptitude install opush
+----
+
+You could obviously use +apt-get+ instead of +aptitude+.
+
+
+=== Configuration Example
+
+During the installation process, you will be asked some questions:
+
+  * +Host IP address for OBM database server+ your *OBM* host
+  * +Type of OBM database server+ Type of OBM database server
+  * +OBM database name+ *OBM* database name
+  * +OBM database user name+ *OBM* database user
+  * +Host IP address for LDAP server+ URL of the *OBM* LDAP (_ldap://..._ or _ldaps://..._)
+  * +external url of OBM+ your *OBM* FQDN
+  * +OBM database user password+ *OBM* database user password
+  * +Authorize synchronization of unknown devices by default+ true/false
+  * +Opush Cassandra seeds+ list of *Cassandra* seeds (IPs), separated by commas
+  * +Opush Cassandra keyspace+ *Cassandra* keyspace for Opush
+  * +Opush Cassandra user+ *Cassandra* user for Opush
+  * +Opush Cassandra user password+ *Cassandra* user password for Opush
+
+Answering these questions will append the responses in the following configuration files:
+
+  * +/etc/opush/opush.ini+
+  * +/etc/opush/ldap_conf.ini+
+  * +/etc/opush/cassandra.ini+
+  * +/etc/opush/sync_perms.ini+
+
+.Sample configuration +/etc/opush/opush.ini+
+****
+# +
+# Locator & Database URL +
+# +
+host=192.168.56.3 +
+
+# +
+# Database section +
+# +
+
+# DB type MYSQL, PGSQL +
+dbtype=PGSQL +
+
+# Database name +
+db=obm +
+
+# DB user +
+user=obm +
+
+# DB user password +
+password=obm +
+
+# OBM external URL +
+external-url=opushvm.lyon.lan +
+
+# +
+# Transaction timeout section +
+# +
+
+# Transaction timeout +
+transaction-timeout=1 +
+
+# Transaction timeout unit (milliseconds, seconds, minutes, hours) +
+transaction-timeout-unit=minutes +
+****
+
+.Sample configuration +/etc/opush/ldap_conf.ini+
+****
+search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*))) +
+search.ldap.url=ldap://192.168.56.3 +
+search.ldap.basedn=dc=%d,dc=local +
+****
+
+.Sample configuration +/etc/opush/cassandra.ini+
+****
+cassandra.seeds=192.168.56.4,192.168.56.5,192.168.56.6 +
+cassandra.keyspace=opush +
+cassandra.user=opush +
+cassandra.password=opush +
+****
+
+.Sample configuration +/etc/opush/sync_perms.ini+
+****
+# If you set to false, pda can't sync with obm without validation by +
+# an administrator on OBM interface. +
+allow.unknown.pda=true +
+****
