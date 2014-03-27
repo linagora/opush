@@ -95,7 +95,7 @@ class schema extends CRaSHCommand {
     } else if (statusSummary.getStatus() == Status.EXECUTION_ERROR) {
       out << """ERROR: ${statusSummary.getMessage()}"""
     } else {
-      out << """The schema is already installed, use the "status" command to find if an update is available""".stripMargin()
+      out << """The schema is already installed, use the "status" command to know if an update is available"""
     }
   }
 
@@ -121,7 +121,7 @@ class schema extends CRaSHCommand {
          break
          
       case Status.NOT_INITIALIZED:
-         out << "Your schema is not initialized"
+         out << """Your schema is not initialized, use the "status" command to know if you have something to do"""
          break
          
       default:
