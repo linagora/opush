@@ -4,6 +4,7 @@ Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com
 :numbered:
 :sectlink:
 :sectids:
+:toc: left
 :icons: font
 
 == About
@@ -46,6 +47,8 @@ However, there's a limited list of offically supported devices :
 |Motorola (Android 4.4.2)	|Moto G		|[red]#NO#	|[green]#YES#	|[green]#YES#	|
 |Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
 |===============================================================================
+
+include::cassandra-configuration.adoc[]
 
 include::debian-installation.adoc[]
 

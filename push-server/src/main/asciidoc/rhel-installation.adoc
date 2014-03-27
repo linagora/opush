@@ -1,1 +1,152 @@
 == How to install Opush on Red Hat Enterprise Linux and CentOS
+
+=== System requirements
+
+  * Today the latest version is 6.5 (as of February 26, 2014). 
+Opush is currently available only with 6.x version.
+  * Opush is running on *Java* 1.7, we advise to use http://openjdk.java.net/projects/jdk7/[*OpenJDK*].
+  * Opush needs http://obm.org/content/install-obm-25-centos-6[*OBM to be installed*] on your network, the required *OBM* components are:
+    ** *obm-PostgreSQL* or *obm-MySQL*
+    ** *obm-locator*
+    ** *obm-sync*
+  * Opush needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
+
+
+=== Repository Configuration
+
+In order to add the Opush RPM repository declaration, create the file +/etc/yum.repos.d/opush.repo+ and add the following lines: 
+[source]
+----
+[opush]
+name=opush
+baseurl=http://packages.obm.org/rpm/opush/stable/$releasever
+enabled=1
+gpgcheck=0
+----
+
+
+=== Opush Installation
+
+[source]
+----
+$ yum install opush
+----
+
+
+=== Configuration Example
+
+==== Configuration of the communication with *OBM* components
+
+===== Main configuration
+You have to edit the main configuration file:
+[source]
+.+/etc/opush/opush.ini+
+----
+include::sources/opush.ini[]
+----
+
+And then replace the default values:
+
+  * +@DBHOST@+ your *OBM* host
+  * +@DBTYPE@+ PGSQL or MYSQL (*OBM* database kind)
+  * +@DBNAME@+ *OBM* database name
+  * +@DBUSER@+ *OBM* database user
+  * +@DBPASSWORD@+ *OBM* database user password
+  * +@EXTERNALURL@+ your *OBM* FQDN
+  
+.Sample configuration
+****
+# +
+# Locator & Database URL +
+# +
+host=192.168.56.3 +
+
+# +
+# Database section +
+# +
+
+# DB type MYSQL, PGSQL +
+dbtype=PGSQL +
+
+# Database name +
+db=obm +
+
+# DB user +
+user=obm +
+
+# DB user password +
+password=obm +
+
+# OBM external URL +
+external-url=opushvm.lyon.lan +
+
+# +
+# Transaction timeout section +
+# +
+
+# Transaction timeout +
+transaction-timeout=1 +
+
+# Transaction timeout unit (milliseconds, seconds, minutes, hours) +
+transaction-timeout-unit=minutes +
+****
+
+===== LDAP configuration
+You have to edit the LDAP configuration file:
+[source]
+.+/etc/opush/ldap_conf.ini+
+----
+include::sources/ldap_conf.ini[]
+----
+
+And then replace the default value:
+
+  * +@LDAPSERVER@+ URL of the *OBM* LDAP (_ldap://..._ or _ldaps://..._)
+
+.Sample configuration
+****
+search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*))) +
+search.ldap.url=ldap://192.168.56.3 +
+search.ldap.basedn=dc=%d,dc=local +
+****
+
+==== Configuration of the *Cassandra* connection
+ 
+Opush needs additional configuration in order to connect to http://cassandra.apache.org/[*Cassandra*].
+
+You have to edit the *Cassandra* configuration file:
+[source]
+.+/etc/opush/cassandra.ini+
+----
+include::sources/cassandra.ini[]
+----
+
+And then replace values as followed:
+
+  * +@SEEDS@+ list of *Cassandra* seeds (IPs), separated by comas
+  * +@KEYSPACE@+ *Cassandra* keyspace for Opush
+  * +@USER@+ *Cassandra* user for Opush
+  * +@PWD@+ *Cassandra* user password for Opush
+  
+.Sample configuration 
+****
+cassandra.seeds=192.168.56.4,192.168.56.5,192.168.56.6 +
+cassandra.keyspace=opush +
+cassandra.user=opush +
+cassandra.password=opush +
+****
+
+=== Restarting Opush
+ 
+[source]
+----
+$ service opush restart
+----
+ 
+ 
+=== Activating Opush service on boot
+ 
+[source]
+----
+$ chkconfig opush on
+----
