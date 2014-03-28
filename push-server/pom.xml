@@ -256,7 +256,6 @@ simple contact database. OBM also features integration with PDAs, smartphones,
 Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</description>
 							<requires>
 								<require>java-1.7.0-openjdk</require>
-								<require>obm-config</require>
 							</requires>
 							<conflicts>
 								<conflict>obm-opush$lt;=2.6</conflict>
@@ -276,6 +275,9 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<sources>
 										<source>
 											<location>${basedir}/src/configuration/etc/</location>
+										</source>
+										<source>
+											<location>${basedir}/src/rpm/configuration/opush.ini</location>
 										</source>
 									</sources>
 								</mapping>
@@ -334,7 +336,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<groupname>opush</groupname>
 									<sources>
 										<source>
-											<location>src/rpm/resources/opush-start.sh</location>
+											<location>${basedir}/src/rpm/resources/opush-start.sh</location>
 										</source>
 									</sources>
 								</mapping>
@@ -345,7 +347,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<groupname>root</groupname>
 									<sources>
 										<source>
-											<location>src/rpm/resources/opush.centos.sh</location>
+											<location>${basedir}/src/rpm/resources/opush.centos.sh</location>
 											<destination>opush</destination>
 										</source>
 									</sources>
