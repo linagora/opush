@@ -56,6 +56,8 @@ include::debian-upgrade.adoc[]
 
 include::rhel-installation.adoc[]
 
+include::rhel-upgrade.adoc[]
+
 include::crash-usage.adoc[]
 
 include::administration.adoc[]
