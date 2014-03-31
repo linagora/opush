@@ -223,6 +223,19 @@
 									<dst>/usr/share/lintian/overrides/${project.build.finalName}</dst>
 								</data>
 								
+								<!-- DOCUMENTATION -->
+								<data>
+									<type>file</type>
+									<src>${project.build.directory}/generated-docs/${project.build.finalName}.html</src>
+									<dst>/usr/share/doc/${project.build.finalName}/${project.build.finalName}.html</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>644</filemode>
+										<user>root</user>
+										<group>root</group>
+									</mapper>
+								</data>
+								
 							</dataSet>
 						</configuration>
 					</execution>
@@ -371,6 +384,19 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 									<filemode>755</filemode>
 									<username>opush</username>
 									<groupname>opush</groupname>
+								</mapping>
+								
+								<!-- DOCUMENTATION -->
+								<mapping>
+									<directory>/usr/share/doc/${project.build.finalName}/</directory>
+									<filemode>644</filemode>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/generated-docs/${project.build.finalName}.html</location>
+										</source>
+									</sources>
 								</mapping>
 							</mappings>
 							
