@@ -1,0 +1,108 @@
+== How to upgrade from Opush 2 to Opush 3 on debian
+
+=== System requirements
+
+  * Opush 3 is running on *Java* 1.7,
+this version of the JDK has been available since https://www.debian.org/releases/wheezy/[*Wheezy*] (debian _7.4_).
+  * Opush 3 needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
+  * Opush 2 and *OBM* components has to be on the latest version 2.5.7 (as of March 19, 2014), the required *OBM* components are:
+    ** *obm-storage*
+    ** *obm-locator*
+    ** *obm-sync*
+
+
+=== Adding the Opush repository
+
+Modify your +/etc/apt/sources.list+ file by adding the Opush repository:
+[source]
+----
+deb http://deb.obm.org/opush/stable opush opush
+----
+
+
+=== Opush Upgrade
+
+NOTE: You can also use +apt-get+ instead of +aptitude+.
+
+Update system packages list:
+[source]
+----
+$ aptitude update
+----
+
+Finally, upgrade Opush
+[source]
+----
+$ aptitude install opush
+----
+
+
+You will be asked to remove some packages:
+[source]
+----
+The following NEW packages will be installed:
+  ca-certificates-java{a} icedtea-7-jre-jamvm{a} libnspr4{a} libnss3{a} libpcsclite1{a} openjdk-7-jre-headless{a} openjdk-7-jre-lib{a} tzdata-java{a} 
+The following packages will be upgraded:
+  opush{b} tzdata 
+2 packages upgraded, 8 newly installed, 0 to remove and 69 not upgraded.
+Need to get 43.6 MB/78.6 MB of archives. After unpacking 56.9 MB will be used.
+The following packages have unmet dependencies:
+ opush : Conflicts: obm-jetty but 2.5.8~0.alpha0+git20140328-2210-ba1e83a is installed.
+         Conflicts: jetty but 6.1.26-1 is installed.
+The following actions will resolve these dependencies:
+
+     Remove the following packages:
+1)     jetty                       
+2)     obm-jetty                   
+3)     obm-jetty-common-libs       
+
+
+
+Accept this solution? [Y/n/q/?] 
+----
+
+NOTE: Go ahead and accept this solution by answering with *Y*.
+
+And then, accept the incoming new packages:
+[source]
+----
+The following NEW packages will be installed:
+  ca-certificates-java{a} icedtea-7-jre-jamvm{a} libnspr4{a} libnss3{a} libpcsclite1{a} openjdk-7-jre-headless{a} openjdk-7-jre-lib{a} tzdata-java{a} 
+The following packages will be REMOVED:
+  jetty{a} jsvc{u} libcommons-daemon-java{u} libjetty-java{u} libservlet2.5-java{u} libslf4j-java{u} obm-jetty{a} obm-jetty-common-libs{a} spushnik{a} 
+The following packages will be upgraded:
+  opush tzdata 
+2 packages upgraded, 8 newly installed, 9 to remove and 68 not upgraded.
+Need to get 43.6 MB/78.6 MB of archives. After unpacking 30.3 MB will be used.
+Do you want to continue? [Y/n/?] 
+----
+
+=== Configuration Example
+
+During the installation process, you will be asked some questions:
+
+  * +Authorize synchronization of unknown devices by default+ true/false
+  * +Opush Cassandra seeds+ list of *Cassandra* seeds (IPs), separated by comas
+  * +Opush Cassandra keyspace+ *Cassandra* keyspace for Opush
+  * +Opush Cassandra user+ *Cassandra* user for Opush
+  * +Opush Cassandra user password+ *Cassandra* user password for Opush
+
+Answering these questions will append the responses in the following configuration files:
+
+  * +/etc/opush/cassandra.ini+
+  * +/etc/opush/sync_perms.ini+
+
+.Sample configuration +/etc/opush/cassandra.ini+
+****
+cassandra.seeds=192.168.56.4,192.168.56.5,192.168.56.6 +
+cassandra.keyspace=opush +
+cassandra.user=opush +
+cassandra.password=opush +
+****
+
+.Sample configuration +/etc/opush/sync_perms.ini+
+****
+# If you set to false, pda can't sync with obm without validation by +
+# an administrator on OBM interface. +
+allow.unknown.pda=true +
+****

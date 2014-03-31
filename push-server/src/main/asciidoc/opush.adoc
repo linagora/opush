@@ -52,6 +52,8 @@ include::cassandra-configuration.adoc[]
 
 include::debian-installation.adoc[]
 
+include::debian-upgrade.adoc[]
+
 include::rhel-installation.adoc[]
 
 include::crash-usage.adoc[]
