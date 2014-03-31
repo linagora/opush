@@ -492,9 +492,6 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 				<configuration>
 					<backend>html</backend>
 					<sourceDocumentName>opush.adoc</sourceDocumentName>
-					<attributes>
-						<toc/>
-					</attributes>
 				</configuration>
 				<executions>
 					<execution>
