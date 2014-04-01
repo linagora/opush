@@ -235,6 +235,17 @@
 										<group>root</group>
 									</mapper>
 								</data>
+								<data>
+									<type>directory</type>
+									<src>${project.build.directory}/generated-docs/releases</src>
+									<mapper>
+										<type>perm</type>
+										<filemode>644</filemode>
+										<user>opush</user>
+										<group>opush</group>
+										<prefix>/usr/share/doc/${project.build.finalName}/releases</prefix>
+									</mapper>
+								</data>
 								
 							</dataSet>
 						</configuration>
@@ -398,6 +409,17 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 										</source>
 									</sources>
 								</mapping>
+								<mapping>
+									<directory>/usr/share/doc/${project.build.finalName}/releases</directory>
+									<filemode>644</filemode>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/generated-docs/releases</location>
+										</source>
+									</sources>
+								</mapping>
 							</mappings>
 							
 							<!-- RPM SCRIPTS -->
@@ -489,10 +511,6 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
-				<configuration>
-					<backend>html</backend>
-					<sourceDocumentName>opush.adoc</sourceDocumentName>
-				</configuration>
 				<executions>
 					<execution>
 						<id>output-html</id>
@@ -500,6 +518,22 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 						<goals>
 							<goal>process-asciidoc</goal>
 						</goals>
+						<configuration>
+							<backend>html</backend>
+							<sourceDocumentName>opush.adoc</sourceDocumentName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>release-html</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration>
+							<backend>html</backend>
+							<sourceDirectory>${basedir}/src/main/asciidoc/releases</sourceDirectory>
+							<outputDirectory>${project.build.directory}/generated-docs/releases</outputDirectory>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

@@ -1,0 +1,40 @@
+:icons: font
+== Opush 3.0.0 release
+
+Version 3.0.0 is now available for download, free as always. +
+Starting with this release, Opush will no longer follow *OBM* versioning, +
+thus you will be able to update Opush independently of *OBM*.
+
+The documentation for installing or updating Opush is available on both *RHEL* and *Debian*.
+
+[NOTE]
+.What's new in this release?
+====
+  * Previously, some of the Opush data was stored in http://ehcache.org/[*EhCache*]. +
+  This component has demonstrated some weakness for our use cases, so we decided to replace it by http://cassandra.apache.org/[*Cassandra*].
+  * New http://www.crashub.org/[*CRaSH*] commands are available to handle *Cassandra* schema management.
+  * Opush comes with an embedded server, you no longer need http://www.eclipse.org/jetty/[*Jetty*] to be installed.
+  * In addition, a new release of *Spushnik* is also available, which also embeds its own server.
+  * A new logger has been added in Opush (+CONTAINER+), logging main Opush state. 
+  * A new performance logger has been developped in *OBM*, and is available in Opush by adding +BREAKDOWN+ logger in your logback configuration.
+====
+
+[WARNING]
+.Known Issues
+====
+  * This Opush release depends on *Java* 1.7, the packages may not be available on your Linux release. +
+  For example, this version of the JDK has been available since https://www.debian.org/releases/wheezy/[*Wheezy*] on Debian. +
+  If you encounter this issue, we advise you to install Opush on a separate server.
+  * The *OBM Healthcheck* covers multiple releases of Opush, the check on *OPush JVM Version Check* is incorrect and will be removed in a later version.
+  * When upgrading Spushnik, the default port +spushnikPort=8082+ configured in +/etc/obm/healthcheck.ini+ is wrong and should be:
+  +spushnikPort=8083+
+====
+
+[IMPORTANT]
+.Opush bug fixes
+====
+  * In few cases Opush was wrong about event state and tries to re-create existing event.
+  * When an external user accept an invitation, the content of the confirmation email is now displayed.
+  * An event can be duplicated in the calendar on iOS, when receiving an invitation response from another user.
+  * When accepting an ICS without organizer, the organizer should be the sender of the email.
+====
