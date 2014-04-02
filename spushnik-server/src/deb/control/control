@@ -6,7 +6,8 @@ Architecture: all
 Build-Depends: java-sdk
 Maintainer: Matthieu Baechler <mbaechler@linagora.com>
 Depends: openjdk-7-jre-headless
-Conflicts: obm-jetty
+Replaces: spushnik ( << 2.6 )
+Conflicts: obm-jetty, jetty
 Priority: optional
 Homepage: http://www.obm.org
 Description: Opush probe

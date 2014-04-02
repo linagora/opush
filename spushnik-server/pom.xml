@@ -194,6 +194,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 								<require>java-1.7.0-openjdk</require>
 							</requires>
 							<conflicts>
+								<conflict>spushnik$lt;=2.6</conflict>
 								<conflict>obm-jetty</conflict>
 								<conflict>jetty6</conflict>
 							</conflicts>
