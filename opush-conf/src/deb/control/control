@@ -3,6 +3,7 @@ Version: [[opush.packaging.version]]-[[opush.packaging.release]]
 Section: net
 Priority: optional
 Architecture: all
+Depends:
 Replaces: obm-conf
 Conflicts: obm-conf
 Maintainer: Matthieu Baechler <mbaechler@linagora.com>
