@@ -94,7 +94,7 @@ public class OpushImplModule extends AbstractModule {
 	 */
 	private static final int MAX_REQUESTS_PER_CLIENT = 1;
 	private static final int REJECTING_CEIL_PER_CLIENT = Objects.firstNonNull( 
-			VMArgumentsUtils.integerArgumentValue("qosRejectingCeilPerClient"), 6);
+			VMArgumentsUtils.integerArgumentValue("qosRejectingCeilPerClient"), 20);
 	
 	private static final String APPLICATION_ORIGIN = "o-push";
 	private final GlobalAppConfiguration<OpushConfiguration> opushConfiguration;
