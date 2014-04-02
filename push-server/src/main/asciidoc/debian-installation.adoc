@@ -1,26 +1,30 @@
 == How to install Opush on debian
 
+[NOTE]
+====
+.If you want to install Opush 3 on the same machine as OBM (<2.5.X)
+This Opush version is compatible with OBM 2.5.X but you may run into package dependency issues. 
+Such OBM versions officialy support Debian Squeeze, however Opush requires Java 7 which is only available from Wheezy. +
+Please follow this installation process <<_opush_on_squeeze_installation>>
+====
+
 === System requirements
 
-  * Opush is running on *Java* 1.7,
-this version of the JDK has been available since https://www.debian.org/releases/wheezy/[*Wheezy*] (debian _7.4_).
-  * Opush needs http://obm.org/wiki/install-obm-debian-squeeze[*OBM to be installed*] on your network, the required *OBM* components are:
+  * Opush 3 runs on *Java* 1.7
+  * Opush 3 needs http://obm.org/wiki/install-obm-debian-squeeze[*OBM to be installed*] on your network, the required *OBM* components are:
     ** *obm-storage*
     ** *obm-locator*
     ** *obm-sync*
   * Opush needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
 
 
-=== Adding the Opush repository
+=== Opush on Wheezy Installation
 
 Modify your +/etc/apt/sources.list+ file by adding the Opush repository:
 [source]
 ----
 deb http://deb.obm.org/opush/stable opush opush
 ----
-
-
-=== Opush Installation
 
 Add the Opush GPG public key:
 [source]
@@ -41,6 +45,41 @@ $ aptitude install opush
 ----
 
 You could obviously use +apt-get+ instead of +aptitude+.
+
+
+=== Opush on Squeeze Installation
+
+.If you have obm-full installed 
+
+In this context you already have an Opush on your machine, please follow <<_how_to_upgrade_from_opush_2_to_opush_3_on_debian>>
+
+.If you don't have obm-full installed
+
+Modify your +/etc/apt/sources.list+ file by adding the Opush and squeeze-backports repositories:
+[source]
+----
+deb http://deb.obm.org/opush/stable opush opush
+deb http://deb.obm.org/squeeze-backports squeeze main
+----
+
+Add the Opush GPG public key:
+[source]
+----
+$ wget -q  http://deb.obm.org/obmgpg.pub -O - | apt-key  add -
+----
+
+Update the system packages list:
+[source]
+----
+$ apt-get update
+----
+
+Install Opush 3:
+
+[source]
+----
+$ apt-get install opush
+----
 
 
 === Configuration Example
@@ -125,3 +164,4 @@ cassandra.password=opush +
 # an administrator on OBM interface. +
 allow.unknown.pda=true +
 ****
+

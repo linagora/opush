@@ -1,26 +1,42 @@
 == How to upgrade from Opush 2 to Opush 3 on debian
 
+[NOTE]
+====
+.If you want to install Opush 3 on the same machine as OBM (<2.5.X)
+This Opush version is compatible with OBM 2.5.X but you may run into package dependency issues. 
+Such OBM versions officialy support Debian Squeeze, however Opush requires Java 7 which is only available from Wheezy. +
+Please follow this upgrade process <<_opush_on_squeeze_upgrade>>
+====
+
 === System requirements
 
-  * Opush 3 is running on *Java* 1.7,
-this version of the JDK has been available since https://www.debian.org/releases/wheezy/[*Wheezy*] (debian _7.4_).
+  * Opush 3 runs on *Java* 1.7
   * Opush 3 needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
   * Opush 2 and *OBM* components has to be on the latest version 2.5.7 (as of March 19, 2014), the required *OBM* components are:
     ** *obm-storage*
     ** *obm-locator*
     ** *obm-sync*
 
+=== Package dependency conflicts
 
-=== Adding the Opush repository
+As obm-full-2.5.X depends on opush-2.5.X, the installation of Opush 3 conflicts with obm-full-2.5.X.
+obm-full is a meta-package only used to simplify installation of all obm packages. If you have it installed, it will be removed automatically when upgrading to the new version of Opush. This will not affect the functionalities of OBM.
+
+During the upgrade +apt-get+ will ask for confirmation before removing conflicting packages. As they are dependencies of Opush 2 only, packages listed below will be removed. No other removal should be necessary.
+
+[source]
+----
+The following packages will be REMOVED:
+  jetty obm-full obm-jetty obm-jetty-common-libs
+----
+
+=== Opush on Wheezy upgrade
 
 Modify your +/etc/apt/sources.list+ file by adding the Opush repository:
 [source]
 ----
 deb http://deb.obm.org/opush/stable opush opush
 ----
-
-
-=== Opush Upgrade
 
 NOTE: You can also use +apt-get+ instead of +aptitude+.
 
@@ -76,6 +92,39 @@ The following packages will be upgraded:
 Need to get 43.6 MB/78.6 MB of archives. After unpacking 30.3 MB will be used.
 Do you want to continue? [Y/n/?] 
 ----
+
+=== Opush on Squeeze upgrade
+
+Modify your +/etc/apt/sources.list+ file by adding the Opush and squeeze-backports repositories:
+[source]
+----
+deb http://deb.obm.org/opush/stable opush opush
+deb http://deb.obm.org/squeeze-backports squeeze main
+----
+
+Update the system packages list:
+[source]
+----
+$ apt-get update
+----
+
+.If you have obm-full installed 
+To upgrade Opush when you have obm-full installed, please read the <<_package_dependency_conflicts>> to understand what will be done with your OBM packages.
+
+To resolve conflicts properly use +apt-get+ instead of +aptitude+ and install explicitly every obm-full dependencies to be sure to keep everything.
+
+[source]
+----
+$ apt-get install opush obm obm-filter obm-satellite obm-sync obm-storage obm-ldap obm-ui obm-cyrus obm-postfix obm-services obm-locator obm-solr
+----
+
+.If you don't have obm-full installed
+
+[source]
+----
+$ apt-get install opush
+----
+
 
 === Configuration Example
 
