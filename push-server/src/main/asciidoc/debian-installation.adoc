@@ -10,7 +10,7 @@ Please follow this installation process <<_opush_on_squeeze_installation>>
 
 === System requirements
 
-  * Opush 3 runs on *Java* 1.7
+  * Opush 3 runs on *Java* 7
   * Opush 3 needs http://obm.org/wiki/install-obm-debian-squeeze[*OBM to be installed*] on your network, the required *OBM* components are:
     ** *obm-storage*
     ** *obm-locator*

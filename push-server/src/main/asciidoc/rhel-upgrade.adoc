@@ -4,7 +4,7 @@
 
   * Today the latest version is 6.5 (as of February 26, 2014). 
 Opush is currently available only with 6.x version.
-  * Opush is running on *Java* 1.7, we advise to use http://openjdk.java.net/projects/jdk7/[*OpenJDK*].
+  * Opush 3 runs on *Java* 7, we advise to use http://openjdk.java.net/projects/jdk7/[*OpenJDK*].
   * Opush 2 and *OBM* components has to be on the latest version 2.5.7 (as of March 19, 2014), the required *OBM* components are:
     ** *obm-PostgreSQL* or *obm-MySQL*
     ** *obm-locator*

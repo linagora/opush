@@ -10,7 +10,7 @@ Please follow this upgrade process <<_opush_on_squeeze_upgrade>>
 
 === System requirements
 
-  * Opush 3 runs on *Java* 1.7
+  * Opush 3 runs on *Java* 7
   * Opush 3 needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
   * Opush 2 and *OBM* components has to be on the latest version 2.5.7 (as of March 19, 2014), the required *OBM* components are:
     ** *obm-storage*
