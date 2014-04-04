@@ -2,4 +2,47 @@
 
 Opush can be seen as a connector that provides ActiveSync support to *OBM*.
 
-TODO
+I depends on a lot of *OBM* services :
+
+* *obm-locator* for localizing *OBM* services
+* *obm-sync* for calendar and addressbooks synchronization
+* *LDAP* for user lookup
+* *Cyrus* for email synchronization
+* *Postfix* for sending emails
+* *Postgres* for storing some internal states
+
+It adds some technical dependencies too :
+
+* *Cassandra* for storing some internal states
+* *OpenJDK 7*
+
+=== ActiveSync Protocol
+
+Opush closes the gap between ActiveSync protocol that is a state machine using
+Microsoft definition of objects such as an event, a contact or an email and
+*OBM* Webservices providing corresponding *OBM* objects.
+
+For this purpose, when a synchronization request comes from a device,
+Opush analyze this request, looks for services locations and delegate data
+retrieving to *Cyrus*, *obm-sync* and/or *LDAP*.
+
+It then keeps track of objects pushed to the device to handle later
+synchronization requests. It uses *Cassandra* and *Postgres* for this purpose.
+
+=== Technical Overview
+
+Opush is a *Java* application using an embedded Http server.
+
+It uses a modular design that enables important technologies shifts without
+having to break the whole application every time.
+
+In the recent past, it changed its email backend from an in-house solution to
+a javax.mail based backend and then came back to an improved version of the
+in-house solution.
+
+It also changed from *EHCache* to *Cassandra* for internal state storage.
+
+We expect to continue with such breaking changes for some times, providing
+new capabilities such as *high availability*, *horizontal scalability*,
+*improved management*, *great monitoring*, and support for latests
+ActiveSync specifications.
