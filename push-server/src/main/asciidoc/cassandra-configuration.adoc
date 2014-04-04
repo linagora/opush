@@ -1,1 +1,116 @@
-== How to configure Cassandra
+== How to Configure Cassandra
+
+=== Requirements
+
+  * Cassandra 2.0, version >= 2.0.6 +
+
+  * The Cassandra cluster must be installed (guides for http://www.datastax.com/documentation/datastax_enterprise/4.0/datastax_enterprise/install/installDEBdse.html[Debian] and http://www.datastax.com/documentation/datastax_enterprise/4.0/datastax_enterprise/install/installRHELdse.html[RHEL]) and http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[configured] 
+
+=== Supported Cassandra Configurations
+
+[NOTE]
+====
+A single Cassandra server is enough to make Opush work but you will not have
+every benefit of a Cassandra cluster. If you want the strongest architecture
+you will have to deploy at least 3 nodes to have durability and fault-tolerance.
+====
+
+==== Three Nodes (recommanded)
+
+First of all, we advise you to read this 
+http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html?scroll=concept_ds_yt4_m4f_fk[Cassandra documentation page].
+
+Then, when you'll create your keyspace, you should set +replication_factor+ 
+to 3.
+
+
+==== Single Node
+
+For small configurations (number of users lower than 40), you may want to install Cassandra on a single node. +
+Such case is discussed in this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
+
+Your keyspace +replication_factor+ must be set to 1, +
+and you must reduce your +commitlog_sync_period_in_ms+ which is configured in the +/etc/cassandra/cassandra.yaml+ file.
+
+   
+=== Preparing for Opush
+
+Authentication in Cassandra must be delegated to the password authenticator backend, 
+you have to edit the +/etc/cassandra/cassandra.yaml+ file and check the authenticator backend:
+[source]
+----
+authenticator: PasswordAuthenticator
+----
+
+First of all, you have to create a keyspace. +
+This must be done in the +cqlsh+ shell with Cassandra administrator:
+[source]
+----
+$ cqlsh -u cassandra -p cassandra
+---- 
+
+And then enter the following command in the +cqlsh+ shell:
+[source]
+----
+cqlsh> CREATE KEYSPACE opush_keyspace WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 3};
+----
+Where:
+
+  * +opush_keyspace+ is the keyspace name
+  * +replication_factor+ is documented on the <<_supported_cassandra_configurations, section>>  
+  
+Finally, still in the +cqlsh+ shell, create a Cassandra user for Opush:
+[source]
+----
+cqlsh> USE opush_keyspace;
+cqlsh> CREATE USER opush_user WITH PASSWORD 'opush_password' SUPERUSER;
+----
+Where:
+
+  * +opush_user+ is the Cassandra user for Opush
+  * +opush_password+ is the password for this user
+
+
+=== Opush Schema
+
+==== Installation
+
+The first time you will start Opush, <<__code_opush_log_code,+opush.log+>> will
+contain the following message:
+[source]
+----
+10:49:48.611 [ERROR] {CONTAINER} [t/c/r/] Cassandra schema not installed, starting administration services only
+----
+
+Opush server will not be accessible to clients, but administrator can connect to 
+it using <<_how_to_use_the_strong_crash_strong_console, *CRaSH*>> shell. +
+You have to follow +schema install+ <<crash-usage.adoc#_commands, *CRaSH*>> 
+command and then restart Opush.
+
+==== Upgrade
+
+There are two kinds of schema upgrades:
+
+===== Upgrade Recommended
+The following message will be displayed in <<__code_opush_log_code,+opush.log+>>:
+[source]
+----
+11:35:43.461 [WARN ] {CONTAINER} [t/c/r/] Cassandra schema not up-to-date, update is recommended
+----
+
+You should use +schema update+ <<crash-usage.adoc#_commands, *CRaSH*>> command.
+
+NOTE: Clients can access to Opush even if upgrade is recommended.
+
+
+===== Upgrade Required
+The following message will be displayed in <<__code_opush_log_code,+opush.log+>>:
+[source]
+----
+11:43:51.857 [ERROR] {CONTAINER} [t/c/r/] Cassandra schema too old, starting administration services only
+----
+
+You have to follow +schema update+ <<crash-usage.adoc#_commands, *CRaSH*>> command and then restart Opush.
+
+NOTE: Opush server will not be accessible to clients until restart.
+

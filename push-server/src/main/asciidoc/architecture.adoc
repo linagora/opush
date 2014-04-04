@@ -1,0 +1,5 @@
+== Architecture
+
+Opush can be seen as a connector that provides ActiveSync support to *OBM*.
+
+TODO

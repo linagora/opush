@@ -1,6 +1,41 @@
-== Providing access to the Opush server
+== Administration Operation
 
-=== Reverse proxy
+include::crash-usage.adoc[]
+
+=== Device Reinitialization
+
+For some reasons, users may need to reset their devices.
+This can be done by two different ways in *OBM*:
+
+* by *obm-ui*: the *OBM* administrator has to delete the mobile device in the
+	dedicated user page
+* by the device itself: the device user has to modify the filter type
+	(amount to synchronize) in the ActiveSync account settings
+
+Here is a list of devices which are known to be compatible with this
+operation:
+
+|=======================================================================
+|*Device*				| *By obm-ui*	|*By device*	|
+|HTC HD Mini (Windows Mobile 6.5)	| [green]#YES#	| [green]#YES#	|
+|iPhone 4 (iOS 5.1.1)			| [green]#YES#	| [green]#YES#	|
+|iPad 3 (iOS 6.0.1)			| [green]#YES#	| [green]#YES#	|
+|Samsung GALAXY S (Android 2.3.4)	| [green]#YES#
+	(need email application or device restart)	| [green]#YES#	|
+|Samsung GALAXY SII (Android 2.3.3)	| [green]#YES#
+	(need email application or device restart)	| [green]#YES#	|
+|Samsung GALAXY SII (Android 4.0.3)	| [green]#YES#	| [green]#YES#	|
+|Samsung OMNIA 7 (Windows Phone 7.5)	| [green]#YES#	| [green]#YES#	|
+|=======================================================================
+
+=== Supervision
+
+We supply a probe called *Spushnik* to supervise your Opush server. See the
+spushnik documentation for more information.
+
+== Provide Access to the Opush Server
+
+=== Reverse Proxy
 
 The ActiveSync protocol defines specific URLs on standard https port for
 devices to detect configuration and perform general operations. Opush runs
@@ -22,36 +57,42 @@ proxy configuration by yourself. In this case, be sure to bind
 WARNING: be careful, +autodiscover+ is supposed to be case-insensitive
 
 .Apache configuration directives
-	ProxyPass /Microsoft-Server-ActiveSync http://opush.domain:8082/opush/ActiveSyncServlet/
-	ProxyPassReverse /Microsoft-Server-ActiveSync http://opush.domain:8082/opush/ActiveSyncServlet/
-	ProxyPassMatch (?i:/autodiscover) http://opush.domain:8082/opush/Autodiscover/
-	ProxyPassReverse /autodiscover http://opush.domain:8082/opush/Autodiscover/
+[source]
+----
+ProxyPass /Microsoft-Server-ActiveSync http://opush.domain:8082/opush/ActiveSyncServlet/
+ProxyPassReverse /Microsoft-Server-ActiveSync http://opush.domain:8082/opush/ActiveSyncServlet/
+ProxyPassMatch (?i:/autodiscover) http://opush.domain:8082/opush/Autodiscover/
+ProxyPassReverse /autodiscover http://opush.domain:8082/opush/Autodiscover/
+----
 
 .Nginx configuration directives
- server {
-       listen 80 default;
-       server_name _;
-       location /Microsoft-Server-ActiveSync {
-                proxy_pass http://opush.domain:8082/opush/ActiveSyncServlet/;
-       }
-       location /_autodiscover {
-                proxy_pass http://opush.domain:8082/opush/Autodiscover/;
-       }
-       location ~* /autodiscover {
-                rewrite ^ /_autodiscover last;
-       }
- }
+[source]
+----
+server {
+      listen 80 default;
+      server_name _;
+      location /Microsoft-Server-ActiveSync {
+               proxy_pass http://opush.domain:8082/opush/ActiveSyncServlet/;
+      }
+      location /_autodiscover {
+               proxy_pass http://opush.domain:8082/opush/Autodiscover/;
+      }
+      location ~* /autodiscover {
+               rewrite ^ /_autodiscover last;
+      }
+}
+----
 
 === DNS
 
-When you try to add an ActiveSync account on your smartphone, you have set the
+When you try to add an ActiveSync account on your device, you have set the
 user email address. +
 When using <<_autodiscover,autoconfiguration feature>>, the domain part of the
 email will be used to find the target server. +
 It's necessary to have a DNS server configured to help the phone resolve
 this domain. +
 
-Some phones prefix the domain by +autodiscover.+. So you must add the following 
+Some devices prefix the domain by +autodiscover.+. So you must add the following 
 entries to your DNS configuration: 
 
  YOUR_DOMAIN                     A           YOUR_REVERSE_PROXY_SERVER_IP
@@ -62,14 +103,16 @@ and for the reverse DNS part:
  YOUR_REVERSE_PROXY_SERVER_IP             A           YOUR_DOMAIN
  YOUR_REVERSE_PROXY_SERVER_IP             A           autodiscover.YOUR_DOMAIN
 
-== Mail server integration
+== Advanced Configuration
+
+=== Mail Server
 
 Opush needs an IMAP server running and a working IMAP account for every Opush
 user. +
 It also needs a working SMTP server.
 
 
-=== Special directories
+==== Special Folders
 
 ActiveSync defines some special folders: +Inbox+, +Drafts+, +Sent+ and
 +Deleted+.
@@ -95,31 +138,32 @@ You can change these default mappings by defining the following keys in
 |===============================================
 
 NOTE: the INBOX folder is not configurable because INBOX always exists as specified
-by the IMAP RFC.
+by the http://tools.ietf.org/html/rfc3501[IMAP RFC 3501], section 5.1.
 
-[WARNING]
-.Character encoding
-====
+.+/etc/opush/mail_conf.ini+ example:
+****
+imap.mailbox.draft=INBOX/draft +
+imap.mailbox.sent=INBOX/sent +
+imap.mailbox.trash=INBOX/trash +
+****
+
+===== Character Encoding
 Non latin-1 characters are allowed but need special encoding.
 
 You must use the +native2ascii+ tool provided by your JDK.
 
 Given a mail_conf.ini encoded according to your locale, the following
 command will generate a valid configuration:
+[source]
+----
+$ native2ascii mail_conf.ini /etc/opush/mail_conf.ini
+----
 
-	native2ascii mail_conf.ini /etc/opush/mail_conf.ini
+==== Mail Configuration
 
-====
-
-.+/etc/opush/mail_conf.ini+ example:
-	imap.mailbox.draft=INBOX/draft
-	imap.mailbox.sent=INBOX/sent
-	imap.mailbox.trash=INBOX/trash
-
-=== Mail configuration
-
-There are several things you can configure about Opush mail handling. Below is
-the default +/etc/opush/mail_conf.ini+ file:
+In addition to <<_special_folders,folder mapping configuration>>, there are
+several things you can configure about Opush mail handling. +
+Below is the default +/etc/opush/mail_conf.ini+ file:
 [source]
 ----
 include::sources/mail_conf.ini[]
@@ -136,13 +180,13 @@ include::sources/mail_conf.ini[]
 | +message.maxSize+		| +bytes+			| Max size allowed when sending a mail		|
 |===============================================================================================================
 
-== LDAP integration
+=== LDAP
 
-=== About LDAP in Opush
+==== About LDAP in Opush
 
 In Opush, LDAP is only used for user lookups, depending on the clients requests.
 
-Usually, it's used for recipient auto-completion when the user writes an email.
+Usually, it is used for recipient auto-completion when the user writes an email.
 
 [WARNING]
 ====
@@ -150,7 +194,7 @@ LDAP is neither used directly by Opush to populate the client address books nor
 to authenticate anybody. These two features are delegated to obm-sync.
 ====
 
-=== Configuration file
+==== Configuration
 
 The Opush LDAP configuration file is located at +/etc/opush/ldap_conf.ini+.
 
@@ -161,85 +205,26 @@ Every field is required and cannot be empty:
 | +search.ldap.filter+	| +String+	| the filter expression to use for the search		|
 | +search.ldap.url+	| +String+	| the address where the ldap server can be 
 					  reached (we advise to specify the protocol
-					  used, ldap:// or ldaps://)				|
+					  used, +ldap://+ or +ldaps://+)				|
 | +search.ldap.basedn+	| +String+	| the name of the context or object to search for	|
 |===============================================================================================
 
 
-.Sample configuration
-    search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*)))
-    search.ldap.url=ldap://127.0.0.1
-    search.ldap.basedn=dc=%d,dc=local
+.+/etc/opush/ldap_conf.ini+ example
+****
+search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*))) +
+search.ldap.url=ldap://127.0.0.1 +
+search.ldap.basedn=dc=%d,dc=local
+****
 
-=== Log
+==== Troubleshooting
 
 You can check your LDAP configuration by looking at the logs when Opush starts.
 You only have to activate the +CONFIGURATION+ logger, for more details check
 the <<_logs,logs documentation section>> .
 
-== Logs
 
-Opush generates several log files located at +/var/log/opush/+:
-
- * +opush.log+ contains the main server logs
- * +access.log+ contains the http logs using the Apache default format
- * +out.log+ contains startup and uncatched errors
-
-=== +opush.log+
-
-This file contains important information about Opush operations.
-
-Here is a sample line:
-
-	05:26:36.669 [INFO] {IMAP.COMMAND} [t10079/cFolderSync/r942/userlogin@obm.lng.org]:message content
-
-It's composed of:
-
-* +05:26:36.669+ : the time of this log entry
-* +[INFO]+ : log entry level
-* +{IMAP.COMMAND}+ : logger name for this entry
-* +t10079+ : thread id writing this log entry prefixed by t
-* +cFolderSync+ : the ActiveSync command name prefixed by c.
-			Here the command was "FolderSync"
-* +r942+ : request id prefixed by r
-* +userlogin@obm.lng.org+ user causing this log entry
-* +message content+ : logged data
-
-=== Loggers
-
-Opush, like all Java components of OBM, uses a logger API to generate information
-useful to developers to investigate bugs. This section documents how to
-configure the right log level for your needs as an administrator. +
-Loggers exist in two forms: named loggers and technical loggers. +
-Technical loggers have names related to the code they belong to and should
-not be enabled by an administrator. +
-Named loggers help administrators to understand what happens in their server in
-order to solve some configuration problem or file a bug report. +
-Opush will output every log with a level greater or equals to +WARN+,
-regardless of the logger name. +
-You can enable these named loggers by adding entries in 
-+/etc/opush/logback.xml+. +
-Modifications are taken into account every minute. You can check that everything
-is applied correctly by looking at logs in +/var/log/opush/out.log+. +
-
-.A sample file looks like:
-    <included>
-            <logger name="AUTHENTICATION" level="INFO" />
-            <logger name="REQUEST.FULL" level="INFO" />
-    </included>
-
-You can use the following logger modules:
-
-* +AUTHENTICATION+ for authentication information
-* +CONFIGURATION+ for configuration details, printed at application startup
-* +IMAP.COMMAND+ for imap conversations
-* +OBM-SYNC+ for data exchanged between opush and obm-sync web services
-* +REQUEST.FULL+ for requests and responses from and to the server,
-	with sensitive data
-* +REQUEST.TRIMMED+ for requests and responses from and to the server,
-	without sensitive data
-
-== Autodiscover
+=== Autodiscover
 
 The Autodiscover feature allows devices to find a working configuration by 
 themselves based on a user email address.
@@ -258,9 +243,9 @@ Microsoft specifications:
 * http://msdn.microsoft.com/en-us/library/ee159670.aspx[Protocol Examples]
 ====
 
-=== Devices configuration steps
+==== Devices Configuration Steps
 
-==== Certificate
+===== Certificate
 
 If you have a certificate signed by a trusted authority, Autodiscover should
 work out of the box.
@@ -268,7 +253,7 @@ work out of the box.
 If you have a self-signed certificate, you need to import this certificate on
 each device. Please refer to your device documentation.
 
-==== Account creation
+===== Account Creation
 
 . In the _Accounts_ section of your device, create an _Exchange ActiveSync_ 
   account
@@ -276,7 +261,7 @@ each device. Please refer to your device documentation.
 . Your phone should now be configured for your account. That's all!
 
 
-==== Compatibility
+===== Compatibility
 
 |===============================================================================
 |*Device*		|*ROM / Version*	|*Compatibility*		|
@@ -289,7 +274,7 @@ each device. Please refer to your device documentation.
 |SAMSUNG OMNIA 7	|Windows phone 7.5	|[red]#NO#			|
 |===============================================================================
 
-=== Underlying protocol
+==== Underlying Protocol
 
 A request looks like:
 
@@ -326,39 +311,75 @@ And a response:
    </Autodiscover>
 
 WARNING: You need to configure your server according to
-<<_providing_access_to_opush_server>> in order to have Autodiscover working
+<<_provide_access_to_the_opush_server>> in order to have Autodiscover working
 
-== Administration operation
+== Logs
 
-=== Resetting a device
+Opush generates several log files located at +/var/log/opush/+:
 
-For some reasons, users may need to reset their smartphones.
-This can be done by two different ways in OBM:
+ * +opush.log+ contains the main server logs
+ * +access.log+ contains the http logs using the Apache default format
+ * +out.log+ contains startup and uncatched errors
 
-* by OBM-UI: the OBM administrator has to delete the mobile device in the
-	dedicated user page
-* by the smartphone itself: the smartphone user has to modify the filter type
-	(amount to synchronize) in the ActiveSync account settings
+=== +opush.log+
 
-Here is a list of smartphones which are known to be compatible with this
-operation:
+This file contains important information about Opush operations.
 
-|=======================================================================
-|*Device*				| *By OBM-UI*	|*By smartphone*|
-|HTC HD Mini (Windows Mobile 6.5)	| [green]#YES#	| [green]#YES#	|
-|iPhone 4 (iOS 5.1.1)			| [green]#YES#	| [green]#YES#	|
-|iPad 3 (iOS 6.0.1)			| [green]#YES#	| [green]#YES#	|
-|Samsung GALAXY S (Android 2.3.4)	| [green]#YES#
-	(need email application or device restart)	| [green]#YES#	|
-|Samsung GALAXY SII (Android 2.3.3)	| [green]#YES#
-	(need email application or device restart)	| [green]#YES#	|
-|Samsung GALAXY SII (Android 4.0.3)	| [green]#YES#	| [green]#YES#	|
-|Samsung OMNIA 7 (Windows Phone 7.5)	| [green]#YES#	| [green]#YES#	|
-|=======================================================================
+Here is a sample line:
+[source]
+----
+05:26:36.669 [INFO] {IMAP.COMMAND} [t10079/cFolderSync/r942/userlogin@obm.lng.org]:message content
+----
 
-=== Supervision
+It's composed of:
 
-We supply a probe called *Spushnik* to supervise your Opush server. See the
-spushnik documentation for more information.
+* +05:26:36.669+ : the time of this log entry
+* +[INFO]+ : log entry level
+* +{IMAP.COMMAND}+ : logger name for this entry
+* +t10079+ : thread id writing this log entry prefixed by t
+* +cFolderSync+ : the ActiveSync command name prefixed by c.
+			Here the command was "FolderSync"
+* +r942+ : request id prefixed by r
+* +userlogin@obm.lng.org+ user causing this log entry
+* +message content+ : logged data
 
+=== Loggers
+
+Opush, like all *Java* components of *OBM*, uses a logger API to generate information
+useful to developers to investigate bugs. This section documents how to
+configure the right log level for your needs as an administrator. +
+Loggers exist in two forms: named loggers and technical loggers. +
+Technical loggers have names related to the code they belong to and should
+not be enabled by an administrator. +
+Named loggers help administrators to understand what happens in their server in
+order to solve some configuration problem or file a bug report. +
+Opush will output every log with a level greater or equals to +WARN+,
+regardless of the logger name. +
+You can enable these named loggers by adding entries in 
++/etc/opush/logback.xml+. +
+Modifications are taken into account every minute. You can check that everything
+is applied correctly by looking at logs in +/var/log/opush/out.log+. +
+
+.A sample file looks like:
+    <included>
+            <logger name="AUTHENTICATION" level="INFO" />
+            <logger name="REQUEST.FULL" level="INFO" />
+    </included>
+
+You can use the following logger modules:
+
+* +AUTHENTICATION+ for authentication information
+* +BREAKDOWN+ for execution timings
+* +CONFIGURATION+ for configuration details, printed at application startup
+* +CONTAINER+ for the HTTP Servlet Container information
+* +IMAP.COMMAND+ for imap conversations
+* +OBM-SYNC+ for data exchanged between opush and obm-sync web services
+* +REQUEST.FULL+ for requests and responses from and to the server,
+	with sensitive data
+* +REQUEST.TRIMMED+ for requests and responses from and to the server,
+	without sensitive data
+
+=== +BREAKDOWN+ Logs
+
+TODO
 

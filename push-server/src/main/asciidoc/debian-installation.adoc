@@ -1,22 +1,21 @@
-== How to install Opush on debian
+== How to Install Opush on Debian
 
 [NOTE]
 ====
-.If you want to install Opush 3 on the same machine as OBM (<2.5.X)
-This Opush version is compatible with OBM 2.5.X but you may run into package dependency issues. 
-Such OBM versions officialy support Debian Squeeze, however Opush requires Java 7 which is only available from Wheezy. +
+.If you want to install Opush 3 on the same machine as *OBM* 2.5.X
+This Opush version is compatible with *OBM* 2.5.X but you may run into package dependency issues. 
+Such *OBM* versions officialy support Debian Squeeze, however Opush requires 
+*OpenJDK 7* which is only available for Wheezy. +
 Please follow this installation process <<_opush_on_squeeze_installation>>
 ====
 
-=== System requirements
+=== System Requirements
 
-  * Opush 3 runs on *Java* 7
-  * Opush 3 needs http://obm.org/wiki/install-obm-debian-squeeze[*OBM to be installed*] on your network, the required *OBM* components are:
-    ** *obm-storage*
-    ** *obm-locator*
-    ** *obm-sync*
-  * Opush needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
-
+  * *Debian Squeeze* or *Wheezy*
+  * *OpenJDK 7*
+  * A working http://obm.org/wiki/install-obm-debian-squeeze[*OBM*] >= 2.5.7 
+	with *obm-sync*
+  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>
 
 === Opush on Wheezy Installation
 
@@ -26,7 +25,7 @@ Modify your +/etc/apt/sources.list+ file by adding the Opush repository:
 deb http://deb.obm.org/opush/stable opush opush
 ----
 
-Add the Opush GPG public key:
+Add the *OBM* GPG public key:
 [source]
 ----
 $ wget -q  http://deb.obm.org/obmgpg.pub -O - | apt-key  add -
@@ -44,16 +43,13 @@ And finally, install Opush
 $ aptitude install opush
 ----
 
-You could obviously use +apt-get+ instead of +aptitude+.
-
-
 === Opush on Squeeze Installation
 
-.If you have obm-full installed 
-
-In this context you already have an Opush on your machine, please follow <<_how_to_upgrade_from_opush_2_to_opush_3_on_debian>>
-
-.If you don't have obm-full installed
+[WARNING]
+====
+If you have the +obm-full+ package installed 
+In this context you already have an Opush on your machine, please follow <<_how_to_upgrade_from_opush_2_on_debian>> instead.
+====
 
 Modify your +/etc/apt/sources.list+ file by adding the Opush and squeeze-backports repositories:
 [source]
@@ -62,7 +58,7 @@ deb http://deb.obm.org/opush/stable opush opush
 deb http://deb.obm.org/squeeze-backports squeeze main
 ----
 
-Add the Opush GPG public key:
+Add the *OBM* GPG public key:
 [source]
 ----
 $ wget -q  http://deb.obm.org/obmgpg.pub -O - | apt-key  add -
@@ -74,7 +70,7 @@ Update the system packages list:
 $ apt-get update
 ----
 
-Install Opush 3:
+Install Opush:
 
 [source]
 ----
@@ -82,12 +78,12 @@ $ apt-get install opush
 ----
 
 
-=== Configuration Example
+=== Configuration with Debconf
 
 During the installation process, you will be asked some questions:
 
   * +Host IP address for OBM database server+ your *OBM* host
-  * +Type of OBM database server+ Type of OBM database server
+  * +Type of OBM database server+ Type of *OBM* database server
   * +OBM database name+ *OBM* database name
   * +OBM database user name+ *OBM* database user
   * +Host IP address for LDAP server+ URL of the *OBM* LDAP (_ldap://..._ or _ldaps://..._)

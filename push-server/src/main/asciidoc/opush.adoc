@@ -1,36 +1,37 @@
-= Opush administration guide
-Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com>; Thomas Hilaire <thilaire@linagora.com>
+= Opush 3.0.0 Administration Guide
+Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com>; Thomas Hilaire <thilaire@linagora.com>;
 :imagesdir: images
 :numbered:
 :sectlink:
 :sectids:
 :toc: left
+:toclevels: 1
 :icons: font
 
 == About
 
 Opush is a free (as in beer and as in speech) ActiveSync server that provides
-access to your OBM data. It synchronizes your OBM account using your device's 
+access to your *OBM* data. It synchronizes your *OBM* account using your device's 
 native applications.
 
 You usually don't have any application to install on your device in order to
-enjoy every capabilities offered by your favorite devices : iPhone, iPad,
-Androids, Windows Phone ...
+enjoy every capability offered by your favorite devices : iPhone, iPad,
+Android, Windows Phone ...
 
-=== Synchronized data
+=== Synchronized Data
 
 Opush is able to do bidirectional synchronization of :
 
-* your *emails* (every folders)
+* your *emails*
 * your *calendar events*
 * your personal and shared *address books*
 
-=== Supported devices
+=== Supported Devices
 
-Every ActiveSync clients should be able to be synchronized with OBM through
+Every ActiveSync client should be able to synchronize with *OBM* through
 Opush.
 
-However, there's a limited list of offically supported devices :
+However, there's a limited list of officially supported devices :
 
 |===============================================================================
 |*Vendor (OS)*			|*Model*	|*Contacts*	|*Mail*	|*Agenda*|
@@ -48,6 +49,8 @@ However, there's a limited list of offically supported devices :
 |Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
 |===============================================================================
 
+include::architecture.adoc[]
+
 include::cassandra-configuration.adoc[]
 
 include::debian-installation.adoc[]
@@ -57,7 +60,5 @@ include::debian-upgrade.adoc[]
 include::rhel-installation.adoc[]
 
 include::rhel-upgrade.adoc[]
-
-include::crash-usage.adoc[]
 
 include::administration.adoc[]

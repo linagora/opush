@@ -1,15 +1,12 @@
-== How to install Opush on Red Hat Enterprise Linux and CentOS
+== How to Install Opush on Red Hat Enterprise Linux and CentOS
 
-=== System requirements
+=== System Requirements
 
-  * Today the latest version is 6.5 (as of February 26, 2014). 
-Opush is currently available only with 6.x version.
-  * Opush 3 runs on *Java* 7, we advise to use http://openjdk.java.net/projects/jdk7/[*OpenJDK*].
-  * Opush needs http://obm.org/content/install-obm-25-centos-6[*OBM to be installed*] on your network, the required *OBM* components are:
-    ** *obm-PostgreSQL* or *obm-MySQL*
-    ** *obm-locator*
-    ** *obm-sync*
-  * Opush needs <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra to be configured*>> on your network
+  * *RHEL 6.x* or *CentOS 6.x*
+  * *OpenJDK 7*
+  * A working http://obm.org/content/install-obm-25-centos-6[*OBM*] >= 2.5.7 
+	with *obm-sync*
+  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>
 
 
 === Repository Configuration
@@ -33,11 +30,11 @@ $ yum install opush
 ----
 
 
-=== Configuration Example
+=== Configuration
 
 include::rhel-configuration.adoc[]
 
-=== Restarting Opush
+=== Opush Restart
  
 [source]
 ----
@@ -45,7 +42,7 @@ $ service opush restart
 ----
  
  
-=== Activating Opush service on boot
+=== Opush Service Activation on Boot
  
 [source]
 ----
