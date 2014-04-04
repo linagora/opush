@@ -381,5 +381,32 @@ You can use the following logger modules:
 
 === +BREAKDOWN+ Logs
 
-TODO
+Requests execution timings are tracked by Opush. It records the time spent in every category that compose the request life-cycle.
 
+[source]
+----
+REQUEST:1147 (EMAIL:1095 (CASSANDRA:16, SQL:3, OTHER:1076), CASSANDRA:14, SQL:11, OTHER:27)
+----
+
+You have to read the +BREAKDOWN+ log line above as a tree where levels are separated by parentheses. +
+It is easy to understand with some explanations:
+
+* +REQUEST:1147+ means that the whole request execution took *1147ms* +
+  ** +EMAIL:1095+: in *REQUEST*, *1095ms* has been spent in the *EMAIL* category +
+    *** +CASSANDRA:16+: in *EMAIL*, *16ms* has been spent in the *CASSANDRA* category +
+    *** +SQL:3+: in *EMAIL*, *3ms* has been spent in the *SQL* category +
+    *** +OTHER:1076+: in *EMAIL*, *1076ms* has been spent in treatments belonging to undefined category  +
+  ** +CASSANDRA:14+: in *REQUEST*, *14ms* has been spent in the *CASSANDRA* category +
+  ** +SQL:11+: in *REQUEST*, *11ms* has been spent in the *SQL* category +
+  ** +OTHER:27+: in *REQUEST*, *27ms* has been spent in treatments belonging to to undefined category  +
+
+Interpretation of these values can be useful to understand performance issues of your Opush server. +
+What is interesting in this example is +OTHER:1076+, it means that 1076ms has been spent in unnamed code category of *EMAIL*. +
+It might be the imap server which is really long to treat Opush requests.
+
+There are few rules applied to these logs that could be great to know:
+
+* The first category is always *REQUEST*
+* Duration of a category is always the sum of its children
+* A branch of the tree can only have one occurrence of each category
+* Children of a category are ordered by descending duration time except the +OTHER+ entry that is always the last
