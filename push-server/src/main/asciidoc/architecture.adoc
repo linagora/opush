@@ -2,47 +2,47 @@
 
 Opush can be seen as a connector that provides ActiveSync support to *OBM*.
 
-I depends on a lot of *OBM* services :
+It requires several *OBM* services:
 
-* *obm-locator* for localizing *OBM* services
-* *obm-sync* for calendar and addressbooks synchronization
+* *obm-locator* for locating *OBM* services
+* *obm-sync* for calendar and addressbook synchronization
 * *LDAP* for user lookup
 * *Cyrus* for email synchronization
 * *Postfix* for sending emails
-* *Postgres* for storing some internal states
+* *Postgres* as a database backend
 
-It adds some technical dependencies too :
+Additionally there are some technical dependencies:
 
-* *Cassandra* for storing some internal states
+* *Cassandra* for storing the internal state
 * *OpenJDK 7*
 
 === ActiveSync Protocol
 
-Opush closes the gap between ActiveSync protocol that is a state machine using
-Microsoft definition of objects such as an event, a contact or an email and
-*OBM* Webservices providing corresponding *OBM* objects.
+The Microsoft definition of objects such as events, contacts or emails differ 
+from the *OBM* representation. Opush closes this gap by providing an ActiveSync 
+frontend to *OBM*.
 
 For this purpose, when a synchronization request comes from a device,
-Opush analyze this request, looks for services locations and delegate data
-retrieving to *Cyrus*, *obm-sync* and/or *LDAP*.
+Opush analyzes this request, looks for *OBM* service locations and delegates data
+retrieval to *Cyrus*, *obm-sync* and/or *LDAP*.
 
-It then keeps track of objects pushed to the device to handle later
+It then keeps track of objects pushed to the device to handle subsequent
 synchronization requests. It uses *Cassandra* and *Postgres* for this purpose.
 
 === Technical Overview
 
-Opush is a *Java* application using an embedded Http server.
+Opush is a *Java* application using an embedded http server.
 
-It uses a modular design that enables important technologies shifts without
-having to break the whole application every time.
+It uses a modular design that allows shifting technology without breaking
+the whole application every time.
 
-In the recent past, it changed its email backend from an in-house solution to
-a javax.mail based backend and then came back to an improved version of the
+Recently, Opush has changed the email backend from an in-house solution to
+a javax.mail based backend and then returned to an improved version of the
 in-house solution.
 
 It also changed from *EHCache* to *Cassandra* for internal state storage.
 
-We expect to continue with such breaking changes for some times, providing
-new capabilities such as *high availability*, *horizontal scalability*,
-*improved management*, *great monitoring*, and support for latests
+We expect to continue with such breaking changes for some times, improving our 
+capabilities such as *high availability*, *horizontal scalability*,
+*improved management*, *great monitoring*, and support for latest
 ActiveSync specifications.

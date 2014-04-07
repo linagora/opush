@@ -15,7 +15,7 @@ Please follow this installation process <<_opush_on_squeeze_installation>>
   * *OpenJDK 7*
   * A working http://obm.org/wiki/install-obm-debian-squeeze[*OBM*] >= 2.5.7 
 	with *obm-sync*
-  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>
+  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>.
 
 === Opush on Wheezy Installation
 
@@ -82,20 +82,20 @@ $ apt-get install opush
 
 During the installation process, you will be asked some questions:
 
-  * +Host IP address for OBM database server+ your *OBM* host
+  * +Host IP address for OBM database server+ Your *OBM* host
   * +Type of OBM database server+ Type of *OBM* database server
   * +OBM database name+ *OBM* database name
   * +OBM database user name+ *OBM* database user
   * +Host IP address for LDAP server+ URL of the *OBM* LDAP (_ldap://..._ or _ldaps://..._)
-  * +external url of OBM+ your *OBM* FQDN
+  * +External url of OBM+ Your *OBM* FQDN
   * +OBM database user password+ *OBM* database user password
   * +Authorize synchronization of unknown devices by default+ true/false
-  * +Opush Cassandra seeds+ list of *Cassandra* seeds (IPs), separated by commas
+  * +Opush Cassandra seeds+ List of *Cassandra* seeds (IPs), separated by commas
   * +Opush Cassandra keyspace+ *Cassandra* keyspace for Opush
   * +Opush Cassandra user+ *Cassandra* user for Opush
   * +Opush Cassandra user password+ *Cassandra* user password for Opush
 
-Answering these questions will append the responses in the following configuration files:
+Answering these questions will modify the following configuration files:
 
   * +/etc/opush/opush.ini+
   * +/etc/opush/ldap_conf.ini+

@@ -11,7 +11,7 @@ give extra rights to the *OBM* domain administrators.
 
 [WARNING]
 ====
-It means that an *OBM* domain administrator actions impact the whole server and
+The consequence is that an *OBM* domain administrator actions impact the whole server and
 all domains.
 ====
 
@@ -40,7 +40,7 @@ $ ssh user@your_server -p port
 where
 
   * +user+ is an admin user of the corresponding domain
-  * +your_server+ is the IP of the Opush server
+  * +your_server+ is the IP or hostname of the Opush server
   * +port+ is the port of *CRaSH* (default: +5665+)
 
 
@@ -76,7 +76,7 @@ image::crash_dashboard.png["CRaSH dashboard"]
 
 ==== Commands
 
-The main goals of this tool are:
+The main operations of this tool are:
 
  * monitor the Opush server (+dashboard+)
  * display the current configuration (+system+, +jvm+)
@@ -113,7 +113,7 @@ inform about optional and mandatory updates.
 
 This command installs a schema on a new *Cassandra* server.
 It is intended to be run only after the first Opush installation.
-You won't be able to use Opush until this schema is installed
+You won't be able to use Opush until the schema is installed
 
 .+install+ output
 	% schema install 
@@ -121,7 +121,7 @@ You won't be able to use Opush until this schema is installed
 
 ====== +schema update+
 
-This command will update the *Cassandra* schema to the latest version available.
+This command will update the *Cassandra* schema to the latest available version.
 
 .+update+ output
 	% schema update

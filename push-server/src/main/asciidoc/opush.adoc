@@ -14,13 +14,13 @@ Opush is a free (as in beer and as in speech) ActiveSync server that provides
 access to your *OBM* data. It synchronizes your *OBM* account using your device's 
 native applications.
 
-You usually don't have any application to install on your device in order to
-enjoy every capability offered by your favorite devices : iPhone, iPad,
+With Opush, you don't need to have any extra applications installed on your device in order to
+enjoy all capabilities offered by your favorite device: iPhone, iPad,
 Android, Windows Phone ...
 
 === Synchronized Data
 
-Opush is able to do bidirectional synchronization of :
+Opush is capable of doing bidirectional synchronization of:
 
 * your *emails*
 * your *calendar events*
@@ -31,22 +31,22 @@ Opush is able to do bidirectional synchronization of :
 Every ActiveSync client should be able to synchronize with *OBM* through
 Opush.
 
-However, there's a limited list of officially supported devices :
+However, there's a limited list of officially supported devices:
 
 |===============================================================================
-|*Vendor (OS)*			|*Model*	|*Contacts*	|*Mail*	|*Agenda*|
-|Apple (iOS 5, iOS6, iOS7)	|iPhone, iPad 	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|BlackBerry (OS 10)		|Z10		|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Google (Android 4.2.1)		|Nexus 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|HTC (Android 2.3.3)		|Desire		|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|HTC (Android 2.3.5)		|Desire S	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Nokia (Windows Phone 8.0)	|Lumia 920	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Samsung (Android 2.3)		|Galaxy S/SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
-|Motorola (Android 4.4.2)	|Moto G		|[red]#NO#	|[green]#YES#	|[green]#YES#	|
-|Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	|
+|*Vendor (OS)*			|*Model*	|*Contacts*	|*Mail*	|*Agenda*
+|Apple (iOS 5, iOS6, iOS7)	|iPhone, iPad 	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|BlackBerry (OS 10)		|Z10		|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Google (Android 4.2.1)		|Nexus 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|HTC (Android 2.3.3)		|Desire		|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|HTC (Android 2.3.5)		|Desire S	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Nokia (Windows Phone 8.0)	|Lumia 920	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Samsung (Android 2.3)		|Galaxy S/SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Motorola (Android 4.4.2)	|Moto G		|[red]#NO#	|[green]#YES#	|[green]#YES#	
+|Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |===============================================================================
 
 include::architecture.adoc[]

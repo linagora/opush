@@ -4,34 +4,34 @@ include::crash-usage.adoc[]
 
 === Device Reinitialization
 
-For some reasons, users may need to reset their devices.
+Sometimes users may need to reset their devices.
 This can be done by two different ways in *OBM*:
 
 * by *obm-ui*: the *OBM* administrator has to delete the mobile device in the
 	dedicated user page
 * by the device itself: the device user has to modify the filter type
-	(amount to synchronize) in the ActiveSync account settings
+	(synchronization timeframe) in the ActiveSync account settings
 
 Here is a list of devices which are known to be compatible with this
 operation:
 
 |=======================================================================
-|*Device*				| *By obm-ui*	|*By device*	|
-|HTC HD Mini (Windows Mobile 6.5)	| [green]#YES#	| [green]#YES#	|
-|iPhone 4 (iOS 5.1.1)			| [green]#YES#	| [green]#YES#	|
-|iPad 3 (iOS 6.0.1)			| [green]#YES#	| [green]#YES#	|
+|*Device*				| *By obm-ui*	|*By device*	
+|HTC HD Mini (Windows Mobile 6.5)	| [green]#YES#	| [green]#YES#	
+|iPhone 4 (iOS 5.1.1)			| [green]#YES#	| [green]#YES#	
+|iPad 3 (iOS 6.0.1)			| [green]#YES#	| [green]#YES#	
 |Samsung GALAXY S (Android 2.3.4)	| [green]#YES#
-	(need email application or device restart)	| [green]#YES#	|
+	(need email application or device restart)	| [green]#YES#	
 |Samsung GALAXY SII (Android 2.3.3)	| [green]#YES#
-	(need email application or device restart)	| [green]#YES#	|
-|Samsung GALAXY SII (Android 4.0.3)	| [green]#YES#	| [green]#YES#	|
-|Samsung OMNIA 7 (Windows Phone 7.5)	| [green]#YES#	| [green]#YES#	|
+	(need email application or device restart)	| [green]#YES#	
+|Samsung GALAXY SII (Android 4.0.3)	| [green]#YES#	| [green]#YES#	
+|Samsung OMNIA 7 (Windows Phone 7.5)	| [green]#YES#	| [green]#YES#	
 |=======================================================================
 
 === Supervision
 
 We supply a probe called *Spushnik* to supervise your Opush server. See the
-spushnik documentation for more information.
+http://obm.org/content/spushnik[spushnik documentation] for more information.
 
 == Provide Access to the Opush Server
 
@@ -54,7 +54,7 @@ proxy configuration by yourself. In this case, be sure to bind
 +https://_your_apache_server_/autodiscover+ to 
 +http://_your_opush_server_:8082/opush/Autodiscover/+
 
-WARNING: be careful, +autodiscover+ is supposed to be case-insensitive
+WARNING: +autodiscover+ must be matched case-insensitive.
 
 .Apache configuration directives
 [source]
@@ -85,7 +85,7 @@ server {
 
 === DNS
 
-When you try to add an ActiveSync account on your device, you have set the
+When you try to add an ActiveSync account on your device, you must set the
 user email address. +
 When using <<_autodiscover,autoconfiguration feature>>, the domain part of the
 email will be used to find the target server. +
@@ -120,25 +120,25 @@ ActiveSync defines some special folders: +Inbox+, +Drafts+, +Sent+ and
 These folders are mapped to default IMAP folders that way:
 
 |=======================================
-| *ActiveSync folder* 	| *IMAP folder*	|
-| +Inbox+		| +INBOX+	|
-| +Drafts+		| +Drafts+	|
-| +Deleted+		| +Trash+	|
-| +Sent+		| +Sent+	|
+| *ActiveSync folder* 	| *IMAP folder*	
+| +Inbox+		| +INBOX+	
+| +Drafts+		| +Drafts+	
+| +Deleted+		| +Trash+	
+| +Sent+		| +Sent+	
 |=======================================
 
 You can change these default mappings by defining the following keys in
 +/etc/opush/mail_conf.ini+:
 
 |===============================================
-| *ActiveSync folder*	| *Configuration key*	|
-| +Drafts+		| +imap.mailbox.draft+	|
-| +Deleted+		| +imap.mailbox.sent+	|
-| +Sent+		| +imap.mailbox.trash+	|
+| *ActiveSync folder*	| *Configuration key*	
+| +Drafts+		| +imap.mailbox.draft+	
+| +Deleted+		| +imap.mailbox.sent+	
+| +Sent+		| +imap.mailbox.trash+	
 |===============================================
 
 NOTE: the INBOX folder is not configurable because INBOX always exists as specified
-by the http://tools.ietf.org/html/rfc3501[IMAP RFC 3501], section 5.1.
+by http://tools.ietf.org/html/rfc3501[IMAP RFC 3501], section 5.1.
 
 .+/etc/opush/mail_conf.ini+ example:
 ****
@@ -170,28 +170,28 @@ include::sources/mail_conf.ini[]
 ----
 
 |===============================================================================================================
-| *Configuration key*		| *Value type*			| *Comments*					|
+| *Configuration key*		| *Value type*			| *Comments*					
 | +imap.activateTLS+		| +boolean+ (true/false)	| Opush uses startTLS to secure IMAP
-	 							  connection					|
+	 							  connection					
 | +imap.loginWithDomain+	| +boolean+ (true/false)	| Opush includes @domain in login
-								  for IMAP authentication			|
+								  for IMAP authentication			
 | +imap.timeoutInMs+		| +milliseconds+		| timeout before Opush gives up an IMAP
-								  command					|
-| +message.maxSize+		| +bytes+			| Max size allowed when sending a mail		|
+								  command					
+| +message.maxSize+		| +bytes+			| Max size allowed when sending a mail		
 |===============================================================================================================
 
 === LDAP
 
 ==== About LDAP in Opush
 
-In Opush, LDAP is only used for user lookups, depending on the clients requests.
+In Opush, LDAP is used only for user lookups, depending on the clients requests.
 
-Usually, it is used for recipient auto-completion when the user writes an email.
+Usually, it is used for recipient auto-completion when the user is writing an email.
 
 [WARNING]
 ====
 LDAP is neither used directly by Opush to populate the client address books nor
-to authenticate anybody. These two features are delegated to obm-sync.
+for authentication. These two features are delegated to obm-sync.
 ====
 
 ==== Configuration
@@ -201,12 +201,12 @@ The Opush LDAP configuration file is located at +/etc/opush/ldap_conf.ini+.
 Every field is required and cannot be empty:
 
 |===============================================================================================
-| *Configuration key*	| *Value type*	| *Comments*						|
-| +search.ldap.filter+	| +String+	| the filter expression to use for the search		|
-| +search.ldap.url+	| +String+	| the address where the ldap server can be 
+| *Configuration key*	| *Value type*	| *Comments*						
+| +search.ldap.filter+	| +String+	| The filter expression to use for the search		
+| +search.ldap.url+	| +String+	| The address where the ldap server can be 
 					  reached (we advise to specify the protocol
-					  used, +ldap://+ or +ldaps://+)				|
-| +search.ldap.basedn+	| +String+	| the name of the context or object to search for	|
+					  used, +ldap://+ or +ldaps://+)			
+| +search.ldap.basedn+	| +String+	| The name of the context or object to search for	
 |===============================================================================================
 
 
@@ -221,19 +221,19 @@ search.ldap.basedn=dc=%d,dc=local
 
 You can check your LDAP configuration by looking at the logs when Opush starts.
 You only have to activate the +CONFIGURATION+ logger, for more details check
-the <<_logs,logs documentation section>> .
+the <<_logs,logs documentation section>>.
 
 
 === Autodiscover
 
-The Autodiscover feature allows devices to find a working configuration by 
-themselves based on a user email address.
+The Autodiscover feature allows devices to detect the correct configuration 
+based on the user's email address.
 
 This feature requires a secure communication channel between the device and the
 server.
 
-Even if it could work without any certificate depending on the device used,
-most devices require a valid SSL certificate.
+Although some devices do not require a valid certificate it is highly 
+recommended to set up a valid SSL certificate.
 
 [NOTE]
 ====
@@ -243,15 +243,15 @@ Microsoft specifications:
 * http://msdn.microsoft.com/en-us/library/ee159670.aspx[Protocol Examples]
 ====
 
-==== Devices Configuration Steps
+==== Device Configuration Steps
 
 ===== Certificate
 
 If you have a certificate signed by a trusted authority, Autodiscover should
 work out of the box.
 
-If you have a self-signed certificate, you need to import this certificate on
-each device. Please refer to your device documentation.
+For self-signed certificates, you need to import this certificate on
+each device. Please refer to your device documentation for more details.
 
 ===== Account Creation
 
@@ -264,14 +264,14 @@ each device. Please refer to your device documentation.
 ===== Compatibility
 
 |===============================================================================
-|*Device*		|*ROM / Version*	|*Compatibility*		|
-|HTC SAGA SENSE 3.0	|Orange / Android 2.3.5 |[green]#YES#			|
-|IPHONE 4		|IOS 5.1.1		|[green]#YES#			|
-|IPAD 3			|IOS 6.0.1		|[green]#YES#			|
-|SAMSUNG GALAXY S	|Orange / Android 2.3.4	|[red]#NO#			|
-|SAMSUNG GALAXY SII	|Orange / Android 4.0.3	|[red]#NO#			|
-|SAMSUNG GALAXY SII	|Orange / Android 2.3.3	|[red]#Not implemented by the phone#|
-|SAMSUNG OMNIA 7	|Windows phone 7.5	|[red]#NO#			|
+|*Device*		|*ROM / Version*	|*Compatibility*		
+|HTC SAGA SENSE 3.0	|Orange / Android 2.3.5 |[green]#YES#			
+|IPHONE 4		|IOS 5.1.1		|[green]#YES#			
+|IPAD 3			|IOS 6.0.1		|[green]#YES#			
+|SAMSUNG GALAXY S	|Orange / Android 2.3.4	|[red]#NO#			
+|SAMSUNG GALAXY SII	|Orange / Android 4.0.3	|[red]#NO#			
+|SAMSUNG GALAXY SII	|Orange / Android 2.3.3	|[red]#Not implemented by the phone#
+|SAMSUNG OMNIA 7	|Windows phone 7.5	|[red]#NO#			
 |===============================================================================
 
 ==== Underlying Protocol
@@ -333,19 +333,19 @@ Here is a sample line:
 
 It's composed of:
 
-* +05:26:36.669+ : the time of this log entry
-* +[INFO]+ : log entry level
-* +{IMAP.COMMAND}+ : logger name for this entry
-* +t10079+ : thread id writing this log entry prefixed by t
-* +cFolderSync+ : the ActiveSync command name prefixed by c.
+* +05:26:36.669+: The time of this log entry
+* +[INFO]+: Log entry level
+* +{IMAP.COMMAND}+: Logger name for this entry
+* +t10079+: Thread id writing this log entry prefixed by t
+* +cFolderSync+: The ActiveSync command name prefixed by c.
 			Here the command was "FolderSync"
-* +r942+ : request id prefixed by r
-* +userlogin@obm.lng.org+ user causing this log entry
-* +message content+ : logged data
+* +r942+: Request id prefixed by "r"
+* +userlogin@obm.lng.org+: User causing this log entry
+* +message content+: Logged data
 
 === Loggers
 
-Opush, like all *Java* components of *OBM*, uses a logger API to generate information
+Opush, like all *Java* components of *OBM*, uses a logging API to generate information
 useful to developers to investigate bugs. This section documents how to
 configure the right log level for your needs as an administrator. +
 Loggers exist in two forms: named loggers and technical loggers. +
@@ -392,21 +392,21 @@ You have to read the +BREAKDOWN+ log line above as a tree where levels are separ
 It is easy to understand with some explanations:
 
 * +REQUEST:1147+ means that the whole request execution took *1147ms* +
-  ** +EMAIL:1095+: in *REQUEST*, *1095ms* has been spent in the *EMAIL* category +
-    *** +CASSANDRA:16+: in *EMAIL*, *16ms* has been spent in the *CASSANDRA* category +
-    *** +SQL:3+: in *EMAIL*, *3ms* has been spent in the *SQL* category +
-    *** +OTHER:1076+: in *EMAIL*, *1076ms* has been spent in treatments belonging to undefined category  +
-  ** +CASSANDRA:14+: in *REQUEST*, *14ms* has been spent in the *CASSANDRA* category +
-  ** +SQL:11+: in *REQUEST*, *11ms* has been spent in the *SQL* category +
-  ** +OTHER:27+: in *REQUEST*, *27ms* has been spent in treatments belonging to to undefined category  +
+  ** +EMAIL:1095+: in *REQUEST*, *1095ms* have been spent in the *EMAIL* category +
+    *** +CASSANDRA:16+: in *EMAIL*, *16ms* have been spent in the *CASSANDRA* category +
+    *** +SQL:3+: in *EMAIL*, *3ms* have been spent in the *SQL* category +
+    *** +OTHER:1076+: in *EMAIL*, *1076ms* have been spent executing code in the remaining categories  +
+  ** +CASSANDRA:14+: in *REQUEST*, *14ms* have been spent in the *CASSANDRA* category +
+  ** +SQL:11+: in *REQUEST*, *11ms* have been spent in the *SQL* category +
+  ** +OTHER:27+: in *REQUEST*, *27ms* have been spent executing code in the remaining categories  +
 
-Interpretation of these values can be useful to understand performance issues of your Opush server. +
+Interpretation of these values can be useful to understand performance metrics of your Opush server. +
 What is interesting in this example is +OTHER:1076+, it means that 1076ms has been spent in unnamed code category of *EMAIL*. +
-It might be the imap server which is really long to treat Opush requests.
+It might be the imap server taking very long to process the Opush requests.
 
-There are few rules applied to these logs that could be great to know:
+There are few fundamental rules that can be considered for better performance analysis:
 
 * The first category is always *REQUEST*
 * Duration of a category is always the sum of its children
 * A branch of the tree can only have one occurrence of each category
-* Children of a category are ordered by descending duration time except the +OTHER+ entry that is always the last
+* Children of a category are ordered by descending duration except for the +OTHER+ entry that is always the last

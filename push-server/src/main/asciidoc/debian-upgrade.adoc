@@ -25,9 +25,9 @@ conflicts with +obm-full-2.5.X+. +
 +obm-full+ is a meta-package only used to simplify installation of all *OBM*
 packages. +
 If you have it installed, it will be removed automatically when upgrading to 
-the new version of Opush. This will not affect the functionalities of *OBM*.
+the new version of Opush. This will not affect the functionality of *OBM*.
 
-During the upgrade +apt-get+ will ask for confirmation before removing conflicting packages. As they are dependencies of Opush 2 only, packages listed below will be removed. No other removal should be necessary.
+During the upgrade +apt-get+ will ask for confirmation before removing conflicting packages. As these are dependencies of Opush 2 only, packages listed below will be removed. No other removal should be necessary.
 
 [source]
 ----
@@ -82,7 +82,7 @@ Accept this solution? [Y/n/q/?]
 
 Go ahead and accept this solution by answering with *Y*.
 
-And then, accept the incoming new packages:
+Afterwards, accept the newly installed packages:
 [source]
 ----
 The following NEW packages will be installed:
@@ -123,7 +123,7 @@ explicitly every +obm-full+ dependency to be sure to keep everything.
 $ apt-get install opush obm obm-filter obm-satellite obm-sync obm-storage obm-ldap obm-ui obm-cyrus obm-postfix obm-services obm-locator obm-solr
 ----
 
-.If you don't have obm-full installed
+.If you don't have obm-full installed:
 
 [source]
 ----
@@ -136,12 +136,12 @@ $ apt-get install opush
 During the installation process, you will be asked some questions:
 
   * +Authorize synchronization of unknown devices by default+ true/false
-  * +Opush Cassandra seeds+ list of *Cassandra* seeds (IPs), separated by comas
+  * +Opush Cassandra seeds+ List of *Cassandra* seeds (IPs), separated by comas
   * +Opush Cassandra keyspace+ *Cassandra* keyspace for Opush
   * +Opush Cassandra user+ *Cassandra* user for Opush
   * +Opush Cassandra user password+ *Cassandra* user password for Opush
 
-Answering these questions will append the responses in the following configuration files:
+Answering these questions will modify the following configuration files:
 
   * +/etc/opush/cassandra.ini+
   * +/etc/opush/sync_perms.ini+

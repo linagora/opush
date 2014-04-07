@@ -10,12 +10,12 @@ include::sources/opush.ini[]
 
 And then replace the default values:
 
-  * +@DBHOST@+: your *OBM* host
+  * +@DBHOST@+: Your *OBM* host
   * +@DBTYPE@+: +PGSQL+ or +MYSQL+ (*OBM* database kind)
   * +@DBNAME@+: *OBM* database name
   * +@DBUSER@+: *OBM* database user
   * +@DBPASSWORD@+: *OBM* database user password
-  * +@EXTERNALURL@+: your *OBM* FQDN
+  * +@EXTERNALURL@+: Your *OBM* FQDN
   
 .Sample configuration
 ****
@@ -64,7 +64,7 @@ include::sources/ldap_conf.ini[]
 
 And then replace the default value:
 
-  * +@LDAPSERVER@+: URL of the *OBM* LDAP (_ldap://..._ or _ldaps://..._)
+  * +@LDAPSERVER@+: URL of the *OBM* LDAP server (_ldap://..._ or _ldaps://..._)
 
 .Sample configuration
 ****
@@ -88,7 +88,7 @@ include::sources/cassandra.ini[]
 
 And then replace values as followed:
 
-  * +@SEEDS@+: list of *Cassandra* seeds (IPs), separated by comas
+  * +@SEEDS@+: List of *Cassandra* seeds (IPs), separated by comas
   * +@KEYSPACE@+: *Cassandra* keyspace for Opush
   * +@USER@+: *Cassandra* user for Opush
   * +@PWD@+: *Cassandra* user password for Opush
