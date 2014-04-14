@@ -3,8 +3,13 @@
 === Requirements
 
   * *Cassandra* 2.0, version >= 2.0.6 +
+  * The *Cassandra* cluster must be installed (guides for
+http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installDeb_t.html[Debian]
+and
+http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installRHEL_t.html[RHEL])
+and http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[configured]
 
-  * The *Cassandra* cluster must be installed (guides for http://www.datastax.com/documentation/datastax_enterprise/4.0/datastax_enterprise/install/installDEBdse.html[Debian] and http://www.datastax.com/documentation/datastax_enterprise/4.0/datastax_enterprise/install/installRHELdse.html[RHEL]) and http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[configured] 
+WARNING: Despite what datastax documentation says, *Cassandra* works well on OpenJDK 7
 
 === Supported Cassandra Configurations
 
