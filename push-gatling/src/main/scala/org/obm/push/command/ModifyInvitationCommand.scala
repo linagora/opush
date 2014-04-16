@@ -31,24 +31,30 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
+import org.obm.push.bean.IApplicationData
 import org.obm.push.bean.MSEvent
+import org.obm.push.bean.change.SyncCommand
 import org.obm.push.context.User
 import org.obm.push.helper.SyncHelper
 import org.obm.push.wbxml.WBXMLTools
 
-import com.excilys.ebi.gatling.core.Predef.Session
+import io.gatling.core.Predef.Session
 
 class ModifyInvitationCommand(invitation: InvitationContext, wbTools: WBXMLTools)
 		extends AbstractInvitationCommand(invitation, wbTools) {
 
-	override val collectionCommandName = "Change"
+	override val commandTitle = "Modify invitation command"
+	  
+	override val collectionSyncCommand = SyncCommand.CHANGE
 	override def clientId(s: Session) = null
 	override def serverId(s: Session) = invitation.userKey.sessionHelper.findPendingInvitation(s).get.serverId
 		
 	override def buildEventInvitation(session: Session, organizer: User, attendees: Iterable[User]) = {
 		val syncResponse = invitation.userKey.sessionHelper.findLastSync(session).get
-		val eventServerId = invitation.userKey.sessionHelper.findPendingInvitation(session).get.serverId
-		val event = SyncHelper.findChangesWithServerId(syncResponse, eventServerId).head.getApplicationData().asInstanceOf[MSEvent]
+		val event = SyncHelper.findChangesWithServerId(syncResponse, serverId(session)).head.getApplicationData() match {
+			case data:IApplicationData => data.asInstanceOf[MSEvent]
+			case _ => super.buildEventInvitation(session, organizer, attendees)
+		}
 		event.setStartTime(invitation.startTime)
 		event.setEndTime(invitation.endTime)
 		event

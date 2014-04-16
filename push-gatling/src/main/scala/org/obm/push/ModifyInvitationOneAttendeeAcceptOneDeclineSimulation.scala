@@ -37,29 +37,31 @@ import org.obm.push.checks.Check
 import org.obm.push.command.InvitationCommand
 import org.obm.push.command.InvitationContext
 import org.obm.push.command.ModifyInvitationCommand
-import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
 import org.obm.push.command.SyncCollectionCommand.atLeastOneDeleteResponse
+import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
 import org.obm.push.context.User
-import com.excilys.ebi.gatling.http.Predef._
 
-import com.excilys.ebi.gatling.core.Predef.bootstrap.exec
+import io.gatling.core.Predef.bootstrap.exec
+import io.gatling.core.session.Session
+import io.gatling.core.validation.Success
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 class ModifyInvitationOneAttendeeAcceptOneDeclineSimulation extends InviteTwoUsersOneAcceptOneDeclineSimulation {
 
-	override def buildScenario(users: Iterator[User]) = {
-		super.buildScenario(users).exitHereIfFailed.exitBlockOnFail(
+	override def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
+		super.buildScenario(organizer, attendee1, attendee2).exitHereIfFailed.exitBlockOnFail(
 			exec(buildModifyInvitationCommand(invitation))
-			.exec(s => organizer.sessionHelper.updatePendingInvitation(s))
+			.exec(s => Success(organizerKey.sessionHelper.updatePendingInvitation(s)))
 			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(attendee1, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-			.exec(buildSyncCommand(attendee2, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-			.exec(buildMeetingResponseCommand(attendee1, AttendeeStatus.DECLINE))
-			.exec(buildMeetingResponseCommand(attendee2, AttendeeStatus.ACCEPT))
-			.exec(buildSyncCommand(attendee1, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
-			.exec(buildSyncCommand(attendee2, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+			.exec(buildSyncCommand(attendee1Key, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+			.exec(buildMeetingResponseCommand(attendee1Key, AttendeeStatus.DECLINE))
+			.exec(buildMeetingResponseCommand(attendee2Key, AttendeeStatus.ACCEPT))
+			.exec(buildSyncCommand(attendee1Key, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
 			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(organizer, usedCalendarCollection, Check.matcher((s, response) 
-					=> (organizer.sessionHelper.attendeeRepliesAreReceived(s, response.get), "Each users havn't replied"))))
+			.exec(buildSyncCommand(organizerKey, usedCalendarCollection, Check.matcher((s, response) 
+					=> (organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 		)
 	}
 	

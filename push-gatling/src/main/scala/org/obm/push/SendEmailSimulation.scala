@@ -29,13 +29,52 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.http
+package org.obm.push
 
-object HttpQueryParams {
+import scala.concurrent.duration.DurationInt
+
+import org.obm.push.command.SendEmailCommand
+import org.obm.push.command.SendEmailContext
+import org.obm.push.context.Configuration
+import org.obm.push.context.GatlingConfiguration
+import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.provisionedUsers
+import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.Predef.scenario
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
+
+class SendEmailSimulation extends Simulation {
+
+	val wbTools: WBXMLTools = new WBXMLTools
   
-	val USER = "User"
-	val DEVICE_ID = "DeviceId"
-	val DEVICE_TYPE = "DeviceType"
-	val COMMAND = "Cmd"
+	val configuration: Configuration = GatlingConfiguration.build
+
+	val userFrom = new UserKey("userFrom")
+	val userTo = new UserKey("userTo")
+	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
+	
+	lazy val sendEmailScenario = scenario("Send a simple email to a user").exitBlockOnFail(
+	    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+		.exec(new SendEmailCommand(sendEmailContext).buildCommand)
+	)
+
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
+		.disableFollowRedirect
+		.disableCaching
+		
+	
+	setUp(sendEmailScenario.inject(
+	    nothingFor(1 seconds),
+	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
+	)).protocols(httpConf)
 	
 }

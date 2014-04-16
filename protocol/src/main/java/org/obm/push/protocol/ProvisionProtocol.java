@@ -167,7 +167,10 @@ public class ProvisionProtocol implements ActiveSyncProtocol<ProvisionRequest, P
 		Element policy = DOMUtils.createElement(policies, "Policy");
 		
 		DOMUtils.createElementAndText(policy, "PolicyType", provisionRequest.getPolicyType());
-		DOMUtils.createElementAndText(policy, "PolicyKey", String.valueOf(provisionRequest.getPolicyKey()));
+		Long policyKey = provisionRequest.getPolicyKey();
+		if (policyKey != null) {
+			DOMUtils.createElementAndText(policy, "PolicyKey", String.valueOf(policyKey));
+		}
 		
 		return document;
 	}

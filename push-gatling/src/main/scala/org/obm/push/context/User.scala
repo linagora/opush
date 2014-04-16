@@ -31,25 +31,33 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context
 
-import java.math.BigDecimal
-import org.obm.push.bean.Device
-import org.obm.push.helper.SessionHelper
-import com.excilys.ebi.gatling.core.session.Session
 import org.apache.james.mime4j.dom.address.Mailbox
-import org.obm.push.ProtocolVersion
+import org.obm.push.bean.Device
+import org.obm.push.bean.DeviceId
+import org.obm.push.helper.SessionHelper
+import io.gatling.core.session.Session
+import io.gatling.core.validation.Success
+import org.obm.push.protocol.bean.ProvisionResponse
+import org.obm.push.protocol.bean.FolderSyncResponse
+import io.gatling.core.validation.Validation
 
-class User(userNumber: Int, configuration: Configuration) {
+case class User(
+	domain: String,
+	login: String,
+	password: String,
+	email: String,
+	deviceId: DeviceId,
+	deviceType: String
+) {
+  
+	def hasNoFolderSyncResponse = new Success(folderSyncResponse.isEmpty)
+	var folderSyncResponse: Option[FolderSyncResponse] = Option.empty
 	
-	val domain = configuration.defaultUserDomain
-	val login = "%s%d".format(configuration.defaultUserLoginPrefix, userNumber)
-	val password = configuration.defaultUserPassword
-	val email = {"%s@%s".format(login, domain)}
-	val policyKey = configuration.defaultUserPolicyKey
-	val deviceId = configuration.defaultUserDeviceId
-	val deviceType = configuration.defaultUserDeviceType
-	
-	val userProtocol = "%s\\%s".format(domain, login)
-	lazy val mailbox = new Mailbox(login, domain)
+	var provisionResponse: Option[ProvisionResponse] = Option.empty
+	def hasNoProvisionResponse = new Success(provisionResponse.isEmpty)
+  
+	val userProtocol = "%s@%s".format(login, domain)
+	lazy val mailbox = new Mailbox(email.split("@")(0), email.split("@")(1))
 	lazy val device = new Device.Factory().create(
 			null, 
 			deviceType,
@@ -62,13 +70,26 @@ class UserKey (val key: String) {
 	
 	val elUserPolicyKey = key + ":PolicyKey"
 	
-	def getUser(session: Session) = session.getTypedAttribute[User](key)
+	def getUser(session: Session) = session.attributes.get(key).get.asInstanceOf[User]
+	
+	def updateProvisionResponse(session: Session): Validation[Session] = {
+		getUser(session).provisionResponse = sessionHelper.findLastProvisioning(session)
+		Success(session)
+	}
+	
+	def updateFolderSyncResponseResponse(session: Session): Validation[Session] = {
+		getUser(session).folderSyncResponse = sessionHelper.findLastFolderSync(session)
+		Success(session)
+	}
 	
 	lazy val sessionHelper = new SessionHelper(this) 
+	lazy val lastProvisioningSessionKey = buildSessionKey(UserSessionKeys.LAST_PROVISIONING_KEY)
 	lazy val lastFolderSyncSessionKey = buildSessionKey(UserSessionKeys.LAST_FOLDER_SYNC)
 	lazy val lastSyncSessionKey = buildSessionKey(UserSessionKeys.LAST_SYNC)
 	lazy val lastMeetingResponseSessionKey = buildSessionKey(UserSessionKeys.MEETING_RESPONSE)
 	lazy val lastInvitationClientIdSessionKey = buildSessionKey(UserSessionKeys.INVITATION_CLIENT_ID)
+	lazy val lastContactClientIdSessionKey = buildSessionKey(UserSessionKeys.CONTACT_CLIENT_ID)
+	lazy val lastContactServerIdSessionKey = buildSessionKey(UserSessionKeys.CONTACT_SERVER_ID)
 	lazy val lastPendingInvitationSessionKey = buildSessionKey(UserSessionKeys.PENDING_INVITATION)
 	
 	private[this] def buildSessionKey(sessionKey: UserSessionKeys.Keys) = "%s:%s".format(sessionKey, key)
@@ -77,10 +98,13 @@ class UserKey (val key: String) {
 object UserSessionKeys extends Enumeration {
 	type Keys = Value
 	
+	val LAST_PROVISIONING_KEY = Value("lastProvisioningKey")
 	val LAST_FOLDER_SYNC = Value("lastFolderSync")
 	val LAST_SYNC = Value("lastSync")
 	val MEETING_RESPONSE = Value("meetingResponse")
 	val INVITATION_CLIENT_ID = Value("invitationClientId")
+	val CONTACT_CLIENT_ID = Value("contactClientId")
+	val CONTACT_SERVER_ID = Value("contactServerId")
 	val PENDING_INVITATION = Value("pendingInvitation")
 	
 }

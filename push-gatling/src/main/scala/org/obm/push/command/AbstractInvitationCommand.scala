@@ -31,29 +31,41 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import scala.collection.JavaConversions.asScalaSet
-import scala.collection.JavaConversions.collectionAsScalaIterable
+import java.util.Date
+import java.util.UUID
+
+import org.obm.push.bean.AttendeeStatus
+import org.obm.push.bean.AttendeeType
+import org.obm.push.bean.CalendarBusyStatus
+import org.obm.push.bean.CalendarMeetingStatus
+import org.obm.push.bean.CalendarSensitivity
+import org.obm.push.bean.MSAttendee
 import org.obm.push.bean.MSEvent
+import org.obm.push.bean.MSEventUid
+import org.obm.push.bean.SyncCollectionCommandRequest
+import org.obm.push.bean.SyncCollectionCommandsRequest
 import org.obm.push.bean.SyncCollectionRequest
+import org.obm.push.bean.change.SyncCommand
 import org.obm.push.checks.Check
 import org.obm.push.context.User
 import org.obm.push.encoder.GatlingEncoders.calendarEncoder
-import org.obm.push.protocol.bean.SyncResponse
 import org.obm.push.utils.DOMUtils
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Session
-import org.obm.push.bean.SyncCollectionCommandsRequest
+
+import io.gatling.core.Predef.Session
 
 abstract class AbstractInvitationCommand(invitation: InvitationContext, wbTools: WBXMLTools)
 		extends AbstractSyncCommand(invitation, wbTools) {
 
+	override val commandTitle = "abstract invitation command"
+	  
 	override def buildSyncCollectionRequest(session: Session) = {
 		SyncCollectionRequest.builder()
 				.collectionId(invitation.findCollectionId(session))
 				.syncKey(invitation.nextSyncKey(session))
 				.commands(SyncCollectionCommandsRequest.builder()
-					.addCommand(org.obm.push.bean.SyncCollectionCommandRequest.builder()
-							.name(collectionCommandName)
+					.addCommand(SyncCollectionCommandRequest.builder()
+							.name(collectionSyncCommand.asSpecificationValue())
 							.clientId(clientId(session))
 							.serverId(serverId(session))
 							.applicationData(buildInvitationData(session))
@@ -69,19 +81,41 @@ abstract class AbstractInvitationCommand(invitation: InvitationContext, wbTools:
 		val event = buildEventInvitation(session, organizer, attendees)
 		val parent = DOMUtils.createDoc(null, "ApplicationData").getDocumentElement()
 		calendarEncoder.encode(organizer.device, parent, event, true)
-		event
+		parent
 	}
 	
-	val collectionCommandName: String
+	val collectionSyncCommand: SyncCommand
 	def clientId(session: Session): String
 	def serverId(session: Session): String
 	
-	def buildEventInvitation(session: Session, organizer: User, attendees: Iterable[User]): MSEvent
+	def buildEventInvitation(session: Session = null, organizer: User, attendees: Iterable[User]) = {
+		val event = new MSEvent()
+		event.setDtStamp(new Date())
+		event.setUid(new MSEventUid(UUID.randomUUID().toString()))
+		event.setSubject("Invitation from %s".format(organizer.email))
+		event.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING)
+		event.setBusyStatus(CalendarBusyStatus.BUSY)
+		event.setSensitivity(CalendarSensitivity.NORMAL)
+		
+		event.setOrganizerEmail(organizer.email)
+		for (attendee <- attendees) {
+			event.addAttendee(MSAttendee.builder()
+					.withEmail(attendee.email)
+					.withType(AttendeeType.REQUIRED)
+					.withStatus(AttendeeStatus.NOT_RESPONDED)
+					.build())
+		}
+		
+		event.setAllDayEvent(false)
+		event.setStartTime(invitation.startTime)
+		event.setEndTime(invitation.endTime)
+		event
+	}
 }
 
 
 object InvitationCommand {
-	val validSentInvitation = Check.manyToOne(Seq(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneAddResponse))
-	val validModifiedInvitation = Check.manyToOne(Seq(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneModifyResponse))
-	val validDeleteInvitation = Check.manyToOne(Seq(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneDeleteResponse))
+	val validSentInvitation = Check.manyToOne(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneAddResponse)
+	val validModifiedInvitation = Check.manyToOne(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneModifyResponse)
+	val validDeleteInvitation = Check.manyToOne(SyncCollectionCommand.validSync, SyncCollectionCommand.atLeastOneDeleteResponse)
 }

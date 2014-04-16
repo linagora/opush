@@ -31,33 +31,48 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.checks
 
-import com.excilys.ebi.gatling.core.session.Session
-import com.excilys.ebi.gatling.core.check._
+import io.gatling.core.session.Session
+import io.gatling.core.check._
+import io.gatling.core.validation._
 
 object Check {
 	
-	def success[T] = new MatchStrategy[T] {
-		def apply(value: Option[T], session: Session) = {
+	def success[T, X] = new Matcher[T, X] {
+		override def name = "always success"
+		override def apply(value: Option[T], param: X) = {
 			Success(value)
 		}
 	}
 	
-	def manyToOne[T](strategies: Iterable[MatchStrategy[T]]): MatchStrategy[T] = new MatchStrategy[T] {
-		def apply(value: Option[T], session: Session) = {
+	def manyToOne[T, X](strategies: Matcher[T, X]*): Matcher[T, X] = new Matcher[T, X] {
+		override def name = "many to one"
+		override def apply(value: Option[T], param: X) = {
 			val firstFailure = strategies
-					.map(_.apply(value, session))
+					.map(_.apply(value, param))
 					.find(_.isInstanceOf[Failure])
 			if (firstFailure.isEmpty) Success(value)
 			else firstFailure.get
 		}
 	}
 	
-	def matcher[T](matcher: (Session, Option[T]) => (Boolean, String)) = new MatchStrategy[T] {
-		def apply(value: Option[T], session: Session) = {
-			val (success, message) = matcher.apply(session, value)
+	def matcher[T, X](inline: (X, Option[T]) => (Boolean, String)) = new Matcher[T, X] {
+		override def name = "session matcher"
+		override def apply(value: Option[T], param: X) = {
+			val (success, message) = inline.apply(param, value)
 			if (success) Success(value)
 			else Failure(message)
 		}
 	}
 		
+}
+
+abstract class DataRequiredMatcher[T, X] extends Matcher[T, X] {
+		
+	override def name = "data required matcher"
+	override def apply(value: Option[T], param: X) = value match {
+	  case None => Failure("No data")
+	  case requiredValue:Some[T] => apply(requiredValue.get, param)
+	}
+	
+	def apply(value: T, param: X): Validation[Option[T]]
 }

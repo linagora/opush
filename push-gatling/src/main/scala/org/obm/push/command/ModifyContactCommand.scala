@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,42 +31,22 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.apache.james.mime4j.dom.address.Mailbox
-import org.obm.push.context.UserKey
+import org.obm.push.bean.change.SyncCommand
+import org.obm.push.wbxml.WBXMLTools
 
-@RunWith(classOf[JUnitRunner])
-class SendEmailCommandTest extends FunSuite {
+import io.gatling.core.Predef.Session
 
-	val userKey = new UserKey("user")
-	
-	test("SendEmail command name is SendMail") {
-		val sendEmailContext = new SendEmailContext(userKey, mailbox("to")) 
-		val command = new SendEmailCommand(sendEmailContext)
-		assert(command.commandName === "SendMail")
-	}
+class ModifyContactCommand(contact: ContactContext, wbTools: WBXMLTools)
+		extends AbstractContactCommand(contact, wbTools) {
 
-	test("SendEmail save in sent is T when true") {
-		val sendEmailContext = new SendEmailContext(userKey, mailbox("to"), saveInSent = true) 
-		assert(new SendEmailCommand(sendEmailContext).saveInSent === "T")
+	override val commandTitle = "Modify contact command"
+	  
+	override val collectionSyncCommand = SyncCommand.CHANGE
+		
+	override def buildContact(session: Session) = {
+		val msContact = super.buildContact(session).get
+		msContact.setFirstName("new FirstName")
+		msContact.setLastName("new LastName")
+		Option.apply(msContact)
 	}
-	
-	test("SendEmail save in sent is F when false") {
-		val sendEmailContext = new SendEmailContext(userKey, mailbox("to"), saveInSent = false) 
-		assert(new SendEmailCommand(sendEmailContext).saveInSent === "F")
-	}
-	
-	test("SendEmail message contains recipients") {
-		val sendEmailContext = new SendEmailContext(userKey, 
-				mailbox("from"), mailbox("to"), mailbox("cc"), mailbox("bcc"))
-		val message = new SendEmailCommand(sendEmailContext).buildMail
-		assert(message.getTo().contains(mailbox("to")))
-		assert(message.getFrom().contains(mailbox("from")))
-		assert(message.getCc().contains(mailbox("cc")))
-		assert(message.getBcc().contains(mailbox("bcc")))
-	}
-	
-	def mailbox(login: String) = new Mailbox(login, "domain.org")
 }

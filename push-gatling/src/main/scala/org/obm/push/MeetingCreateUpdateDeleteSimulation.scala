@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,16 +31,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.DurationInt
 
+import org.joda.time.DateTime
 import org.obm.DateUtils.date
 import org.obm.push.bean.FolderType
+import org.obm.push.command.DeleteInvitationCommand
 import org.obm.push.command.FolderSyncCommand
 import org.obm.push.command.InitialFolderSyncContext
 import org.obm.push.command.InitialSyncContext
+import org.obm.push.command.InvitationCommand.validDeleteInvitation
+import org.obm.push.command.InvitationCommand.validModifiedInvitation
+import org.obm.push.command.InvitationCommand.validSentInvitation
 import org.obm.push.command.InvitationContext
-import org.obm.push.command.ProvisioningCommand
+import org.obm.push.command.ModifyInvitationCommand
 import org.obm.push.command.SendInvitationCommand
 import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.command.SyncContext
@@ -48,18 +52,20 @@ import org.obm.push.context.Configuration
 import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
 
 import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.atOnce
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
 import io.gatling.core.Predef.scenario
-import io.gatling.core.Predef.userNumber
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class InviteTwoUsersSimulation extends Simulation {
+class MeetingCreateUpdateDeleteSimulation extends Simulation {
 
 	val wbTools: WBXMLTools = new WBXMLTools
 	val configuration: Configuration = GatlingConfiguration.build
@@ -71,17 +77,10 @@ class InviteTwoUsersSimulation extends Simulation {
 		.disableFollowRedirect
 		.disableCaching
 	
-	val userNumber = 1
-	for (userNumber <- Iterator.range(1, 100)) {
-		val organizerScenario = buildScenarioForOrganizer(userNumber)
-		setUp(organizerScenario.inject(atOnce(1))).protocols(httpConf)
-	}
-
-	def buildScenarioForOrganizer(userNumber: Int) = {
+	lazy val scenarioForOrganizer = {
 		val organizer = new UserKey("organizer")
 		val invitee1 = new UserKey("invitee1")
 		val invitee2 = new UserKey("invitee2")
-		
 		
 		val invitation = new InvitationContext(
 				organizer = organizer,
@@ -90,17 +89,26 @@ class InviteTwoUsersSimulation extends Simulation {
 				endTime = date("2014-01-12T10:00:00"),
 				folderType = usedCalendarCollection)
 
-		val duration = Duration(2, SECONDS)
-		scenario("{%d}: Send an invitation to two users".format(userNumber))
-			.exec(ProvisioningCommand.buildInitialProvisioningCommand(organizer))
-			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(organizer))
-			.exec(buildInitialFolderSyncCommand(organizer))
-			.pause(s => Success(duration))
-			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection))
-			.pause(s => Success(duration))
+		scenario("Create, update then delete a meeting").exitBlockOnFail(
+		    initializedUsers(UserFeeder.newCSV("users.csv", configuration, organizer, invitee1, invitee2), organizer)
+			.pause(configuration.pause)
+			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(configuration.pause)
+			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
 			.exec(buildSendInvitationCommand(invitation))
+			.pause(configuration.pause)
+			.exec(s => Success(organizer.sessionHelper.setupPendingInvitation(s, invitation)))
+			.exec(buildModifyInvitationCommand(invitation))
+			.pause(configuration.pause)
+			.exec(s => Success(organizer.sessionHelper.updatePendingInvitation(s)))
+			.exec(buildDeleteInvitationCommand(invitation))
+		)	
 	}
 	
+	setUp(scenarioForOrganizer.inject(
+	    nothingFor(5 seconds),
+	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
+	)).protocols(httpConf)
+    
 	def buildInitialFolderSyncCommand(userKey: UserKey) = {
 		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand
 	}
@@ -114,6 +122,18 @@ class InviteTwoUsersSimulation extends Simulation {
 	}
 	
 	def buildSendInvitationCommand(invitation: InvitationContext) = {
-		new SendInvitationCommand(invitation, wbTools).buildCommand
+		new SendInvitationCommand(invitation.modify(matcher = validSentInvitation), wbTools).buildCommand
+	}
+	
+	def buildModifyInvitationCommand(invitation: InvitationContext) = {
+		val updatedInvitation = invitation.modify(
+				startTime = new DateTime(invitation.startTime).plusHours(1).toDate(),
+				endTime = new DateTime(invitation.endTime).plusHours(1).toDate(),
+				matcher = validModifiedInvitation)
+		new ModifyInvitationCommand(updatedInvitation, wbTools).buildCommand
+	}
+	
+	def buildDeleteInvitationCommand(invitation: InvitationContext) = {
+		new DeleteInvitationCommand(invitation.modify(matcher = validDeleteInvitation), wbTools).buildCommand
 	}
 }

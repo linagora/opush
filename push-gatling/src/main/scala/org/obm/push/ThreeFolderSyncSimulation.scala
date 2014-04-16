@@ -31,19 +31,25 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
+import org.obm.push.command.AcceptProvisioningContext
 import org.obm.push.command.FolderSyncCommand
 import org.obm.push.command.FolderSyncContext
 import org.obm.push.command.InitialFolderSyncContext
+import org.obm.push.command.InitialProvisioningContext
+import org.obm.push.command.ProvisioningCommand
 import org.obm.push.context.Configuration
 import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.User
 import org.obm.push.context.UserKey
-import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Simulation
-import com.excilys.ebi.gatling.core.Predef.scenario
-import com.excilys.ebi.gatling.core.feeder.FeederBuiltIns
 import org.obm.push.context.feeder.UserFeeder
-import com.excilys.ebi.gatling.http.Predef._
+import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.atOnce
+import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.userNumber
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 class ThreeFolderSyncSimulation extends Simulation {
 
@@ -51,27 +57,24 @@ class ThreeFolderSyncSimulation extends Simulation {
   
 	val configuration: Configuration = GatlingConfiguration.build
 	
-	def apply = {
-		
-		val user = new User(1, configuration)
-		val userKey = new UserKey("user")
-		val feeder = new UserFeeder(Seq(user).iterator, userKey)
-		
-		val initialFolderSyncContext = new InitialFolderSyncContext(userKey)
-		val folderSyncContext = new FolderSyncContext(userKey)
-		
-		val folderSyncScenario = scenario("Three consecutive FolderSync request")
-			.exec(s => s.setAttributes(feeder.next))
-			.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
-			.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
-			.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
-					
-		val httpConf = httpConfig
-			.baseURL(configuration.targetServerUrl)
-			.disableFollowRedirect
-			.disableCaching
-		List(folderSyncScenario.users(1).ramp(10).protocolConfig(httpConf))
-		
-	}
+	val userKey = new UserKey("user")
+	
+	val initialProvisioningContext = new InitialProvisioningContext(userKey)
+	val acceptProvisioningContext = new AcceptProvisioningContext(userKey)
+	val initialFolderSyncContext = new InitialFolderSyncContext(userKey)
+	val folderSyncContext = new FolderSyncContext(userKey)
+	
+	val folderSyncScenario = scenario("Three consecutive FolderSync request")
+		.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
+		.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
+		.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
+		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+				
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
+		.disableFollowRedirect
+		.disableCaching
+	setUp(folderSyncScenario.inject(atOnce(1))).protocols(httpConf)
 	
 }

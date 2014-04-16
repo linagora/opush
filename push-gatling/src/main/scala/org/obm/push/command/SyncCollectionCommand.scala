@@ -32,19 +32,22 @@
 package org.obm.push.command
 
 import scala.collection.JavaConversions.collectionAsScalaIterable
+
+import org.obm.push.bean.SyncCollectionRequest
+import org.obm.push.bean.SyncKey
 import org.obm.push.bean.SyncStatus
+import org.obm.push.bean.change.SyncCommand
 import org.obm.push.checks.Check
+import org.obm.push.checks.DataRequiredMatcher
+import org.obm.push.helper.SyncHelper
 import org.obm.push.protocol.bean.SyncResponse
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Session
-import com.excilys.ebi.gatling.core.check.Failure
-import com.excilys.ebi.gatling.core.check.MatchStrategy
-import com.excilys.ebi.gatling.core.check.Success
+
 import com.google.common.base.Strings
-import org.obm.push.helper.SyncHelper
-import org.obm.push.bean.SyncKey
-import org.obm.push.bean.change.SyncCommand
-import org.obm.push.bean.SyncCollectionRequest
+
+import io.gatling.core.Predef.Session
+import io.gatling.core.validation.Failure
+import io.gatling.core.validation.Success
 
 class SyncCollectionCommand(syncContext: SyncContext, wbTools: WBXMLTools)
 	extends AbstractSyncCommand(syncContext, wbTools) {
@@ -59,21 +62,23 @@ class SyncCollectionCommand(syncContext: SyncContext, wbTools: WBXMLTools)
 }
 
 object SyncCollectionCommand {
-	
-	val onlyOneCollection = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			if (value.get.getCollectionResponses().size() <= 1) Success(value) 
+  
+	val onlyOneCollection = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - only one collection"
+		override def apply(value: SyncResponse, session: Session) = {
+			if (value.getCollectionResponses().size() <= 1) Success(Option.apply(value)) 
 			else Failure("Only one collection expected in resposne")
 		}
 	}
 	
-	val validSyncKey = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			val hasCollectionWithInvalidSyncKey = value.get
+	val validSyncKey = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - valid sync key"
+		override def apply(value: SyncResponse, session: Session) = {
+			val hasCollectionWithInvalidSyncKey = value
 					.getCollectionResponses()
 					.find(c => !isValidSyncKey(c.getSyncKey()))
 					.isDefined
-			if (!hasCollectionWithInvalidSyncKey) Success(value)
+			if (!hasCollectionWithInvalidSyncKey) Success(Option.apply(value))
 			else Failure("Invalid SyncKey in response")
 		}
 	}
@@ -87,43 +92,47 @@ object SyncCollectionCommand {
 		return false
 	} 
 	
-	val statusOk = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			if (value.get.getStatus() == SyncStatus.OK) Success(value)
-			else Failure("Status isn't ok : " + value.get.getStatus())
+	val statusOk = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - status ok"
+		override def apply(value: SyncResponse, session: Session) = {
+			if (value.getStatus() == SyncStatus.OK) Success(Option.apply(value))
+			else Failure("Status isn't ok : " + value.getStatus())
 		}
 	}
 	
-	val noChange = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			val hasNoChange = SyncHelper.findChanges(value.get).isEmpty
-			if (hasNoChange) Success(value) 
+	val noChange = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - no change"
+		override def apply(value: SyncResponse, session: Session) = {
+			val hasNoChange = SyncHelper.findChanges(value).isEmpty
+			if (hasNoChange) Success(Option.apply(value)) 
 			else Failure("Non expected change found in response")
 		}
 	}
 	
-	val atLeastOneAddResponse: MatchStrategy[SyncResponse] = atLeastOneTypedResponse(SyncCommand.ADD)
-	val atLeastOneModifyResponse: MatchStrategy[SyncResponse] = atLeastOneTypedResponse(SyncCommand.CHANGE)
-	val atLeastOneDeleteResponse: MatchStrategy[SyncResponse] = atLeastOneTypedResponse(SyncCommand.DELETE)
-	def atLeastOneTypedResponse(commandType: SyncCommand): MatchStrategy[SyncResponse] = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			val hasAddChange = value.get
+	val atLeastOneAddResponse: DataRequiredMatcher[SyncResponse, Session] = atLeastOneTypedResponse(SyncCommand.ADD)
+	val atLeastOneModifyResponse: DataRequiredMatcher[SyncResponse, Session] = atLeastOneTypedResponse(SyncCommand.CHANGE)
+	val atLeastOneDeleteResponse: DataRequiredMatcher[SyncResponse, Session] = atLeastOneTypedResponse(SyncCommand.DELETE)
+	def atLeastOneTypedResponse(commandType: SyncCommand): DataRequiredMatcher[SyncResponse, Session] = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - at least one response of type: " + commandType.asSpecificationValue()
+		override def apply(value: SyncResponse, session: Session) = {
+			val hasAddChange = value
 					.getCollectionResponses()
 					.flatMap(_.getResponses().getCommands())
 					.find(_.getType() == commandType)
 					.isDefined
-			if (hasAddChange) Success(value) 
+			if (hasAddChange) Success(Option.apply(value)) 
 			else Failure("No %s in response".format(commandType.asSpecificationValue()))
 		}
 	}
 	
-	val atLeastOneMeetingRequest = new MatchStrategy[SyncResponse] {
-		def apply(value: Option[SyncResponse], session: Session) = {
-			val meetingRequests = SyncHelper.findChangesWithMeetingRequest(value.get)
-			if (!meetingRequests.isEmpty) Success(value) 
+	val atLeastOneMeetingRequest = new DataRequiredMatcher[SyncResponse, Session] {
+		override def name = "Sync - at least one meeting request"
+		override def apply(value: SyncResponse, session: Session) = {
+			val meetingRequests = SyncHelper.findChangesWithMeetingRequest(value)
+			if (!meetingRequests.isEmpty) Success(Option.apply(value)) 
 			else Failure("No meeting request in response")
 		}
 	}
 	
-	val validSync = Check.manyToOne[SyncResponse](Seq(onlyOneCollection, validSyncKey, statusOk))
+	val validSync = Check.manyToOne(onlyOneCollection, validSyncKey, statusOk)
 }

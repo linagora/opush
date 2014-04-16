@@ -31,11 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.encoder
 
-import org.obm.push.protocol.data.SyncEncoder
-import org.obm.push.protocol.data.CalendarEncoder
+import org.obm.push.ProtocolVersion
 import org.obm.push.decoder.GatlingTimeZoneConverter
 import org.obm.push.protocol.FolderSyncProtocol
 import org.obm.push.protocol.MeetingProtocol
+import org.obm.push.protocol.ProvisionProtocol
+import org.obm.push.protocol.data.CalendarEncoder
+import org.obm.push.protocol.data.ContactEncoder
+import org.obm.push.protocol.data.SyncEncoder
 
 object GatlingEncoders {
 
@@ -44,7 +47,9 @@ object GatlingEncoders {
 	lazy val syncEncoder = new SyncEncoder() {}
 	lazy val folderSyncProtocol = new FolderSyncProtocol
 	lazy val meetingProtocol = new MeetingProtocol
+	lazy val provisioningProtocol = new ProvisionProtocol.Factory().createProtocol(ProtocolVersion.V121)
 	
 	lazy val calendarEncoder = new CalendarEncoder(timeZoneEncoder, GatlingTimeZoneConverter) {}
+	lazy val contactEncoder = new ContactEncoder() {}
 	
 }

@@ -31,21 +31,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.SECONDS
+
 import com.google.common.base.Strings
-import org.obm.push.bean.DeviceId
 
 object Arguments extends Enumeration {
   
-	val TARGET_SERVER_URL_ARG = Value("targetServerUrl")
+	val TARGET_SERVER_URL_ARG = Value("baseUrl")
 	val PARALLELS_SCENARIOS_COUNT = Value("parallelsScenariosCount")
 	val ASYNCHRONOUS_CHANGE_TIME = Value("asynchronousChangeTime")
-	  
-	val USER_DOMAIN = Value("userDomain")
-	val USER_LOGIN_PREFIX = Value("userLoginPrefix")
-	val USER_PASSWORD = Value("userPassword")
-	val USER_POLICY_KEY = Value("userPolicyKey")
-	val USER_DEVICE_ID = Value("userDeviceId")
-	val USER_DEVICE_TYPE = Value("userDeviceType")
 }
 
 object GatlingConfiguration {
@@ -53,42 +48,18 @@ object GatlingConfiguration {
 	def build(): Configuration = build(
 			System.getProperty(Arguments.TARGET_SERVER_URL_ARG.toString),
 			System.getProperty(Arguments.PARALLELS_SCENARIOS_COUNT.toString),
-			System.getProperty(Arguments.ASYNCHRONOUS_CHANGE_TIME.toString),
-			System.getProperty(Arguments.USER_DOMAIN.toString),
-			System.getProperty(Arguments.USER_LOGIN_PREFIX.toString),
-			System.getProperty(Arguments.USER_PASSWORD.toString),
-			System.getProperty(Arguments.USER_POLICY_KEY.toString),
-			System.getProperty(Arguments.USER_DEVICE_ID.toString),
-			System.getProperty(Arguments.USER_DEVICE_TYPE.toString))
+			System.getProperty(Arguments.ASYNCHRONOUS_CHANGE_TIME.toString))
 	
-	def build(
-			serverUrl: String, parallelsScenarios: String, asynchronousChange: String,
-			domain: String, loginPrefix: String,
-			password: String, policyKey: String, deviceId: String, deviceType: String) = {
+	def build(serverUrl: String, parallelsScenarios: String, asynchronousChange: String) = {
 	  
 			require(!Strings.isNullOrEmpty(serverUrl))
 			require(!Strings.isNullOrEmpty(parallelsScenarios))
 			require(!Strings.isNullOrEmpty(asynchronousChange))
-			require(!Strings.isNullOrEmpty(domain))
-			require(!Strings.isNullOrEmpty(loginPrefix))
-			require(!Strings.isNullOrEmpty(password))
-			require(!Strings.isNullOrEmpty(deviceId))
-			require(!Strings.isNullOrEmpty(deviceType))
-			require(!Strings.isNullOrEmpty(policyKey))
 			
 			new Configuration() {
-			
-				override val targetServerUrl = serverUrl
+				override val baseUrl = serverUrl
 				override val parallelsScenariosCount = parallelsScenarios.toInt
-				override val asynchronousChangeTime = asynchronousChange.toInt
-				 
-				override val defaultUserDomain = domain
-				override val defaultUserLoginPrefix = loginPrefix
-				override val defaultUserPassword = password
-				override val defaultUserPolicyKey = policyKey
-				override val defaultUserDeviceId = new DeviceId(deviceId)
-				override val defaultUserDeviceType = deviceType
-				
+				override val asynchronousChangeTime = Duration(asynchronousChange.toInt, SECONDS)
 		  	}
 	}
 }

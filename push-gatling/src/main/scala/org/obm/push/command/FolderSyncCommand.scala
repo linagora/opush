@@ -31,19 +31,22 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
+import org.obm.push.bean.FolderSyncStatus
+import org.obm.push.checks.Check
 import org.obm.push.checks.{WholeBodyExtractorCheckBuilder => bodyExtractor}
 import org.obm.push.encoder.GatlingEncoders.folderSyncProtocol
-import org.obm.push.wbxml.WBXMLTools
-import org.obm.push.checks.Check
 import org.obm.push.protocol.bean.FolderSyncRequest
 import org.obm.push.protocol.bean.FolderSyncResponse
-import org.obm.push.bean.FolderSyncStatus
-import com.excilys.ebi.gatling.core.Predef.Session
-import com.excilys.ebi.gatling.core.Predef.checkBuilderToCheck
-import com.excilys.ebi.gatling.core.check._
+import org.obm.push.wbxml.WBXMLTools
 import com.google.common.base.Strings
+import io.gatling.core.Predef.Session
+import io.gatling.core.validation.Failure
+import io.gatling.core.validation.Success
+import io.gatling.core.validation.Validation
+import io.gatling.http.request.ByteArrayBody
+import org.obm.push.checks.DataRequiredMatcher
 
-class FolderSyncCommand(folderSyncContext: FolderSyncContext, wbTools: WBXMLTools)
+class FolderSyncCommand(folderSyncContext: FolderSyncContext, wbTools: WBXMLTools = new WBXMLTools)
 	extends AbstractActiveSyncCommand(folderSyncContext.userKey) {
 
 	val folderSyncNamespace = "FolderHierarchy"
@@ -53,51 +56,53 @@ class FolderSyncCommand(folderSyncContext: FolderSyncContext, wbTools: WBXMLTool
 	  
 	override def buildCommand() = {
 		super.buildCommand()
-			.byteArrayBody((session: Session) => buildFolderSyncRequest(session))
-			.check(bodyExtractor
+			.body(new ByteArrayBody((session: Session) => buildFolderSyncRequest(session)))
+			.check(bodyExtractor.bodyBytes
 			    .find
-			    .transform((response: Array[Byte]) => toFolderSyncResponse(response))
-			    .matchWith(folderSyncContext.matcher)
-			    .saveAs(folderSyncContext.userKey.lastFolderSyncSessionKey))
+			    .transform(rawResponse => getOrNoneIfEmpty(rawResponse, toFolderSyncResponse))
+			    .matchWith(folderSyncContext.matcher, s => Success(s))
+			    .saveAs(folderSyncContext.userKey.lastFolderSyncSessionKey)
+			    .build)
 	}
 
-	def buildFolderSyncRequest(session: Session): Array[Byte] = {
+	def buildFolderSyncRequest(session: Session): Validation[Array[Byte]] = {
 		val nextFolderSyncSyncKey = folderSyncContext.nextSyncKey(session)
 		val request = FolderSyncRequest.builder().syncKey(nextFolderSyncSyncKey).build()
 		val requestDoc = folderSyncProtocol.encodeRequest(request)
-		wbTools.toWbxml(folderSyncNamespace, requestDoc)
+		Success(wbTools.toWbxml(folderSyncNamespace, requestDoc))
 	}
 	
-	def toFolderSyncResponse(response: Array[Byte]): FolderSyncResponse = {
-		val responseDoc = wbTools.toXml(response)
-		folderSyncProtocol.decodeResponse(responseDoc)
-	}
+	def toFolderSyncResponse(response: Array[Byte]) = folderSyncProtocol.decodeResponse(wbTools.toXml(response))
 }
 
 object FolderSyncCommand {
 	
-	val validSyncKey = new MatchStrategy[FolderSyncResponse] {
-		def apply(value: Option[FolderSyncResponse], session: Session) = {
-			val nextSyncKey = value.get.getNewSyncKey
+	val validSyncKey = new DataRequiredMatcher[FolderSyncResponse, Session] {
+		override def name = "FolderSync - valid synckey"
+		override def apply(value: FolderSyncResponse, session: Session) = {
+			val nextSyncKey = value.getNewSyncKey
 			if (nextSyncKey != null &&
-					!Strings.isNullOrEmpty(nextSyncKey.getSyncKey()) && nextSyncKey.getSyncKey() != "0") Success(value)
+					!Strings.isNullOrEmpty(nextSyncKey.getSyncKey()) && nextSyncKey.getSyncKey() != "0") Success(Option.apply(value))
 			else Failure("Invalid SyncKey in response")
 		}
 	}
 	
-	val statusOk = new MatchStrategy[FolderSyncResponse] {
-		def apply(value: Option[FolderSyncResponse], session: Session) = {
-			if (value.get.getStatus() == FolderSyncStatus.OK) Success(value)
-			else Failure("Status isn't ok : " + value.get.getStatus())
+	val statusOk = new DataRequiredMatcher[FolderSyncResponse, Session] {
+		override def name = "FolderSync - valid status"
+		override def apply(value: FolderSyncResponse, session: Session) = {
+			if (value.getStatus() == FolderSyncStatus.OK) Success(Option.apply(value))
+			else Failure("Status isn't ok : " + value.getStatus())
 		}
 	}
 	
-	val atLeastOneAdd = new MatchStrategy[FolderSyncResponse] {
-		def apply(value: Option[FolderSyncResponse], session: Session) = {
-			if (value.get.getCollectionsAddedAndUpdated().size() > 0) Success(value) 
+	val atLeastOneAdd = new DataRequiredMatcher[FolderSyncResponse, Session] {
+		override def name = "FolderSync - at least one add"
+		override def apply(value: FolderSyncResponse, session: Session) = {
+			if (value.getCollectionsAddedAndUpdated().size() > 0) Success(Option.apply(value)) 
 			else Failure("No add or update in response")
 		}
 	}
 	
-	val validInitialFolderSync = Check.manyToOne[FolderSyncResponse](Seq(validSyncKey, statusOk, atLeastOneAdd))
+	val validInitialFolderSync = Check.manyToOne(validSyncKey, statusOk, atLeastOneAdd)
+	val validFolderSync = Check.manyToOne(validSyncKey, statusOk)
 }

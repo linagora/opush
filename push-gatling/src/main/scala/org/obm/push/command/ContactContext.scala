@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,13 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.http
+package org.obm.push.command
 
-object HttpQueryParams {
-  
-	val USER = "User"
-	val DEVICE_ID = "DeviceId"
-	val DEVICE_TYPE = "DeviceType"
-	val COMMAND = "Cmd"
-	
+import scala.util.Random
+
+import org.obm.push.bean.FolderType
+import org.obm.push.checks.Check
+import org.obm.push.context.UserKey
+import org.obm.push.protocol.bean.SyncResponse
+
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
+
+object ContactContext {
+	val random: Random = new Random()
+	def generateClientId: String = random.nextInt(Int.MaxValue).toString()
+}
+
+class ContactContext(
+		userKey: UserKey,
+		folderType: FolderType = FolderType.DEFAULT_CONTACTS_FOLDER,
+		matcher: Matcher[SyncResponse, Session] = SyncCollectionCommand.validSync)
+			extends SyncContext(userKey, folderType, matcher) {
 }

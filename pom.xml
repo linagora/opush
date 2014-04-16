@@ -34,7 +34,7 @@
 		<backport-util-concurrent.version>3.1</backport-util-concurrent.version>
 		<btm.version>3.0.0-1a33e59482fd29f6993ef3dfb5fab12efa0b24d2</btm.version>
 		<cucumber.version>1.1.5</cucumber.version>
-		<gatling.version>1.5.2</gatling.version>
+		<gatling.version>2.0.0-M3a</gatling.version>
 		<guava.version>15.0</guava.version>
 		<guice.version>3.0</guice.version>
 		<httpclient.version>4.3</httpclient.version>
@@ -45,8 +45,8 @@
 		<mail.version>1.4.7</mail.version>
 		<powermock.version>1.5.1</powermock.version>
 		<resteasy.version>3.0.4.Final</resteasy.version>
-		<scala.version>2.9.3</scala.version>
-		<scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
+		<scala.version>2.10.4</scala.version>
+		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
 		<shrinkwrap.resolvers.version>2.0.0</shrinkwrap.resolvers.version>
 		<slf4j.version>1.7.5</slf4j.version>
 	</properties>

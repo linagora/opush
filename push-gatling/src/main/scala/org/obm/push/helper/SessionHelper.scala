@@ -31,37 +31,38 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.helper
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.asScalaSet
 
 import org.obm.push.bean.AttendeeStatus.ACCEPT
 import org.obm.push.bean.AttendeeStatus.DECLINE
 import org.obm.push.bean.FolderType
 import org.obm.push.bean.MSAttendee
+import org.obm.push.command.ContactContext
 import org.obm.push.command.InvitationContext
 import org.obm.push.command.PendingInvitationContext
 import org.obm.push.context.UserKey
 import org.obm.push.protocol.bean.FolderSyncResponse
+import org.obm.push.protocol.bean.ProvisionResponse
 import org.obm.push.protocol.bean.SyncResponse
 
-import com.excilys.ebi.gatling.core.session.Session
+import io.gatling.core.session.Session
 
 class SessionHelper(userKey: UserKey) {
 	
-	def findLastSync(session: Session): Option[SyncResponse] = {
-		session.getAttributeAsOption[SyncResponse](userKey.lastSyncSessionKey)
+	def findLastSync(session: Session) = session(userKey.lastSyncSessionKey).asOption[SyncResponse]
+	def findLastFolderSync(session: Session) = session(userKey.lastFolderSyncSessionKey).asOption[FolderSyncResponse]
+	def findLastProvisioning(session: Session) = session(userKey.lastProvisioningSessionKey).asOption[ProvisionResponse]
+	def findPendingInvitation(session: Session) = session(userKey.lastPendingInvitationSessionKey).asOption[PendingInvitationContext]
+	
+	def findLastInvitationClientId(session: Session) = session(userKey.lastInvitationClientIdSessionKey).as[String]
+	def findLastContactClientId(session: Session) = session(userKey.lastContactClientIdSessionKey).as[String]
+	def findLastContactServerId(session: Session) = session(userKey.lastContactServerIdSessionKey).as[String]
+	
+	def findPolicyKey(session: Session): Long = findLastProvisioning(session) match {
+	  case lastProvisioning: Some[ProvisionResponse] => lastProvisioning.get.getPolicyKey()
+	  case _ => 0
 	}
-	
-	def findLastFolderSync(session: Session): Option[FolderSyncResponse] = {
-		session.getAttributeAsOption[FolderSyncResponse](userKey.lastFolderSyncSessionKey)
-	}
-	
-	def findLastInvitationClientId(session: Session) = 
-		session.getTypedAttribute[String](userKey.lastInvitationClientIdSessionKey)
-	
-	def findPendingInvitation(session: Session): Option[PendingInvitationContext] = {
-		session.getAttributeAsOption[PendingInvitationContext](userKey.lastPendingInvitationSessionKey)
-	}
-	
 	
 	def collectionId(session: Session, folderType: FolderType): Int = {
 		findLastFolderSync(session).get
@@ -100,9 +101,9 @@ class SessionHelper(userKey: UserKey) {
 	}
 	
 	def setupNextInvitationClientId(session: Session): Session = {
-		session.setAttribute(userKey.lastInvitationClientIdSessionKey, InvitationContext.generateClientId)
+		session.set(userKey.lastInvitationClientIdSessionKey, InvitationContext.generateClientId)
 	}
-	
+
 	def setupPendingInvitation(session: Session, invitation: InvitationContext): Session = {
 		val clientId = findLastInvitationClientId(session)
 		val change = SyncHelper.findChanges(findLastSync(session).get)
@@ -117,7 +118,17 @@ class SessionHelper(userKey: UserKey) {
 	}
 	
 	def setPendingInvitation(session: Session, pendingInvitation: PendingInvitationContext): Session = {
-		session.setAttribute(userKey.lastPendingInvitationSessionKey, pendingInvitation)
+		session.set(userKey.lastPendingInvitationSessionKey, pendingInvitation)
 	}
 	
+	def setupNextContactClientId(session: Session): Session = {
+		session.set(userKey.lastContactClientIdSessionKey, ContactContext.generateClientId)
+	}
+	
+	def setupLastContactServerId(session: Session): Session = {
+		val clientId = findLastContactClientId(session)
+		val change = SyncHelper.findChanges(findLastSync(session).get)
+								.filter(change => clientId.equals(change.getClientId())).head
+		session.set(userKey.lastContactServerIdSessionKey, change.getServerId())
+	}
 }

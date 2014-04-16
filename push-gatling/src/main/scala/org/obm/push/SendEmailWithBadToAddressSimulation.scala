@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,29 +31,50 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import org.obm.push.command.DeleteInvitationCommand
-import org.obm.push.command.InvitationCommand
-import org.obm.push.command.InvitationContext
-import org.obm.push.command.SyncCollectionCommand.atLeastOneAddResponse
-import org.obm.push.command.SyncCollectionCommand.noChange
-import org.obm.push.context.User
+import scala.concurrent.duration.DurationInt
 
-import io.gatling.core.Predef.bootstrap.exec
+import org.obm.push.command.SendEmailContext
+import org.obm.push.command.SendEmailWithBadToCommand
+import org.obm.push.context.Configuration
+import org.obm.push.context.GatlingConfiguration
+import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.provisionedUsers
+import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.Predef.scenario
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class DeleteInvitationThenAtendeeIsNotifiedSimulation extends ModifyInvitationOneAttendeeAcceptOneDeclineSimulation {
+class SendEmailWithBadToAddressSimulation extends Simulation {
 
-	override def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
-		super.buildScenario(organizer, attendee1, attendee2).exitHereIfFailed.exitBlockOnFail(
-			exec(buildDeleteInvitationCommand(invitation))
-			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(attendee1Key, usedMailCollection, noChange))
-			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
-		)
-	}
+	val wbTools: WBXMLTools = new WBXMLTools
+  
+	val configuration: Configuration = GatlingConfiguration.build
+
+	val userFrom = new UserKey("userFrom")
+	val userTo = new UserKey("userTo")
+	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
-	def buildDeleteInvitationCommand(invitation: InvitationContext) = {
-		invitation.matcher = InvitationCommand.validDeleteInvitation
-		new DeleteInvitationCommand(invitation, wbTools).buildCommand
-	}
+	lazy val sendEmailScenario = scenario("Send an email with bad to address").exitBlockOnFail(
+	    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+		.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
+	)
+
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
+		.disableFollowRedirect
+		.disableCaching
+		
+	
+	setUp(sendEmailScenario.inject(
+	    nothingFor(1 seconds),
+	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
+	)).protocols(httpConf)
+	
 }

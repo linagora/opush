@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context
 
-import org.obm.push.context.http.HttpHeaders
-import org.obm.push.context.http.HttpQueryParams
 import org.obm.push.ProtocolVersion
 
 object ActiveSyncConfiguration {

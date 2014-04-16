@@ -32,13 +32,14 @@
 package org.obm.push.decoder
 
 import org.obm.push.protocol.data.CalendarDecoder
+import org.obm.push.protocol.data.ContactDecoder
+import org.obm.push.protocol.data.DecoderFactory
+import org.obm.push.protocol.data.SyncDecoder
+import org.obm.push.protocol.data.TaskDecoder
 import org.obm.push.protocol.data.ms.MSEmailDecoder
 import org.obm.push.protocol.data.ms.MSMeetingRequestDecoder
-import org.obm.push.protocol.data.DecoderFactory
+
 import com.google.inject.Provider
-import org.obm.push.protocol.data.ContactDecoder
-import org.obm.push.protocol.data.TaskDecoder
-import org.obm.push.protocol.data.SyncDecoder
 
 object GatlingDecoders {
 
@@ -50,7 +51,7 @@ object GatlingDecoders {
 
 	lazy val calendarDecoder = new CalendarDecoder(timeZoneDecoder, timeZoneConverter) {}
 	lazy val emailDecoder = new MSEmailDecoder(meetingRequestDecoder) {}
-	lazy val contactsDecoder: ContactDecoder = null
+	lazy val contactsDecoder = new ContactDecoder(timeZoneDecoder, timeZoneConverter) {}
 	lazy val taskDecoder: TaskDecoder = null
 	
 	lazy val decoderFactory = new DecoderFactory(

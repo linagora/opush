@@ -31,14 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
+import java.util.Date
+
 import scala.util.Random
+
 import org.obm.push.bean.AttendeeStatus
 import org.obm.push.bean.FolderType
-import org.obm.push.context.UserKey
 import org.obm.push.checks.Check
-import com.excilys.ebi.gatling.core.check.MatchStrategy
+import org.obm.push.context.UserKey
 import org.obm.push.protocol.bean.SyncResponse
-import java.util.Date
+
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
 
 object InvitationContext {
 	val random: Random = new Random()
@@ -51,7 +55,7 @@ class InvitationContext(
 		val startTime: Date = null,
 		val endTime: Date = null,
 		folderType: FolderType = FolderType.DEFAULT_CALENDAR_FOLDER,
-		matcher: MatchStrategy[SyncResponse] = Check.success)
+		matcher: Matcher[SyncResponse, Session] = SyncCollectionCommand.validSync)
 			extends SyncContext(organizer, folderType, matcher) {
 	
 	require(folderType.isCalendarFolder())
@@ -60,7 +64,7 @@ class InvitationContext(
 			attendees: Set[UserKey] = this.attendees,
 			startTime: Date = this.startTime,
 			endTime: Date = this.endTime,
-			matcher: MatchStrategy[SyncResponse] = this.matcher) = {
+			matcher: Matcher[SyncResponse, Session] = this.matcher) = {
 		new InvitationContext(organizer, attendees, startTime, endTime, folderType, matcher)
 	}
 }

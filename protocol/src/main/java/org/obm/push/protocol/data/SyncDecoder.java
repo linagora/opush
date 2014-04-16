@@ -277,11 +277,7 @@ public class SyncDecoder extends ActiveSyncDecoder {
 			return null;
  		}
 		if (dataType != null) {
-			IApplicationData data = decoderFactory.decode(applicationData, dataType);
-			if (data == null && syncCommand.requireApplicationData()) {
-				throw new ProtocolException("No decodable " + dataType + " data for " + applicationData);
-			}
-			return data;
+			return decoderFactory.decode(applicationData, dataType);
 		}
 		return null;
  	}

@@ -31,12 +31,37 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.checks
 
-import com.excilys.ebi.gatling.core.session.Session
-import com.excilys.ebi.gatling.http.check.HttpSingleCheckBuilder
-import com.excilys.ebi.gatling.http.request.HttpPhase
-import com.excilys.ebi.gatling.http.response.ExtendedResponse
+import io.gatling.core.session.Session
+import io.gatling.core.check.Extractor
+import io.gatling.core.session.noopStringExpression
+import io.gatling.core.validation.SuccessWrapper
+import io.gatling.http.check.{ HttpCheckBuilders, HttpSingleCheckBuilder }
+import com.google.common.base.Charsets
+		
+object WholeBodyExtractorCheckBuilder {
+	
+	val extractor = new Extractor[String, String, Array[Byte]] {
+		override val name = "bodyByteArray"
+		override def apply(prepared: String, criterion: String) = Some(prepared.getBytes(Charsets.UTF_8)).success
+	}
 
-object WholeBodyExtractorCheckBuilder extends HttpSingleCheckBuilder[Array[Byte], Option[String]](
-		(response: ExtendedResponse) => ((expression: Option[String]) => Option(response.getResponseBodyAsBytes())),
-		(session: Session) => Option.empty, 
-		HttpPhase.CompletePageReceived)
+	val bodyBytes = new HttpSingleCheckBuilder[String, String, Array[Byte]](
+		HttpCheckBuilders.bodyCheckFactory,
+		HttpCheckBuilders.stringResponsePreparer,
+		extractor,
+		noopStringExpression)
+		
+	val extractorLogger = new Extractor[String, String, Boolean] {
+		override val name = "bodyByteArray loggze"
+		override def apply(prepared: String, criterion: String) = {
+		  print(prepared)
+		  Some(true).success
+		}
+	}
+	
+	val bodyBytesLogger = new HttpSingleCheckBuilder[String, String, Boolean](
+			HttpCheckBuilders.bodyCheckFactory,
+			HttpCheckBuilders.stringResponsePreparer,
+			extractorLogger,
+			noopStringExpression)
+}

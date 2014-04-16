@@ -34,29 +34,43 @@ package org.obm.push.command
 import org.obm.push.context.ActiveSyncConfiguration
 import org.obm.push.context.User
 import org.obm.push.context.UserKey
-import org.obm.push.context.http.HttpHeaders
+import org.obm.push.context.http.ActiveSyncHeaders
 import org.obm.push.context.http.HttpQueryParams
-import com.excilys.ebi.gatling.core.session.Session
-import com.excilys.ebi.gatling.http.Predef.http
-import com.excilys.ebi.gatling.http.request.builder.PostHttpRequestBuilder
-import org.obm.push.helper.GatlingHelper
+import io.gatling.core.session.Session
+import io.gatling.core.validation.Success
+import io.gatling.http.Headers
+import io.gatling.http.Predef.http
+import io.gatling.http.request.builder.PostHttpRequestBuilder
 
 abstract class AbstractActiveSyncCommand(userKey: UserKey)
 		extends ActiveSyncCommand {
 
 	override def buildCommand(): PostHttpRequestBuilder = {
-		http(s => commandTitle)
-			.post(ActiveSyncConfiguration.postUrl)
-			.header(HttpHeaders.CONTENT_TYPE.toString, ActiveSyncConfiguration.wbXmlContentType)
-			.header(HttpHeaders.AS_VERSION.toString, ActiveSyncConfiguration.activeSyncVersion.asSpecificationValue())
-			.header(HttpHeaders.AS_POLICY_KEY.toString, GatlingHelper.el(userKey.elUserPolicyKey))
-			.basicAuth(s => user(s).userProtocol, s => user(s).password)
-			.queryParam(s => HttpQueryParams.USER.toString, s => user(s).userProtocol)
-			.queryParam(s => HttpQueryParams.DEVICE_ID.toString, s => user(s).deviceId.getDeviceId())
-			.queryParam(s => HttpQueryParams.DEVICE_TYPE.toString, s => user(s).deviceType)
-			.queryParam(s => HttpQueryParams.COMMAND.toString, s => commandName)
+		http(s => Success(commandTitle))
+			.post(s => Success(ActiveSyncConfiguration.postUrl))
+			.header(Headers.Names.CONTENT_TYPE, s => Success(ActiveSyncConfiguration.wbXmlContentType))
+			.header(ActiveSyncHeaders.AS_VERSION, s => Success(ActiveSyncConfiguration.activeSyncVersion.asSpecificationValue()))
+			.header(ActiveSyncHeaders.AS_POLICY_KEY, s => Success(userKey.sessionHelper.findPolicyKey(s).toString))
+			.basicAuth(s => Success(user(s).userProtocol), s => Success(user(s).password))
+			.queryParam(s => Success(HttpQueryParams.USER), s => Success(user(s).userProtocol))
+			.queryParam(s => Success(HttpQueryParams.DEVICE_ID), s => Success(user(s).deviceId.getDeviceId()))
+			.queryParam(s => Success(HttpQueryParams.DEVICE_TYPE), s => Success(user(s).deviceType))
+			.queryParam(s => Success(HttpQueryParams.COMMAND), s => Success(commandName))
 	}
 	
-	def user(session: Session) = session.getTypedAttribute[User](userKey.key)
+	def user(session: Session) = session.attributes(userKey.key).asInstanceOf[User]
 	
+	def getOrNoneIfEmpty[T](response: Option[Array[Byte]], transformMethod: (Array[Byte] => T)) = response match {
+		case None => {
+			println("No data received for command %s : %s: ".format(commandName, commandTitle))
+			Option.empty
+		}
+		case a: Some[Array[Byte]] => a.get.length match {
+			case 0 => {
+				println("Empty data received for command %s : %s: ".format(commandName, commandTitle))
+				Option.empty
+			}
+			case _ => Option.apply(transformMethod.apply(a.get))
+		}
+	}
 }

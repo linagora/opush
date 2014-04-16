@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.decoder
 
-import org.obm.push.protocol.data.Base64ASTimeZoneDecoder
-import org.obm.push.protocol.bean.ASTimeZone
 import org.obm.push.protocol.bean.ASSystemTime
+import org.obm.push.protocol.bean.ASTimeZone
+import org.obm.push.protocol.data.Base64ASTimeZoneDecoder
 import org.obm.push.utils.`type`.UnsignedShort
 
 object GatlingTimeZoneDecoder extends Base64ASTimeZoneDecoder {
@@ -70,7 +70,7 @@ object GatlingTimeZoneDecoder extends Base64ASTimeZoneDecoder {
 	private[this] def asWinterTime(): ASSystemTime = {
 		ASSystemTime.builder()
 			.year(UnsignedShort.checkedCast(2012))
-			.month(UnsignedShort.checkedCast(03))
+			.month(UnsignedShort.checkedCast(3))
 			.dayOfWeek(UnsignedShort.checkedCast(0))
 			.weekOfMonth(UnsignedShort.checkedCast(5))
 			.hour(UnsignedShort.checkedCast(2))

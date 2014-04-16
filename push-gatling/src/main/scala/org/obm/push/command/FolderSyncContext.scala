@@ -31,21 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
+import org.obm.push.bean.SyncKey
+import org.obm.push.bean.SyncKey.INITIAL_FOLDER_SYNC_KEY
+import org.obm.push.checks.Check
 import org.obm.push.context.UserKey
 import org.obm.push.protocol.bean.FolderSyncResponse
-import com.excilys.ebi.gatling.core.check.MatchStrategy
-import com.excilys.ebi.gatling.core.session.Session
-import org.obm.push.protocol.bean.FolderSyncResponse
-import org.obm.push.bean.SyncKey.INITIAL_FOLDER_SYNC_KEY
-import org.obm.push.bean.SyncKey
-import scala.collection.JavaConversions._
-import org.obm.push.bean.FolderType
-import org.obm.push.helper.SessionHelper
-import org.obm.push.checks.Check
+
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
 
 class InitialFolderSyncContext(
 		userKey: UserKey,
-		matcher: MatchStrategy[FolderSyncResponse] = Check.success)
+		matcher: Matcher[FolderSyncResponse, Session] = FolderSyncCommand.validInitialFolderSync)
 			extends FolderSyncContext(userKey, matcher) {
 	
 	val initialSyncKey = INITIAL_FOLDER_SYNC_KEY
@@ -56,7 +53,7 @@ class InitialFolderSyncContext(
 
 class FolderSyncContext(
 		val userKey: UserKey,
-		val matcher: MatchStrategy[FolderSyncResponse] = Check.success) {
+		val matcher: Matcher[FolderSyncResponse, Session] = FolderSyncCommand.validFolderSync) {
 	
 	def nextSyncKey(session: => Session): SyncKey = {
 		val lastFolderSync = userKey.sessionHelper.findLastFolderSync(session)

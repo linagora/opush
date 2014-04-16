@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,13 +29,19 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.http
+package org.obm.push.command
 
-object HttpQueryParams {
-  
-	val USER = "User"
-	val DEVICE_ID = "DeviceId"
-	val DEVICE_TYPE = "DeviceType"
-	val COMMAND = "Cmd"
-	
+import org.obm.push.bean.change.SyncCommand
+import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.Session
+
+class DeleteContactCommand(contact: ContactContext, wbTools: WBXMLTools)
+		extends AbstractContactCommand(contact, wbTools) {
+
+	override val commandTitle = "Delete contact command"
+	  
+	override val collectionSyncCommand = SyncCommand.DELETE
+		
+	override def buildContact(session: Session) = null
 }

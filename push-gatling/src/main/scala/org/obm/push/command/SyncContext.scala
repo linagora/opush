@@ -32,19 +32,20 @@
 package org.obm.push.command
 
 import scala.collection.JavaConversions.collectionAsScalaIterable
+
 import org.obm.push.bean.FolderType
 import org.obm.push.bean.SyncKey
-import org.obm.push.helper.SessionHelper
 import org.obm.push.context.UserKey
-import org.obm.push.protocol.bean.SyncResponse
-import com.excilys.ebi.gatling.core.session.Session
 import org.obm.push.checks.Check
-import com.excilys.ebi.gatling.core.check.MatchStrategy
+import org.obm.push.protocol.bean.SyncResponse
+
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
 
 class InitialSyncContext(
 		userKey: UserKey,
 		folderType: FolderType,
-		matcher: MatchStrategy[SyncResponse] = Check.success)
+		matcher: Matcher[SyncResponse, Session] = SyncCollectionCommand.validSync)
 			extends SyncContext(userKey, folderType) {
 	
 	val initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY
@@ -56,7 +57,7 @@ class InitialSyncContext(
 class SyncContext(
 		val userKey: UserKey,
 		val folderType: FolderType,
-		var matcher: MatchStrategy[SyncResponse] = Check.success)
+		var matcher: Matcher[SyncResponse, Session] = SyncCollectionCommand.validSync)
 			extends CollectionContext(userKey) {
 	
 	def nextSyncKey(session: => Session): SyncKey = {

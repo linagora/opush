@@ -34,7 +34,7 @@ package org.obm.push.command
 import org.obm.push.bean.FolderType
 import org.obm.push.context.UserKey
 
-import com.excilys.ebi.gatling.core.session.Session
+import io.gatling.core.session.Session
 
 class CollectionContext(userKey: UserKey) {
 	

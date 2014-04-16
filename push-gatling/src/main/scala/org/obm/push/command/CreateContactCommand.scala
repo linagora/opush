@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,26 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import org.junit.runner.RunWith
-import org.obm.push.context.UserKey
+import org.obm.push.bean.change.SyncCommand
 import org.obm.push.wbxml.WBXMLTools
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class FolderSyncCommandTest extends FunSuite with BeforeAndAfter {
-	
-	var wbxmlTools: WBXMLTools =_
-	
-	before {
-		wbxmlTools = new WBXMLTools()
-	}
-	
-	test("FolderSync command name is FolderSync") {
-		val userKey = new UserKey("user")
-		val command = new FolderSyncCommand(new FolderSyncContext(userKey), wbxmlTools)
-		assert(command.commandName === "FolderSync")
-	}
-	
+import io.gatling.core.Predef.Session
+
+class CreateContactCommand(contact: ContactContext, wbTools: WBXMLTools)
+		extends AbstractContactCommand(contact, wbTools) {
+
+	override val commandTitle = "Create contact command"
+	  
+	override val collectionSyncCommand = SyncCommand.ADD
+	override def clientId(s: Session) = contact.userKey.sessionHelper.findLastContactClientId(s)
+	override def serverId(s: Session) = null
 }

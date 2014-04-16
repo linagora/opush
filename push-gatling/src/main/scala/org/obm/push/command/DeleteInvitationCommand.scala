@@ -31,26 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import java.util.Date
-import java.util.UUID
-import org.obm.DateUtils.date
-import org.obm.push.bean.AttendeeStatus
-import org.obm.push.bean.AttendeeType
-import org.obm.push.bean.CalendarBusyStatus
-import org.obm.push.bean.CalendarMeetingStatus
-import org.obm.push.bean.CalendarSensitivity
-import org.obm.push.bean.MSAttendee
-import org.obm.push.bean.MSEvent
-import org.obm.push.bean.MSEventUid
+import org.obm.push.bean.change.SyncCommand
 import org.obm.push.context.User
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Session
-import org.obm.push.helper.SyncHelper
+
+import io.gatling.core.Predef.Session
 
 class DeleteInvitationCommand(invitation: InvitationContext, wbTools: WBXMLTools)
 		extends AbstractInvitationCommand(invitation, wbTools) {
 
-	override val collectionCommandName = "Delete"
+	override val commandTitle = "Delete invitation command"
+	  
+	override val collectionSyncCommand = SyncCommand.DELETE
 	override def clientId(s: Session) = null
 	override def serverId(s: Session) = invitation.userKey.sessionHelper.findPendingInvitation(s).get.serverId
 		

@@ -31,6 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
+import scala.collection.Iterator
+import scala.concurrent.duration.DurationInt
+import scala.util.control.Breaks
+
 import org.obm.DateUtils.date
 import org.obm.push.bean.AttendeeStatus
 import org.obm.push.bean.FolderType
@@ -42,6 +46,7 @@ import org.obm.push.command.InvitationCommand
 import org.obm.push.command.InvitationContext
 import org.obm.push.command.MeetingResponseCommand
 import org.obm.push.command.MeetingResponseContext
+import org.obm.push.command.ProvisioningCommand
 import org.obm.push.command.SendInvitationCommand
 import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
@@ -54,15 +59,20 @@ import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.protocol.bean.SyncResponse
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Simulation
-import com.excilys.ebi.gatling.core.Predef.bootstrap.exec
-import com.excilys.ebi.gatling.core.Predef.scenario
-import com.excilys.ebi.gatling.core.session.Session
-import com.excilys.ebi.gatling.core.check.MatchStrategy
-import com.excilys.ebi.gatling.http.Predef._
-import com.excilys.ebi.gatling.http.request.builder.PostHttpRequestBuilder
-import com.excilys.ebi.gatling.core.action.builder.ActionBuilder
-import com.excilys.ebi.gatling.core.config.HttpConfiguration
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.bootstrap.exec
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.Predef.scenario
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
+import io.gatling.core.validation.Success
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.http.request.builder.PostHttpRequestBuilder
 
 class InviteTwoUsersOneAcceptOneDeclineSimulation extends Simulation {
 
@@ -72,52 +82,80 @@ class InviteTwoUsersOneAcceptOneDeclineSimulation extends Simulation {
 	val usedMailCollection = FolderType.DEFAULT_INBOX_FOLDER 
 	val usedCalendarCollection = FolderType.DEFAULT_CALENDAR_FOLDER
 	
-	val organizer = new UserKey("organizer")
-	val attendee1 = new UserKey("attendee1")
-	val attendee2 = new UserKey("attendee2")
+	val organizerKey = new UserKey("organizer")
+	val attendee1Key = new UserKey("attendee1")
+	val attendee2Key = new UserKey("attendee2")
 	val invitation = new InvitationContext(
-		organizer = organizer,
-		attendees = Set(attendee1, attendee2),
+		organizer = organizerKey,
+		attendees = Set(attendee1Key, attendee2Key),
 		startTime = date("2014-01-12T09:00:00"),
 		endTime = date("2014-01-12T10:00:00"),
 		folderType = usedCalendarCollection)
 	
 		
-	val users = for (userNumber <- Iterator.range(1, 100)) yield new User(userNumber, configuration)
+	val users = for (userNumber <- Iterator.range(1, 100)) yield null//new User(userNumber, configuration)
 	
-	val httpConf = httpConfig
-		.baseURL(configuration.targetServerUrl)
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
 		.disableFollowRedirect
 		.disableCaching
 	
-	setUp(buildScenario(users)
-			.users(configuration.parallelsScenariosCount)
-			.protocolConfig(httpConf))
+	var organizer: User = null
+	var attendee1: User = null
+	var attendee2: User = null
+	
+	for (user <- users) {
+		Breaks.breakable {
+			if (organizer == null) {
+				organizer = user
+				Breaks.break
+			}
+			if (attendee1 == null) {
+				attendee1 = user
+				Breaks.break
+			}
+			if (attendee2 == null) {
+				attendee2 = user
+			}
+			
+			setUp(buildScenario(organizer, attendee1, attendee2).inject(
+			    nothingFor(60 seconds),
+			    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
+			)).protocols(httpConf)
+	
+			organizer = null
+			attendee1 = null
+			attendee2 = null
+		}
+	}
 
-	def buildScenario(users: Iterator[User]) = {
+	def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
 
-		val feeder = new UserFeeder(users, organizer, attendee1, attendee2)
-		
-		scenario("Send an invitation at two attendees")
+		scenario("Send an invitation at two attendees for organizer: " + organizer.login)
 			.exitBlockOnFail(
-				exec(s => s.setAttributes(feeder.next()))
-				.exec(buildInitialFolderSyncCommand(organizer))
-				.exec(buildInitialFolderSyncCommand(attendee1))
-				.exec(buildInitialFolderSyncCommand(attendee2))
-				.exec(buildInitialSyncCommand(organizer, usedCalendarCollection))
-				.exec(s => organizer.sessionHelper.setupNextInvitationClientId(s))
+				exec(ProvisioningCommand.buildInitialProvisioningCommand(organizerKey))
+				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(organizerKey))
+				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee1Key))
+				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee1Key))
+				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee2Key))
+				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee2Key))
+				.exec(buildInitialFolderSyncCommand(organizerKey))
+				.exec(buildInitialFolderSyncCommand(attendee1Key))
+				.exec(buildInitialFolderSyncCommand(attendee2Key))
+				.exec(buildInitialSyncCommand(organizerKey, usedCalendarCollection))
+				.exec(s => Success(organizerKey.sessionHelper.setupNextInvitationClientId(s)))
 				.exec(buildSendInvitationCommand(invitation))
-				.exec(s => organizer.sessionHelper.setupPendingInvitation(s, invitation))
+				.exec(s => Success(organizerKey.sessionHelper.setupPendingInvitation(s, invitation)))
+				.pause(s => Success(configuration.asynchronousChangeTime))
+				.exec(buildInitialSyncCommand(attendee1Key, usedMailCollection))
+				.exec(buildInitialSyncCommand(attendee2Key, usedMailCollection))
+				.exec(buildSyncCommand(attendee1Key, usedMailCollection, atLeastOneMeetingRequest))
+				.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneMeetingRequest))
+				.exec(buildMeetingResponseCommand(attendee1Key, AttendeeStatus.ACCEPT))
+				.exec(buildMeetingResponseCommand(attendee2Key, AttendeeStatus.DECLINE))
 				.pause(configuration.asynchronousChangeTime)
-				.exec(buildInitialSyncCommand(attendee1, usedMailCollection))
-				.exec(buildInitialSyncCommand(attendee2, usedMailCollection))
-				.exec(buildSyncCommand(attendee1, usedMailCollection, atLeastOneMeetingRequest))
-				.exec(buildSyncCommand(attendee2, usedMailCollection, atLeastOneMeetingRequest))
-				.exec(buildMeetingResponseCommand(attendee1, AttendeeStatus.ACCEPT))
-				.exec(buildMeetingResponseCommand(attendee2, AttendeeStatus.DECLINE))
-				.pause(configuration.asynchronousChangeTime)
-				.exec(buildSyncCommand(organizer, usedCalendarCollection, Check.matcher((s, response) 
-						=> (organizer.sessionHelper.attendeeRepliesAreReceived(s, response.get), "Each users havn't replied"))))
+				.exec(buildSyncCommand(organizerKey, usedCalendarCollection, Check.matcher((s, response) 
+				    => (organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 			)
 	}
 	
@@ -130,8 +168,8 @@ class InviteTwoUsersOneAcceptOneDeclineSimulation extends Simulation {
 		buildSyncCommand(new InitialSyncContext(userKey, folderType, validSync))
 	}
 	
-	def buildSyncCommand(userKey: UserKey, folderType: FolderType, matchers: MatchStrategy[SyncResponse]*): PostHttpRequestBuilder = {
-		val matcher = Check.manyToOne(validSync :: matchers.toList)
+	def buildSyncCommand(userKey: UserKey, folderType: FolderType, matchers: Matcher[SyncResponse, Session]*): PostHttpRequestBuilder = {
+		val matcher = null//Check.manyToOne(validSync :: matchers:_*)
 		buildSyncCommand(new SyncContext(userKey, folderType, matcher))
 	}
 	

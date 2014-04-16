@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,13 +29,25 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.http
+package org.obm.push.command
 
-object HttpHeaders extends Enumeration {
-	type HttpHeaders = Value
- 
-	val CONTENT_TYPE = Value("Content-Type")
-	val AS_VERSION = Value("MS-ASProtocolVersion")
-	val AS_POLICY_KEY = Value("X-MS-PolicyKey")
-  
+import org.obm.push.context.UserKey
+import org.obm.push.checks.Check
+import org.obm.push.protocol.bean.ProvisionResponse
+
+import io.gatling.core.check.Matcher
+import io.gatling.core.session.Session
+
+class InitialProvisioningContext(userKey: UserKey)
+			extends ProvisioningContext(userKey, ProvisioningCommand.validInitialProvisioningResponse)
+
+class AcceptProvisioningContext(userKey: UserKey)
+			extends ProvisioningContext(userKey, ProvisioningCommand.validAcceptProvisioningResponse)
+		
+class ProvisioningContext(
+		val userKey: UserKey,
+		val matcher: Matcher[ProvisionResponse, Session] = Check.success) {
+	
+	def lastProvisioning(session: => Session) = userKey.sessionHelper.findLastProvisioning(session)
+	
 }

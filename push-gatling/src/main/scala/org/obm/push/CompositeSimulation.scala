@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,13 +29,38 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.http
+package org.obm.push
 
-object HttpQueryParams {
+import scala.concurrent.duration.DurationInt
+
+import org.obm.push.context.GatlingConfiguration
+
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.scenario.Simulation
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+
+class CompositeSimulation extends Simulation {
+
+  val config = GatlingConfiguration.build
   
-	val USER = "User"
-	val DEVICE_ID = "DeviceId"
-	val DEVICE_TYPE = "DeviceType"
-	val COMMAND = "Cmd"
-	
+  setUp(
+      new SendEmailWithBadToAddressSimulation().sendEmailScenario.inject(
+	    nothingFor(1 seconds),
+	    constantRate(config.usersPerSec userPerSec) during (config.duration))
+    ,
+      new ContactCreateUpdateDeleteSimulation().contactScenario.inject(
+	    nothingFor(1 seconds),
+	    constantRate(config.usersPerSec userPerSec) during (config.duration))
+    ,
+      new MeetingCreateUpdateDeleteSimulation().scenarioForOrganizer.inject(
+	    nothingFor(1 seconds),
+	    constantRate(config.usersPerSec userPerSec) during (config.duration))
+  )
+  .protocols(http
+		.baseURL(config.baseUrl)
+		.disableFollowRedirect
+		.disableCaching)  
 }

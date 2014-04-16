@@ -31,45 +31,35 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import com.excilys.ebi.gatling.core.Predef._
-import com.excilys.ebi.gatling.http.Predef._
+import org.obm.push.command.PingCommand
+import org.obm.push.command.PingContext
+import org.obm.push.context.Configuration
+import org.obm.push.context.GatlingConfiguration
+import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.atOnce
+import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.userNumber
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 class SimplePingSimulation extends Simulation {
 
-	def apply = {
+	val configuration: Configuration = GatlingConfiguration.build
 
-		val opushServerTarget = "http://192.168.2.39"
+	val userKey = new UserKey("user")
 
-		val httpConf = httpConfig.baseURL(opushServerTarget).disableFollowRedirect
+	val scn = scenario("Simple ActiveSync Ping Scenario")
+		.exec(new PingCommand(new PingContext(userKey)).buildCommand)
 
-		val headers_1 = Map(
-			"Host" -> "192.168.2.67",
-			"User-Agent" -> "Apple-iPhone3C1/902.206",
-			"Accept" -> "*/*",
-			"Content-Type" -> "application/vnd.ms-sync.wbxml",
-			"MS-ASProtocolVersion" -> "12.1",
-			"X-MS-PolicyKey" -> "1696466519",
-			"Authorization" -> "Basic dGhpbGFpcmUubG5nLm9yZ1x6YWRtaW46emFkbWlu=",
-			"Accept-Language" -> "fr-fr",
-			"Accept-Encoding" -> "gzip,deflate",
-			"Connection" -> "keep-alive")
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
+		.disableFollowRedirect
+		.disableCaching
+		
+	setUp(scn.inject(atOnce(1))).protocols(httpConf)
 
-		val scn = scenario("Simple ActiveSync Ping Scenario")
-			.exec(http("request_1")
-					.post("/Microsoft-Server-ActiveSync")
-					.headers(headers_1)
-					.queryParam("User", "thilaire.lng.org\\zadmin")
-					.queryParam("DeviceId", "Appl5K14358AA4S")
-					.queryParam("DeviceType", "iPhone")
-					.queryParam("Cmd", "Ping")
-					.byteArrayBody(byteArray)
-			)
-
-		List(scn.users(1).ramp(10).protocolConfig(httpConf))
-	}
-
-	val byteArray = (s: Session) => {
-		Array[Byte](3, 1, 106, 0, 0, 13, 5)
-//		Array[Byte](3, 1, 106, 0, 0, 13, 69, 72, 3, 52, 55, 48, 0, 1, 73, 74, 75, 3, 49, 0, 1, 76, 3, 67, 97, 108, 101, 110, 100, 97, 114, 0, 1, 1, 74, 75, 3, 50, 0, 1, 76, 3, 69, 109, 97, 105, 108, 0, 1, 1, 74, 75, 3, 54, 0, 1, 76, 3, 67, 111, 110, 116, 97, 99, 116, 115, 0, 1, 1, 1, 1)
-	}
 }

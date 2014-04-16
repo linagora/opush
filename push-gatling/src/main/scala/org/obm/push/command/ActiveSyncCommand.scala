@@ -31,7 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import com.excilys.ebi.gatling.http.request.builder.PostHttpRequestBuilder
+import io.gatling.http.request.builder.PostHttpRequestBuilder
 
 trait ActiveSyncCommand {
 

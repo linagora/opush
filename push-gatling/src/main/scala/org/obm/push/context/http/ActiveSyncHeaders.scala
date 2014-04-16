@@ -29,46 +29,11 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.context.http
 
-import org.apache.james.mime4j.dom.address.Mailbox
-import org.obm.push.command.SendEmailCommand
-import org.obm.push.command.SendEmailContext
-import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.User
-import org.obm.push.context.UserKey
-import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Simulation
-import com.excilys.ebi.gatling.core.Predef.scenario
-import com.excilys.ebi.gatling.core.feeder.FeederBuiltIns
-import org.obm.push.context.feeder.UserFeeder
-import com.excilys.ebi.gatling.http.Predef._
-
-class SendEmailToHimselfSimulation extends Simulation {
-
-	val wbTools: WBXMLTools = new WBXMLTools
+object ActiveSyncHeaders {
+ 
+	val AS_VERSION = "MS-ASProtocolVersion"
+	val AS_POLICY_KEY = "X-MS-PolicyKey"
   
-	val configuration: Configuration = GatlingConfiguration.build
-
-	def apply = {
-		
-		val user = new User(1, configuration)
-		val userKey = new UserKey("user")
-		val feeder = new UserFeeder(Seq(user).iterator, userKey)
-		
-		val sendEmailContext = new SendEmailContext(userKey, to = user.mailbox)
-		val folderSyncScenario = scenario("Send a simple email to himself")
-			.exec(s => s.setAttributes(feeder.next))
-			.exec(new SendEmailCommand(sendEmailContext).buildCommand)
-					
-		
-		val httpConf = httpConfig
-			.baseURL(configuration.targetServerUrl)
-			.disableFollowRedirect
-			.disableCaching
-		List(folderSyncScenario.users(1).ramp(10).protocolConfig(httpConf))
-		
-	}
-	
 }

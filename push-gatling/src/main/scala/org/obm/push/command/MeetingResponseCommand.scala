@@ -31,20 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.seqAsJavaList
+
 import org.obm.push.bean.MeetingResponse
+import org.obm.push.bean.MeetingResponseStatus
+import org.obm.push.checks.Check
+import org.obm.push.checks.DataRequiredMatcher
 import org.obm.push.checks.{WholeBodyExtractorCheckBuilder => bodyExtractor}
 import org.obm.push.encoder.GatlingEncoders.meetingProtocol
 import org.obm.push.protocol.bean.MeetingHandlerRequest
 import org.obm.push.protocol.bean.MeetingHandlerResponse
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.check._
-import com.excilys.ebi.gatling.core.Predef.Session
-import com.excilys.ebi.gatling.core.Predef.checkBuilderToCheck
-import com.excilys.ebi.gatling.core.Predef.matcherCheckBuilderToCheckBuilder
-import org.obm.push.bean.MeetingResponseStatus
-import org.obm.push.checks.Check
-import com.google.common.base.Strings
+
+import io.gatling.core.Predef.Session
+import io.gatling.core.validation.Failure
+import io.gatling.core.validation.Success
+import io.gatling.core.validation.Validation
+import io.gatling.http.request.ByteArrayBody
 
 class MeetingResponseCommand(response: MeetingResponseContext, wbTools: WBXMLTools)
 	extends AbstractActiveSyncCommand(response.userKey) {
@@ -56,20 +60,21 @@ class MeetingResponseCommand(response: MeetingResponseContext, wbTools: WBXMLToo
 	  
 	override def buildCommand() = {
 		super.buildCommand()
-			.byteArrayBody((session: Session) => buildMeetingResponse(session))
-			.check(bodyExtractor
+			.body(new ByteArrayBody((session: Session) => buildMeetingResponse(session)))
+			.check(bodyExtractor.bodyBytes
 			    .find
-			    .transform((response: Array[Byte]) => toMeetingResponseReply(response))
-			    .matchWith(response.matcher)
-			    .saveAs(response.userKey.lastMeetingResponseSessionKey))
+			    .transform((response: Option[Array[Byte]]) => toMeetingResponseReply(response))
+			    .matchWith(response.matcher, s => Success(s))
+			    .saveAs(response.userKey.lastMeetingResponseSessionKey)
+			    .build)
 	}
 
-	def buildMeetingResponse(session: Session): Array[Byte] = {
+	def buildMeetingResponse(session: Session): Validation[Array[Byte]] = {
 		val request = MeetingHandlerRequest.builder()
 				.meetingResponses(buildResponseForPendingRequest(session))
 				.build()
 		val requestDoc = meetingProtocol.encodeRequest(request)
-		wbTools.toWbxml(namespace, requestDoc)
+		Success(wbTools.toWbxml(namespace, requestDoc))
 	}
 	
 	def buildResponseForPendingRequest(session: Session) = {
@@ -81,31 +86,33 @@ class MeetingResponseCommand(response: MeetingResponseContext, wbTools: WBXMLToo
 					.build()
 	}
 	
-	def toMeetingResponseReply(response: Array[Byte]): MeetingHandlerResponse = {
-		val responseDoc = wbTools.toXml(response)
-		meetingProtocol.decodeResponse(responseDoc)
+	def toMeetingResponseReply(response: Option[Array[Byte]]): Option[MeetingHandlerResponse] = {
+		val responseDoc = wbTools.toXml(response.get)
+		Option.apply(meetingProtocol.decodeResponse(responseDoc))
 	}
 }
 
 object MeetingResponseCommand {
 	
-	val statusOk = new MatchStrategy[MeetingHandlerResponse] {
-		def apply(value: Option[MeetingHandlerResponse], session: Session) = {
-			val everyOkStatus = value.get
+	val statusOk = new DataRequiredMatcher[MeetingHandlerResponse, Session] {
+		override def name = "MeetingResponse - valid status"
+		override def apply(value: MeetingHandlerResponse, session: Session) = {
+			val everyOkStatus = value
 					.getItemChanges()
 					.find(_.getStatus() != MeetingResponseStatus.SUCCESS)
 					.isEmpty
-			if (everyOkStatus) Success(value)
+			if (everyOkStatus) Success(Option.apply(value))
 			else Failure("Status isn't ok for a meeting response")
 		}
 	}
 	
-	val atLeastOneResponse = new MatchStrategy[MeetingHandlerResponse] {
-		def apply(value: Option[MeetingHandlerResponse], session: Session) = {
-			if (!value.get.getItemChanges().isEmpty) Success(value) 
+	val atLeastOneResponse = new DataRequiredMatcher[MeetingHandlerResponse, Session] {
+		override def name = "MeetingResponse - at least one response"
+		override def apply(value: MeetingHandlerResponse, session: Session) = {
+			if (!value.getItemChanges().isEmpty) Success(Option.apply(value)) 
 			else Failure("No meeting response in reply")
 		}
 	}
 	
-	val validResponses = Check.manyToOne[MeetingHandlerResponse](Seq(statusOk, atLeastOneResponse))
+	val validResponses = Check.manyToOne(statusOk, atLeastOneResponse)
 }

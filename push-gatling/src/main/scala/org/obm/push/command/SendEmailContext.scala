@@ -31,13 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import org.apache.james.mime4j.dom.address.Mailbox
 import org.obm.push.context.UserKey
 
 case class SendEmailContext(
-		userKey: UserKey,
-		from: Mailbox = null,
-		to: Mailbox = null,
-		cc: Mailbox = null,
-		bcc: Mailbox = null,
-		saveInSent: Boolean = true) {}
+		from: UserKey,
+		to: UserKey,
+		saveInSent: Boolean = false) {}

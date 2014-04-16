@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,51 +31,42 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import org.junit.runner.RunWith
-import org.obm.push.context.UserKey
-import org.obm.push.protocol.bean.FolderSyncResponse
-import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.mock.EasyMockSugar
+import java.util.UUID
+import org.apache.james.mime4j.dom.Message
+import org.obm.push.mail.Mime4jUtils
+import com.google.common.io.ByteStreams
+import io.gatling.core.Predef.Session
+import io.gatling.core.validation.Success
+import io.gatling.http.request.ByteArrayBody
+import java.io.FileInputStream
+import io.gatling.core.config.GatlingFiles
+import org.apache.james.mime4j.dom.address.Mailbox
 
-import com.excilys.ebi.gatling.core.session.Session
-import org.obm.push.protocol.bean.FolderSyncResponse
-import org.obm.push.bean.SyncKey
+class SendEmailWithBadToCommand(sendContext: SendEmailContext)
+		extends AbstractActiveSyncCommand(sendContext.from) {
 
-@RunWith(classOf[JUnitRunner])
-class FolderSyncContextTest extends FunSuite with EasyMockSugar {
-	
-	val userKey = new UserKey("user")
-	
-	test("Initial FoldeSync context returns 0 for next synckey") {
-		val context = new InitialFolderSyncContext(userKey)
-		assert(context.nextSyncKey(null) === new SyncKey("0"))
+	val mime4jUtils = new Mime4jUtils()
+	val saveInSent = if (sendContext.saveInSent) "T" else "F" 
+  
+	override val commandTitle = "SendMail with bad to command"
+	override val commandName = "SendMail"
+	  
+	override def buildCommand() = {
+		super.buildCommand()
+			.queryParam((session: Session) =>Success("SaveInSent"), (session: Session) => Success(saveInSent))
+			.body(new ByteArrayBody((session: Session) => Success(mailAsBytesArray(session))))
+	}
+
+	def buildMail(session: Session): Message = {
+		val mailPart = new FileInputStream(GatlingFiles.dataDirectory + "/mixedEmail.eml-part")
+		val message = mime4jUtils.parseMessage(mailPart)
+
+		message.createMessageId("opush-gatling" + UUID.randomUUID().toString())
+		message.setSubject("opush-gatling email")
+		message.setTo(new Mailbox("badaddress", null))
+		return message
 	}
 	
-	test("nextSyncKey throw exception if no response in session") {
-		val session = strictMock(manifest[Session])
-		expecting {
-			call(session.getAttributeAsOption("lastFolderSync:user")).andReturn(Option.empty)
-		}
-		
-		whenExecuting(session) {
-			intercept[IllegalStateException] {
-				new FolderSyncContext(userKey).nextSyncKey(session)
-			}
-		}
-	}
-	
-	test("nextSyncKey reads in response") {
-		val lastResponse = strictMock(manifest[FolderSyncResponse])
-		val session = strictMock(manifest[Session])
-		expecting {
-			call(lastResponse.getNewSyncKey()).andReturn(new SyncKey("1234-5678"))
-			call(session.getAttributeAsOption[FolderSyncResponse]("lastFolderSync:user"))
-				.andReturn(Option.apply(lastResponse))
-		}
-		
-		whenExecuting(lastResponse, session) {
-			assert(new FolderSyncContext(userKey).nextSyncKey(session) === new SyncKey("1234-5678"))
-		}
-	}
+	def mailAsBytesArray(session: Session) = ByteStreams.toByteArray(mime4jUtils.toInputStream(buildMail(session))) 
+
 }

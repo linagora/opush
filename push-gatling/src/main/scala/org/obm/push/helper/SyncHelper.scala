@@ -31,14 +31,15 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.helper
 
-import org.obm.push.protocol.bean.SyncResponse
-import scala.collection.JavaConversions._
-import org.obm.push.bean.PIMDataType._
-import org.obm.push.bean.ms.MSEmail
-import org.obm.push.bean.msmeetingrequest.MSMeetingRequest
-import scala.collection.mutable.MutableList
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.collectionAsScalaIterable
+
 import org.obm.push.bean.MSEvent
+import org.obm.push.bean.PIMDataType.CALENDAR
+import org.obm.push.bean.PIMDataType.EMAIL
 import org.obm.push.bean.SyncCollectionCommandResponse
+import org.obm.push.bean.ms.MSEmail
+import org.obm.push.protocol.bean.SyncResponse
 
 object SyncHelper {
 	
@@ -67,8 +68,8 @@ object SyncHelper {
 	}
 	
 	def changeHasCalendarData(change: SyncCollectionCommandResponse) = 
-		change.getType() == CALENDAR && change.getApplicationData() != null
+		change.getApplicationData() != null && change.getApplicationData().getType() == CALENDAR
 	
 	def changeHasEmailData(change: SyncCollectionCommandResponse) = 
-		change.getType() == EMAIL && change.getApplicationData() != null
+		change.getApplicationData() != null && change.getApplicationData().getType() == EMAIL
 }

@@ -31,56 +31,45 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import scala.collection.mutable.MutableList
-import org.apache.james.mime4j.dom.address.Mailbox
+import org.obm.push.command.ProvisioningCommand
 import org.obm.push.command.SendEmailCommand
-import org.obm.push.command.SendEmailContext
 import org.obm.push.context.Configuration
 import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.User
 import org.obm.push.context.UserKey
-import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Simulation
-import com.excilys.ebi.gatling.core.Predef.scenario
-import com.excilys.ebi.gatling.core.feeder.FeederBuiltIns
-import com.excilys.ebi.gatling.core.scenario.configuration.ConfiguredScenarioBuilder
 import org.obm.push.context.feeder.UserFeeder
-import com.excilys.ebi.gatling.http.Predef._
+import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.atOnce
+import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.userNumber
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 class SendEmailFromManyUsersSimulation extends Simulation {
 
 	val wbTools: WBXMLTools = new WBXMLTools
   
 	val configuration: Configuration = GatlingConfiguration.build
-
-	def apply = {
-		
-		val httpConf = httpConfig
-			.baseURL(configuration.targetServerUrl)
-			.disableFollowRedirect
-			.disableCaching
-		
-		var scenarios = MutableList[ConfiguredScenarioBuilder]()
-		for (userNumber <- Iterator.range(1, 100)) {
-			val userSendEmailScenario = buildScenarioForUser(userNumber)
-			scenarios += userSendEmailScenario.users(1).protocolConfig(httpConf)
-		}
-		
-		scenarios
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
+		.disableFollowRedirect
+		.disableCaching
+	
+	for (userNumber <- Iterator.range(1, 10)) {
+		val userSendEmailScenario = buildScenarioForUser(userNumber)
+		setUp(userSendEmailScenario.inject(atOnce(1))).protocols(httpConf)
 	}
 
 	def buildScenarioForUser(userNumber: Int) = {
-		val from = new User(1, configuration)
-		val to = new User(2, configuration).mailbox
-		val cc = new User(3, configuration).mailbox
-		val bcc = new User(4, configuration).mailbox
-
 		val fromKey = new UserKey("fromUser")
-		val feeder = new UserFeeder(Seq(from).iterator, fromKey)
 		
-		val sendEmailContext = new SendEmailContext(fromKey, from.mailbox, to, cc, bcc)
-		scenario("Send a simple email from:{%s} to:{%s} cc:{%s} bcc:{%s}".format(from.mailbox, to, cc, bcc))
-			.exec(s => s.setAttributes(feeder.next))
+		val sendEmailContext = null//new SendEmailContext(fromKey, from.mailbox, to, cc, bcc)
+		scenario("{%d}: Send a simple email".format(userNumber))
+			.exec(ProvisioningCommand.buildInitialProvisioningCommand(fromKey))
+			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(fromKey))
 			.exec(new SendEmailCommand(sendEmailContext).buildCommand)
 	}
 }

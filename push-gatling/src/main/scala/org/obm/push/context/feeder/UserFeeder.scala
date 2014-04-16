@@ -31,21 +31,55 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context.feeder
 
+import org.obm.push.context.Configuration
 import org.obm.push.context.User
 import org.obm.push.context.UserKey
+import io.gatling.core.Predef.csv
+import io.gatling.core.feeder.Feeder
+import io.gatling.core.feeder.FeederBuilder
+import java.util.UUID
+import org.obm.push.bean.DeviceId
+import java.io.InputStream
+import scala.reflect.io.File
+import io.gatling.core.feeder.AdvancedFeederBuilder
+import org.obm.push.command.ProvisioningCommand
+import org.obm.push.helper.SessionHelper
 
-class UserFeeder(users: Iterator[User], userKeys: UserKey*) extends Iterator[Map[String, Any]] {
+class UserFeeder(originalFeeder: AdvancedFeederBuilder[String], config: Configuration, userKeys: UserKey*) extends FeederBuilder[Any] {
 	
-	val cyclicUsers = Stream.continually(users).flatten.iterator;
+	val cyclicUserData = originalFeeder.circular.build
+	val alreadyBuiltUsers = scala.collection.mutable.Map[String, User]()
 	
-	def hasNext = true
-	def next = {
-		var sessionMap = Map[String, Any]()
-		for (userKey <- userKeys; user = cyclicUsers.next) {
-			sessionMap += userKey.key -> user
-			sessionMap += userKey.elUserPolicyKey -> user.policyKey
+	def build: Feeder[Any] = new Feeder[Any] {
+		override def hasNext = true
+		override def next = {
+			val sessionMap = scala.collection.mutable.Map[String, Any]()
+			for (userKey <- userKeys; userData = cyclicUserData.next) {
+				val user = alreadyBuiltUsers.getOrElseUpdate(userData("username"), buildUserFromMap(userData))
+				if (user.provisionResponse.isDefined) {
+					sessionMap(userKey.lastProvisioningSessionKey) = user.provisionResponse.get
+				}
+				if (user.folderSyncResponse.isDefined) {
+					sessionMap(userKey.lastFolderSyncSessionKey) = user.folderSyncResponse.get
+				}
+				sessionMap(userKey.key) = user
+			}
+			sessionMap.toMap
 		}
-		sessionMap
 	}
 	
+	def buildUserFromMap(fields: Map[String, String]) = new User(
+	    domain = config.domain,
+		login = fields("username"),
+		password = fields("password"),
+		email = fields("email"),
+		deviceId = new DeviceId(config.defaultUserDeviceId + UUID.randomUUID().toString()),
+		deviceType = config.defaultUserDeviceType
+    )
+}
+
+object UserFeeder {
+	
+	def newCSV(csvFile: String, config: Configuration, userKeys: UserKey*): UserFeeder = newCSV(File.apply(csvFile), config, userKeys:_*)
+	def newCSV(csvFile: File, config: Configuration, userKeys: UserKey*) = new UserFeeder(csv(csvFile), config, userKeys: _*)
 }

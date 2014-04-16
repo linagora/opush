@@ -31,13 +31,25 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
+import java.io.FileInputStream
+import java.util.UUID
+
 import org.apache.james.mime4j.dom.Message
-import com.excilys.ebi.gatling.core.Predef.Session
-import com.google.common.io.ByteStreams
 import org.obm.push.mail.Mime4jUtils
 
+import com.google.common.io.ByteStreams
+
+import io.gatling.core.Predef.Session
+import io.gatling.core.Predef.checkBuilder2Check
+import io.gatling.core.Predef.extractorCheckBuilder2MatcherCheckBuilder
+import io.gatling.core.Predef.value2Expression
+import io.gatling.core.config.GatlingFiles
+import io.gatling.core.validation.Success
+import io.gatling.http.Predef.status
+import io.gatling.http.request.ByteArrayBody
+
 class SendEmailCommand(sendContext: SendEmailContext)
-		extends AbstractActiveSyncCommand(sendContext.userKey) {
+		extends AbstractActiveSyncCommand(sendContext.from) {
 
 	val mime4jUtils = new Mime4jUtils()
 	val saveInSent = if (sendContext.saveInSent) "T" else "F" 
@@ -46,27 +58,23 @@ class SendEmailCommand(sendContext: SendEmailContext)
 	override val commandName = "SendMail"
 	  
 	override def buildCommand() = {
-		val mailMessage = buildMail()
-		val mailBytes = mailAsBytesArray(mailMessage)
-		
 		super.buildCommand()
-			.queryParam((session: Session) =>"SaveInSent", (session: Session) => saveInSent)
-			.byteArrayBody((session: Session) => mailBytes)
+			.queryParam((session: Session) =>Success("SaveInSent"), (session: Session) => Success(saveInSent))
+			.body(new ByteArrayBody((session: Session) => Success(mailAsBytesArray(session))))
+			.check(status.is(200))
 	}
 
-	def buildMail(): Message = {
-		val mailPart = ClassLoader.getSystemResourceAsStream("mixedEmail.eml-part");
+	def buildMail(session: Session): Message = {
+		val mailPart = new FileInputStream(GatlingFiles.dataDirectory + "/mixedEmail.eml-part")
 		val message = mime4jUtils.parseMessage(mailPart)
 
-		message.createMessageId("opush-gatling")
+		message.createMessageId("opush-gatling" + UUID.randomUUID().toString())
 		message.setSubject("opush-gatling email")
-		message.setFrom(sendContext.from)
-		message.setTo(sendContext.to)
-		message.setCc(sendContext.cc)
-		message.setBcc(sendContext.bcc)
+		message.setFrom(sendContext.from.getUser(session).mailbox)
+		message.setTo(sendContext.to.getUser(session).mailbox)
 		return message
 	}
 	
-	def mailAsBytesArray(mailMessage: Message) = ByteStreams.toByteArray(mime4jUtils.toInputStream(mailMessage))
+	def mailAsBytesArray(session: Session) = ByteStreams.toByteArray(mime4jUtils.toInputStream(buildMail(session))) 
 
 }

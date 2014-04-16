@@ -31,24 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import scala.collection.mutable.MutableList
+import org.obm.push.bean.FolderType
 import org.obm.push.command.FolderSyncCommand
 import org.obm.push.command.InitialFolderSyncContext
 import org.obm.push.command.InitialSyncContext
+import org.obm.push.command.ProvisioningCommand
 import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.context.Configuration
 import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.User
 import org.obm.push.context.UserKey
 import org.obm.push.wbxml.WBXMLTools
-import com.excilys.ebi.gatling.core.Predef.Simulation
-import com.excilys.ebi.gatling.core.Predef.scenario
-import com.excilys.ebi.gatling.http.Predef._
-import com.excilys.ebi.gatling.core.feeder.FeederBuiltIns
-import com.excilys.ebi.gatling.core.scenario.configuration.ConfiguredScenarioBuilder
-import com.excilys.ebi.gatling.http.Predef.httpConfig
-import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.bean.FolderType
+
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.atOnce
+import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.userNumber
+import io.gatling.http.Predef.http
+import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 class InitialSyncOnCalendarSimulation extends Simulation {
 
@@ -56,27 +56,22 @@ class InitialSyncOnCalendarSimulation extends Simulation {
   
 	val configuration: Configuration = GatlingConfiguration.build
 
-	val httpConf = httpConfig
-		.baseURL(configuration.targetServerUrl)
+	val httpConf = http
+		.baseURL(configuration.baseUrl)
 		.disableFollowRedirect
 		.disableCaching
 
-	override def scenarios = {
-		val list = new MutableList[ConfiguredScenarioBuilder]
-		for (userNumber <- Iterator.range(1, 100)) {
-			val userSendEmailScenario = buildScenarioForUser(1)
-			list += userSendEmailScenario.users(1).protocolConfig(httpConf)
-		}
-		list.map(_.build)
+	for (userNumber <- Iterator.range(1, 100)) {
+		val userSendEmailScenario = buildScenarioForUser(userNumber)
+		setUp(userSendEmailScenario.inject(atOnce(1))).protocols(httpConf)
 	}
 
 	def buildScenarioForUser(userNumber: Int) = {
-		val user = new User(userNumber, configuration)
 		val userKey = new UserKey("user")
-		val feeder = new UserFeeder(Seq(user).iterator, userKey)
 		
-		scenario("Initial Sync on user's calendar")
-			.exec(s => s.setAttributes(feeder.next))
+		scenario("{%d}: Initial Sync on user's calendar".format(userNumber))
+			.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
+			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
 			.exec(buildInitialFolderSyncCommand(userKey))
 			.exec(buildSyncOnCalendarCommand(userKey))
 	}
