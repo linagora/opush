@@ -111,7 +111,7 @@ First of all, you have to create a keyspace. +
 This must be done in the +cqlsh+ shell with *Cassandra* administrator:
 [source]
 ----
-$ cqlsh -u cassandra -p cassandra
+$ cqlsh -u cassandra -p cassandra CASSANDRA_RPC_ADDRESS
 ---- 
 
 And then enter the following command in the +cqlsh+ shell:
