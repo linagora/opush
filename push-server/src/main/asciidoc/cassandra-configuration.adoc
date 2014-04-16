@@ -76,21 +76,22 @@ rpc_address: 192.168.56.3
 
 ==== Single Node
 
-For small configurations (number of users lower than 40), you may want to install *Cassandra* on a single node. +
-Such case is discussed in this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
+For small configurations you may want to install *Cassandra* on a single node,
+to understand what is going on in this situation read this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
 
-Your keyspace +replication_factor+ must be set to 1, 
-and you must reduce your +commitlog_sync_period_in_ms+ which is configured in the +/etc/cassandra/cassandra.yaml+ file. +
-Finally, you will have to set the +seeds+ and +rpc_address+ in your +/etc/cassandra/cassandra.yaml+ file.
+When you will create your keyspace the +replication_factor+ must be set to 1. +
+Assuming that your *Cassandra* server has the IP +192.168.56.1+, modify your +/etc/cassandra/cassandra.yaml+ like this:
 
-.+/etc/cassandra/cassandra.yaml+ example on +192.168.56.1+
+.+/etc/cassandra/cassandra.yaml+ example
 ****
 ----
+...
+commitlog_sync_period_in_ms: 2000 # suggestion only, can be customized
 ...
 seed_provider:
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
       parameters:
-          - seeds: "192.168.56.1"
+          - seeds: "127.0.0.1"
 ...
 rpc_address: 192.168.56.1
 ....
