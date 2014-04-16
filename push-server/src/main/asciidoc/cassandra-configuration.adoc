@@ -31,7 +31,7 @@ First of all, we advise you to read those two pages:
 Then, you will have to create your keyspace with a +replication_factor+ set to 3. +
 Finally, you will have to set the +seeds+ and +rpc_address+ in your three +/etc/cassandra/cassandra.yaml+ files.
 
-The example bellow is based on three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+, and a single +seed+.
+The example below is based on three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+, and a single +seed+.
 
 .+/etc/cassandra/cassandra.yaml+ example on +192.168.56.1+
 ****
