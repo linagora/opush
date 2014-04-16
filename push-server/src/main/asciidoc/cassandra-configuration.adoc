@@ -29,11 +29,11 @@ First of all, we advise you to read those two pages:
   * http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html?scroll=concept_ds_yt4_m4f_fk[Data replication]
 
 Then, you will have to create your keyspace with a +replication_factor+ set to 3. +
-Finally, you will have to set the +seeds+ and +rpc_address+ in your three +/etc/cassandra/cassandra.yaml+ files.
+Finally, you will have to set the +seeds+ and +rpc_address+ in each +cassandra.yaml+ file.
 
 The example below is based on three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+, and a single +seed+.
 
-.+/etc/cassandra/cassandra.yaml+ example on +192.168.56.1+
+.+cassandra.yaml+ example on +192.168.56.1+
 ****
 ----
 ...
@@ -46,7 +46,7 @@ rpc_address: 192.168.56.1
 ....
 ----
 ****
-.+/etc/cassandra/cassandra.yaml+ example on +192.168.56.2+
+.+cassandra.yaml+ example on +192.168.56.2+
 ****
 ----
 ...
@@ -59,7 +59,7 @@ rpc_address: 192.168.56.2
 ....
 ----
 ****
-.+/etc/cassandra/cassandra.yaml+ example on +192.168.56.3+
+.+cassandra.yaml+ example on +192.168.56.3+
 ****
 ----
 ...
@@ -80,9 +80,8 @@ For small configurations you may want to install *Cassandra* on a single node,
 to understand what is going on in this situation read this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
 
 When you will create your keyspace the +replication_factor+ must be set to 1. +
-Assuming that your *Cassandra* server has the IP +192.168.56.1+, modify your +/etc/cassandra/cassandra.yaml+ like this:
+Assuming that your *Cassandra* server has the IP +192.168.56.1+, modify your +cassandra.yaml+ like this:
 
-.+/etc/cassandra/cassandra.yaml+ example
 ****
 ----
 ...
@@ -101,7 +100,7 @@ rpc_address: 192.168.56.1
 === Preparing for Opush
 
 Authentication in *Cassandra* must be delegated to the password authenticator backend, 
-you have to edit the +/etc/cassandra/cassandra.yaml+ file and check the authenticator backend:
+you have to edit the +cassandra.yaml+ file and check the authenticator backend:
 
 [source]
 ----
