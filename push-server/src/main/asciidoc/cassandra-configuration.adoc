@@ -23,15 +23,10 @@ you will have to deploy at least 3 nodes to have durability and fault-tolerance.
 
 ==== Three Nodes (recommended)
 
-First of all, we advise you to read those two pages:
+Official instructions to setup a cluster can be found http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[here]. +
+You can find below an example for a three nodes cluster, only +seeds+ and +rpc_address+ fields have to be modified to get your cluster working. We will not cover advanced configuration in this documentation.
 
-  * http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[Initializing a cluster]
-  * http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html?scroll=concept_ds_yt4_m4f_fk[Data replication]
-
-Then, you will have to create your keyspace with a +replication_factor+ set to 3. +
-Finally, you will have to set the +seeds+ and +rpc_address+ in each +cassandra.yaml+ file.
-
-The example below is based on three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+, and a single +seed+.
+Assuming that you have three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+ and you want only one +seed+.
 
 .+cassandra.yaml+ example on +192.168.56.1+
 ****
@@ -79,7 +74,6 @@ rpc_address: 192.168.56.3
 For small configurations you may want to install *Cassandra* on a single node,
 to understand what is going on in this situation read this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
 
-When you will create your keyspace the +replication_factor+ must be set to 1. +
 Assuming that your *Cassandra* server has the IP +192.168.56.1+, modify your +cassandra.yaml+ like this:
 
 ****
@@ -107,27 +101,30 @@ you have to edit the +cassandra.yaml+ file and check the authenticator backend:
 authenticator: PasswordAuthenticator
 ----
 
-First of all, you have to create a keyspace. +
-This must be done in the +cqlsh+ shell with *Cassandra* administrator:
+First of all, you have to create a keyspace, this must be done in the +cqlsh+ shell with *Cassandra* administrator:
+
 [source]
 ----
 $ cqlsh -u cassandra -p cassandra CASSANDRA_RPC_ADDRESS
 ---- 
 
-And then enter the following command in the +cqlsh+ shell:
+A keyspace is created with a data replication configuration, to understand it please read this http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html[page]. +
+Create it with the following command in the +cqlsh+ shell:
+
 [source]
 ----
-cqlsh> CREATE KEYSPACE opush_keyspace WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 3};
+cqlsh> CREATE KEYSPACE opush WITH REPLICATION = {'class' : 'CHOSEN_STRATEGY', 'replication_factor': CHOSEN_FACTOR};
 ----
 Where:
 
-  * +opush_keyspace+ is the keyspace name
-  * +replication_factor+ is documented on the <<_supported_cassandra_configurations, section>>  
+  * +opush+ is the keyspace name (Opush 3.0.0 requires a keyspace named "opush", see http://ci-obm.linagora.com/jira/browse/OP-35[OP-35])
+  * +CHOSEN_STRATEGY+ use +SimpleStrategy+ unless your cluster is deployed across multiple data centers
+  * +CHOSEN_FACTOR+ must be +1+ for a single node installation, we suggest +2+ for a three nodes cluster
   
 Finally, still in the +cqlsh+ shell, create a *Cassandra* user for Opush:
 [source]
 ----
-cqlsh> USE opush_keyspace;
+cqlsh> USE opush;
 cqlsh> CREATE USER opush_user WITH PASSWORD 'opush_password' SUPERUSER;
 ----
 Where:
