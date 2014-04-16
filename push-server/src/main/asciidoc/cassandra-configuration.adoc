@@ -2,7 +2,7 @@
 
 === Requirements
 
-  * *Cassandra* 2.0, version >= 2.0.6 +
+  * *Cassandra* 2.0, version >= 2.0.6
   * The *Cassandra* cluster must be installed (guides for
 http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installDeb_t.html[Debian]
 and
@@ -78,7 +78,7 @@ rpc_address: 192.168.56.3
 For small configurations (number of users lower than 40), you may want to install *Cassandra* on a single node. +
 Such case is discussed in this http://planetcassandra.org/blog/post/cassandra-faq-can-i-start-with-a-single-node/[article].
 
-Your keyspace +replication_factor+ must be set to 1, +
+Your keyspace +replication_factor+ must be set to 1, 
 and you must reduce your +commitlog_sync_period_in_ms+ which is configured in the +/etc/cassandra/cassandra.yaml+ file. +
 Finally, you will have to set the +seeds+ and +rpc_address+ in your +/etc/cassandra/cassandra.yaml+ file.
 
@@ -100,6 +100,7 @@ rpc_address: 192.168.56.1
 
 Authentication in *Cassandra* must be delegated to the password authenticator backend, 
 you have to edit the +/etc/cassandra/cassandra.yaml+ file and check the authenticator backend:
+
 [source]
 ----
 authenticator: PasswordAuthenticator
@@ -146,7 +147,7 @@ contain the following message:
 ----
 
 Opush server will not be accessible to clients, but the administrator can connect 
-using the <<_how_to_use_the_strong_crash_strong_console, *CRaSH*>> shell. +
+using the <<_administration_with_the_strong_crash_strong_console, *CRaSH*>> shell. +
 Furthermore you have to execute the +schema install+ <<crash-usage.adoc#_commands, *CRaSH*>> 
 command and then restart Opush.
 
