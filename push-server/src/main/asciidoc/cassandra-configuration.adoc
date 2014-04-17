@@ -24,13 +24,15 @@ you will have to deploy at least 3 nodes to have durability and fault-tolerance.
 ==== Three Nodes (recommended)
 
 Official instructions to setup a cluster can be found http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[here]. +
-You can find below an example for a three nodes cluster, only +seeds+ and +rpc_address+ fields have to be modified to get your cluster working. We will not cover advanced configuration in this documentation.
+You can find below an example for a three nodes cluster, only +cluster_name+, +seeds+ and +rpc_address+ fields have to be modified to get your cluster working. We will not cover advanced configuration in this documentation.
 
 Assuming that you have three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+ and you want only one +seed+.
 
 .+cassandra.yaml+ example on +192.168.56.1+
 ****
 ----
+...
+cluster_name: 'MyOpushCluster'
 ...
 seed_provider:
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
@@ -45,6 +47,8 @@ rpc_address: 192.168.56.1
 ****
 ----
 ...
+cluster_name: 'MyOpushCluster'
+...
 seed_provider:
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
       parameters:
@@ -57,6 +61,8 @@ rpc_address: 192.168.56.2
 .+cassandra.yaml+ example on +192.168.56.3+
 ****
 ----
+...
+cluster_name: 'MyOpushCluster'
 ...
 seed_provider:
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
