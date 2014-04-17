@@ -15,7 +15,7 @@ Please follow this installation process <<_opush_on_squeeze_installation>>
   * *OpenJDK 7*
   * A working http://obm.org/wiki/install-obm-debian-squeeze[*OBM*] >= 2.5.7 
 	with *obm-sync*
-  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>.
+  * A running <<_how_to_setup_cassandra,*Cassandra*>>
 
 === Opush on Wheezy Installation
 
@@ -161,3 +161,4 @@ cassandra.password=opush +
 allow.unknown.pda=true +
 ****
 
+include::follow-opush-cassandra-schema.adoc[]

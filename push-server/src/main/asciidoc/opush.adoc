@@ -51,7 +51,7 @@ However, there's a limited list of officially supported devices:
 
 include::architecture.adoc[]
 
-include::cassandra-configuration.adoc[]
+include::cassandra-installation.adoc[]
 
 include::debian-installation.adoc[]
 
@@ -60,5 +60,7 @@ include::debian-upgrade.adoc[]
 include::rhel-installation.adoc[]
 
 include::rhel-upgrade.adoc[]
+
+include::opush-cassandra-schema.adoc[]
 
 include::administration.adoc[]

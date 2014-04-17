@@ -6,7 +6,7 @@
   * *OpenJDK 7*
   * A working http://obm.org/content/install-obm-25-centos-6[*OBM*] >= 2.5.7 
 	with Opush and *obm-sync*
-  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>
+  * A running <<_how_to_setup_cassandra,*Cassandra*>>
 
 === Repository Configuration
 

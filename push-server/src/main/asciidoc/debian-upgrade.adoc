@@ -16,7 +16,7 @@ Please follow this upgrade process <<_opush_on_squeeze_upgrade>>
   * *OpenJDK 7*
   * A working http://obm.org/wiki/install-obm-debian-squeeze[*OBM*] >= 2.5.7 
 	with Opush and *obm-sync*
-  * A configured <<cassandra-configuration#_how_to_configure_cassandra,*Cassandra*>>
+  * A running <<_how_to_setup_cassandra,*Cassandra*>>
 
 === Package Dependency Conflicts
 
@@ -160,3 +160,5 @@ cassandra.password=opush +
 # an administrator on OBM interface. +
 allow.unknown.pda=true +
 ****
+
+include::follow-opush-cassandra-schema.adoc[]

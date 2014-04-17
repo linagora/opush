@@ -1,4 +1,4 @@
-== How to Configure Cassandra
+== How to setup Cassandra
 
 === Requirements
 
@@ -143,47 +143,3 @@ Where:
 .You have more than one node ? +
 Keyspace as user creation need to be done on one node, such changes affect the whole cluster
 ====
-
-=== Opush Schema
-
-==== Installation
-
-The first time you will start Opush, <<__code_opush_log_code,+opush.log+>> will
-contain the following message:
-[source]
-----
-10:49:48.611 [ERROR] {CONTAINER} [t/c/r/] Cassandra schema not installed, starting administration services only
-----
-
-Opush server will not be accessible to clients, but the administrator can connect 
-using the <<_administration_with_the_strong_crash_strong_console, *CRaSH*>> shell. +
-Furthermore you have to execute the +schema install+ <<crash-usage.adoc#_commands, *CRaSH*>> 
-command and then restart Opush.
-
-==== Upgrade
-
-There are two kinds of schema upgrades:
-
-===== Upgrade Recommended
-The following message will be displayed in <<__code_opush_log_code,+opush.log+>>:
-[source]
-----
-11:35:43.461 [WARN ] {CONTAINER} [t/c/r/] Cassandra schema not up-to-date, update is recommended
-----
-
-To upgrade, you should use the +schema update+ <<crash-usage.adoc#_commands, *CRaSH*>> command. Restarting Opush is not required for this type of upgrade.
-
-NOTE: Clients can access Opush even if upgrade is recommended.
-
-
-===== Upgrade Required
-The following message will be displayed in <<__code_opush_log_code,+opush.log+>>:
-[source]
-----
-11:43:51.857 [ERROR] {CONTAINER} [t/c/r/] Cassandra schema too old, starting administration services only
-----
-
-For required upgrades, you should use the +schema update+ <<crash-usage.adoc#_commands, *CRaSH*>> command and then restart Opush.
-
-NOTE: Opush server will not be accessible to clients until restart.
-

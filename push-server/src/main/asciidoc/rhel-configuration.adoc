@@ -100,3 +100,5 @@ cassandra.keyspace=opush +
 cassandra.user=opush +
 cassandra.password=opush +
 ****
+
+include::follow-opush-cassandra-schema.adoc[]
