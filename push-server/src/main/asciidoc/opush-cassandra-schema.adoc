@@ -1,4 +1,4 @@
-== Opush Cassandra Schema
+== Cassandra Schema
 
 === Installation
 

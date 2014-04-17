@@ -1,4 +1,4 @@
-== How to setup Cassandra
+== Cassandra Setup
 
 === Requirements
 

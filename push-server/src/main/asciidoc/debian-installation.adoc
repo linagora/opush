@@ -1,4 +1,4 @@
-== How to Install Opush on Debian
+== Debian - Opush Installation
 
 [NOTE]
 ====
@@ -15,7 +15,7 @@ Please follow this installation process <<_opush_on_squeeze_installation>>
   * *OpenJDK 7*
   * A working http://obm.org/wiki/install-obm-debian-squeeze[*OBM*] >= 2.5.7 
 	with *obm-sync*
-  * A running <<_how_to_setup_cassandra,*Cassandra*>>
+  * A running <<_cassandra_setup,*Cassandra*>>
 
 === Opush on Wheezy Installation
 
@@ -48,7 +48,7 @@ $ aptitude install opush
 [WARNING]
 ====
 If you have the +obm-full+ package installed 
-In this context you already have an Opush on your machine, please follow <<_how_to_upgrade_from_opush_2_on_debian>> instead.
+In this context you already have an Opush on your machine, please follow <<_debian_upgrade_from_opush_2>> instead.
 ====
 
 Modify your +/etc/apt/sources.list+ file by adding the Opush and squeeze-backports repositories:

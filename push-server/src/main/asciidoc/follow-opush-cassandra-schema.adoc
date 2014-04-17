@@ -1,5 +1,5 @@
 === Opush *Cassandra* Schema Setup
 
 At this step you should have a Opush 3 and a *Cassandra* cluster installed and configured. +
-The last thing to do to have your Opush ready to use is to <<_opush_cassandra_schema,setup the *Cassandra* schema>>.
+The last thing to do to have your Opush ready to use is to <<_cassandra_schema,setup the *Cassandra* schema>>.
 

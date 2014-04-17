@@ -33,7 +33,7 @@ operation:
 We supply a probe called *Spushnik* to supervise your Opush server. See the
 http://obm.org/content/spushnik[spushnik documentation] for more information.
 
-== Provide Access to the Opush Server
+== Opush Server Access
 
 === Reverse Proxy
 
@@ -311,7 +311,7 @@ And a response:
    </Autodiscover>
 
 WARNING: You need to configure your server according to
-<<_provide_access_to_the_opush_server>> in order to have Autodiscover working
+<<_opush_server_access>> in order to have Autodiscover working
 
 == Logs
 
