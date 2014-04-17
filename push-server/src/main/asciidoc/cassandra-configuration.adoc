@@ -138,6 +138,11 @@ Where:
   * +opush_user+ is the *Cassandra* user for Opush
   * +opush_password+ is the password for this user
 
+[NOTE]
+====
+.You have more than one node ? +
+Keyspace as user creation need to be done on one node, such changes affect the whole cluster
+====
 
 === Opush Schema
 
