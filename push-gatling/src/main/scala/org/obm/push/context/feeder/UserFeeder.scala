@@ -69,13 +69,13 @@ class UserFeeder(originalFeeder: AdvancedFeederBuilder[String], config: Configur
 	}
 	
 	def buildUserFromMap(fields: Map[String, String]) = new User(
-	    domain = config.domain,
+		domain = config.domain,
 		login = fields("username"),
 		password = fields("password"),
 		email = fields("email"),
 		deviceId = new DeviceId(config.defaultUserDeviceId + UUID.randomUUID().toString()),
 		deviceType = config.defaultUserDeviceType
-    )
+	)
 }
 
 object UserFeeder {

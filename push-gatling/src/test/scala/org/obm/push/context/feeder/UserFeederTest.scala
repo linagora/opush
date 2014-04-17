@@ -49,34 +49,34 @@ import org.obm.push.bean.DeviceId
 @RunWith(classOf[JUnitRunner])
 class UserFeederTest extends FunSuite with BeforeAndAfter {
 	
-   val tempFolderRule = new TemporaryFolder()
-   
-   var wbxmlTools: WBXMLTools = _
-   var config: Configuration = _
-   
-   before {
-	   GatlingConfiguration.setUp()
-     
-	   System.setProperty("userDomain", "my.domain")
-	   System.setProperty("baseUrl", "localhost")
-	   config = new Configuration() {}
-	   wbxmlTools = new WBXMLTools()
-	   tempFolderRule.create()
-   }
-   
-   after {
-	   tempFolderRule.delete()
-   }
+	val tempFolderRule = new TemporaryFolder()
+
+	var wbxmlTools: WBXMLTools = _
+	var config: Configuration = _
+
+	before {
+		GatlingConfiguration.setUp()
+
+		System.setProperty("userDomain", "my.domain")
+		System.setProperty("baseUrl", "localhost")
+		config = new Configuration() {}
+		wbxmlTools = new WBXMLTools()
+		tempFolderRule.create()
+	}
+
+	after {
+		tempFolderRule.delete()
+	}
 	
-   test("Feeder build users only once") {
-	   val userFile = tempFolderRule.newFile()
-	   val fileWriter = new FileWriter(userFile)
-	   fileWriter.write(
-   """username,email,password
+	test("Feeder build users only once") {
+		val userFile = tempFolderRule.newFile()
+				val fileWriter = new FileWriter(userFile)
+		fileWriter.write(
+				"""username,email,password
 user.1,user.1@my.domain,secret
 user.2,user.2@my.domain,secret""");
-	   fileWriter.close();
-	   
+		fileWriter.close();
+
 		val feeder = UserFeeder.newCSV(new File(userFile), config, new UserKey("a"), new UserKey("b")).build
 		
 		val firstIteration = feeder.next()
@@ -100,6 +100,6 @@ user.2,user.2@my.domain,secret""");
 		assert(user1.equals(secondIteration("a")))
 		assert(user2.equals(secondIteration("b")))
 		
-   }
+	}
 
 }
