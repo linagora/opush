@@ -29,43 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
-
-import org.obm.push.command.AcceptProvisioningContext
-import org.obm.push.command.FolderSyncCommand
-import org.obm.push.command.FolderSyncContext
-import org.obm.push.command.InitialFolderSyncContext
-import org.obm.push.command.InitialProvisioningContext
-import org.obm.push.command.ProvisioningCommand
+package org.obm.push.scenario
+import org.obm.push.command.SendEmailCommand
+import org.obm.push.command.SendEmailContext
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.provisionedUsers
 import org.obm.push.wbxml.WBXMLTools
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.atOnce
 import io.gatling.core.Predef.{scenario => createScenario}
-import io.gatling.core.Predef.userNumber
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-object ThreeFolderSyncScenarioBuilder extends ScenarioBuilder {
+object SendEmailScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val userKey = new UserKey("user")
-	val initialProvisioningContext = new InitialProvisioningContext(userKey)
-	val acceptProvisioningContext = new AcceptProvisioningContext(userKey)
-	val initialFolderSyncContext = new InitialFolderSyncContext(userKey)
-	val folderSyncContext = new FolderSyncContext(userKey)
+	val userFrom = new UserKey("userFrom")
+	val userTo = new UserKey("userTo")
+	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
-	override def build(config: Configuration) = 
-		createScenario("Three consecutive FolderSync request")
-		.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
-		.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
-		.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
-		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
-		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
-	
+	override def build(configuration: Configuration) = 
+		createScenario("Send a simple email to a user").exitBlockOnFail(
+		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+			.exec(new SendEmailCommand(sendEmailContext).buildCommand))
 }

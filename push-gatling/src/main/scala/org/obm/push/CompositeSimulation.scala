@@ -32,15 +32,16 @@
 package org.obm.push
 
 import scala.concurrent.duration.DurationInt
-
 import org.obm.push.context.GatlingConfiguration
-
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
+import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
+import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
 
 class CompositeSimulation extends Simulation {
 

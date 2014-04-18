@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -30,21 +30,27 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.scenario
+import org.obm.push.command.SendEmailContext
+import org.obm.push.command.SendEmailWithBadToCommand
+import org.obm.push.context.Configuration
+import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.provisionedUsers
+import org.obm.push.wbxml.WBXMLTools
+import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-object Scenarios {
+object SendEmailWithBadToAddressScenarioBuilder extends ScenarioBuilder {
 
-	val scenarios = Map(
-		"calendar" -> MeetingCreateUpdateDeleteScenarioBuilder,
-		"calendar-sync" -> InitialSyncOnCalendarScenarioBuilder,
-		"contact" -> ContactCreateUpdateDeleteScenarioBuilder,
-		"folder-sync" -> ThreeFolderSyncScenarioBuilder,
-		"meeting-creation" -> InviteTwoUsersScenarioBuilder,
-		"meeting-invitation" -> InviteTwoUsersOneAcceptOneDeclineScenarioBuilder,
-		"meeting-modification" -> ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder,
-		"meeting-cancelation" -> DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder,
-		"ping" -> SimplePingScenarioBuilder,
-		"send-email" -> SendEmailScenarioBuilder,
-		"send-email-to-bad-address" -> SendEmailWithBadToAddressScenarioBuilder
-	)
+	val wbTools: WBXMLTools = new WBXMLTools
+	val userFrom = new UserKey("userFrom")
+	val userTo = new UserKey("userTo")
+	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
+	override def build(configuration: Configuration) = 
+		createScenario("Send an email with bad to address").exitBlockOnFail(
+		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+			.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
+	)
+
 }

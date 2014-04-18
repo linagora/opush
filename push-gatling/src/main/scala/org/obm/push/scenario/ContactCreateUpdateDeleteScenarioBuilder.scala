@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,45 +29,59 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
-
+package org.obm.push.scenario
 import org.obm.push.bean.FolderType
-import org.obm.push.command.FolderSyncCommand
-import org.obm.push.command.InitialFolderSyncContext
+import org.obm.push.command.ContactCommand.validCreatedContact
+import org.obm.push.command.ContactCommand.validDeletedContact
+import org.obm.push.command.ContactCommand.validModifiedContact
+import org.obm.push.command.ContactContext
+import org.obm.push.command.CreateContactCommand
+import org.obm.push.command.DeleteContactCommand
 import org.obm.push.command.InitialSyncContext
-import org.obm.push.command.ProvisioningCommand
+import org.obm.push.command.ModifyContactCommand
 import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
+import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.atOnce
 import io.gatling.core.Predef.{scenario => createScenario}
-import io.gatling.core.Predef.userNumber
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
+import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
 
-object InitialSyncOnCalendarScenarioBuilder extends ScenarioBuilder {
+object ContactCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
+	val usedContactCollection = FolderType.DEFAULT_CONTACTS_FOLDER
 	val userKey = new UserKey("user")
 
-	override def build(configuration: Configuration) = 
-		createScenario("Initial Sync on user's calendar")
-			.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
-			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
-			.exec(buildInitialFolderSyncCommand(userKey))
-			.exec(buildSyncOnCalendarCommand(userKey))
+	override def build(configuration: Configuration) =
+		createScenario("Create, modify then drop contact").exitBlockOnFail(
+			initializedUsers(UserFeeder.newCSV("users.csv", configuration, userKey), userKey)
+			.pause(configuration.pause)
+			.exec(buildInitialSyncCommand(userKey, usedContactCollection))
+			.pause(configuration.pause)
+			.exec(s => Success(userKey.sessionHelper.setupNextContactClientId(s)))
+			.exec(buildCreateContactCommand(userKey))
+			.exec(s => Success(userKey.sessionHelper.setupLastContactServerId(s)))
+			.exec(buildModifyContactCommand(userKey))
+			.exec(buildDeleteContactCommand(userKey))
+	)
 	
-	def buildSyncOnCalendarCommand(userKey: UserKey) = {
-		val initialSyncContext = new InitialSyncContext(userKey, FolderType.DEFAULT_CALENDAR_FOLDER)
-		new SyncCollectionCommand(initialSyncContext, wbTools).buildCommand
+	def buildInitialSyncCommand(userKey: UserKey, folderType: FolderType) = {
+		new SyncCollectionCommand(new InitialSyncContext(userKey, folderType), wbTools).buildCommand
 	}
 	
-	def buildInitialFolderSyncCommand(userKey: UserKey) = {
-		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand
+	def buildCreateContactCommand(userKey: UserKey) = {
+	  	new CreateContactCommand(new ContactContext(userKey, matcher = validCreatedContact), wbTools).buildCommand
+	}
+	
+	def buildModifyContactCommand(userKey: UserKey) = {
+	  	new ModifyContactCommand(new ContactContext(userKey, matcher = validModifiedContact), wbTools).buildCommand
+	}
+	
+	def buildDeleteContactCommand(userKey: UserKey) = {
+	  	new DeleteContactCommand(new ContactContext(userKey, matcher = validDeletedContact), wbTools).buildCommand
 	}
 }

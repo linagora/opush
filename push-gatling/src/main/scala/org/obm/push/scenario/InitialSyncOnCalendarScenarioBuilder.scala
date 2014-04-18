@@ -29,37 +29,39 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
-import scala.concurrent.duration.DurationInt
-
-import org.obm.push.command.SendEmailCommand
-import org.obm.push.command.SendEmailContext
+import org.obm.push.bean.FolderType
+import org.obm.push.command.FolderSyncCommand
+import org.obm.push.command.InitialFolderSyncContext
+import org.obm.push.command.InitialSyncContext
+import org.obm.push.command.ProvisioningCommand
+import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
-import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.helper.SimulationHelper.provisionedUsers
 import org.obm.push.wbxml.WBXMLTools
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.UsersPerSecImplicit
-import io.gatling.core.Predef.constantRate
-import io.gatling.core.Predef.nothingFor
 import io.gatling.core.Predef.{scenario => createScenario}
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
 
-object SendEmailScenarioBuilder extends ScenarioBuilder {
+object InitialSyncOnCalendarScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val userFrom = new UserKey("userFrom")
-	val userTo = new UserKey("userTo")
-	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
-	
+	val userKey = new UserKey("user")
+
 	override def build(configuration: Configuration) = 
-		createScenario("Send a simple email to a user").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
-			.exec(new SendEmailCommand(sendEmailContext).buildCommand))
+		createScenario("Initial Sync on user's calendar")
+			.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
+			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
+			.exec(buildInitialFolderSyncCommand(userKey))
+			.exec(buildSyncOnCalendarCommand(userKey))
+	
+	def buildSyncOnCalendarCommand(userKey: UserKey) = {
+		val initialSyncContext = new InitialSyncContext(userKey, FolderType.DEFAULT_CALENDAR_FOLDER)
+		new SyncCollectionCommand(initialSyncContext, wbTools).buildCommand
+	}
+	
+	def buildInitialFolderSyncCommand(userKey: UserKey) = {
+		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand
+	}
 }

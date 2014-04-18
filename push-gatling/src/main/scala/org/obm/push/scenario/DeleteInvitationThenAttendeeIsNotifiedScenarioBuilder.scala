@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,39 +29,40 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
-import scala.concurrent.duration.DurationInt
-
-import org.obm.push.command.SendEmailContext
-import org.obm.push.command.SendEmailWithBadToCommand
+import org.obm.push.command.DeleteInvitationCommand
+import org.obm.push.command.InvitationCommand
+import org.obm.push.command.InvitationContext
+import org.obm.push.command.SyncCollectionCommand.atLeastOneAddResponse
+import org.obm.push.command.SyncCollectionCommand.noChange
+import org.obm.push.context.User
+import io.gatling.core.Predef.bootstrap.exec
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.UserKey
-import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.helper.SimulationHelper.provisionedUsers
 import org.obm.push.wbxml.WBXMLTools
 
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.UsersPerSecImplicit
-import io.gatling.core.Predef.constantRate
-import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.{scenario => createScenario}
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
-import io.gatling.http.Predef.requestBuilder2ActionBuilder
-
-object SendEmailWithBadToAddressScenarioBuilder extends ScenarioBuilder {
+object DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val userFrom = new UserKey("userFrom")
-	val userTo = new UserKey("userTo")
-	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
+	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
+		
+	override def build(configuration: Configuration) = {
+		
+		
+		createScenario("Invite two users, modify then delete invitation")
+		.exitHereIfFailed.exitBlockOnFail(
+			exec(invit.build(configuration))
+			.exec(buildDeleteInvitationCommand(invit.invitation))
+			.pause(configuration.asynchronousChangeTime)
+			.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, noChange))
+			.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
+		)
+	}
 	
-	override def build(configuration: Configuration) = 
-		createScenario("Send an email with bad to address").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
-			.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
-	)
-
+	def buildDeleteInvitationCommand(invitation: InvitationContext) = {
+		invitation.matcher = InvitationCommand.validDeleteInvitation
+		new DeleteInvitationCommand(invitation, wbTools).buildCommand
+	}
 }

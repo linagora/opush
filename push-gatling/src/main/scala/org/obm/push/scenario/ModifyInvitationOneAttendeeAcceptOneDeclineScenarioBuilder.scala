@@ -29,25 +29,23 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
 import org.obm.DateUtils.date
+import org.obm.push.command.InvitationContext
+import org.obm.push.command.ModifyInvitationCommand
+import org.obm.push.context.Configuration
+import org.obm.push.wbxml.WBXMLTools
+import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
+import org.obm.push.command.SyncCollectionCommand.atLeastOneDeleteResponse
+import org.obm.push.command.SyncCollectionCommand.validSync
+import io.gatling.core.Predef._
+import io.gatling.core.Predef.bootstrap.exec
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.validation.Success
 import org.obm.push.bean.AttendeeStatus
 import org.obm.push.checks.Check
 import org.obm.push.command.InvitationCommand
-import org.obm.push.command.InvitationContext
-import org.obm.push.command.ModifyInvitationCommand
-import org.obm.push.command.SyncCollectionCommand.atLeastOneDeleteResponse
-import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
-import org.obm.push.context.User
-import io.gatling.core.Predef.bootstrap.exec
-import io.gatling.core.session.Session
-import io.gatling.core.validation.Success
-import io.gatling.http.Predef.requestBuilder2ActionBuilder
-import io.gatling.core.Predef.{scenario => createScenario}
-import org.obm.push.context.Configuration
-import org.obm.push.wbxml.WBXMLTools
-
 
 object ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder extends ScenarioBuilder {
 
@@ -55,7 +53,7 @@ object ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder extends Scenar
 	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
     
 	override def build(configuration: Configuration) = 
-		createScenario("Invite two users then modify")
+		scenario("Invite two users then modify")
 			.exitHereIfFailed.exitBlockOnFail(
 				exec(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder.build(configuration))
 				.exec(buildModifyInvitationCommand(invit.invitation))

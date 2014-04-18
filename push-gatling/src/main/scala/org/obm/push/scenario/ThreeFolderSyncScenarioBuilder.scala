@@ -29,41 +29,35 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
-import org.obm.push.command.DeleteInvitationCommand
-import org.obm.push.command.InvitationCommand
-import org.obm.push.command.InvitationContext
-import org.obm.push.command.SyncCollectionCommand.atLeastOneAddResponse
-import org.obm.push.command.SyncCollectionCommand.noChange
-import org.obm.push.context.User
-import io.gatling.core.Predef.bootstrap.exec
-import io.gatling.http.Predef.requestBuilder2ActionBuilder
-import io.gatling.core.Predef.{scenario => createScenario}
+import org.obm.push.command.AcceptProvisioningContext
+import org.obm.push.command.FolderSyncCommand
+import org.obm.push.command.FolderSyncContext
+import org.obm.push.command.InitialFolderSyncContext
+import org.obm.push.command.InitialProvisioningContext
+import org.obm.push.command.ProvisioningCommand
 import org.obm.push.context.Configuration
+import org.obm.push.context.UserKey
 import org.obm.push.wbxml.WBXMLTools
+import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-
-object DeleteInvitationThenAtendeeIsNotifiedScenarioBuilder extends ScenarioBuilder {
+object ThreeFolderSyncScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
-		
-	override def build(configuration: Configuration) = {
-		
-		
-		createScenario("Invite two users, modify then delete invitation")
-		.exitHereIfFailed.exitBlockOnFail(
-			exec(invit.build(configuration))
-			.exec(buildDeleteInvitationCommand(invit.invitation))
-			.pause(configuration.asynchronousChangeTime)
-			.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, noChange))
-			.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
-		)
-	}
+	val userKey = new UserKey("user")
+	val initialProvisioningContext = new InitialProvisioningContext(userKey)
+	val acceptProvisioningContext = new AcceptProvisioningContext(userKey)
+	val initialFolderSyncContext = new InitialFolderSyncContext(userKey)
+	val folderSyncContext = new FolderSyncContext(userKey)
 	
-	def buildDeleteInvitationCommand(invitation: InvitationContext) = {
-		invitation.matcher = InvitationCommand.validDeleteInvitation
-		new DeleteInvitationCommand(invitation, wbTools).buildCommand
-	}
+	override def build(config: Configuration) = 
+		createScenario("Three consecutive FolderSync request")
+		.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
+		.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
+		.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
+		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+	
 }

@@ -29,13 +29,8 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
-import scala.collection.Iterator
-import scala.concurrent.duration.DurationInt
-import scala.util.control.Breaks
-
-import org.obm.DateUtils.date
 import org.obm.push.bean.AttendeeStatus
 import org.obm.push.bean.FolderType
 import org.obm.push.checks.Check
@@ -53,26 +48,17 @@ import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
 import org.obm.push.command.SyncCollectionCommand.validSync
 import org.obm.push.command.SyncContext
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.User
 import org.obm.push.context.UserKey
-import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.protocol.bean.SyncResponse
 import org.obm.push.wbxml.WBXMLTools
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.UsersPerSecImplicit
-import io.gatling.core.Predef.bootstrap.exec
-import io.gatling.core.Predef.constantRate
-import io.gatling.core.Predef.nothingFor
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.check.Matcher
 import io.gatling.core.session.Session
 import io.gatling.core.validation.Success
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 import io.gatling.http.request.builder.PostHttpRequestBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.core.Predef.bootstrap.exec
 
 object InviteTwoUsersOneAcceptOneDeclineScenarioBuilder extends ScenarioBuilder {
 

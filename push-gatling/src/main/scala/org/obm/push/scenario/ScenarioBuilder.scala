@@ -1,4 +1,4 @@
-package org.obm.push
+package org.obm.push.scenario
 
 import org.obm.push.context.Configuration
 

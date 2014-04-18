@@ -29,21 +29,13 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
 import org.obm.push.command.PingCommand
 import org.obm.push.command.PingContext
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
-import org.obm.push.context.feeder.UserFeeder
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.atOnce
 import io.gatling.core.Predef.{scenario => createScenario}
-import io.gatling.core.Predef.userNumber
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
 object SimplePingScenarioBuilder extends ScenarioBuilder {
