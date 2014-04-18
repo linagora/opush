@@ -52,54 +52,35 @@ import org.obm.push.wbxml.WBXMLTools
 
 import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.atOnce
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.Predef.userNumber
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class InviteTwoUsersSimulation extends Simulation {
+object InviteTwoUsersScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val configuration: Configuration = GatlingConfiguration.build
-
 	val usedCalendarCollection = FolderType.DEFAULT_CALENDAR_FOLDER
-	
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-	
-	val userNumber = 1
-	for (userNumber <- Iterator.range(1, 100)) {
-		val organizerScenario = buildScenarioForOrganizer(userNumber)
-		setUp(organizerScenario.inject(atOnce(1))).protocols(httpConf)
-	}
+	val organizer = new UserKey("organizer")
+	val invitee1 = new UserKey("invitee1")
+	val invitee2 = new UserKey("invitee2")
+	val invitation = new InvitationContext(
+			organizer = organizer,
+			attendees = Set(invitee1, invitee2),
+			startTime = date("2014-01-12T09:00:00"),
+			endTime = date("2014-01-12T10:00:00"),
+			folderType = usedCalendarCollection)
 
-	def buildScenarioForOrganizer(userNumber: Int) = {
-		val organizer = new UserKey("organizer")
-		val invitee1 = new UserKey("invitee1")
-		val invitee2 = new UserKey("invitee2")
-		
-		
-		val invitation = new InvitationContext(
-				organizer = organizer,
-				attendees = Set(invitee1, invitee2),
-				startTime = date("2014-01-12T09:00:00"),
-				endTime = date("2014-01-12T10:00:00"),
-				folderType = usedCalendarCollection)
-
-		val duration = Duration(2, SECONDS)
-		scenario("{%d}: Send an invitation to two users".format(userNumber))
+	override def build(configuration: Configuration) = 
+		createScenario("Send an invitation to two users")
 			.exec(ProvisioningCommand.buildInitialProvisioningCommand(organizer))
 			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(organizer))
 			.exec(buildInitialFolderSyncCommand(organizer))
-			.pause(s => Success(duration))
 			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection))
-			.pause(s => Success(duration))
+			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
 			.exec(buildSendInvitationCommand(invitation))
-	}
 	
 	def buildInitialFolderSyncCommand(userKey: UserKey) = {
 		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand

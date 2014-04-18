@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,47 +29,34 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push
+package org.obm.push.scenario
 
-import org.obm.push.command.ProvisioningCommand
-import org.obm.push.command.SendEmailCommand
-import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
-import org.obm.push.context.User
-import org.obm.push.context.UserKey
-import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.wbxml.WBXMLTools
+import org.obm.push.ContactCreateUpdateDeleteScenarioBuilder
+import org.obm.push.MeetingCreateUpdateDeleteScenarioBuilder
+import org.obm.push.SendEmailScenarioBuilder
+import org.obm.push.SendEmailWithBadToAddressScenarioBuilder
+import org.obm.push.SimplePingScenarioBuilder
+import org.obm.push.ThreeFolderSyncScenarioBuilder
+import org.obm.push.InviteTwoUsersScenarioBuilder
+import org.obm.push.ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder
+import org.obm.push.DeleteInvitationThenAtendeeIsNotifiedScenarioBuilder
+import org.obm.push.InitialSyncOnCalendarScenarioBuilder
+import org.obm.push.InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
 
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.atOnce
-import io.gatling.core.Predef.scenario
-import io.gatling.core.Predef.userNumber
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
-import io.gatling.http.Predef.requestBuilder2ActionBuilder
+object Scenarios {
 
-class SendEmailFromManyUsersSimulation extends Simulation {
-
-	val wbTools: WBXMLTools = new WBXMLTools
-  
-	val configuration: Configuration = GatlingConfiguration.build
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
+	val scenarios = Map(
+		"calendar" -> MeetingCreateUpdateDeleteScenarioBuilder,
+		"calendar-sync" -> InitialSyncOnCalendarScenarioBuilder,
+		"contact" -> ContactCreateUpdateDeleteScenarioBuilder,
+		"folder-sync" -> ThreeFolderSyncScenarioBuilder,
+		"meeting-creation" -> InviteTwoUsersScenarioBuilder,
+		"meeting-invitation" -> InviteTwoUsersOneAcceptOneDeclineScenarioBuilder,
+		"meeting-modification" -> ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder,
+		"meeting-cancelation" -> DeleteInvitationThenAtendeeIsNotifiedScenarioBuilder,
+		"ping" -> SimplePingScenarioBuilder,
+		"send-email" -> SendEmailScenarioBuilder,
+		"send-email-to-bad-address" -> SendEmailWithBadToAddressScenarioBuilder
+	)
 	
-	for (userNumber <- Iterator.range(1, 10)) {
-		val userSendEmailScenario = buildScenarioForUser(userNumber)
-		setUp(userSendEmailScenario.inject(atOnce(1))).protocols(httpConf)
-	}
-
-	def buildScenarioForUser(userNumber: Int) = {
-		val fromKey = new UserKey("fromUser")
-		
-		val sendEmailContext = null//new SendEmailContext(fromKey, from.mailbox, to, cc, bcc)
-		scenario("{%d}: Send a simple email".format(userNumber))
-			.exec(ProvisioningCommand.buildInitialProvisioningCommand(fromKey))
-			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(fromKey))
-			.exec(new SendEmailCommand(sendEmailContext).buildCommand)
-	}
 }

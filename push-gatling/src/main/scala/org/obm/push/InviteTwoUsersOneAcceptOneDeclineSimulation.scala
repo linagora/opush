@@ -65,7 +65,7 @@ import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.bootstrap.exec
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.check.Matcher
 import io.gatling.core.session.Session
 import io.gatling.core.validation.Success
@@ -74,77 +74,28 @@ import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 import io.gatling.http.request.builder.PostHttpRequestBuilder
 
-class InviteTwoUsersOneAcceptOneDeclineSimulation extends Simulation {
+object InviteTwoUsersOneAcceptOneDeclineScenarioBuilder extends ScenarioBuilder {
 
+	val inviteTwoUsersScenarioBuilder = InviteTwoUsersScenarioBuilder
 	val wbTools: WBXMLTools = new WBXMLTools
-	val configuration: Configuration = GatlingConfiguration.build
-
 	val usedMailCollection = FolderType.DEFAULT_INBOX_FOLDER 
 	val usedCalendarCollection = FolderType.DEFAULT_CALENDAR_FOLDER
+	val organizerKey = inviteTwoUsersScenarioBuilder.organizer
+	val attendee1Key = inviteTwoUsersScenarioBuilder.invitee1
+	val attendee2Key = inviteTwoUsersScenarioBuilder.invitee2
 	
-	val organizerKey = new UserKey("organizer")
-	val attendee1Key = new UserKey("attendee1")
-	val attendee2Key = new UserKey("attendee2")
-	val invitation = new InvitationContext(
-		organizer = organizerKey,
-		attendees = Set(attendee1Key, attendee2Key),
-		startTime = date("2014-01-12T09:00:00"),
-		endTime = date("2014-01-12T10:00:00"),
-		folderType = usedCalendarCollection)
-	
+	val invitation = inviteTwoUsersScenarioBuilder.invitation
 		
-	val users = for (userNumber <- Iterator.range(1, 100)) yield null//new User(userNumber, configuration)
-	
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-	
-	var organizer: User = null
-	var attendee1: User = null
-	var attendee2: User = null
-	
-	for (user <- users) {
-		Breaks.breakable {
-			if (organizer == null) {
-				organizer = user
-				Breaks.break
-			}
-			if (attendee1 == null) {
-				attendee1 = user
-				Breaks.break
-			}
-			if (attendee2 == null) {
-				attendee2 = user
-			}
-			
-			setUp(buildScenario(organizer, attendee1, attendee2).inject(
-			    nothingFor(60 seconds),
-			    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
-			)).protocols(httpConf)
-	
-			organizer = null
-			attendee1 = null
-			attendee2 = null
-		}
-	}
-
-	def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
-
-		scenario("Send an invitation at two attendees for organizer: " + organizer.login)
+	override def build(configuration: Configuration) = 
+		createScenario("Send an invitation at two attendees")
 			.exitBlockOnFail(
-				exec(ProvisioningCommand.buildInitialProvisioningCommand(organizerKey))
-				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(organizerKey))
+				exec(inviteTwoUsersScenarioBuilder.build(configuration))
 				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee1Key))
 				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee1Key))
 				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee2Key))
 				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee2Key))
-				.exec(buildInitialFolderSyncCommand(organizerKey))
 				.exec(buildInitialFolderSyncCommand(attendee1Key))
 				.exec(buildInitialFolderSyncCommand(attendee2Key))
-				.exec(buildInitialSyncCommand(organizerKey, usedCalendarCollection))
-				.exec(s => Success(organizerKey.sessionHelper.setupNextInvitationClientId(s)))
-				.exec(buildSendInvitationCommand(invitation))
 				.exec(s => Success(organizerKey.sessionHelper.setupPendingInvitation(s, invitation)))
 				.pause(s => Success(configuration.asynchronousChangeTime))
 				.exec(buildInitialSyncCommand(attendee1Key, usedMailCollection))
@@ -157,7 +108,6 @@ class InviteTwoUsersOneAcceptOneDeclineSimulation extends Simulation {
 				.exec(buildSyncCommand(organizerKey, usedCalendarCollection, Check.matcher((s, response) 
 				    => (organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 			)
-	}
 	
 	def buildInitialFolderSyncCommand(userKey: UserKey): PostHttpRequestBuilder = {
 		val context = new InitialFolderSyncContext(userKey, FolderSyncCommand.validInitialFolderSync)

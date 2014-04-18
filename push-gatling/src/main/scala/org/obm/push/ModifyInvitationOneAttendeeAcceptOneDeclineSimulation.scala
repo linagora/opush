@@ -40,30 +40,37 @@ import org.obm.push.command.ModifyInvitationCommand
 import org.obm.push.command.SyncCollectionCommand.atLeastOneDeleteResponse
 import org.obm.push.command.SyncCollectionCommand.atLeastOneMeetingRequest
 import org.obm.push.context.User
-
 import io.gatling.core.Predef.bootstrap.exec
 import io.gatling.core.session.Session
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
+import org.obm.push.context.Configuration
+import org.obm.push.wbxml.WBXMLTools
 
-class ModifyInvitationOneAttendeeAcceptOneDeclineSimulation extends InviteTwoUsersOneAcceptOneDeclineSimulation {
 
-	override def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
-		super.buildScenario(organizer, attendee1, attendee2).exitHereIfFailed.exitBlockOnFail(
-			exec(buildModifyInvitationCommand(invitation))
-			.exec(s => Success(organizerKey.sessionHelper.updatePendingInvitation(s)))
-			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(attendee1Key, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-			.exec(buildMeetingResponseCommand(attendee1Key, AttendeeStatus.DECLINE))
-			.exec(buildMeetingResponseCommand(attendee2Key, AttendeeStatus.ACCEPT))
-			.exec(buildSyncCommand(attendee1Key, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
-			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
-			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(organizerKey, usedCalendarCollection, Check.matcher((s, response) 
-					=> (organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
+object ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder extends ScenarioBuilder {
+
+	val wbTools: WBXMLTools = new WBXMLTools
+	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
+    
+	override def build(configuration: Configuration) = 
+		createScenario("Invite two users then modify")
+			.exitHereIfFailed.exitBlockOnFail(
+				exec(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder.build(configuration))
+				.exec(buildModifyInvitationCommand(invit.invitation))
+				.exec(s => Success(invit.organizerKey.sessionHelper.updatePendingInvitation(s)))
+				.pause(configuration.asynchronousChangeTime)
+				.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+				.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+				.exec(invit.buildMeetingResponseCommand(invit.attendee1Key, AttendeeStatus.DECLINE))
+				.exec(invit.buildMeetingResponseCommand(invit.attendee2Key, AttendeeStatus.ACCEPT))
+				.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+				.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+				.pause(configuration.asynchronousChangeTime)
+				.exec(invit.buildSyncCommand(invit.organizerKey, invit.usedCalendarCollection, Check.matcher((s, response) 
+						=> (invit.organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 		)
-	}
 	
 	def buildModifyInvitationCommand(invitation: InvitationContext) = {
 		val modifiedInvitation = invitation.modify(

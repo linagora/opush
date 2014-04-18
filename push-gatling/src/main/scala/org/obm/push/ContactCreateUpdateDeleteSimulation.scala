@@ -32,7 +32,6 @@
 package org.obm.push
 
 import scala.concurrent.duration.DurationInt
-
 import org.obm.push.bean.FolderType
 import org.obm.push.command.ContactCommand.validCreatedContact
 import org.obm.push.command.ContactCommand.validDeletedContact
@@ -49,35 +48,29 @@ import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
-
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.UsersPerSecImplicit
-import io.gatling.core.Predef.constantRate
-import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class ContactCreateUpdateDeleteSimulation extends Simulation {
+object ContactCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val configuration: Configuration = GatlingConfiguration.build
 	val usedContactCollection = FolderType.DEFAULT_CONTACTS_FOLDER
-
 	val userKey = new UserKey("user")
-	
-	lazy val contactScenario = scenario("Create, modify then drop contact").exitBlockOnFail(
-		initializedUsers(UserFeeder.newCSV("users.csv", configuration, userKey), userKey)
-		.pause(configuration.pause)
-		.exec(buildInitialSyncCommand(userKey, usedContactCollection))
-		.pause(configuration.pause)
-		.exec(s => Success(userKey.sessionHelper.setupNextContactClientId(s)))
-		.exec(buildCreateContactCommand(userKey))
-		.exec(s => Success(userKey.sessionHelper.setupLastContactServerId(s)))
-		.exec(buildModifyContactCommand(userKey))
-		.exec(buildDeleteContactCommand(userKey))
+
+	override def build(configuration: Configuration) =
+		createScenario("Create, modify then drop contact").exitBlockOnFail(
+			initializedUsers(UserFeeder.newCSV("users.csv", configuration, userKey), userKey)
+			.pause(configuration.pause)
+			.exec(buildInitialSyncCommand(userKey, usedContactCollection))
+			.pause(configuration.pause)
+			.exec(s => Success(userKey.sessionHelper.setupNextContactClientId(s)))
+			.exec(buildCreateContactCommand(userKey))
+			.exec(s => Success(userKey.sessionHelper.setupLastContactServerId(s)))
+			.exec(buildModifyContactCommand(userKey))
+			.exec(buildDeleteContactCommand(userKey))
 	)
 	
 	def buildInitialSyncCommand(userKey: UserKey, folderType: FolderType) = {
@@ -95,15 +88,4 @@ class ContactCreateUpdateDeleteSimulation extends Simulation {
 	def buildDeleteContactCommand(userKey: UserKey) = {
 	  	new DeleteContactCommand(new ContactContext(userKey, matcher = validDeletedContact), wbTools).buildCommand
 	}
-	
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-
-	setUp(contactScenario.inject(
-	    nothingFor(1 seconds),
-	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
-	)).protocols(httpConf)
-	
 }

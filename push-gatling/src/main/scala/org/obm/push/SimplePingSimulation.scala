@@ -40,26 +40,18 @@ import org.obm.push.context.feeder.UserFeeder
 
 import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.atOnce
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.Predef.userNumber
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class SimplePingSimulation extends Simulation {
-
-	val configuration: Configuration = GatlingConfiguration.build
+object SimplePingScenarioBuilder extends ScenarioBuilder {
 
 	val userKey = new UserKey("user")
 
-	val scn = scenario("Simple ActiveSync Ping Scenario")
+	override def build(configuration: Configuration) = 
+		createScenario("Simple ActiveSync Ping Scenario")
 		.exec(new PingCommand(new PingContext(userKey)).buildCommand)
-
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-		
-	setUp(scn.inject(atOnce(1))).protocols(httpConf)
 
 }

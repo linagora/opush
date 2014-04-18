@@ -47,15 +47,15 @@ class CompositeSimulation extends Simulation {
   val config = GatlingConfiguration.build
   
   setUp(
-      new SendEmailWithBadToAddressSimulation().sendEmailScenario.inject(
+      SendEmailWithBadToAddressScenarioBuilder.build(config).inject(
 	    nothingFor(1 seconds),
 	    constantRate(config.usersPerSec userPerSec) during (config.duration))
     ,
-      new ContactCreateUpdateDeleteSimulation().contactScenario.inject(
+      ContactCreateUpdateDeleteScenarioBuilder.build(config).inject(
 	    nothingFor(1 seconds),
 	    constantRate(config.usersPerSec userPerSec) during (config.duration))
     ,
-      new MeetingCreateUpdateDeleteSimulation().scenarioForOrganizer.inject(
+      MeetingCreateUpdateDeleteScenarioBuilder.build(config).inject(
 	    nothingFor(1 seconds),
 	    constantRate(config.usersPerSec userPerSec) during (config.duration))
   )

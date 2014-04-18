@@ -44,37 +44,23 @@ import org.obm.push.wbxml.WBXMLTools
 
 import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.atOnce
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.Predef.userNumber
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class InitialSyncOnCalendarSimulation extends Simulation {
+object InitialSyncOnCalendarScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-  
-	val configuration: Configuration = GatlingConfiguration.build
+	val userKey = new UserKey("user")
 
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-
-	for (userNumber <- Iterator.range(1, 100)) {
-		val userSendEmailScenario = buildScenarioForUser(userNumber)
-		setUp(userSendEmailScenario.inject(atOnce(1))).protocols(httpConf)
-	}
-
-	def buildScenarioForUser(userNumber: Int) = {
-		val userKey = new UserKey("user")
-		
-		scenario("{%d}: Initial Sync on user's calendar".format(userNumber))
+	override def build(configuration: Configuration) = 
+		createScenario("Initial Sync on user's calendar")
 			.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
 			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
 			.exec(buildInitialFolderSyncCommand(userKey))
 			.exec(buildSyncOnCalendarCommand(userKey))
-	}
 	
 	def buildSyncOnCalendarCommand(userKey: UserKey) = {
 		val initialSyncContext = new InitialSyncContext(userKey, FolderType.DEFAULT_CALENDAR_FOLDER)

@@ -37,18 +37,28 @@ import org.obm.push.command.InvitationContext
 import org.obm.push.command.SyncCollectionCommand.atLeastOneAddResponse
 import org.obm.push.command.SyncCollectionCommand.noChange
 import org.obm.push.context.User
-
 import io.gatling.core.Predef.bootstrap.exec
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import io.gatling.core.Predef.{scenario => createScenario}
+import org.obm.push.context.Configuration
+import org.obm.push.wbxml.WBXMLTools
 
-class DeleteInvitationThenAtendeeIsNotifiedSimulation extends ModifyInvitationOneAttendeeAcceptOneDeclineSimulation {
 
-	override def buildScenario(organizer: User, attendee1: User, attendee2: User) = {
-		super.buildScenario(organizer, attendee1, attendee2).exitHereIfFailed.exitBlockOnFail(
-			exec(buildDeleteInvitationCommand(invitation))
+object DeleteInvitationThenAtendeeIsNotifiedScenarioBuilder extends ScenarioBuilder {
+
+	val wbTools: WBXMLTools = new WBXMLTools
+	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
+		
+	override def build(configuration: Configuration) = {
+		
+		
+		createScenario("Invite two users, modify then delete invitation")
+		.exitHereIfFailed.exitBlockOnFail(
+			exec(invit.build(configuration))
+			.exec(buildDeleteInvitationCommand(invit.invitation))
 			.pause(configuration.asynchronousChangeTime)
-			.exec(buildSyncCommand(attendee1Key, usedMailCollection, noChange))
-			.exec(buildSyncCommand(attendee2Key, usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
+			.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, noChange))
+			.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
 		)
 	}
 	

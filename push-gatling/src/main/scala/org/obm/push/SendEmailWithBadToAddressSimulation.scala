@@ -46,35 +46,22 @@ import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class SendEmailWithBadToAddressSimulation extends Simulation {
+object SendEmailWithBadToAddressScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-  
-	val configuration: Configuration = GatlingConfiguration.build
-
 	val userFrom = new UserKey("userFrom")
 	val userTo = new UserKey("userTo")
 	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
-	lazy val sendEmailScenario = scenario("Send an email with bad to address").exitBlockOnFail(
-	    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
-		.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
+	override def build(configuration: Configuration) = 
+		createScenario("Send an email with bad to address").exitBlockOnFail(
+		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+			.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
 	)
 
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-		
-	
-	setUp(sendEmailScenario.inject(
-	    nothingFor(1 seconds),
-	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
-	)).protocols(httpConf)
-	
 }

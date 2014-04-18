@@ -59,38 +59,30 @@ import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class MeetingCreateUpdateDeleteSimulation extends Simulation {
+object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val configuration: Configuration = GatlingConfiguration.build
-
 	val usedCalendarCollection = FolderType.DEFAULT_CALENDAR_FOLDER
+	val organizer = new UserKey("organizer")
+	val invitee1 = new UserKey("invitee1")
+	val invitee2 = new UserKey("invitee2")
 	
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
+	val invitation = new InvitationContext(
+		organizer = organizer,
+		attendees = Set(invitee1, invitee2),
+		startTime = date("2014-01-12T09:00:00"),
+		endTime = date("2014-01-12T10:00:00"),
+		folderType = usedCalendarCollection)
 	
-	lazy val scenarioForOrganizer = {
-		val organizer = new UserKey("organizer")
-		val invitee1 = new UserKey("invitee1")
-		val invitee2 = new UserKey("invitee2")
-		
-		val invitation = new InvitationContext(
-				organizer = organizer,
-				attendees = Set(invitee1, invitee2),
-				startTime = date("2014-01-12T09:00:00"),
-				endTime = date("2014-01-12T10:00:00"),
-				folderType = usedCalendarCollection)
-
-		scenario("Create, update then delete a meeting").exitBlockOnFail(
-		    initializedUsers(UserFeeder.newCSV("users.csv", configuration, organizer, invitee1, invitee2), organizer)
+	override def build(configuration: Configuration) = 
+		createScenario("Create, update then delete a meeting").exitBlockOnFail(
+		initializedUsers(UserFeeder.newCSV("users.csv", configuration, organizer, invitee1, invitee2), organizer)
 			.pause(configuration.pause)
 			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
@@ -101,14 +93,8 @@ class MeetingCreateUpdateDeleteSimulation extends Simulation {
 			.pause(configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.updatePendingInvitation(s)))
 			.exec(buildDeleteInvitationCommand(invitation))
-		)	
-	}
+	)	
 	
-	setUp(scenarioForOrganizer.inject(
-	    nothingFor(5 seconds),
-	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
-	)).protocols(httpConf)
-    
 	def buildInitialFolderSyncCommand(userKey: UserKey) = {
 		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand
 	}

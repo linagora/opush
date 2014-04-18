@@ -46,35 +46,20 @@ import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
+import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
-class SendEmailSimulation extends Simulation {
+object SendEmailScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-  
-	val configuration: Configuration = GatlingConfiguration.build
-
 	val userFrom = new UserKey("userFrom")
 	val userTo = new UserKey("userTo")
 	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
-	lazy val sendEmailScenario = scenario("Send a simple email to a user").exitBlockOnFail(
-	    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
-		.exec(new SendEmailCommand(sendEmailContext).buildCommand)
-	)
-
-	val httpConf = http
-		.baseURL(configuration.baseUrl)
-		.disableFollowRedirect
-		.disableCaching
-		
-	
-	setUp(sendEmailScenario.inject(
-	    nothingFor(1 seconds),
-	    constantRate(configuration.usersPerSec userPerSec) during (configuration.duration)
-	)).protocols(httpConf)
-	
+	override def build(configuration: Configuration) = 
+		createScenario("Send a simple email to a user").exitBlockOnFail(
+		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+			.exec(new SendEmailCommand(sendEmailContext).buildCommand))
 }
