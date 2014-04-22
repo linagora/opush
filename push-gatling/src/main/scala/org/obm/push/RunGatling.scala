@@ -33,16 +33,17 @@ package org.obm.push
 
 import java.net.URI
 import java.nio.file.Paths
-
-import scala.annotation.migration
+import java.text.DateFormat
+import java.util.Date
 import scala.reflect.io.File
-
 import org.obm.push.context.Configuration
 import org.obm.push.scenario.Scenario
 import org.obm.push.scenario.Scenarios
-
+import io.gatling.charts.report.ReportsGenerator
 import io.gatling.core.config.GatlingConfiguration
+import io.gatling.core.result.reader.DataReader
 import scopt.OptionParser
+import java.text.SimpleDateFormat
 
 case class RunGatlingConfig(
 	baseURI: URI = null,
@@ -73,12 +74,23 @@ object RunGatling {
 	def run(config: RunGatlingConfig) {
 		GatlingConfiguration.setUp()
 		val compositeSimulation = new CompositeSimulation(config.hydrate(), config.scenario)
-		val (runId, simulation) = new Runner(
+		val (runId, simulation) = run(compositeSimulation)
+		
+		val dataReader = DataReader.newInstance(runId)
+		generateReports(dataReader)
+	}
+
+	def generateReports(dataReader: DataReader) {
+		val outputDir = "opush-benchmark_" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date)
+		val indexFile = ReportsGenerator.generateFor(outputDir, dataReader)
+		println(s"Please open the following file: $indexFile")
+	}
+	
+	def run(compositeSimulation: CompositeSimulation) = new Runner(
 			compositeSimulation,
 			DEFAULT_SIMULATION_ID, 
 			DEFAULT_DESCRIPTION
-		).run
-	}
+	).run
 	
 	def parse(args: Array[String]) : Option[RunGatlingConfig] = {
 		new OptionParser[RunGatlingConfig]("opush-benchmark") {
