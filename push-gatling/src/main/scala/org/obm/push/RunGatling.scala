@@ -39,15 +39,19 @@ import org.obm.push.context.Configuration
 import io.gatling.core.config.GatlingConfiguration
 import org.obm.push.scenario.ScenarioBuilder
 import org.obm.push.scenario.Scenarios
+import scala.reflect.io.File
+import java.nio.file.Paths
 
 case class RunGatlingConfig(
 	baseURI: URI = null,
 	userDomain: String = null,
-	scenarios: Seq[ScenarioBuilder] = Scenarios("default")) {
+	scenarios: Seq[ScenarioBuilder] = Scenarios("default"),
+	csv: File = null) {
 	
 	def hydrate() = new Configuration() {
 		override val baseUrl = baseURI.toString()
 		override val domain = userDomain
+		override val csvFile = csv
   	}
 }
 
@@ -77,6 +81,11 @@ object RunGatling {
 	def parse(args: Array[String]) : Option[RunGatlingConfig] = {
 		new OptionParser[RunGatlingConfig]("opush-benchmark") {
 			head("opush-benchmark")
+			opt[String]("csv")
+				.required
+				.validate(value => if (Paths.get(value).toFile().exists()) success else failure(s"""The CSV "${value}" file does not exist"""))
+				.action((value, config) => config.copy(csv = new File(Paths.get(value).toFile())))
+				.text("User feeder CSV file with header respecting the format: username,password,email")
 			opt[URI]("base-url")
 				.required
 				.action((value, config) => config.copy(baseURI = value))

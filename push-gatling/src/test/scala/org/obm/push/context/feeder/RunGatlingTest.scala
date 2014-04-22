@@ -36,7 +36,6 @@ import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
 import org.obm.push.wbxml.WBXMLTools
 import org.scalatest.junit.JUnitRunner
-import scala.reflect.io.File
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import java.io.FileWriter
@@ -53,13 +52,17 @@ import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
 import org.obm.push.scenario.Scenarios
+import java.nio.file.Paths
+import com.google.common.io.Resources
+import scala.reflect.io.File
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
 	
 	val requiredArguments = Map(
 			"user-domain" -> "test",
-			"base-url" -> "http://localhost"
+			"base-url" -> "http://localhost",
+			"csv" -> Resources.getResource("users.csv").getPath()
 	)
 	
 	before {
@@ -103,11 +106,22 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 		assert(configuration === Option.empty)
 	}
 	
+	test("argument csv missing") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments - ("csv")))
+		assert(configuration === Option.empty)
+	}
+	
+	test("argument csv missing file") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("csv" -> "my-path")))
+		assert(configuration === Option.empty)
+	}
+	
 	test("arguments are valid") {
 		val configuration = RunGatling.parse(mapToList(requiredArguments))
 		assert(configuration === Option(RunGatlingConfig(
 				baseURI = new URI("http://localhost"),
 				userDomain = "test",
-				scenarios = Scenarios("default"))))
+				scenarios = Scenarios("default"),
+				csv = new File(Paths.get(requiredArguments("csv")).toFile()))))
 	}
 }

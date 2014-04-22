@@ -80,7 +80,7 @@ object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 	
 	override def build(configuration: Configuration) = 
 		createScenario("Create, update then delete a meeting").exitBlockOnFail(
-		initializedUsers(UserFeeder.newCSV("users.csv", configuration, organizer, invitee1, invitee2), organizer)
+	    initializedUsers(UserFeeder.newCSV(configuration, organizer, invitee1, invitee2), organizer)
 			.pause(configuration.pause)
 			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))

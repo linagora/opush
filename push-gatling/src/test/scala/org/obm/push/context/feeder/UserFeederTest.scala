@@ -55,13 +55,23 @@ class UserFeederTest extends FunSuite with BeforeAndAfter {
 	var config: Configuration = _
 
 	before {
+		tempFolderRule.create()
 		GatlingConfiguration.setUp()
+		
+		val userFile = tempFolderRule.newFile()
+		val fileWriter = new FileWriter(userFile)
+		fileWriter.write(
+				"""|username,email,password
+				   |user.1,user.1@my.domain,secret
+				   |user.2,user.2@my.domain,secret""".stripMargin);
+		fileWriter.close();
+		
 		config = new Configuration() {
 			override val baseUrl = "localhost"
 			override val domain = "my.domain"
+			override val csvFile = new File(userFile)
 		}
 		wbxmlTools = new WBXMLTools()
-		tempFolderRule.create()
 	}
 
 	after {
@@ -69,15 +79,7 @@ class UserFeederTest extends FunSuite with BeforeAndAfter {
 	}
 	
 	test("Feeder build users only once") {
-		val userFile = tempFolderRule.newFile()
-				val fileWriter = new FileWriter(userFile)
-		fileWriter.write(
-				"""username,email,password
-user.1,user.1@my.domain,secret
-user.2,user.2@my.domain,secret""");
-		fileWriter.close();
-
-		val feeder = UserFeeder.newCSV(new File(userFile), config, new UserKey("a"), new UserKey("b")).build
+		val feeder = UserFeeder.newCSV(config, new UserKey("a"), new UserKey("b")).build
 		
 		val firstIteration = feeder.next()
 		val user1 = firstIteration("a").asInstanceOf[User]

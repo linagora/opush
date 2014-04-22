@@ -49,6 +49,6 @@ object SendEmailScenarioBuilder extends ScenarioBuilder {
 	
 	override def build(configuration: Configuration) = 
 		createScenario("Send a simple email to a user").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+		    provisionedUsers(UserFeeder.newCSV(configuration, userFrom, userTo), userFrom)
 			.exec(new SendEmailCommand(sendEmailContext).buildCommand))
 }

@@ -65,7 +65,7 @@ object ContactCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	override def build(configuration: Configuration) =
 		createScenario("Create, modify then drop contact").exitBlockOnFail(
-			initializedUsers(UserFeeder.newCSV("users.csv", configuration, userKey), userKey)
+			initializedUsers(UserFeeder.newCSV(configuration, userKey), userKey)
 			.pause(configuration.pause)
 			.exec(buildInitialSyncCommand(userKey, usedContactCollection))
 			.pause(configuration.pause)

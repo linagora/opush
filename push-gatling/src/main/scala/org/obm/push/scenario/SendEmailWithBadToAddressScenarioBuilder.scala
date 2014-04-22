@@ -57,7 +57,7 @@ object SendEmailWithBadToAddressScenarioBuilder extends ScenarioBuilder {
 	
 	override def build(configuration: Configuration) = 
 		createScenario("Send an email with bad to address").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
+		    provisionedUsers(UserFeeder.newCSV(configuration, userFrom, userTo), userFrom)
 			.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
 	)
 

@@ -80,6 +80,5 @@ class UserFeeder(originalFeeder: AdvancedFeederBuilder[String], config: Configur
 
 object UserFeeder {
 	
-	def newCSV(csvFile: String, config: Configuration, userKeys: UserKey*): UserFeeder = newCSV(File.apply(csvFile), config, userKeys:_*)
-	def newCSV(csvFile: File, config: Configuration, userKeys: UserKey*) = new UserFeeder(csv(csvFile), config, userKeys: _*)
+	def newCSV(config: Configuration, userKeys: UserKey*) = new UserFeeder(csv(config.csvFile), config, userKeys: _*)
 }
