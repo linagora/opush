@@ -48,9 +48,15 @@ import org.obm.push.bean.DeviceId
 import org.obm.push.RunGatling
 import org.obm.push.RunGatlingConfig
 import java.net.URI
+import scala.collection.immutable.Seq
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
+	
+	val requiredArguments = Map(
+			"user-domain" -> "test",
+			"base-url" -> "http://localhost"
+	)
 	
 	before {
 	}
@@ -58,34 +64,32 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 	after {
 	}
 
+	def mapToList(m: Map[String, String]) : Array[String] = {
+		m.flatten((x) => Seq("--" + x._1, x._2)).toArray
+	}
+	
 	test("argument user-domain missing") {
-		val configuration = RunGatling.parse(Array("--user-domain", "test"))
+		val configuration = RunGatling.parse(mapToList(requiredArguments - ("user-domain")))
 		assert(configuration === Option.empty)
 	}
 
 	test("argument base-url missing") {
-		val configuration = RunGatling.parse(Array("--base-url", "http://localhost"))
+		val configuration = RunGatling.parse(mapToList(requiredArguments - ("base-url")))
 		assert(configuration === Option.empty)
 	}
 
 	test("argument base-url not an URL") {
-		val configuration = RunGatling.parse(Array(
-				"--user-domain", "test",
-				"--base-url", ":/localhost"))
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("base-url" -> ":/localhost")))
 		assert(configuration === Option.empty)
 	}
 
 	test("argument base-url space in the URL") {
-		val configuration = RunGatling.parse(Array(
-				"--user-domain", "test",
-				"--base-url", "http:// localhost"))
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("base-url" -> "http:// localhost")))
 		assert(configuration === Option.empty)
 	}
-
+	
 	test("arguments are valid") {
-		val configuration = RunGatling.parse(Array(
-				"--user-domain", "test",
-				"--base-url", "http://localhost"))
+		val configuration = RunGatling.parse(mapToList(requiredArguments))
 		assert(configuration === Option(RunGatlingConfig(
 				baseURI = new URI("http://localhost"),
 				userDomain = "test")))
