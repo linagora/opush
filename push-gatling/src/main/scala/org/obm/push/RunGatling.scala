@@ -31,21 +31,23 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push
 
-import io.gatling.core.scenario.Simulation
-import scopt.OptionParser
 import java.net.URI
-import io.gatling.core.runner.Selection
-import org.obm.push.context.Configuration
-import io.gatling.core.config.GatlingConfiguration
-import org.obm.push.scenario.ScenarioBuilder
-import org.obm.push.scenario.Scenarios
-import scala.reflect.io.File
 import java.nio.file.Paths
+
+import scala.annotation.migration
+import scala.reflect.io.File
+
+import org.obm.push.context.Configuration
+import org.obm.push.scenario.Scenario
+import org.obm.push.scenario.Scenarios
+
+import io.gatling.core.config.GatlingConfiguration
+import scopt.OptionParser
 
 case class RunGatlingConfig(
 	baseURI: URI = null,
 	userDomain: String = null,
-	scenarios: Seq[ScenarioBuilder] = Scenarios("default"),
+	scenario: Scenario = Scenarios.defaultScenario,
 	csv: File = null) {
 	
 	def hydrate() = new Configuration() {
@@ -70,7 +72,7 @@ object RunGatling {
 	
 	def run(config: RunGatlingConfig) {
 		GatlingConfiguration.setUp()
-		val compositeSimulation = new CompositeSimulation(config.hydrate(), config.scenarios)
+		val compositeSimulation = new CompositeSimulation(config.hydrate(), config.scenario)
 		val (runId, simulation) = new Runner(
 			compositeSimulation,
 			DEFAULT_SIMULATION_ID, 
@@ -97,8 +99,8 @@ object RunGatling {
 			opt[String]("scenario")
 				.optional
 				.validate( value => if (Scenarios.exists(value)) success else failure(s"""The scenario "${value}" does not exists"""))
-				.action((value, config) => config.copy(scenarios = Scenarios(value)))
-				.text("The scenarios to run, possible values : " + Scenarios.scenarios.keys.mkString(", "))
+				.action((value, config) => config.copy(scenario = Scenarios(value)))
+				.text("The scenarios to run, possible values : " + Scenarios.all.keys.mkString(", "))
 		}.parse(args, RunGatlingConfig())
 	}
 }

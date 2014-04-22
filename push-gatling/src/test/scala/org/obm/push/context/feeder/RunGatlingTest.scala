@@ -31,30 +31,19 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context.feeder
 
+import scala.collection.immutable.Seq
 import org.junit.runner.RunWith
-import org.scalatest.FunSuite
-import org.scalatest.BeforeAndAfter
-import org.obm.push.wbxml.WBXMLTools
-import org.scalatest.junit.JUnitRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import java.io.FileWriter
-import io.gatling.core.config.GatlingConfiguration
-import org.obm.push.context.Configuration
-import org.obm.push.context.UserKey
-import org.obm.push.context.User
-import org.obm.push.bean.DeviceId
 import org.obm.push.RunGatling
+import org.scalatest.BeforeAndAfter
+import org.scalatest.Finders
+import org.scalatest.FunSuite
+import com.google.common.io.Resources
+import org.scalatest.junit.JUnitRunner
+import org.obm.push.scenario.Scenarios
 import org.obm.push.RunGatlingConfig
 import java.net.URI
-import scala.collection.immutable.Seq
-import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
-import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
-import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
-import org.obm.push.scenario.Scenarios
-import java.nio.file.Paths
-import com.google.common.io.Resources
 import scala.reflect.io.File
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
@@ -98,7 +87,7 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 	test("argument scenario defined") {
 		val configuration = RunGatling.parse(mapToList(requiredArguments + ("scenario" -> "calendar")))
 		assert(configuration.isDefined)
-		assert(configuration.get.scenarios === Seq(MeetingCreateUpdateDeleteScenarioBuilder))
+		assert(configuration.get.scenario === Scenarios.calendar)
 	}
 	
 	test("argument scenario undefined") {
@@ -121,7 +110,7 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 		assert(configuration === Option(RunGatlingConfig(
 				baseURI = new URI("http://localhost"),
 				userDomain = "test",
-				scenarios = Scenarios("default"),
+				scenario = Scenarios.defaultScenario,
 				csv = new File(Paths.get(requiredArguments("csv")).toFile()))))
 	}
 }

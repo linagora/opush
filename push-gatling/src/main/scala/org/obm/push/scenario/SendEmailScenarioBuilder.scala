@@ -30,6 +30,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.scenario
+
 import org.obm.push.command.SendEmailCommand
 import org.obm.push.command.SendEmailContext
 import org.obm.push.context.Configuration
@@ -37,6 +38,7 @@ import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.helper.SimulationHelper.provisionedUsers
 import org.obm.push.wbxml.WBXMLTools
+
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 

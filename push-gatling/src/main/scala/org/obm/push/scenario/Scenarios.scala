@@ -33,22 +33,26 @@ package org.obm.push.scenario
 
 object Scenarios {
 	
-	val scenarios = Map(
-		"calendar" -> Seq(MeetingCreateUpdateDeleteScenarioBuilder),
-		"calendar-sync" -> Seq(InitialSyncOnCalendarScenarioBuilder),
-		"contact" -> Seq(ContactCreateUpdateDeleteScenarioBuilder),
-		"folder-sync" -> Seq(ThreeFolderSyncScenarioBuilder),
-		"meeting-creation" -> Seq(InviteTwoUsersScenarioBuilder),
-		"meeting-invitation" -> Seq(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder),
-		"meeting-modification" -> Seq(ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder),
-		"meeting-cancelation" -> Seq(DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder),
-		"ping" -> Seq(SimplePingScenarioBuilder),
-		"send-email" -> Seq(SendEmailScenarioBuilder),
-		"send-email-to-bad-address" -> Seq(SendEmailWithBadToAddressScenarioBuilder),
-		"default" -> Seq(SendEmailScenarioBuilder, MeetingCreateUpdateDeleteScenarioBuilder, ContactCreateUpdateDeleteScenarioBuilder)
-	)
+	val defaultScenario = Scenario("default", SendEmailScenarioBuilder, MeetingCreateUpdateDeleteScenarioBuilder, ContactCreateUpdateDeleteScenarioBuilder)
+	val contact = Scenario("contact", ContactCreateUpdateDeleteScenarioBuilder)
+	val calendar= Scenario("calendar", MeetingCreateUpdateDeleteScenarioBuilder)
+	val calendarSync = Scenario("calendar-sync", InitialSyncOnCalendarScenarioBuilder)
+	val meetingCreation = Scenario("meeting-creation",InviteTwoUsersScenarioBuilder)
+	val meetingInvitation = Scenario("meeting-invitation", InviteTwoUsersOneAcceptOneDeclineScenarioBuilder)
+	val meetingModification = Scenario("meeting-modification", ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder)
+	val meetingCancelation = Scenario("meeting-cancelation", DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder)
+	val sendEmail = Scenario("send-email", SendEmailScenarioBuilder)
+	val sendEmailToBadAddress = Scenario("send-email-to-bad-address", SendEmailWithBadToAddressScenarioBuilder)
+	val folderSync = Scenario("folder-sync", ThreeFolderSyncScenarioBuilder)
+	val ping = Scenario("ping", SimplePingScenarioBuilder)
 	
-	def exists(name: String) = scenarios.get(name).isDefined
-	def apply(name: String) = scenarios.get(name).get
+	val all = Seq(
+			defaultScenario, contact, calendar, calendarSync, meetingCreation, meetingInvitation,
+			meetingModification, meetingCancelation, sendEmail, sendEmailToBadAddress, folderSync, ping)
+			.map(x => x.name -> x).toMap
 	
+	def exists(name: String) = all.contains(name)
+	def apply(name: String) = all(name)
 }
+
+case class Scenario(name: String, scenarioBuilders: ScenarioBuilder*)

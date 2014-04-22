@@ -32,22 +32,21 @@
 package org.obm.push
 
 import scala.concurrent.duration.DurationInt
+
+import org.obm.push.context.Configuration
+import org.obm.push.scenario.Scenario
+
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
 import io.gatling.core.scenario.Simulation
+import io.gatling.core.structure.ProfiledScenarioBuilder
 import io.gatling.http.Predef.http
 import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
-import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
-import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
-import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
-import org.obm.push.context.Configuration
-import org.obm.push.scenario.ScenarioBuilder
-import io.gatling.core.structure.ProfiledScenarioBuilder
 
-class CompositeSimulation(config: Configuration, scenarios: Seq[ScenarioBuilder]) extends Simulation {
+class CompositeSimulation(config: Configuration, scenario: Scenario) extends Simulation {
 
-  val profiledScenarios: Seq[ProfiledScenarioBuilder] = scenarios.map(_.build(config).inject(
+  val profiledScenarios: Seq[ProfiledScenarioBuilder] = scenario.scenarioBuilders.map(_.build(config).inject(
 	    nothingFor(1 seconds),
 	    constantRate(config.usersPerSec userPerSec) during (config.duration)))
 	
