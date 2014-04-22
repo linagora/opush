@@ -42,12 +42,11 @@ object Scenarios {
 	val meetingModification = Scenario("meeting-modification", ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder)
 	val meetingCancelation = Scenario("meeting-cancelation", DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder)
 	val sendEmail = Scenario("send-email", SendEmailScenarioBuilder)
-	val sendEmailToBadAddress = Scenario("send-email-to-bad-address", SendEmailWithBadToAddressScenarioBuilder)
 	val folderSync = Scenario("folder-sync", ThreeFolderSyncScenarioBuilder)
 	
 	val all = Seq(
 			defaultScenario, contact, calendar, calendarSync, meetingCreation, meetingInvitation,
-			meetingModification, meetingCancelation, sendEmail, sendEmailToBadAddress, folderSync)
+			meetingModification, meetingCancelation, sendEmail, folderSync)
 			.map(x => x.name -> x).toMap
 	
 	def exists(name: String) = all.contains(name)
