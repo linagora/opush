@@ -32,19 +32,23 @@
 package org.obm.push.scenario
 
 object Scenarios {
-
+	
 	val scenarios = Map(
-		"calendar" -> MeetingCreateUpdateDeleteScenarioBuilder,
-		"calendar-sync" -> InitialSyncOnCalendarScenarioBuilder,
-		"contact" -> ContactCreateUpdateDeleteScenarioBuilder,
-		"folder-sync" -> ThreeFolderSyncScenarioBuilder,
-		"meeting-creation" -> InviteTwoUsersScenarioBuilder,
-		"meeting-invitation" -> InviteTwoUsersOneAcceptOneDeclineScenarioBuilder,
-		"meeting-modification" -> ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder,
-		"meeting-cancelation" -> DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder,
-		"ping" -> SimplePingScenarioBuilder,
-		"send-email" -> SendEmailScenarioBuilder,
-		"send-email-to-bad-address" -> SendEmailWithBadToAddressScenarioBuilder
+		"calendar" -> Seq(MeetingCreateUpdateDeleteScenarioBuilder),
+		"calendar-sync" -> Seq(InitialSyncOnCalendarScenarioBuilder),
+		"contact" -> Seq(ContactCreateUpdateDeleteScenarioBuilder),
+		"folder-sync" -> Seq(ThreeFolderSyncScenarioBuilder),
+		"meeting-creation" -> Seq(InviteTwoUsersScenarioBuilder),
+		"meeting-invitation" -> Seq(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder),
+		"meeting-modification" -> Seq(ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder),
+		"meeting-cancelation" -> Seq(DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder),
+		"ping" -> Seq(SimplePingScenarioBuilder),
+		"send-email" -> Seq(SendEmailScenarioBuilder),
+		"send-email-to-bad-address" -> Seq(SendEmailWithBadToAddressScenarioBuilder),
+		"default" -> Seq(SendEmailScenarioBuilder, MeetingCreateUpdateDeleteScenarioBuilder, ContactCreateUpdateDeleteScenarioBuilder)
 	)
+	
+	def exists(name: String) = scenarios.get(name).isDefined
+	def apply(name: String) = scenarios.get(name).get
 	
 }

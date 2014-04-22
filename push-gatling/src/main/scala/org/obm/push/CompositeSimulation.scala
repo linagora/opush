@@ -42,23 +42,17 @@ import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
 import org.obm.push.context.Configuration
+import org.obm.push.scenario.ScenarioBuilder
+import io.gatling.core.structure.ProfiledScenarioBuilder
 
-class CompositeSimulation(config: Configuration) extends Simulation {
+class CompositeSimulation(config: Configuration, scenarios: Seq[ScenarioBuilder]) extends Simulation {
 
-  setUp(
-      SendEmailWithBadToAddressScenarioBuilder.build(config).inject(
+  val profiledScenarios: Seq[ProfiledScenarioBuilder] = scenarios.map(_.build(config).inject(
 	    nothingFor(1 seconds),
-	    constantRate(config.usersPerSec userPerSec) during (config.duration))
-    ,
-      ContactCreateUpdateDeleteScenarioBuilder.build(config).inject(
-	    nothingFor(1 seconds),
-	    constantRate(config.usersPerSec userPerSec) during (config.duration))
-    ,
-      MeetingCreateUpdateDeleteScenarioBuilder.build(config).inject(
-	    nothingFor(1 seconds),
-	    constantRate(config.usersPerSec userPerSec) during (config.duration))
-  )
-  .protocols(http
+	    constantRate(config.usersPerSec userPerSec) during (config.duration)))
+	
+  setUp(profiledScenarios.head, profiledScenarios.tail: _*)
+  	.protocols(http
 		.baseURL(config.baseUrl)
 		.disableFollowRedirect
 		.disableCaching)  

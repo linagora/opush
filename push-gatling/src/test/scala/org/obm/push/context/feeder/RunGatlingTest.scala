@@ -49,6 +49,10 @@ import org.obm.push.RunGatling
 import org.obm.push.RunGatlingConfig
 import java.net.URI
 import scala.collection.immutable.Seq
+import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
+import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
+import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
+import org.obm.push.scenario.Scenarios
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
@@ -87,11 +91,23 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 		val configuration = RunGatling.parse(mapToList(requiredArguments + ("base-url" -> "http:// localhost")))
 		assert(configuration === Option.empty)
 	}
+
+	test("argument scenario defined") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("scenario" -> "calendar")))
+		assert(configuration.isDefined)
+		assert(configuration.get.scenarios === Seq(MeetingCreateUpdateDeleteScenarioBuilder))
+	}
+	
+	test("argument scenario undefined") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("scenario" -> "undefined")))
+		assert(configuration === Option.empty)
+	}
 	
 	test("arguments are valid") {
 		val configuration = RunGatling.parse(mapToList(requiredArguments))
 		assert(configuration === Option(RunGatlingConfig(
 				baseURI = new URI("http://localhost"),
-				userDomain = "test")))
+				userDomain = "test",
+				scenarios = Scenarios("default"))))
 	}
 }
