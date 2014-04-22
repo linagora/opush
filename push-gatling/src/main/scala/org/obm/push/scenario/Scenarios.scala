@@ -44,11 +44,10 @@ object Scenarios {
 	val sendEmail = Scenario("send-email", SendEmailScenarioBuilder)
 	val sendEmailToBadAddress = Scenario("send-email-to-bad-address", SendEmailWithBadToAddressScenarioBuilder)
 	val folderSync = Scenario("folder-sync", ThreeFolderSyncScenarioBuilder)
-	val ping = Scenario("ping", SimplePingScenarioBuilder)
 	
 	val all = Seq(
 			defaultScenario, contact, calendar, calendarSync, meetingCreation, meetingInvitation,
-			meetingModification, meetingCancelation, sendEmail, sendEmailToBadAddress, folderSync, ping)
+			meetingModification, meetingCancelation, sendEmail, sendEmailToBadAddress, folderSync)
 			.map(x => x.name -> x).toMap
 	
 	def exists(name: String) = all.contains(name)
