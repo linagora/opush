@@ -31,42 +31,21 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import java.util.UUID
 import org.apache.james.mime4j.dom.Message
-import org.obm.push.mail.Mime4jUtils
-import com.google.common.io.ByteStreams
-import io.gatling.core.Predef.Session
-import io.gatling.core.validation.Success
-import io.gatling.http.request.ByteArrayBody
-import java.io.FileInputStream
-import io.gatling.core.config.GatlingFiles
 import org.apache.james.mime4j.dom.address.Mailbox
 
-class SendEmailWithBadToCommand(sendContext: SendEmailContext)
-		extends AbstractActiveSyncCommand(sendContext.from) {
+import io.gatling.core.Predef.Session
 
-	val mime4jUtils = new Mime4jUtils()
-	val saveInSent = if (sendContext.saveInSent) "T" else "F" 
-  
+class SendEmailWithBadToCommand(sendContext: SendEmailContext)
+		extends SendEmailCommand(sendContext) {
+
 	override val commandTitle = "SendMail with bad to command"
 	override val commandName = "SendMail"
 	  
-	override def buildCommand() = {
-		super.buildCommand()
-			.queryParam((session: Session) =>Success("SaveInSent"), (session: Session) => Success(saveInSent))
-			.body(new ByteArrayBody((session: Session) => Success(mailAsBytesArray(session))))
-	}
-
-	def buildMail(session: Session): Message = {
-		val mailPart = new FileInputStream(GatlingFiles.dataDirectory + "/mixedEmail.eml-part")
-		val message = mime4jUtils.parseMessage(mailPart)
-
-		message.createMessageId("opush-gatling" + UUID.randomUUID().toString())
-		message.setSubject("opush-gatling email")
+	override def buildMail(session: Session): Message = {
+		val message = super.buildMail(session)
 		message.setTo(new Mailbox("badaddress", null))
-		return message
+		message
 	}
-	
-	def mailAsBytesArray(session: Session) = ByteStreams.toByteArray(mime4jUtils.toInputStream(buildMail(session))) 
 
 }

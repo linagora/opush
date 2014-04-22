@@ -31,19 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import java.io.FileInputStream
 import java.util.UUID
 
 import org.apache.james.mime4j.dom.Message
 import org.obm.push.mail.Mime4jUtils
 
 import com.google.common.io.ByteStreams
+import com.google.common.io.Resources
 
 import io.gatling.core.Predef.Session
 import io.gatling.core.Predef.checkBuilder2Check
 import io.gatling.core.Predef.extractorCheckBuilder2MatcherCheckBuilder
 import io.gatling.core.Predef.value2Expression
-import io.gatling.core.config.GatlingFiles
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.status
 import io.gatling.http.request.ByteArrayBody
@@ -65,7 +64,7 @@ class SendEmailCommand(sendContext: SendEmailContext)
 	}
 
 	def buildMail(session: Session): Message = {
-		val mailPart = new FileInputStream(GatlingFiles.dataDirectory + "/mixedEmail.eml-part")
+		val mailPart = Resources.getResource("data/mixedEmail.eml-part").openStream()
 		val message = mime4jUtils.parseMessage(mailPart)
 
 		message.createMessageId("opush-gatling" + UUID.randomUUID().toString())
