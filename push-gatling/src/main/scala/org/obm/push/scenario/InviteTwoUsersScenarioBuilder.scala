@@ -30,6 +30,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.scenario
+
 import org.obm.DateUtils.date
 import org.obm.push.bean.FolderType
 import org.obm.push.command.FolderSyncCommand

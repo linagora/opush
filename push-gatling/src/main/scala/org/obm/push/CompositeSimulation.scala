@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2011-2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -32,7 +32,6 @@
 package org.obm.push
 
 import scala.concurrent.duration.DurationInt
-import org.obm.push.context.GatlingConfiguration
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
@@ -42,11 +41,10 @@ import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
 import org.obm.push.scenario.ContactCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.MeetingCreateUpdateDeleteScenarioBuilder
 import org.obm.push.scenario.SendEmailWithBadToAddressScenarioBuilder
+import org.obm.push.context.Configuration
 
-class CompositeSimulation extends Simulation {
+class CompositeSimulation(config: Configuration) extends Simulation {
 
-  val config = GatlingConfiguration.build
-  
   setUp(
       SendEmailWithBadToAddressScenarioBuilder.build(config).inject(
 	    nothingFor(1 seconds),

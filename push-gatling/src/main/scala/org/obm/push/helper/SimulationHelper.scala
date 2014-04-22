@@ -44,7 +44,6 @@ import org.obm.push.command.ModifyContactCommand
 import org.obm.push.command.ProvisioningCommand
 import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.context.Configuration
-import org.obm.push.context.GatlingConfiguration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.wbxml.WBXMLTools

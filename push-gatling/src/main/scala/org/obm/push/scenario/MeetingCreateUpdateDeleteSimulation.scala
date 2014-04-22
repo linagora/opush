@@ -30,6 +30,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.scenario
+
+import scala.concurrent.duration.DurationInt
 import org.joda.time.DateTime
 import org.obm.DateUtils.date
 import org.obm.push.bean.FolderType
@@ -51,12 +53,19 @@ import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
 import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.Predef.scenario
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+import org.obm.push.context.Configuration
 
 object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
+
 	val usedCalendarCollection = FolderType.DEFAULT_CALENDAR_FOLDER
 	val organizer = new UserKey("organizer")
 	val invitee1 = new UserKey("invitee1")

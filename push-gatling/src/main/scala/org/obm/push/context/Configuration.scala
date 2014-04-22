@@ -43,19 +43,15 @@ import org.obm.push.bean.DeviceId
 
 trait Configuration {
 	
-	def requiredProperty(paramName: String) = System.getProperty(paramName) match {
-	  case value:Any => value
-	  case _ => throw new IllegalArgumentException("")
-	}
-
 	val durationTime = Integer.parseInt(System.getProperty("duration", "1"))
 	val durationUnit = TimeUnit.valueOf(System.getProperty("durationUnit", "SECONDS"))
 	val duration = new FiniteDuration(durationTime, durationUnit)
 	val usersPerSec = Double.parseDouble(System.getProperty("usersPerSec", "1"))
 	val pause = DurationInt(Integer.parseInt(System.getProperty("pause", "1"))).seconds
 	val origin = System.getProperty("origin", "o-push")
-	val domain = requiredProperty("userDomain")
-	val baseUrl = requiredProperty("baseUrl")
+	
+	val domain: String
+	val baseUrl: String
 
 	val asynchronousChangeTime = Duration(5, SECONDS)
 	val parallelsScenariosCount = 1

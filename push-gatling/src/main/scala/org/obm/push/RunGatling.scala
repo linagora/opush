@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,37 +29,62 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context
+package org.obm.push
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
+import io.gatling.core.scenario.Simulation
+import scopt.OptionParser
+import java.net.URI
+import io.gatling.core.runner.Selection
+import org.obm.push.context.Configuration
+import io.gatling.core.config.GatlingConfiguration
 
-import com.google.common.base.Strings
-
-object Arguments extends Enumeration {
-  
-	val TARGET_SERVER_URL_ARG = Value("baseUrl")
-	val PARALLELS_SCENARIOS_COUNT = Value("parallelsScenariosCount")
-	val ASYNCHRONOUS_CHANGE_TIME = Value("asynchronousChangeTime")
+case class RunGatlingConfig(
+	baseURI: URI = null,
+	userDomain: String = null) {
+	
+	def hydrate() = new Configuration() {
+		override val baseUrl = baseURI.toString()
+		override val domain = userDomain
+  	}
 }
 
-object GatlingConfiguration {
+object RunGatling {
 
-	def build(): Configuration = build(
-			System.getProperty(Arguments.TARGET_SERVER_URL_ARG.toString),
-			System.getProperty(Arguments.PARALLELS_SCENARIOS_COUNT.toString),
-			System.getProperty(Arguments.ASYNCHRONOUS_CHANGE_TIME.toString))
+	val DEFAULT_DESCRIPTION = "opush-benchmark run"
+	val DEFAULT_SIMULATION_ID = "1"
 	
-	def build(serverUrl: String, parallelsScenarios: String, asynchronousChange: String) = {
-	  
-			require(!Strings.isNullOrEmpty(serverUrl))
-			require(!Strings.isNullOrEmpty(parallelsScenarios))
-			require(!Strings.isNullOrEmpty(asynchronousChange))
-			
-			new Configuration() {
-				override val baseUrl = serverUrl
-				override val parallelsScenariosCount = parallelsScenarios.toInt
-				override val asynchronousChangeTime = Duration(asynchronousChange.toInt, SECONDS)
-		  	}
+	def main(args: Array[String]) {
+		parse(args)
+		.map(run)
+		.getOrElse {
+			// arguments are bad, usage message will have been displayed
+		}
+	}
+	
+	def run(config: RunGatlingConfig) {
+		GatlingConfiguration.setUp()
+		val compositeSimulation = new CompositeSimulation(config.hydrate())
+		val (runId, simulation) = new Runner(
+			compositeSimulation,
+			DEFAULT_SIMULATION_ID, 
+			DEFAULT_DESCRIPTION
+		).run
+		println("================================");
+		println("DONE %s:%s".format(runId, simulation.getClass().getName()));
+		println("================================");
+	}
+	
+	def parse(args: Array[String]) : Option[RunGatlingConfig] = {
+		new OptionParser[RunGatlingConfig]("opush-benchmark") {
+			head("opush-benchmark")
+			opt[URI]("base-url")
+				.required
+				.action((value, config) => config.copy(baseURI = value))
+				.text("OBM http server")
+			opt[String]("user-domain")
+				.required
+				.action((value, config) => config.copy(userDomain = value))
+				.text("User domain")
+		}.parse(args, RunGatlingConfig())
 	}
 }

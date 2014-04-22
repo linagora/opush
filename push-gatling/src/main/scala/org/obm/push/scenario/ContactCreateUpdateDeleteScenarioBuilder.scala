@@ -30,6 +30,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.scenario
+
+import scala.concurrent.duration.DurationInt
 import org.obm.push.bean.FolderType
 import org.obm.push.command.ContactCommand.validCreatedContact
 import org.obm.push.command.ContactCommand.validDeletedContact
@@ -46,6 +48,11 @@ import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
 import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.UsersPerSecImplicit
+import io.gatling.core.Predef.constantRate
+import io.gatling.core.Predef.nothingFor
+import io.gatling.core.Predef.scenario
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 import io.gatling.core.Predef.{scenario => createScenario}

@@ -16,22 +16,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>io.gatling</groupId>
-				<artifactId>gatling-app</artifactId>
-				<version>${gatling.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>ch.qos.logback</groupId>
-						<artifactId>logback-classic</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>io.gatling</groupId>
-				<artifactId>gatling-recorder</artifactId>
-				<version>${gatling.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>io.gatling.highcharts</groupId>
 				<artifactId>gatling-charts-highcharts</artifactId>
 				<version>${gatling.version}</version>
@@ -60,6 +44,11 @@
 			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>wbxml</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.scopt</groupId>
+			<artifactId>scopt_2.10</artifactId>
+			<version>3.1.0</version>
+		</dependency>
 		<dependency><!-- Required by Guava when used with Scala -->
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
@@ -73,14 +62,6 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.gatling</groupId>
-			<artifactId>gatling-app</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.gatling</groupId>
-			<artifactId>gatling-recorder</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.gatling.highcharts</groupId>

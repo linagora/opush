@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,36 +29,65 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.scenario
+package org.obm.push.context.feeder
 
-import io.gatling.core.Predef.Simulation
-import io.gatling.core.Predef.UsersPerSecImplicit
-import io.gatling.core.Predef.constantRate
-import io.gatling.core.Predef.nothingFor
-import io.gatling.core.Predef.scenario
-import io.gatling.http.Predef.http
-import io.gatling.http.Predef.httpProtocolBuilder2HttpProtocol
-import io.gatling.http.Predef.requestBuilder2ActionBuilder
-import io.gatling.core.Predef.{scenario => createScenario}
-import org.obm.push.context.Configuration
+import org.junit.runner.RunWith
+import org.scalatest.FunSuite
+import org.scalatest.BeforeAndAfter
 import org.obm.push.wbxml.WBXMLTools
+import org.scalatest.junit.JUnitRunner
+import scala.reflect.io.File
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import java.io.FileWriter
+import io.gatling.core.config.GatlingConfiguration
+import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
-import org.obm.push.command.SendEmailContext
-import org.obm.push.helper.SimulationHelper.provisionedUsers
-import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.command.SendEmailWithBadToCommand
+import org.obm.push.context.User
+import org.obm.push.bean.DeviceId
+import org.obm.push.RunGatling
+import org.obm.push.RunGatlingConfig
+import java.net.URI
 
-object SendEmailWithBadToAddressScenarioBuilder extends ScenarioBuilder {
-
-	val wbTools: WBXMLTools = new WBXMLTools
-	val userFrom = new UserKey("userFrom")
-	val userTo = new UserKey("userTo")
-	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
+@RunWith(classOf[JUnitRunner])
+class RunGatlingTest extends FunSuite with BeforeAndAfter {
 	
-	override def build(configuration: Configuration) = 
-		createScenario("Send an email with bad to address").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV("users.csv", configuration, userFrom, userTo), userFrom)
-			.exec(new SendEmailWithBadToCommand(sendEmailContext).buildCommand)
-	)
+	before {
+	}
 
+	after {
+	}
+
+	test("argument user-domain missing") {
+		val configuration = RunGatling.parse(Array("--user-domain", "test"))
+		assert(configuration === Option.empty)
+	}
+
+	test("argument base-url missing") {
+		val configuration = RunGatling.parse(Array("--base-url", "http://localhost"))
+		assert(configuration === Option.empty)
+	}
+
+	test("argument base-url not an URL") {
+		val configuration = RunGatling.parse(Array(
+				"--user-domain", "test",
+				"--base-url", ":/localhost"))
+		assert(configuration === Option.empty)
+	}
+
+	test("argument base-url space in the URL") {
+		val configuration = RunGatling.parse(Array(
+				"--user-domain", "test",
+				"--base-url", "http:// localhost"))
+		assert(configuration === Option.empty)
+	}
+
+	test("arguments are valid") {
+		val configuration = RunGatling.parse(Array(
+				"--user-domain", "test",
+				"--base-url", "http://localhost"))
+		assert(configuration === Option(RunGatlingConfig(
+				baseURI = new URI("http://localhost"),
+				userDomain = "test")))
+	}
 }
