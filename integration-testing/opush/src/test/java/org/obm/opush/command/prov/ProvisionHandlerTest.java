@@ -332,10 +332,10 @@ public class ProvisionHandlerTest {
 	}
 
 	private void assertOnProvisionResponseSendPolicy(long nextPolicyKeyGenerated, ProvisionResponse provisionResponse) {
-		assertThat(provisionResponse.getProvisionStatus()).isEqualTo(ProvisionStatus.SUCCESS);
-		assertThat(provisionResponse.getPolicyKey()).isEqualTo(nextPolicyKeyGenerated);
-		assertThat(provisionResponse.getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.SUCCESS);
-		assertThat(provisionResponse.getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
+		assertThat(provisionResponse.getResponse().getStatus()).isEqualTo(ProvisionStatus.SUCCESS);
+		assertThat(provisionResponse.getResponse().getPolicyKey()).isEqualTo(nextPolicyKeyGenerated);
+		assertThat(provisionResponse.getResponse().getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.SUCCESS);
+		assertThat(provisionResponse.getResponse().getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
 		assertThat(provisionResponse.hasPolicyData()).isTrue();
 	}
 	
@@ -396,7 +396,7 @@ public class ProvisionHandlerTest {
 		ProvisionResponse provisionResponse3 = opClient.provisionStepTwo(acknowledgedPolicyKey);
 
 		assertThat(provisionResponse3).isNotNull();
-		assertThat(provisionResponse3.getPolicyStatus())
+		assertThat(provisionResponse3.getResponse().getPolicyStatus())
 			.isEqualTo(ProvisionPolicyStatus.THE_CLIENT_IS_ACKNOWLEDGING_THE_WRONG_POLICY_KEY);
 	}
 	
@@ -421,10 +421,10 @@ public class ProvisionHandlerTest {
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ProvisionResponse provisionResponse = opClient.provisionStepTwo(userRegistredPolicyKey);
 
-		assertThat(provisionResponse.getProvisionStatus()).isEqualTo(ProvisionStatus.SUCCESS);
-		assertThat(provisionResponse.getPolicyKey()).isEqualTo(nextPolicyKeyGenerated);
-		assertThat(provisionResponse.getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.SUCCESS);
-		assertThat(provisionResponse.getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
+		assertThat(provisionResponse.getResponse().getStatus()).isEqualTo(ProvisionStatus.SUCCESS);
+		assertThat(provisionResponse.getResponse().getPolicyKey()).isEqualTo(nextPolicyKeyGenerated);
+		assertThat(provisionResponse.getResponse().getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.SUCCESS);
+		assertThat(provisionResponse.getResponse().getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
 		assertThat(provisionResponse.hasPolicyData()).isFalse();
 	}
 
@@ -446,10 +446,10 @@ public class ProvisionHandlerTest {
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ProvisionResponse provisionResponse = opClient.provisionStepTwo(acknowledgingPolicyKey);
 
-		assertThat(provisionResponse.getProvisionStatus()).isEqualTo(ProvisionStatus.SUCCESS);
-		assertThat(provisionResponse.getPolicyKey()).isNull();
-		assertThat(provisionResponse.getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.THE_CLIENT_IS_ACKNOWLEDGING_THE_WRONG_POLICY_KEY);
-		assertThat(provisionResponse.getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
+		assertThat(provisionResponse.getResponse().getStatus()).isEqualTo(ProvisionStatus.SUCCESS);
+		assertThat(provisionResponse.getResponse().getPolicyKey()).isNull();
+		assertThat(provisionResponse.getResponse().getPolicyStatus()).isEqualTo(ProvisionPolicyStatus.THE_CLIENT_IS_ACKNOWLEDGING_THE_WRONG_POLICY_KEY);
+		assertThat(provisionResponse.getResponse().getPolicyType()).isEqualTo("MS-EAS-Provisioning-WBXML");
 		assertThat(provisionResponse.hasPolicyData()).isFalse();
 	}
 

@@ -62,17 +62,17 @@ public abstract class Provision extends AbstractCommand<ProvisionResponse> {
 		Node policyStatusNode = policyTypeNode.getNextSibling();
 		Node policyKeyNode = policyStatusNode.getNextSibling();
 		
-		Builder provisionResponseBuilder = ProvisionResponse.builder()
+		org.obm.push.protocol.bean.ProvisionResponse.Builder protocolBuilder = org.obm.push.protocol.bean.ProvisionResponse.builder()
 			.policyType(policyTypeNode.getTextContent())
 			.policyKey(policyStatusValue(policyKeyNode))
-			.provisionStatus(provisionStatus(statusNode.getTextContent()))
-			.policyStatus(policyStatus(policyStatusNode.getTextContent())); 
+			.status(provisionStatus(statusNode.getTextContent()))
+			.policyStatus(policyStatus(policyStatusNode.getTextContent()));
 
+		Builder provisionResponseBuilder = ProvisionResponse.builder(protocolBuilder);
 		if (policyKeyNode != null) {
 			provisionResponseBuilder.policyData((Element) policyKeyNode.getNextSibling());
 		}
-		
-		return provisionResponseBuilder	.build();
+		return provisionResponseBuilder.build();
 	}
 
 	private ProvisionPolicyStatus policyStatus(String textContent) {

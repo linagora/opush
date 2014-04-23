@@ -48,13 +48,13 @@ public class FolderSyncScenario extends Scenario {
 	protected CheckResult scenarii(OPClient client) throws Exception {
 		
 		ProvisionResponse provisionStepOne = client.provisionStepOne();
-		ProvisionStatus provisionStatusStepOne = provisionStepOne.getProvisionStatus();
+		ProvisionStatus provisionStatusStepOne = provisionStepOne.getResponse().getStatus();
 		if (!provisionStatusStepOne.equals(ProvisionStatus.SUCCESS)) {
 			return buildError("Provision step one: " + provisionStatusStepOne);
 		}
 		
-		ProvisionResponse provisionStepTwo = client.provisionStepTwo(provisionStepOne.getPolicyKey());
-		ProvisionStatus provisionStatusStepTwo = provisionStepTwo.getProvisionStatus();
+		ProvisionResponse provisionStepTwo = client.provisionStepTwo(provisionStepOne.getResponse().getPolicyKey());
+		ProvisionStatus provisionStatusStepTwo = provisionStepTwo.getResponse().getStatus();
 		if (!provisionStatusStepTwo.equals(ProvisionStatus.SUCCESS)) {
 			return buildError("Provision step two: " + provisionStatusStepOne);
 		}

@@ -33,9 +33,6 @@ package org.obm.sync.push.client;
 
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.obm.push.bean.ProvisionPolicyStatus;
-import org.obm.push.bean.ProvisionStatus;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Element;
 
@@ -43,92 +40,51 @@ import com.google.common.base.Objects;
 
 public class ProvisionResponse {
 	
-	public static Builder builder() {
-		return new Builder();
+	public static Builder builder(org.obm.push.protocol.bean.ProvisionResponse.Builder protocolBuilder) {
+		return new Builder(protocolBuilder);
 	}
 	
 	public static class Builder {
-		private ProvisionStatus provisionStatus;
-		private ProvisionPolicyStatus policyStatus;
-		private Long policyKey;
-		private String policyType;
-		private Element policyData;
+		
+		private final org.obm.push.protocol.bean.ProvisionResponse.Builder protocolBuilder;
+		private Element policyDataEl;
 
-		private Builder() {
+		private Builder(org.obm.push.protocol.bean.ProvisionResponse.Builder protocolBuilder) {
 			super();
+			this.protocolBuilder = protocolBuilder;
 		}
 		
-		public Builder provisionStatus(ProvisionStatus provisionStatus) {
-			this.provisionStatus = provisionStatus;
-			return this;
-		}
-		
-		public Builder policyStatus(ProvisionPolicyStatus policyStatus) {
-			this.policyStatus = policyStatus;
-			return this;
-		}
-		
-		public Builder policyKey(Long policyKey) {
-			this.policyKey = policyKey;
-			return this;
-		}
-		
-		public Builder policyType(String policyType) {
-			this.policyType = policyType;
-			return this;
-		}
-
-		public Builder policyData(Element policyData) {
-			this.policyData = policyData;
+		public Builder policyData(Element policyDataEl) {
+			this.policyDataEl = policyDataEl;
 			return this;
 		}
 		
 		public ProvisionResponse build() throws TransformerException {
-			String policyValue = serializePolicy();
-			return new ProvisionResponse(provisionStatus, policyStatus, policyKey, policyType, policyData, policyValue);
+			String policyData = serializePolicy();
+			return new ProvisionResponse(protocolBuilder.build(), policyDataEl, policyData);
 		}
 
 		private String serializePolicy() throws TransformerException {
-			if (policyData != null) {
-				return DOMUtils.prettySerialize(policyData);
+			if (policyDataEl != null) {
+				return DOMUtils.prettySerialize(policyDataEl);
 			}
 			return null;
 		}
 		
 	}
 
-	private final ProvisionStatus provisionStatus;
-	private final ProvisionPolicyStatus policyStatus;
-	private final Long policyKey;
-	private final String policyType;
+	private final org.obm.push.protocol.bean.ProvisionResponse response;
 	private final String policyData;
 	private final Element policyDataEl;
 	
-	private ProvisionResponse(ProvisionStatus provisionStatus, ProvisionPolicyStatus policyStatus,
-			Long policyKey, String policyType, Element policyDataEl, String policyData) {
-		
-		this.provisionStatus = provisionStatus;
-		this.policyKey = policyKey;
-		this.policyStatus =  policyStatus;
-		this.policyType = policyType;
+	private ProvisionResponse(org.obm.push.protocol.bean.ProvisionResponse response ,Element policyDataEl, String policyData) {
+		this.response = response;
 		this.policyDataEl = policyDataEl;
 		this.policyData = policyData;
 	}
-
-	public ProvisionStatus getProvisionStatus() {
-		return provisionStatus;
-	}
 	
-	public ProvisionPolicyStatus getPolicyStatus() {
-		return policyStatus;
-	}
-
-	public Long getPolicyKey() {
-		return policyKey;
-	}
-
-	public String getPolicyType() {
-		return policyType;
+	public org.obm.push.protocol.bean.ProvisionResponse getResponse() {
+		return response;
 	}
 
 	public boolean hasPolicyData() {
@@ -145,20 +101,15 @@ public class ProvisionResponse {
 
 	@Override
 	public final int hashCode() {
-		return Objects.hashCode(provisionStatus, policyStatus, policyKey, policyType, policyData);
+		return Objects.hashCode(response, policyData);
 	}
 	
 	@Override
 	public final boolean equals(Object obj) {
 		if (obj instanceof ProvisionResponse) {
 			ProvisionResponse other = (ProvisionResponse) obj;
-			return new EqualsBuilder()
-				.append(provisionStatus, other.provisionStatus)
-				.append(policyStatus, other.policyStatus)
-				.append(policyKey, other.policyKey)
-				.append(policyType, other.policyType)
-				.append(policyData, other.policyData)
-				.isEquals();
+			return Objects.equal(response, other.response)
+				&& Objects.equal(policyData, other.policyData);
 		}
 		return false;
 	}
