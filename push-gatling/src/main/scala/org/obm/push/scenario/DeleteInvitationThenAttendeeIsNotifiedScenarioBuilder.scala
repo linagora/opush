@@ -46,20 +46,17 @@ import org.obm.push.wbxml.WBXMLTools
 object DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
-		
-	override def build(configuration: Configuration) = {
-		
-		
+	val invit = ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder
+    
+	override def build(configuration: Configuration) = 
 		createScenario("Invite two users, modify then delete invitation")
 		.exitHereIfFailed.exitBlockOnFail(
 			exec(invit.build(configuration))
 			.exec(buildDeleteInvitationCommand(invit.invitation))
 			.pause(configuration.asynchronousChangeTime)
-			.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, noChange))
-			.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
+			.exec(invit.parent.buildSyncCommand(invit.parent.attendee1Key, invit.parent.usedMailCollection, noChange))
+			.exec(invit.parent.buildSyncCommand(invit.parent.attendee2Key, invit.parent.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
 		)
-	}
 	
 	def buildDeleteInvitationCommand(invitation: InvitationContext) = {
 		invitation.matcher = InvitationCommand.validDeleteInvitation

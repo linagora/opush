@@ -99,7 +99,7 @@ object InviteTwoUsersOneAcceptOneDeclineScenarioBuilder extends ScenarioBuilder 
 	}
 	
 	def buildSyncCommand(userKey: UserKey, folderType: FolderType, matchers: Matcher[SyncResponse, Session]*): PostHttpRequestBuilder = {
-		val matcher = null//Check.manyToOne(validSync :: matchers:_*)
+		val matcher = Check.manyToOne((List(validSync) ++ matchers):_*)
 		buildSyncCommand(new SyncContext(userKey, folderType, matcher))
 	}
 	

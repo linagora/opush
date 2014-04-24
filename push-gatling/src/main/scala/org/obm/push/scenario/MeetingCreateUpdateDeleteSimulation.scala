@@ -77,8 +77,8 @@ object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 	val invitation = new InvitationContext(
 		organizer = organizer,
 		attendees = Set(invitee1, invitee2),
-		startTime = date("2014-01-12T09:00:00"),
-		endTime = date("2014-01-12T10:00:00"),
+		startTime = date("2020-01-12T09:00:00"),
+		endTime = date("2020-01-12T10:00:00"),
 		folderType = usedCalendarCollection)
 	
 	override def build(configuration: Configuration) = 

@@ -50,30 +50,31 @@ import org.obm.push.command.InvitationCommand
 object ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
-	val invit = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
-    
+	val parent = InviteTwoUsersOneAcceptOneDeclineScenarioBuilder
+	val invitation = parent.invitation
+
 	override def build(configuration: Configuration) = 
 		scenario("Invite two users then modify")
 			.exitHereIfFailed.exitBlockOnFail(
 				exec(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder.build(configuration))
-				.exec(buildModifyInvitationCommand(invit.invitation))
-				.exec(s => Success(invit.organizerKey.sessionHelper.updatePendingInvitation(s)))
+				.exec(buildModifyInvitationCommand(invitation))
+				.exec(s => Success(parent.organizerKey.sessionHelper.updatePendingInvitation(s)))
 				.pause(configuration.asynchronousChangeTime)
-				.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-				.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
-				.exec(invit.buildMeetingResponseCommand(invit.attendee1Key, AttendeeStatus.DECLINE))
-				.exec(invit.buildMeetingResponseCommand(invit.attendee2Key, AttendeeStatus.ACCEPT))
-				.exec(invit.buildSyncCommand(invit.attendee1Key, invit.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
-				.exec(invit.buildSyncCommand(invit.attendee2Key, invit.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+				.exec(parent.buildSyncCommand(parent.attendee1Key, parent.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+				.exec(parent.buildSyncCommand(parent.attendee2Key, parent.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
+				.exec(parent.buildMeetingResponseCommand(parent.attendee1Key, AttendeeStatus.DECLINE))
+				.exec(parent.buildMeetingResponseCommand(parent.attendee2Key, AttendeeStatus.ACCEPT))
+				.exec(parent.buildSyncCommand(parent.attendee1Key, parent.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
+				.exec(parent.buildSyncCommand(parent.attendee2Key, parent.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
 				.pause(configuration.asynchronousChangeTime)
-				.exec(invit.buildSyncCommand(invit.organizerKey, invit.usedCalendarCollection, Check.matcher((s, response) 
-						=> (invit.organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
+				.exec(parent.buildSyncCommand(parent.organizerKey, parent.usedCalendarCollection, Check.matcher((s, response) 
+						=> (parent.organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 		)
 	
 	def buildModifyInvitationCommand(invitation: InvitationContext) = {
 		val modifiedInvitation = invitation.modify(
-				startTime = date("2014-01-14T09:00:00"),
-				endTime = date("2014-01-14T11:00:00"),
+				startTime = date("2020-01-14T09:00:00"),
+				endTime = date("2020-01-14T11:00:00"),
 				matcher = InvitationCommand.validModifiedInvitation)
 		new ModifyInvitationCommand(modifiedInvitation, wbTools).buildCommand
 	}
