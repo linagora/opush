@@ -31,12 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.command
 
-import scala.collection.JavaConversions.collectionAsScalaIterable
-
 import org.obm.push.bean.FolderType
 import org.obm.push.bean.SyncKey
 import org.obm.push.context.UserKey
-import org.obm.push.checks.Check
 import org.obm.push.protocol.bean.SyncResponse
 
 import io.gatling.core.check.Matcher
@@ -50,7 +47,7 @@ class InitialSyncContext(
 	
 	val initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY
 		
-	override def nextSyncKey(session: => Session) = initialSyncKey
+	override def nextSyncKey(session: Session) = initialSyncKey
 	
 }
 
@@ -60,23 +57,7 @@ class SyncContext(
 		var matcher: Matcher[SyncResponse, Session] = SyncCollectionCommand.validSync)
 			extends CollectionContext(userKey) {
 	
-	def nextSyncKey(session: => Session): SyncKey = {
-		val lastSync = userKey.sessionHelper.findLastSync(session)
-		if (lastSync.isDefined) {
-			return nextSyncKeyInResponse(session, lastSync.get)
-		}
-		throw new IllegalStateException("No last Sync in session")
-	}
-	
-	private[this] def nextSyncKeyInResponse(session: Session, syncResponse: SyncResponse): SyncKey = {
-		val collectionId = this.findCollectionId(session, folderType)
-		for (collection <- syncResponse.getCollectionResponses()
-			if collection.getCollectionId() == collectionId) {
-				return collection.getSyncKey()
-		}
-		throw new NoSuchElementException(
-				"Cannot find collection:{%d} in response:{%s}".format(collectionId, syncResponse))
-	}
+	def nextSyncKey(session: Session) = userKey.sessionHelper.findNextSyncKey(session, folderType)
 	
 	def findCollectionId(session: Session) = super.findCollectionId(session, folderType)
 }

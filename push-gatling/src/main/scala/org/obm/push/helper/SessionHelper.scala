@@ -33,11 +33,13 @@ package org.obm.push.helper
 
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.JavaConversions.asScalaSet
+import scala.collection.JavaConversions.collectionAsScalaIterable
 
 import org.obm.push.bean.AttendeeStatus.ACCEPT
 import org.obm.push.bean.AttendeeStatus.DECLINE
 import org.obm.push.bean.FolderType
 import org.obm.push.bean.MSAttendee
+import org.obm.push.bean.SyncKey
 import org.obm.push.command.ContactContext
 import org.obm.push.command.InvitationContext
 import org.obm.push.command.PendingInvitationContext
@@ -62,6 +64,18 @@ class SessionHelper(userKey: UserKey) {
 	def findPolicyKey(session: Session): Long = findLastProvisioning(session) match {
 	  case lastProvisioning: Some[ProvisionResponse] => lastProvisioning.get.getPolicyKey()
 	  case _ => 0
+	}
+	
+	def findNextSyncKey(session: Session, folderType: FolderType): SyncKey = findLastSync(session) match {
+			case None => throw new IllegalStateException("No last Sync in session")
+			case Some(lastSync) => {
+				val collectionId = this.collectionId(session, folderType)
+				lastSync.getCollectionResponses()
+					.find(_.getCollectionId() == collectionId)
+					.getOrElse(
+							throw new NoSuchElementException("Cannot find collection:{%d} in response:{%s}".format(collectionId, lastSync)))
+					.getSyncKey()
+			}
 	}
 	
 	def collectionId(session: Session, folderType: FolderType): Int = {

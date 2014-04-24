@@ -36,7 +36,7 @@ object Scenarios {
 	val defaultScenario = Scenario("default", SendEmailScenarioBuilder, MeetingCreateUpdateDeleteScenarioBuilder, ContactCreateUpdateDeleteScenarioBuilder)
 	val contact = Scenario("contact", ContactCreateUpdateDeleteScenarioBuilder)
 	val calendar= Scenario("calendar", MeetingCreateUpdateDeleteScenarioBuilder)
-	val calendarSync = Scenario("calendar-sync", InitialSyncOnCalendarScenarioBuilder)
+	val calendarSync = Scenario("calendar-sync", SyncCalendarScenarioBuilder)
 	val meetingCreation = Scenario("meeting-creation",InviteTwoUsersScenarioBuilder)
 	val meetingInvitation = Scenario("meeting-invitation", InviteTwoUsersOneAcceptOneDeclineScenarioBuilder)
 	val meetingModification = Scenario("meeting-modification", ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder)

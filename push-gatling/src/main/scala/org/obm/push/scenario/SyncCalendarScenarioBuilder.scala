@@ -32,36 +32,35 @@
 package org.obm.push.scenario
 
 import org.obm.push.bean.FolderType
-import org.obm.push.command.FolderSyncCommand
-import org.obm.push.command.InitialFolderSyncContext
 import org.obm.push.command.InitialSyncContext
-import org.obm.push.command.ProvisioningCommand
 import org.obm.push.command.SyncCollectionCommand
+import org.obm.push.command.SyncContext
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.bootstrap.feed
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
-import io.gatling.core.Predef.{scenario => createScenario}
 
-object InitialSyncOnCalendarScenarioBuilder extends ScenarioBuilder {
+object SyncCalendarScenarioBuilder extends ScenarioBuilder {
 
 	val wbTools: WBXMLTools = new WBXMLTools
 	val userKey = new UserKey("user")
+	val folderType = FolderType.DEFAULT_CALENDAR_FOLDER
 
 	override def build(configuration: Configuration) = 
-		createScenario("Initial Sync on user's calendar")
-			.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
-			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
-			.exec(buildInitialFolderSyncCommand(userKey))
-			.exec(buildSyncOnCalendarCommand(userKey))
+		createScenario("Initial Sync on user's calendar").exitBlockOnFail(
+			feed(UserFeeder.create(configuration, userKey))
+			.exec(initialSyncCalendarCommand)
+			.exec(syncCalendarCommand)
+	)
 	
-	def buildSyncOnCalendarCommand(userKey: UserKey) = {
-		val initialSyncContext = new InitialSyncContext(userKey, FolderType.DEFAULT_CALENDAR_FOLDER)
-		new SyncCollectionCommand(initialSyncContext, wbTools).buildCommand
-	}
+	def initialSyncCalendarCommand = 
+		new SyncCollectionCommand(new InitialSyncContext(userKey, folderType), wbTools).buildCommand
 	
-	def buildInitialFolderSyncCommand(userKey: UserKey) = {
-		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand
-	}
+	def syncCalendarCommand =
+		new SyncCollectionCommand(new SyncContext(userKey, folderType), wbTools).buildCommand
+		
 }
