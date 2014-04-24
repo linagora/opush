@@ -138,13 +138,13 @@ public class WBXMLOPClient extends OPClient {
 		StatusLine statusLine = response.getStatusLine();
 		Header[] hs = response.getAllHeaders();
 		for (Header h : hs) {
-			logger.error("head[" + h.getName() + "] => "
+			logger.debug("head[" + h.getName() + "] => "
 					+ h.getValue());
 		}
 		int statusCode = statusLine.getStatusCode();
 		HttpEntity entity = response.getEntity();
 		if (statusCode != HttpStatus.SC_OK) {
-			logger.error("method failed:{}\n{}\n",  statusLine, entity);
+			logger.debug("method failed:{}\n{}\n",  statusLine, entity);
 			throw new HttpRequestException(statusCode);
 		} else {
 			byte[] responseBytes = getResponse(response);

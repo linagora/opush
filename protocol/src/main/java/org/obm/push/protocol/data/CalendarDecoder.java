@@ -140,7 +140,7 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 					}
 
 					if (attendee.getAttendeeStatus() != null) {
-						logger.info("parse attendeeStatus: "
+						logger.debug("parse attendeeStatus: "
 								+ attendee.getAttendeeStatus());
 					}
 
@@ -158,7 +158,7 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 					}
 
 					if (attendee.getAttendeeType() != null) {
-						logger.info("parse attendeeType: "
+						logger.debug("parse attendeeType: "
 								+ attendee.getAttendeeType());
 					}
 					calendar.addAttendee(attendee);
@@ -188,7 +188,7 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 		// Recurrence
 		containerNode = DOMUtils.getUniqueElement(syncData, ASCalendar.RECURRENCE.getName());
 		if (containerNode != null) {
-			logger.info("decode recurrence");
+			logger.debug("decode recurrence");
 			MSRecurrence recurrence = new MSRecurrence();
 
 			recurrence.setUntil(parseDOMDate(DOMUtils.getUniqueElement(
@@ -232,7 +232,7 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 			}
 
 			if (recurrence.getType() != null) {
-				logger.info("parse type: " + recurrence.getType());
+				logger.debug("parse type: " + recurrence.getType());
 			}
 
 			calendar.setRecurrence(recurrence);

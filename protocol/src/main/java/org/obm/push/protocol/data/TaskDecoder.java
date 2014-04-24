@@ -81,7 +81,7 @@ public class TaskDecoder extends Decoder implements IDataDecoder {
 		task.setReminderSet(parseDOMInt2Boolean(DOMUtils.getUniqueElement(
 				syncData, "ReminderSet")));
 
-		logger.info("Decode task to "+task);
+		logger.debug("Decode task to "+task);
 		return task;
 	}
 
@@ -166,7 +166,7 @@ public class TaskDecoder extends Decoder implements IDataDecoder {
 			}
 
 			if (recurrence.getType() != null) {
-				logger.info("parse type: " + recurrence.getType());
+				logger.debug("parse type: " + recurrence.getType());
 			}
 		}
 		task.setRecurrence(recurrence);

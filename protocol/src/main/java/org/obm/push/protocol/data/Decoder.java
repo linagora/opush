@@ -66,7 +66,7 @@ public class Decoder {
 
 	public String parseDOMString(Element elt, String default_value) {
 		if (elt != null) {
-			logger.info("parse string: " + elt.getTextContent());
+			logger.debug("parse string: " + elt.getTextContent());
 			return elt.getTextContent();
 		}
 		return default_value;
@@ -162,7 +162,7 @@ public class Decoder {
 	}
 
 	public int parseInt(String str) {
-		logger.info("parse Integer: " + Integer.parseInt(str));
+		logger.debug("parse Integer: " + Integer.parseInt(str));
 		return Integer.parseInt(str);
 	}
 
