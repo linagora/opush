@@ -33,17 +33,32 @@ package org.obm.push
 
 import java.net.URI
 import java.nio.file.Paths
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.UUID
 import scala.reflect.io.File
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.obm.push.bean.DeviceId
+import org.obm.push.bean.SyncKey
 import org.obm.push.context.Configuration
+import org.obm.push.context.User
 import org.obm.push.scenario.Scenario
 import org.obm.push.scenario.Scenarios
+import org.obm.push.wbxml.WBXMLTools
+import org.obm.sync.push.client.WBXMLOPClient
 import io.gatling.charts.report.ReportsGenerator
+import io.gatling.core.Predef.csv
+import io.gatling.core.Predef.array2FeederBuilder
 import io.gatling.core.config.GatlingConfiguration
+import io.gatling.core.feeder.Feeder
 import io.gatling.core.result.reader.DataReader
 import scopt.OptionParser
-import java.text.SimpleDateFormat
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
+import io.gatling.core.feeder.AdvancedFeederBuilder
+import io.gatling.core.feeder.Circular
+import io.gatling.core.util.RoundRobin
 
 case class RunGatlingConfig(
 	baseURI: URI = null,
@@ -51,10 +66,10 @@ case class RunGatlingConfig(
 	scenario: Scenario = Scenarios.defaultScenario,
 	csv: File = null) {
 	
-	def hydrate() = new Configuration() {
+	def hydrate(builtUsers: Iterator[User]) = new Configuration() {
 		override val baseUrl = baseURI.toString()
 		override val domain = userDomain
-		override val csvFile = csv
+		override val users = builtUsers
   	}
 }
 
@@ -62,6 +77,7 @@ object RunGatling {
 
 	val DEFAULT_DESCRIPTION = "opush-benchmark run"
 	val DEFAULT_SIMULATION_ID = "1"
+	val USERS_PREPARATION_PARALLELISM = 2
 	
 	def main(args: Array[String]) {
 		parse(args)
@@ -73,11 +89,46 @@ object RunGatling {
 	
 	def run(config: RunGatlingConfig) {
 		GatlingConfiguration.setUp()
-		val compositeSimulation = new CompositeSimulation(config.hydrate(), config.scenario)
+		
+		val fullConfig = prepareUsers(config)
+		
+		val compositeSimulation = new CompositeSimulation(fullConfig, config.scenario)
 		val (runId, simulation) = run(compositeSimulation)
 		
 		val dataReader = DataReader.newInstance(runId)
 		generateReports(dataReader)
+	}
+	
+	def prepareUsers(config: RunGatlingConfig) = {
+		val httpClient = buildHttpClient
+		val wbxmlTools = new WBXMLTools
+		
+		def buildUserFromMap(fields: Map[String, String]) = {
+			val domain = config.userDomain
+			val login = fields("username")
+			val password = fields("password")
+			val email = fields("email")
+			val deviceId = new DeviceId(Configuration.defaultUserDeviceId + UUID.randomUUID().toString())
+			val deviceType = Configuration.defaultUserDeviceType
+			val loginAtDomain = login + "@" + domain
+			val client = new WBXMLOPClient(httpClient, loginAtDomain, password, deviceId, deviceType, "opush-benchmark agent",
+					config.baseURI.toString() + "/Microsoft-Server-ActiveSync", wbxmlTools, ProtocolVersion.V121)
+			val firstPolicyKey = client.provisionStepOne().getResponse().getPolicyKey()
+			val provisionResponse = client.provisionStepTwo(firstPolicyKey).getResponse()
+			val folderSyncResponse = client.folderSync(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			new User(
+				domain, login, password, email, deviceId, deviceType, provisionResponse, folderSyncResponse 
+			)
+		}
+
+		config.hydrate(provisionUsers(config, buildUserFromMap))
+	}
+	
+	def provisionUsers(config: RunGatlingConfig, buildUserFromMap: (Map[String, String] => User)) = {
+		println("Prepare csv users for the run ...");
+		val csvUsers = csv(config.csv).build.toParArray
+		csvUsers.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(USERS_PREPARATION_PARALLELISM))
+		RoundRobin(csvUsers.map(buildUserFromMap).toArray)
 	}
 
 	def generateReports(dataReader: DataReader) {
@@ -114,5 +165,12 @@ object RunGatling {
 				.action((value, config) => config.copy(scenario = Scenarios(value)))
 				.text("The scenarios to run, possible values : " + Scenarios.all.keys.mkString(", "))
 		}.parse(args, RunGatlingConfig())
+	}
+  
+  private def buildHttpClient: org.apache.http.impl.client.CloseableHttpClient = {
+	  val connManager = new PoolingHttpClientConnectionManager()
+	  connManager.setMaxTotal(8)
+	  connManager.setDefaultMaxPerRoute(8)
+	  HttpClients.custom().setConnectionManager(connManager).build()
 	}
 }

@@ -44,9 +44,13 @@ import org.obm.push.command.SyncContext
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
 import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.bootstrap.feed
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
+
+import org.obm.push.context.feeder.UserFeeder
 
 object InviteTwoUsersScenarioBuilder extends ScenarioBuilder {
 
@@ -63,13 +67,12 @@ object InviteTwoUsersScenarioBuilder extends ScenarioBuilder {
 			folderType = usedCalendarCollection)
 
 	override def build(configuration: Configuration) = 
-		createScenario("Send an invitation to two users")
-			.exec(ProvisioningCommand.buildInitialProvisioningCommand(organizer))
-			.exec(ProvisioningCommand.buildAcceptProvisioningCommand(organizer))
-			.exec(buildInitialFolderSyncCommand(organizer))
+		createScenario("Send an invitation to two users").exitBlockOnFail(
+			feed(UserFeeder.create(configuration, organizer, invitee1, invitee2))
 			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection))
 			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
 			.exec(buildSendInvitationCommand(invitation))
+	)
 	
 	def buildInitialFolderSyncCommand(userKey: UserKey) = {
 		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand

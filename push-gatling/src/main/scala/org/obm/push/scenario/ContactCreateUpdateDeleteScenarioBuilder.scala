@@ -45,9 +45,9 @@ import org.obm.push.command.SyncCollectionCommand
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
 import io.gatling.core.Predef.{scenario => createScenario}
+import io.gatling.core.Predef.bootstrap._
 import io.gatling.core.Predef.Simulation
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
@@ -65,7 +65,7 @@ object ContactCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
 	override def build(configuration: Configuration) =
 		createScenario("Create, modify then drop contact").exitBlockOnFail(
-			initializedUsers(UserFeeder.newCSV(configuration, userKey), userKey)
+			feed(UserFeeder.create(configuration, userKey))
 			.pause(configuration.pause)
 			.exec(buildInitialSyncCommand(userKey, usedContactCollection))
 			.pause(configuration.pause)

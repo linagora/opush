@@ -44,41 +44,26 @@ import scala.reflect.io.File
 import io.gatling.core.feeder.AdvancedFeederBuilder
 import org.obm.push.command.ProvisioningCommand
 import org.obm.push.helper.SessionHelper
+import io.gatling.core.util.RoundRobin
 
-class UserFeeder(originalFeeder: AdvancedFeederBuilder[String], config: Configuration, userKeys: UserKey*) extends FeederBuilder[Any] {
-	
-	val cyclicUserData = originalFeeder.circular.build
-	val alreadyBuiltUsers = scala.collection.mutable.Map[String, User]()
+class ItemFeeder[Item, ItemKey]
+		(items: Iterator[Item], f: (ItemKey, Item) => Map[String, Any],
+				itemKeys: ItemKey*) extends FeederBuilder[Any] {
 	
 	def build: Feeder[Any] = new Feeder[Any] {
 		override def hasNext = true
-		override def next = {
-			val sessionMap = scala.collection.mutable.Map[String, Any]()
-			for (userKey <- userKeys; userData = cyclicUserData.next) {
-				val user = alreadyBuiltUsers.getOrElseUpdate(userData("username"), buildUserFromMap(userData))
-				if (user.provisionResponse.isDefined) {
-					sessionMap(userKey.lastProvisioningSessionKey) = user.provisionResponse.get
-				}
-				if (user.folderSyncResponse.isDefined) {
-					sessionMap(userKey.lastFolderSyncSessionKey) = user.folderSyncResponse.get
-				}
-				sessionMap(userKey.key) = user
-			}
-			sessionMap.toMap
-		}
+		override def next = itemKeys.iterator.zip(items).map(f.tupled).reduce(_ ++ _)
 	}
 	
-	def buildUserFromMap(fields: Map[String, String]) = new User(
-		domain = config.domain,
-		login = fields("username"),
-		password = fields("password"),
-		email = fields("email"),
-		deviceId = new DeviceId(config.defaultUserDeviceId + UUID.randomUUID().toString()),
-		deviceType = config.defaultUserDeviceType
-	)
 }
 
 object UserFeeder {
 	
-	def newCSV(config: Configuration, userKeys: UserKey*) = new UserFeeder(csv(config.csvFile), config, userKeys: _*)
+	def create(config: Configuration, userKeys: UserKey*) = new ItemFeeder(config.users, generateSessionData, userKeys: _*)
+	
+	def generateSessionData(userKey: UserKey, user: User) = Map(
+		userKey.key -> user,
+		userKey.lastProvisioningSessionKey -> user.provisionResponse,
+		userKey.lastFolderSyncSessionKey -> user.folderSyncResponse
+	)
 }

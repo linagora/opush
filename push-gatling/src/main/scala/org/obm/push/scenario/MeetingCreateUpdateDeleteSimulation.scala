@@ -32,7 +32,9 @@
 package org.obm.push.scenario
 
 import scala.concurrent.duration.DurationInt
+
 import org.joda.time.DateTime
+
 import org.obm.DateUtils.date
 import org.obm.push.bean.FolderType
 import org.obm.push.command.DeleteInvitationCommand
@@ -50,17 +52,18 @@ import org.obm.push.command.SyncContext
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.helper.SimulationHelper.initializedUsers
 import org.obm.push.wbxml.WBXMLTools
+import org.obm.push.context.Configuration
+
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.core.Predef.Simulation
+import io.gatling.core.Predef.bootstrap.feed
 import io.gatling.core.Predef.UsersPerSecImplicit
 import io.gatling.core.Predef.constantRate
 import io.gatling.core.Predef.nothingFor
 import io.gatling.core.Predef.scenario
 import io.gatling.core.validation.Success
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
-import org.obm.push.context.Configuration
 
 object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 
@@ -80,7 +83,7 @@ object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 	
 	override def build(configuration: Configuration) = 
 		createScenario("Create, update then delete a meeting").exitBlockOnFail(
-	    initializedUsers(UserFeeder.newCSV(configuration, organizer, invitee1, invitee2), organizer)
+			feed(UserFeeder.create(configuration, organizer, invitee1, invitee2))
 			.pause(configuration.pause)
 			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
@@ -91,7 +94,7 @@ object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 			.pause(configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.updatePendingInvitation(s)))
 			.exec(buildDeleteInvitationCommand(invitation))
-	)	
+	)
 	
 	def buildInitialFolderSyncCommand(userKey: UserKey) = {
 		new FolderSyncCommand(new InitialFolderSyncContext(userKey), wbTools).buildCommand

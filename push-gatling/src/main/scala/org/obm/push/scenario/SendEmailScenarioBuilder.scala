@@ -36,9 +36,9 @@ import org.obm.push.command.SendEmailContext
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
 import org.obm.push.context.feeder.UserFeeder
-import org.obm.push.helper.SimulationHelper.provisionedUsers
 import org.obm.push.wbxml.WBXMLTools
 
+import io.gatling.core.Predef.bootstrap.feed
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
@@ -49,8 +49,8 @@ object SendEmailScenarioBuilder extends ScenarioBuilder {
 	val userTo = new UserKey("userTo")
 	val sendEmailContext = new SendEmailContext(from = userFrom, to = userTo)
 	
-	override def build(configuration: Configuration) = 
+	override def build(config: Configuration) = 
 		createScenario("Send a simple email to a user").exitBlockOnFail(
-		    provisionedUsers(UserFeeder.newCSV(configuration, userFrom, userTo), userFrom)
+			feed(UserFeeder.create(config, userFrom, userTo))
 			.exec(new SendEmailCommand(sendEmailContext).buildCommand))
 }

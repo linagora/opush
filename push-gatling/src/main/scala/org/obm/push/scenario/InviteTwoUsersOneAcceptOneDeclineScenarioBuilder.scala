@@ -76,12 +76,6 @@ object InviteTwoUsersOneAcceptOneDeclineScenarioBuilder extends ScenarioBuilder 
 		createScenario("Send an invitation at two attendees")
 			.exitBlockOnFail(
 				exec(inviteTwoUsersScenarioBuilder.build(configuration))
-				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee1Key))
-				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee1Key))
-				.exec(ProvisioningCommand.buildInitialProvisioningCommand(attendee2Key))
-				.exec(ProvisioningCommand.buildAcceptProvisioningCommand(attendee2Key))
-				.exec(buildInitialFolderSyncCommand(attendee1Key))
-				.exec(buildInitialFolderSyncCommand(attendee2Key))
 				.exec(s => Success(organizerKey.sessionHelper.setupPendingInvitation(s, invitation)))
 				.pause(s => Success(configuration.asynchronousChangeTime))
 				.exec(buildInitialSyncCommand(attendee1Key, usedMailCollection))

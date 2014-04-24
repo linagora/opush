@@ -31,77 +31,39 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context.feeder
 
+import scala.collection.Iterator
+import scala.collection.TraversableOnce.flattenTraversableOnce
 import org.junit.runner.RunWith
-import org.scalatest.FunSuite
-import org.scalatest.BeforeAndAfter
-import org.obm.push.wbxml.WBXMLTools
-import org.scalatest.junit.JUnitRunner
-import scala.reflect.io.File
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import java.io.FileWriter
-import io.gatling.core.config.GatlingConfiguration
-import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
-import org.obm.push.context.User
-import org.obm.push.bean.DeviceId
+import org.scalatest.Finders
+import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UserFeederTest extends FunSuite with BeforeAndAfter {
+class UserFeederTest extends FunSuite {
 	
-	val tempFolderRule = new TemporaryFolder()
-
-	var wbxmlTools: WBXMLTools = _
-	var config: Configuration = _
-
-	before {
-		tempFolderRule.create()
-		GatlingConfiguration.setUp()
+	test("Feeder gives right number of items when the rootItems is infinite") {
+		val rootItems = Iterator.continually(Array(1, 2, 3)).flatten
+		val generateSessionData = (a: UserKey, b: Int) => Map(a.key + "transformed" -> b)
+		val feeder = new ItemFeeder(rootItems, generateSessionData, new UserKey("keya"), new UserKey("keyb")).build
 		
-		val userFile = tempFolderRule.newFile()
-		val fileWriter = new FileWriter(userFile)
-		fileWriter.write(
-				"""|username,email,password
-				   |user.1,user.1@my.domain,secret
-				   |user.2,user.2@my.domain,secret""".stripMargin);
-		fileWriter.close();
-		
-		config = new Configuration() {
-			override val baseUrl = "localhost"
-			override val domain = "my.domain"
-			override val csvFile = new File(userFile)
-		}
-		wbxmlTools = new WBXMLTools()
-	}
-
-	after {
-		tempFolderRule.delete()
+		val firstIteration = feeder.next
+		assert(firstIteration === Map("keyatransformed" -> 1, "keybtransformed" -> 2))
+		val secondIteration = feeder.next
+		assert(secondIteration === Map("keyatransformed" -> 3, "keybtransformed" -> 1))
+		val thirdIteration = feeder.next
+		assert(thirdIteration === Map("keyatransformed" -> 2, "keybtransformed" -> 3))
 	}
 	
-	test("Feeder build users only once") {
-		val feeder = UserFeeder.newCSV(config, new UserKey("a"), new UserKey("b")).build
+	test("Feeder gives only remainging items when the rootItems is not infinite") {
+		val rootItems = Array(1, 2, 3).iterator
+		val generateSessionData = (a: UserKey, b: Int) => Map(a.key + "transformed" -> b)
+		val feeder = new ItemFeeder(rootItems, generateSessionData, new UserKey("keya"), new UserKey("keyb")).build
 		
-		val firstIteration = feeder.next()
-		val user1 = firstIteration("a").asInstanceOf[User]
-		assert(user1.domain === "my.domain")
-		assert(user1.login === "user.1")
-		assert(user1.password === "secret")
-		assert(user1.email === "user.1@my.domain")
-		assert(user1.deviceId.getDeviceId().startsWith("Appl5K14358AA4S"))
-		assert(user1.deviceType === "iPhone")
-		val user2 = firstIteration("b").asInstanceOf[User]
-		assert(user2.domain === "my.domain")
-		assert(user2.login === "user.2")
-		assert(user2.password === "secret")
-		assert(user2.email === "user.2@my.domain")
-		assert(user2.deviceId.getDeviceId().startsWith("Appl5K14358AA4S"))
-		assert(user2.deviceType === "iPhone")
-		assert(user2.deviceId != user1.deviceId)
-		
-		val secondIteration = feeder.next()
-		assert(user1.equals(secondIteration("a")))
-		assert(user2.equals(secondIteration("b")))
-		
+		val firstIteration = feeder.next
+		assert(firstIteration === Map("keyatransformed" -> 1, "keybtransformed" -> 2))
+		val secondIteration = feeder.next
+		assert(secondIteration === Map("keyatransformed" -> 3))
 	}
 
 }

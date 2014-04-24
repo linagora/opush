@@ -33,12 +33,14 @@ package org.obm.push.context
 
 import java.lang.Double
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
-import org.obm.push.bean.DeviceId
 import scala.reflect.io.File
+
+import io.gatling.core.feeder.Feeder
 
 trait Configuration {
 	
@@ -51,10 +53,13 @@ trait Configuration {
 	
 	val domain: String
 	val baseUrl: String
-	val csvFile: File
+	val users: Iterator[User]
 
 	val asynchronousChangeTime = Duration(5, SECONDS)
 	val parallelsScenariosCount = 1
+}
+
+object Configuration {
   
 	val defaultUserDeviceId: String = "Appl5K14358AA4S"
 	val defaultUserDeviceType: String = "iPhone"

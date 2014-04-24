@@ -30,6 +30,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
+			<artifactId>client-opush</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>protocol</artifactId>
 		</dependency>
 		<dependency>

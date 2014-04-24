@@ -36,10 +36,12 @@ import org.obm.push.command.FolderSyncCommand
 import org.obm.push.command.FolderSyncContext
 import org.obm.push.command.InitialFolderSyncContext
 import org.obm.push.command.InitialProvisioningContext
-import org.obm.push.command.ProvisioningCommand
 import org.obm.push.context.Configuration
 import org.obm.push.context.UserKey
+import org.obm.push.context.feeder.UserFeeder
 import org.obm.push.wbxml.WBXMLTools
+
+import io.gatling.core.Predef.bootstrap.feed
 import io.gatling.core.Predef.{scenario => createScenario}
 import io.gatling.http.Predef.requestBuilder2ActionBuilder
 
@@ -53,11 +55,11 @@ object ThreeFolderSyncScenarioBuilder extends ScenarioBuilder {
 	val folderSyncContext = new FolderSyncContext(userKey)
 	
 	override def build(config: Configuration) = 
-		createScenario("Three consecutive FolderSync request")
-		.exec(ProvisioningCommand.buildInitialProvisioningCommand(userKey))
-		.exec(ProvisioningCommand.buildAcceptProvisioningCommand(userKey))
-		.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
-		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
-		.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+		createScenario("Three consecutive FolderSync request").exitBlockOnFail(
+			feed(UserFeeder.create(config, userKey))
+			.exec(new FolderSyncCommand(initialFolderSyncContext, wbTools).buildCommand)
+			.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+			.exec(new FolderSyncCommand(folderSyncContext, wbTools).buildCommand)
+		)
 	
 }

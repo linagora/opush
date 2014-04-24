@@ -47,14 +47,10 @@ case class User(
 	password: String,
 	email: String,
 	deviceId: DeviceId,
-	deviceType: String
+	deviceType: String,
+	provisionResponse: ProvisionResponse,	
+	folderSyncResponse: FolderSyncResponse
 ) {
-  
-	def hasNoFolderSyncResponse = new Success(folderSyncResponse.isEmpty)
-	var folderSyncResponse: Option[FolderSyncResponse] = Option.empty
-	
-	var provisionResponse: Option[ProvisionResponse] = Option.empty
-	def hasNoProvisionResponse = new Success(provisionResponse.isEmpty)
   
 	val userProtocol = "%s@%s".format(login, domain)
 	lazy val mailbox = new Mailbox(email.split("@")(0), email.split("@")(1))
@@ -73,13 +69,13 @@ class UserKey (val key: String) {
 	def getUser(session: Session) = session.attributes.get(key).get.asInstanceOf[User]
 	
 	def updateProvisionResponse(session: Session): Validation[Session] = {
-		getUser(session).provisionResponse = sessionHelper.findLastProvisioning(session)
-		Success(session)
+		val user = getUser(session).copy(provisionResponse = sessionHelper.findLastProvisioning(session).get)
+		Success(session.set(key, user))
 	}
 	
 	def updateFolderSyncResponseResponse(session: Session): Validation[Session] = {
-		getUser(session).folderSyncResponse = sessionHelper.findLastFolderSync(session)
-		Success(session)
+		val user = getUser(session).copy(folderSyncResponse = sessionHelper.findLastFolderSync(session).get)
+		Success(session.set(key, user))
 	}
 	
 	lazy val sessionHelper = new SessionHelper(this) 
