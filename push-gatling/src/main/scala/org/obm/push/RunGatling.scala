@@ -64,12 +64,15 @@ case class RunGatlingConfig(
 	baseURI: URI = null,
 	userDomain: String = null,
 	scenario: Scenario = Scenarios.defaultScenario,
-	csv: File = null) {
+	csv: File = null,
+	usersPerSec: Double = 1) {
+self =>		
 	
 	def hydrate(builtUsers: Iterator[User]) = new Configuration() {
 		override val baseUrl = baseURI.toString()
 		override val domain = userDomain
 		override val users = builtUsers
+		override val usersPerSec = self.usersPerSec
   	}
 }
 
@@ -80,10 +83,16 @@ object RunGatling {
 	val USERS_PREPARATION_PARALLELISM = 2
 	
 	def main(args: Array[String]) {
-		parse(args)
-		.map(run)
-		.getOrElse {
-			// arguments are bad, usage message will have been displayed
+		try {
+			parse(args)
+			.map(run)
+			.getOrElse {
+				// arguments are bad, usage message will have been displayed
+			}
+		} catch {
+			case e: Exception => {
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 	
@@ -127,6 +136,13 @@ object RunGatling {
 	def provisionUsers(config: RunGatlingConfig, buildUserFromMap: (Map[String, String] => User)) = {
 		println("Prepare csv users for the run ...");
 		val csvUsers = csv(config.csv).build.toParArray
+		
+		if (csvUsers.size < config.usersPerSec) {
+			throw new IllegalStateException(
+				s"""|csv user count:${csvUsers.size} is less than users-per-sec:${config.usersPerSec}
+					|Please provide enough users in the csv to avoid conflicts""".stripMargin)
+		}
+		
 		csvUsers.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(USERS_PREPARATION_PARALLELISM))
 		RoundRobin(csvUsers.map(buildUserFromMap).toArray)
 	}
@@ -164,6 +180,11 @@ object RunGatling {
 				.validate( value => if (Scenarios.exists(value)) success else failure(s"""The scenario "${value}" does not exists"""))
 				.action((value, config) => config.copy(scenario = Scenarios(value)))
 				.text("The scenarios to run, possible values : " + Scenarios.all.keys.mkString(", "))
+			opt[Double]("users-per-sec")
+				.optional
+				.validate( value => if (0 < value) success else failure("users-per-sec must be positive"))
+				.action((value, config) => config.copy(usersPerSec = value))
+				.text("Amount of users per seconds running the scenario")
 		}.parse(args, RunGatlingConfig())
 	}
   

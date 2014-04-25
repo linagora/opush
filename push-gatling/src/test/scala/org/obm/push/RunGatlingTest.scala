@@ -29,21 +29,20 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.context.feeder
+package org.obm.push
 
-import scala.collection.immutable.Seq
-import org.junit.runner.RunWith
-import org.obm.push.RunGatling
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Finders
-import org.scalatest.FunSuite
 import com.google.common.io.Resources
-import org.scalatest.junit.JUnitRunner
-import org.obm.push.scenario.Scenarios
-import org.obm.push.RunGatlingConfig
 import java.net.URI
+import org.junit.runner.RunWith
+import org.obm.push.scenario.Scenarios
+import org.scalatest.BeforeAndAfter
+import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
+import scala.collection.immutable.Seq
 import scala.reflect.io.File
 import java.nio.file.Paths
+import org.obm.push.context.User
+import io.gatling.core.config.GatlingConfiguration
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
@@ -104,6 +103,33 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 		val configuration = RunGatling.parse(mapToList(requiredArguments + ("csv" -> "my-path")))
 		assert(configuration === Option.empty)
 	}
+
+	test("argument users-per-sec defined as double") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("users-per-sec" -> "2.5")))
+		assert(configuration.isDefined)
+		assert(configuration.get.usersPerSec === 2.5d)
+	}
+
+	test("argument users-per-sec defined as int") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("users-per-sec" -> "5")))
+		assert(configuration.isDefined)
+		assert(configuration.get.usersPerSec === 5d)
+	}
+	
+	test("argument users-per-sec not a number") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("users-per-sec" -> "not a number")))
+		assert(configuration === Option.empty)
+	}
+	
+	test("argument users-per-sec is more than csv user count") {
+		GatlingConfiguration.setUp()
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("users-per-sec" -> Int.MaxValue.toString)))
+		val user: User = null
+		
+		intercept[IllegalStateException] {
+			RunGatling.provisionUsers(configuration.get, a => user)
+		}
+	}
 	
 	test("arguments are valid") {
 		val configuration = RunGatling.parse(mapToList(requiredArguments))
@@ -111,6 +137,7 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 				baseURI = new URI("http://localhost"),
 				userDomain = "test",
 				scenario = Scenarios.defaultScenario,
-				csv = new File(Paths.get(requiredArguments("csv")).toFile()))))
+				csv = new File(Paths.get(requiredArguments("csv")).toFile()),
+				usersPerSec = 1)))
 	}
 }
