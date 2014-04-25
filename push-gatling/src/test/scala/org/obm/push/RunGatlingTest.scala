@@ -43,6 +43,7 @@ import scala.reflect.io.File
 import java.nio.file.Paths
 import org.obm.push.context.User
 import io.gatling.core.config.GatlingConfiguration
+import java.util.concurrent.TimeUnit
 
 @RunWith(classOf[JUnitRunner])
 class RunGatlingTest extends FunSuite with BeforeAndAfter {
@@ -130,6 +131,33 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 			RunGatling.provisionUsers(configuration.get, a => user)
 		}
 	}
+
+	test("argument duration is less than 1") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("duration" -> "0")))
+		assert(configuration === Option.empty)
+	}
+
+	test("argument duration is greater than 1") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("duration" -> "5")))
+		assert(configuration.get.duration === 5)
+	}
+	
+	test("argument duration-unit defined as minutes") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("duration-unit" -> "minutes")))
+		assert(configuration.isDefined)
+		assert(configuration.get.durationUnit === TimeUnit.MINUTES)
+	}
+
+	test("argument duration-unit defined as hours") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("duration-unit" -> "hours")))
+		assert(configuration.isDefined)
+		assert(configuration.get.durationUnit === TimeUnit.HOURS)
+	}
+	
+	test("argument duration-unit illegal") {
+		val configuration = RunGatling.parse(mapToList(requiredArguments + ("duration-unit" -> "not a time-unit")))
+		assert(configuration === Option.empty)
+	}
 	
 	test("arguments are valid") {
 		val configuration = RunGatling.parse(mapToList(requiredArguments))
@@ -138,6 +166,8 @@ class RunGatlingTest extends FunSuite with BeforeAndAfter {
 				userDomain = "test",
 				scenario = Scenarios.defaultScenario,
 				csv = new File(Paths.get(requiredArguments("csv")).toFile()),
-				usersPerSec = 1)))
+				usersPerSec = 1,
+				duration = 1,
+				durationUnit = TimeUnit.SECONDS)))
 	}
 }

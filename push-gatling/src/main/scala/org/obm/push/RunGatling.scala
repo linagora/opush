@@ -59,13 +59,17 @@ import scala.concurrent.forkjoin.ForkJoinPool
 import io.gatling.core.feeder.AdvancedFeederBuilder
 import io.gatling.core.feeder.Circular
 import io.gatling.core.util.RoundRobin
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 
 case class RunGatlingConfig(
 	baseURI: URI = null,
 	userDomain: String = null,
-	scenario: Scenario = Scenarios.defaultScenario,
+	scenario: Scenario = RunGatlingConfig.DEFAULT_SCENARIO,
 	csv: File = null,
-	usersPerSec: Double = 1) {
+	usersPerSec: Double = RunGatlingConfig.DEFAULT_USERS_PER_SEC,
+	duration: Int = RunGatlingConfig.DEFAULT_DURATION,
+	durationUnit: TimeUnit = RunGatlingConfig.DEFAULT_DURATION_UNIT) {
 self =>		
 	
 	def hydrate(builtUsers: Iterator[User]) = new Configuration() {
@@ -73,7 +77,14 @@ self =>
 		override val domain = userDomain
 		override val users = builtUsers
 		override val usersPerSec = self.usersPerSec
-  	}
+		override val duration = new FiniteDuration(self.duration, self.durationUnit)
+	}
+}
+object RunGatlingConfig {
+	val DEFAULT_SCENARIO = Scenarios.defaultScenario
+	val DEFAULT_USERS_PER_SEC = 1
+	val DEFAULT_DURATION = 1
+	val DEFAULT_DURATION_UNIT = TimeUnit.SECONDS
 }
 
 object RunGatling {
@@ -179,12 +190,33 @@ object RunGatling {
 				.optional
 				.validate( value => if (Scenarios.exists(value)) success else failure(s"""The scenario "${value}" does not exists"""))
 				.action((value, config) => config.copy(scenario = Scenarios(value)))
-				.text("The scenarios to run, possible values : " + Scenarios.all.keys.mkString(", "))
+				.text(s"The scenarios to run, possible values: ${Scenarios.all.keys.mkString(", ")}")
+				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_SCENARIO.name})")
 			opt[Double]("users-per-sec")
 				.optional
 				.validate( value => if (0 < value) success else failure("users-per-sec must be positive"))
 				.action((value, config) => config.copy(usersPerSec = value))
 				.text("Amount of users per seconds running the scenario")
+				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_USERS_PER_SEC})")
+			opt[Int]("duration")
+				.optional
+				.validate( value => if (0 < value) success else failure("duration must be positive"))
+				.action((value, config) => config.copy(duration = value))
+				.text("How long will take the run, see duration-unit")
+				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_DURATION})")
+			opt[String]("duration-unit")
+				.optional
+				.validate( value => {
+					try {
+						TimeUnit.valueOf(value.toUpperCase)
+						success
+					} catch { 
+						case _: Throwable => failure("Illegal duration-unit value: " + value) 
+					}
+				})
+				.action((value, config) => config.copy(durationUnit = TimeUnit.valueOf(value.toUpperCase)))
+				.text(s"Run duration unit, possible values: ${TimeUnit.values().map(_.name.toLowerCase).mkString(", ")}")
+				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_DURATION_UNIT.name.toLowerCase})")
 		}.parse(args, RunGatlingConfig())
 	}
   
