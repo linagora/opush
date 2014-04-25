@@ -84,14 +84,14 @@ object MeetingCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 	override def build(configuration: Configuration) = 
 		createScenario("Create, update then delete a meeting").exitBlockOnFail(
 			feed(UserFeeder.create(configuration, organizer, invitee1, invitee2))
-			.pause(configuration.pause)
-			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(configuration.pause)
+			.pause(Configuration.pause)
+			.exec(buildInitialSyncCommand(organizer, usedCalendarCollection)).pause(Configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.setupNextInvitationClientId(s)))
 			.exec(buildSendInvitationCommand(invitation))
-			.pause(configuration.pause)
+			.pause(Configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.setupPendingInvitation(s, invitation)))
 			.exec(buildModifyInvitationCommand(invitation))
-			.pause(configuration.pause)
+			.pause(Configuration.pause)
 			.exec(s => Success(organizer.sessionHelper.updatePendingInvitation(s)))
 			.exec(buildDeleteInvitationCommand(invitation))
 	)

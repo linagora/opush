@@ -62,31 +62,6 @@ import io.gatling.core.util.RoundRobin
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
-case class RunGatlingConfig(
-	baseURI: URI = null,
-	userDomain: String = null,
-	scenario: Scenario = RunGatlingConfig.DEFAULT_SCENARIO,
-	csv: File = null,
-	usersPerSec: Double = RunGatlingConfig.DEFAULT_USERS_PER_SEC,
-	duration: Int = RunGatlingConfig.DEFAULT_DURATION,
-	durationUnit: TimeUnit = RunGatlingConfig.DEFAULT_DURATION_UNIT) {
-self =>		
-	
-	def hydrate(builtUsers: Iterator[User]) = new Configuration() {
-		override val baseUrl = baseURI.toString()
-		override val domain = userDomain
-		override val users = builtUsers
-		override val usersPerSec = self.usersPerSec
-		override val duration = new FiniteDuration(self.duration, self.durationUnit)
-	}
-}
-object RunGatlingConfig {
-	val DEFAULT_SCENARIO = Scenarios.defaultScenario
-	val DEFAULT_USERS_PER_SEC = 1
-	val DEFAULT_DURATION = 1
-	val DEFAULT_DURATION_UNIT = TimeUnit.SECONDS
-}
-
 object RunGatling {
 
 	val DEFAULT_DESCRIPTION = "opush-benchmark run"
@@ -107,7 +82,7 @@ object RunGatling {
 		}
 	}
 	
-	def run(config: RunGatlingConfig) {
+	def run(config: Configuration) {
 		GatlingConfiguration.setUp()
 		
 		val fullConfig = prepareUsers(config)
@@ -119,7 +94,7 @@ object RunGatling {
 		generateReports(dataReader)
 	}
 	
-	def prepareUsers(config: RunGatlingConfig) = {
+	def prepareUsers(config: Configuration) = {
 		val httpClient = buildHttpClient
 		val wbxmlTools = new WBXMLTools
 		
@@ -132,7 +107,7 @@ object RunGatling {
 			val deviceType = Configuration.defaultUserDeviceType
 			val loginAtDomain = login + "@" + domain
 			val client = new WBXMLOPClient(httpClient, loginAtDomain, password, deviceId, deviceType, "opush-benchmark agent",
-					config.baseURI.toString() + "/Microsoft-Server-ActiveSync", wbxmlTools, ProtocolVersion.V121)
+					config.baseUrl + "/Microsoft-Server-ActiveSync", wbxmlTools, ProtocolVersion.V121)
 			val firstPolicyKey = client.provisionStepOne().getResponse().getPolicyKey()
 			val provisionResponse = client.provisionStepTwo(firstPolicyKey).getResponse()
 			val folderSyncResponse = client.folderSync(SyncKey.INITIAL_FOLDER_SYNC_KEY)
@@ -141,10 +116,10 @@ object RunGatling {
 			)
 		}
 
-		config.hydrate(provisionUsers(config, buildUserFromMap))
+		config.copy(users = provisionUsers(config, buildUserFromMap))
 	}
 	
-	def provisionUsers(config: RunGatlingConfig, buildUserFromMap: (Map[String, String] => User)) = {
+	def provisionUsers(config: Configuration, buildUserFromMap: (Map[String, String] => User)) = {
 		println("Prepare csv users for the run ...");
 		val csvUsers = csv(config.csv).build.toParArray
 		
@@ -170,8 +145,8 @@ object RunGatling {
 			DEFAULT_DESCRIPTION
 	).run
 	
-	def parse(args: Array[String]) : Option[RunGatlingConfig] = {
-		new OptionParser[RunGatlingConfig]("opush-benchmark") {
+	def parse(args: Array[String]) : Option[Configuration] = {
+		new OptionParser[Configuration]("opush-benchmark") {
 			head("opush-benchmark")
 			opt[String]("csv")
 				.required
@@ -180,7 +155,7 @@ object RunGatling {
 				.text("User feeder CSV file with header respecting the format: username,password,email")
 			opt[URI]("base-url")
 				.required
-				.action((value, config) => config.copy(baseURI = value))
+				.action((value, config) => config.copy(baseUrl = value.toString))
 				.text("OBM http server")
 			opt[String]("user-domain")
 				.required
@@ -191,19 +166,19 @@ object RunGatling {
 				.validate( value => if (Scenarios.exists(value)) success else failure(s"""The scenario "${value}" does not exists"""))
 				.action((value, config) => config.copy(scenario = Scenarios(value)))
 				.text(s"The scenarios to run, possible values: ${Scenarios.all.keys.mkString(", ")}")
-				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_SCENARIO.name})")
+				.valueName(s"<value> (default value: ${Configuration.DEFAULT_SCENARIO.name})")
 			opt[Double]("users-per-sec")
 				.optional
 				.validate( value => if (0 < value) success else failure("users-per-sec must be positive"))
 				.action((value, config) => config.copy(usersPerSec = value))
 				.text("Amount of users per seconds running the scenario")
-				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_USERS_PER_SEC})")
+				.valueName(s"<value> (default value: ${Configuration.DEFAULT_USERS_PER_SEC})")
 			opt[Int]("duration")
 				.optional
 				.validate( value => if (0 < value) success else failure("duration must be positive"))
-				.action((value, config) => config.copy(duration = value))
+				.action((value, config) => config.copy(durationTime = value))
 				.text("How long will take the run, see duration-unit")
-				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_DURATION})")
+				.valueName(s"<value> (default value: ${Configuration.DEFAULT_DURATION})")
 			opt[String]("duration-unit")
 				.optional
 				.validate( value => {
@@ -216,8 +191,8 @@ object RunGatling {
 				})
 				.action((value, config) => config.copy(durationUnit = TimeUnit.valueOf(value.toUpperCase)))
 				.text(s"Run duration unit, possible values: ${TimeUnit.values().map(_.name.toLowerCase).mkString(", ")}")
-				.valueName(s"<value> (default value: ${RunGatlingConfig.DEFAULT_DURATION_UNIT.name.toLowerCase})")
-		}.parse(args, RunGatlingConfig())
+				.valueName(s"<value> (default value: ${Configuration.DEFAULT_DURATION_UNIT.name.toLowerCase})")
+		}.parse(args, Configuration())
 	}
   
   private def buildHttpClient: org.apache.http.impl.client.CloseableHttpClient = {

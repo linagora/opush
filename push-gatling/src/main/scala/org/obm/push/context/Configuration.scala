@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.context
 
-import java.lang.Double
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.Duration
@@ -40,27 +39,33 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
 import scala.reflect.io.File
 
-import io.gatling.core.feeder.Feeder
+import org.obm.push.scenario.Scenario
+import org.obm.push.scenario.Scenarios
 
-trait Configuration {
+case class Configuration(
+	baseUrl: String = null,
+	userDomain: String = null,
+	scenario: Scenario = Configuration.DEFAULT_SCENARIO,
+	csv: File = null,
+	users: Iterator[User] = Iterator(),
+	usersPerSec: Double = Configuration.DEFAULT_USERS_PER_SEC,
+	durationTime: Int = Configuration.DEFAULT_DURATION,
+	durationUnit: TimeUnit = Configuration.DEFAULT_DURATION_UNIT) {
 	
-	val durationTime = Integer.parseInt(System.getProperty("duration", "1"))
-	val durationUnit = TimeUnit.valueOf(System.getProperty("durationUnit", "SECONDS"))
 	val duration = new FiniteDuration(durationTime, durationUnit)
-	val usersPerSec = Double.parseDouble(System.getProperty("usersPerSec", "1"))
-	val pause = DurationInt(Integer.parseInt(System.getProperty("pause", "1"))).seconds
-	val origin = System.getProperty("origin", "o-push")
 	
-	val domain: String
-	val baseUrl: String
-	val users: Iterator[User]
-
-	val asynchronousChangeTime = Duration(5, SECONDS)
-	val parallelsScenariosCount = 1
 }
 
 object Configuration {
   
+	val DEFAULT_SCENARIO = Scenarios.defaultScenario
+	val DEFAULT_USERS_PER_SEC = 1
+	val DEFAULT_DURATION = 1
+	val DEFAULT_DURATION_UNIT = TimeUnit.SECONDS
+	
+	val asynchronousChangeTime = Duration(5, SECONDS)
 	val defaultUserDeviceId: String = "Appl5K14358AA4S"
 	val defaultUserDeviceType: String = "iPhone"
+	val origin = "o-push"
+	val pause = DurationInt(1).seconds
 }

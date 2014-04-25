@@ -59,14 +59,14 @@ object ModifyInvitationOneAttendeeAcceptOneDeclineScenarioBuilder extends Scenar
 				exec(InviteTwoUsersOneAcceptOneDeclineScenarioBuilder.build(configuration))
 				.exec(buildModifyInvitationCommand(invitation))
 				.exec(s => Success(parent.organizerKey.sessionHelper.updatePendingInvitation(s)))
-				.pause(configuration.asynchronousChangeTime)
+				.pause(Configuration.asynchronousChangeTime)
 				.exec(parent.buildSyncCommand(parent.attendee1Key, parent.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
 				.exec(parent.buildSyncCommand(parent.attendee2Key, parent.usedMailCollection, atLeastOneMeetingRequest)) // Change notification reception
 				.exec(parent.buildMeetingResponseCommand(parent.attendee1Key, AttendeeStatus.DECLINE))
 				.exec(parent.buildMeetingResponseCommand(parent.attendee2Key, AttendeeStatus.ACCEPT))
 				.exec(parent.buildSyncCommand(parent.attendee1Key, parent.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
 				.exec(parent.buildSyncCommand(parent.attendee2Key, parent.usedMailCollection, atLeastOneDeleteResponse)) // notification deletion
-				.pause(configuration.asynchronousChangeTime)
+				.pause(Configuration.asynchronousChangeTime)
 				.exec(parent.buildSyncCommand(parent.organizerKey, parent.usedCalendarCollection, Check.matcher((s, response) 
 						=> (parent.organizerKey.sessionHelper.attendeeRepliesAreReceived(s.asInstanceOf[Session], response.get), "Each users havn't replied"))))
 		)

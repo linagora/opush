@@ -66,9 +66,9 @@ object ContactCreateUpdateDeleteScenarioBuilder extends ScenarioBuilder {
 	override def build(configuration: Configuration) =
 		createScenario("Create, modify then drop contact").exitBlockOnFail(
 			feed(UserFeeder.create(configuration, userKey))
-			.pause(configuration.pause)
+			.pause(Configuration.pause)
 			.exec(buildInitialSyncCommand(userKey, usedContactCollection))
-			.pause(configuration.pause)
+			.pause(Configuration.pause)
 			.exec(s => Success(userKey.sessionHelper.setupNextContactClientId(s)))
 			.exec(buildCreateContactCommand(userKey))
 			.exec(s => Success(userKey.sessionHelper.setupLastContactServerId(s)))

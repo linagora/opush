@@ -53,7 +53,7 @@ object DeleteInvitationThenAttendeeIsNotifiedScenarioBuilder extends ScenarioBui
 		.exitHereIfFailed.exitBlockOnFail(
 			exec(invit.build(configuration))
 			.exec(buildDeleteInvitationCommand(invit.invitation))
-			.pause(configuration.asynchronousChangeTime)
+			.pause(Configuration.asynchronousChangeTime)
 			.exec(invit.parent.buildSyncCommand(invit.parent.attendee1Key, invit.parent.usedMailCollection, noChange))
 			.exec(invit.parent.buildSyncCommand(invit.parent.attendee2Key, invit.parent.usedMailCollection, atLeastOneAddResponse)) // Event canceled notification
 		)
