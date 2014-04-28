@@ -196,6 +196,75 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>rpm</goal>
+						</goals>
+						<configuration>
+							<name>${project.build.finalName}</name>
+							<version>${opush.packaging.version}</version>
+							<release>${opush.packaging.release}</release>
+							<group>Applications/Internet</group>
+							<copyright>AGPLv3</copyright>
+							<vendor>obm.org</vendor>
+							<url>http://www.obm.org</url>
+							<summary>Benchmark tool for Opush</summary>
+							<description>Benchmark tool for Opush, the application to synchronize OBM data with PDA and smartphones.</description>
+							<requires>
+								<require>java-1.7.0-openjdk</require>
+							</requires>
+
+							<mappings>
+
+								<!-- APPLICATION -->
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/</directory>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/${project.build.finalName}.jar</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}/lib</directory>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>${project.build.directory}/lib</location>
+										</source>
+									</sources>
+								</mapping>
+								<mapping>
+									<directory>/usr/bin/</directory>
+									<filemode>755</filemode>
+									<username>root</username>
+									<groupname>root</groupname>
+									<sources>
+										<source>
+											<location>${basedir}/src/rpm/resources/opush-benchmark</location>
+										</source>
+									</sources>
+								</mapping>
+								
+								<!-- DIRECTORIES TO CREATE -->
+								<mapping>
+									<directory>/usr/share/${project.build.finalName}</directory>
+									<username>root</username>
+									<groupname>root</groupname>
+								</mapping>
+							</mappings>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
 				<executions>

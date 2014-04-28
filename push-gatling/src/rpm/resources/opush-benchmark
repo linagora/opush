@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ -z "$JAVA_HOME" ]; then
+	JAVA_HOME="/usr/lib/jvm/jre-1.7.0"
+fi
+
+JAVA_BIN="$JAVA_HOME/bin/java"
+
+$JAVA_BIN -jar /usr/share/opush-benchmark/opush-benchmark.jar "$@"
