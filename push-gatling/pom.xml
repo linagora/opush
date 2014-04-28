@@ -196,6 +196,57 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<verbose>false</verbose>
+							<deb>${project.build.directory}/${project.build.finalName}_${opush.packaging.version}.deb</deb>
+							<controlDir>${basedir}/src/deb/control</controlDir>
+							<dataSet>
+
+								<!-- APPLICATION -->
+								<data>
+									<type>file</type>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<dst>/usr/share/${project.build.finalName}/${project.build.finalName}.jar</dst>
+								</data>
+								<data>
+									<type>directory</type>
+									<src>${project.build.directory}/lib</src>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/share/${project.build.finalName}/lib</prefix>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>src/deb/resources/opush-benchmark</src>
+									<dst>/usr/bin/${project.build.finalName}</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								
+								<!-- DIRECTORIES TO CREATE -->
+								<data>
+									<type>template</type>
+									<paths>
+										<path>/usr/share/${project.build.finalName}</path>
+									</paths>
+								</data>
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-eclipse-plugin</artifactId>
 				<configuration>
 					<additionalProjectnatures>

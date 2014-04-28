@@ -1,0 +1,11 @@
+Package: opush-benchmark
+Version: [[opush.packaging.version]]-[[opush.packaging.release]]
+Section: net
+Priority: optional
+Architecture: all
+Build-Depends: java-sdk
+Depends: openjdk-7-jre-headless
+Provides: opush-benchmark
+Maintainer: Matthieu Baechler <mbaechler@linagora.com>
+Description: Benchmark tool for Opush, the application to
+ synchronize OBM data with PDA and smartphones.
