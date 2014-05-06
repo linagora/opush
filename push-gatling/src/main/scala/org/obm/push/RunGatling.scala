@@ -37,8 +37,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.UUID
 import scala.reflect.io.File
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClientBuilder
 import org.obm.push.bean.DeviceId
 import org.obm.push.bean.SyncKey
 import org.obm.push.context.Configuration
@@ -47,6 +48,7 @@ import org.obm.push.scenario.Scenario
 import org.obm.push.scenario.Scenarios
 import org.obm.push.wbxml.WBXMLTools
 import org.obm.sync.push.client.WBXMLOPClient
+import org.obm.sync.push.client.SSLContextFactory
 import io.gatling.charts.report.ReportsGenerator
 import io.gatling.core.Predef.csv
 import io.gatling.core.Predef.array2FeederBuilder
@@ -195,10 +197,11 @@ object RunGatling {
 		}.parse(args, Configuration())
 	}
   
-  private def buildHttpClient: org.apache.http.impl.client.CloseableHttpClient = {
-	  val connManager = new PoolingHttpClientConnectionManager()
-	  connManager.setMaxTotal(8)
-	  connManager.setDefaultMaxPerRoute(8)
-	  HttpClients.custom().setConnectionManager(connManager).build()
-	}
+	private def buildHttpClient: CloseableHttpClient =
+		HttpClientBuilder.create()
+				.setMaxConnTotal(8)
+				.setMaxConnPerRoute(8)
+				.setSslcontext(SSLContextFactory.TRUST_ALL)
+				.setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+				.build();
 }
