@@ -94,6 +94,7 @@ public class CalendarEncoder extends Encoder {
 		TimeZone timeZone = ev.getTimeZone();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		
 		if (null != timeZone) {
 			s(p, ASCalendar.TIME_ZONE.asASValue(), encodedTimeZoneAsString(timeZone, Locale.getDefault()));

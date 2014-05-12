@@ -43,6 +43,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 
 import org.easymock.EasyMock;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -129,9 +130,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T12:26:16Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -141,7 +142,7 @@ public class ICalendarConverterTest {
 					.intDBusyStatus(MSMeetingRequestIntDBusyStatus.FREE)
 					.build());
 	}
-	
+
 	@Test
 	public void testICalendarConverterSingleBusyEvent() throws IOException, ParserException {
 		ICalendar icalendar = icalendar("single_event_busy.zimbra.ics");
@@ -149,9 +150,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T12:26:16Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -169,9 +170,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T12:26:16Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -189,9 +190,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T12:26:16Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -215,9 +216,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T07:57:33Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -236,9 +237,9 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T02:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T02:00:00"))
 					.dtStamp(new DateTime("2012-04-23T09:44:07Z").toDate())
-					.endTime(new DateTime("2012-04-25T02:00:00").toDate())
+					.endTime(dateInBrussels("2012-04-25T02:00:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -305,16 +306,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T13:04:28Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(2)
@@ -330,20 +331,20 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T13:32:54Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:30:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
-							.until(new DateTime("2012-04-24T23:59:59").toDate())
+							.until(dateInBrussels("2012-04-24T23:59:59"))
 							.type(MSMeetingRequestRecurrenceType.DAILY)
 							.build()))
 					.build());
@@ -356,16 +357,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T15:04:23Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -387,16 +388,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T15:18:17Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -419,16 +420,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T15:25:04Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -447,16 +448,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-04-24T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T15:28:46Z").toDate())
-					.endTime(new DateTime("2012-04-24T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-04-24T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -473,16 +474,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-05-12T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-05-12T07:00:00"))
 					.dtStamp(new DateTime("2012-04-23T15:51:05Z").toDate())
-					.endTime(new DateTime("2012-05-12T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-05-12T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-05-12T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-05-12T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -502,16 +503,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-07-10T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-07-10T07:00:00"))
 					.dtStamp(new DateTime("2012-04-24T07:57:07Z").toDate())
-					.endTime(new DateTime("2012-07-10T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-07-10T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-07-10T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-07-10T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -530,16 +531,16 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-07-10T07:00:00").toDate())
+					.startTime(dateInBrussels("2012-07-10T07:00:00"))
 					.dtStamp(new DateTime("2012-04-24T08:08:09Z").toDate())
-					.endTime(new DateTime("2012-07-10T07:15:00").toDate())
+					.endTime(dateInBrussels("2012-07-10T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2012-07-10T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2012-07-10T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -555,18 +556,19 @@ public class ICalendarConverterTest {
 		ICalendar icalendar = icalendar("recur_event_freq-yearly_interval_bymonthday_byday_byset.zimbra.ics");
 		MSMeetingRequest msMeetingRequest = icalendarConverter.convertToMSMeetingRequest(icalendar);
 		
+		assertThat(msMeetingRequest.getStartTime()).isEqualTo(dateInBrussels("2013-10-01T07:00:00"));
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2013-10-01T07:00:00").toDate())
+					.startTime(dateInBrussels("2013-10-01T07:00:00"))
 					.dtStamp(new DateTime("2012-04-24T08:19:39Z").toDate())
-					.endTime(new DateTime("2013-10-01T07:15:00").toDate())
+					.endTime(dateInBrussels("2013-10-01T07:15:00"))
 					.organizer("user@obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
 					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
 					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
 					.responseRequested(true)
-					.recurrenceId(new DateTime("2013-10-01T07:00:00").toDate())
+					.recurrenceId(dateInBrussels("2013-10-01T07:00:00"))
 					.recurrences(Lists.newArrayList(
 							MSMeetingRequestRecurrence.builder()
 							.interval(1)
@@ -590,10 +592,10 @@ public class ICalendarConverterTest {
 		
 		assertThat(msMeetingRequest).isEqualTo(
 				MSMeetingRequest.builder()
-					.startTime(new DateTime("2012-06-15T02:00:00").toDate())
+					.startTime(dateInBrussels("2012-06-15T02:00:00"))
 					.dtStamp(new DateTime("2012-06-04T12:59:20Z").toDate())
 					.allDayEvent(true)
-					.endTime(new DateTime("2012-06-16T02:00:00").toDate())
+					.endTime(dateInBrussels("2012-06-16T02:00:00"))
 					.organizer("xavier.niel@jri.obm.lng.org")
 					.location("Lyon")
 					.instanceType(MSMeetingRequestInstanceType.SINGLE)
@@ -663,4 +665,9 @@ public class ICalendarConverterTest {
 		}
 		return ICalendar.builder().inputStream(in).build();	
 	}
+	
+	private java.util.Date dateInBrussels(String date) {
+		return new DateTime(date, DateTimeZone.forID("Europe/Brussels")).toDate();
+	}
+
 }

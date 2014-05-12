@@ -41,6 +41,8 @@ import org.easymock.IMocksControl;
 
 import static org.easymock.EasyMock.*;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.tnefconverter.ScheduleMeeting.GlobalObjectId;
@@ -93,7 +95,7 @@ public class GlobalObjectIdTests {
 				49152);
 		assertThat(gloID.getUid()).isEqualTo(
 				"040000008200E00074C5B7101A82E008000000006DBB15E46333549A5D48E37D6E66ED3B10000000EB7523FA41CE256CF911970CF605B651");
-		assertThat(gloID.getRecurrenceId().toString()).isEqualTo("Wed Oct 13 12:00:00 CEST 2010");
+		assertThat(gloID.getRecurrenceId()).isEqualTo(new DateTime(2010, 10, 13, 12, 0, DateTimeZone.UTC));
 	}
 
 	@Test
@@ -104,7 +106,7 @@ public class GlobalObjectIdTests {
 				61440);
 		assertThat(gloID.getUid()).isEqualTo(
 				"040000008200E00074C5B7101A82E008000000006DBB15E46333549A5D48E37D6E66ED3B100000000CBE9F652487D768F26FC1CDC5CB0867");
-		assertThat(gloID.getRecurrenceId().toString()).isEqualTo("Mon Oct 11 15:00:00 CEST 2010");
+		assertThat(gloID.getRecurrenceId()).isEqualTo(new DateTime(2010, 10, 11, 15, 0, DateTimeZone.UTC));
 
 	}
 
@@ -116,7 +118,7 @@ public class GlobalObjectIdTests {
 						49152);
 		assertThat(gloID.getUid()).isEqualTo(
 				"040000008200E00074C5B7101A82E008000000006DBB15E46333549A5D48E37D6E66ED3B10000000FC68EC31627BCAF602BB3BF24E59FE00");
-		assertThat(gloID.getRecurrenceId().toString()).isEqualTo("Tue Oct 26 12:00:00 CEST 2010");
+		assertThat(gloID.getRecurrenceId()).isEqualTo(new DateTime(2010, 10, 26, 12, 0, DateTimeZone.UTC));
 	}
 	
 

@@ -119,7 +119,7 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -148,7 +148,7 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<Calendar:Attendees>");
 		expected.append("<Calendar:Attendee>");
@@ -181,7 +181,7 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>MP3//04AZQB3ACAAWgBlAGEAbABhAG4AZAAgAFMAdABhAG4AZABhAHIAZAAgAFQAaQBtAGUAAAAAAAAAAAAAAAAAAAAAAAQAAAABAAMAAAAAAAAAAAAAAE4AZQB3ACAAWgBlAGEAbABhAG4AZAAgAEQAYQB5AGwAaQBnAGgAdAAgAFQAaQBtAGUAAAAAAAAAAAAAAAAAAAAAAAkAAAAFAAIAAAAAAAAAxP///w==</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -253,8 +253,8 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
-		expected.append("<Calendar:StartTime>20120615T133512Z</Calendar:StartTime>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:StartTime>20120615T113512Z</Calendar:StartTime>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -295,8 +295,8 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>xP///0MAZQBuAHQAcgBhAGwAIABFAHUAcgBvAHAAZQBhAG4AIABUAGkAbQBlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAFAAMAAAAAAAAAAAAAAEMAZQBuAHQAcgBhAGwAIABFAHUAcgBvAHAAZQBhAG4AIABTAHUAbQBtAGUAcgAgAFQAaQBtAGUAAAAAAAAAAAAAAAMAAAAFAAIAAAAAAAAAxP///w==</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
-		expected.append("<Calendar:StartTime>20120615T000000Z</Calendar:StartTime>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:StartTime>20120614T220000Z</Calendar:StartTime>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -341,7 +341,7 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -370,7 +370,7 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -411,8 +411,8 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
-		expected.append("<Calendar:StartTime>20120615T133512Z</Calendar:StartTime>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:StartTime>20120615T113512Z</Calendar:StartTime>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -439,7 +439,7 @@ public class CalendarEncoderTest {
 		expected.append("<Calendar:Categories>");
 		expected.append("<Calendar:Category>Cat</Calendar:Category>");
 		expected.append("</Calendar:Categories>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("</Calendar:Exception>");
 		expected.append("</Calendar:Exceptions>");
 		expected.append("<Calendar:MeetingStatus>0</Calendar:MeetingStatus>");
@@ -470,8 +470,8 @@ public class CalendarEncoderTest {
 		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		expected.append("<ApplicationData xmlns=\"test\">");
 		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
-		expected.append("<Calendar:StartTime>20120615T133512Z</Calendar:StartTime>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:StartTime>20120615T113512Z</Calendar:StartTime>");
 		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
 		expected.append("<AirSyncBase:Body>");
 		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
@@ -499,7 +499,7 @@ public class CalendarEncoderTest {
 		expected.append("<Calendar:Category>Cat1</Calendar:Category>");
 		expected.append("<Calendar:Category>Cat2</Calendar:Category>");
 		expected.append("</Calendar:Categories>");
-		expected.append("<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
 		expected.append("</Calendar:Exception>");
 		expected.append("</Calendar:Exceptions>");
 		expected.append("<Calendar:MeetingStatus>0</Calendar:MeetingStatus>");
@@ -516,8 +516,8 @@ public class CalendarEncoderTest {
 
 		MSEvent msEvent = getFakeMSEvent(defaultTimeZone);
 		msEvent.setAllDayEvent(true);
-		msEvent.setStartTime(date("2014-01-01T14:00:00"));
-		msEvent.setEndTime(date("2014-01-01T18:00:00"));
+		msEvent.setStartTime(date("2014-01-01T14:00:00Z"));
+		msEvent.setEndTime(date("2014-01-01T18:00:00Z"));
 		msEvent.setRecurrence(recurrence);
 		msEvent.setExceptions(null);
 		
@@ -525,7 +525,7 @@ public class CalendarEncoderTest {
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<ApplicationData xmlns=\"test\">" +
 					"<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>" +
-					"<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>" +
+					"<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>" +
 					"<Calendar:StartTime>20140101T140000Z</Calendar:StartTime>" +
 					"<Calendar:UID>FAC000123D</Calendar:UID>" +
 					"<Calendar:EndTime>20140101T180000Z</Calendar:EndTime>" +
@@ -553,8 +553,8 @@ public class CalendarEncoderTest {
 		
 		MSEvent msEvent = getFakeMSEvent(defaultTimeZone);
 		msEvent.setAllDayEvent(true);
-		msEvent.setStartTime(date("2014-01-01T14:00:00"));
-		msEvent.setEndTime(date("2014-01-01T18:00:00"));
+		msEvent.setStartTime(date("2014-01-01T14:00:00Z"));
+		msEvent.setEndTime(date("2014-01-01T18:00:00Z"));
 		msEvent.setRecurrence(recurrence);
 		msEvent.setExceptions(ImmutableList.<MSEventException>of());
 		
@@ -562,7 +562,7 @@ public class CalendarEncoderTest {
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 						"<ApplicationData xmlns=\"test\">" +
 						"<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>" +
-						"<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>" +
+						"<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>" +
 						"<Calendar:StartTime>20140101T140000Z</Calendar:StartTime>" +
 						"<Calendar:UID>FAC000123D</Calendar:UID>" +
 						"<Calendar:EndTime>20140101T180000Z</Calendar:EndTime>" +
@@ -590,19 +590,19 @@ public class CalendarEncoderTest {
 
 		MSEvent msEvent = getFakeMSEvent(defaultTimeZone);
 		msEvent.setAllDayEvent(true);
-		msEvent.setStartTime(date("2014-01-01T14:00:00"));
-		msEvent.setEndTime(date("2014-01-01T18:00:00"));
+		msEvent.setStartTime(date("2014-01-01T14:00:00Z"));
+		msEvent.setEndTime(date("2014-01-01T18:00:00Z"));
 		msEvent.setRecurrence(recurrence);
 		msEvent.setExceptions(ImmutableList.of(new MSEventExceptionBuilder()
 					.withDeleted(true)
-					.withExceptionStartTime(date("2014-03-01T14:00:00"))
+					.withExceptionStartTime(date("2014-03-01T14:00:00Z"))
 					.build()));
 		
 		assertThat(encodeMSEventAsString(msEvent)).isEqualTo(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<ApplicationData xmlns=\"test\">" +
 					"<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>" +
-					"<Calendar:DTStamp>19700101T010000Z</Calendar:DTStamp>" +
+					"<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>" +
 					"<Calendar:StartTime>20140101T140000Z</Calendar:StartTime>" +
 					"<Calendar:UID>FAC000123D</Calendar:UID>" +
 					"<Calendar:EndTime>20140101T180000Z</Calendar:EndTime>" +

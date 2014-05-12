@@ -34,9 +34,9 @@ package org.obm.push.tnefconverter.ScheduleMeeting;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
@@ -53,7 +53,7 @@ public class GlobalObjectId {
 		{ 0x04, 0x00, 0x00, 0x00, 0x82, 0x00, 0xE0, 0x00, 0x74, 0xC5, 0xB7, 0x10, 0x1A, 0x82, 0xE0, 0x08};
 	
 	private String uid;
-	private Date recurrenceId;
+	private DateTime recurrenceId;
 
 	private int size;
 
@@ -138,13 +138,11 @@ public class GlobalObjectId {
 		return size;
 	}
 
-	private Date buildDate(int recurStartTime, short year, int month,
+	private DateTime buildDate(int recurStartTime, short year, int month,
 			int dayOfMonth) {
 		int h = (recurStartTime >> 12);
 		int min = (recurStartTime - h * 4096) >> 6;
-		Calendar cal = new GregorianCalendar(year, month, dayOfMonth, h, min, 0);
-		Date date = cal.getTime();
-		return date;
+		return new DateTime(year, month, dayOfMonth, h, min).withZoneRetainFields(DateTimeZone.UTC);
 	}
 
 	private int readDayOfMonth(InputStream obj) throws IOException {
@@ -187,42 +185,20 @@ public class GlobalObjectId {
 	}
 
 	private int getMonth(int m) {
-		switch (m) {
-		case 0:
-		case 1:
-			return Calendar.JANUARY;
-		case 2:
-			return Calendar.FEBRUARY;
-		case 3:
-			return Calendar.MARCH;
-		case 4:
-			return Calendar.APRIL;
-		case 5:
-			return Calendar.MAY;
-		case 6:
-			return Calendar.JUNE;
-		case 7:
-			return Calendar.JULY;
-		case 8:
-			return Calendar.AUGUST;
-		case 9:
-			return Calendar.SEPTEMBER;
-		case 10:
-			return Calendar.OCTOBER;
-		case 11:
-			return Calendar.NOVEMBER;
-		case 12:
-			return Calendar.DECEMBER;
-		default:
-			throw new IllegalArgumentException("out of bound value : " + m);
+		if (m == 0) {
+			return 1;
 		}
+		if (m <= 12) {
+			return m;
+		}
+		throw new IllegalArgumentException("out of bound value : " + m);
 	}
 
 	public String getUid() {
 		return uid;
 	}
 
-	public Date getRecurrenceId() {
+	public DateTime getRecurrenceId() {
 		return recurrenceId;
 	}
 

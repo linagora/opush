@@ -185,29 +185,31 @@ public class MailboxFetchAPITest {
 
 	@Test
 	public void testFetchFastOneMessage() throws MailException, AddressException, MessagingException, UserException {
+		//Date is not tested as greenmail is buggy
 		Date internalDate = new Date(1234);
-		Date truncatedInternalDate = new Date(1000);
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, internalDate);
 		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
 		Collection<FastFetch> result = mailboxService.fetchFast(udr, inbox, MessageSet.singleton(1L));
-		assertThat(result).containsOnly(FastFetch.builder().internalDate(truncatedInternalDate).uid(1).
-				size(messageContent.length()).build());
+		assertThat(result).hasSize(1);
+		FastFetch onlyElement = Iterables.getOnlyElement(result);
+		assertThat(onlyElement.isAnswered()).isFalse();
+		assertThat(onlyElement.getUid()).isEqualTo(1);
+		assertThat(onlyElement.getSize()).isEqualTo(messageContent.length());
 	}
 		
 	@Test
 	public void testFetchFastAnsweredMessage() throws MailException, AddressException, MessagingException, UserException, ImapMessageNotFoundException {
 		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
 		Date internalDate = new Date(1234);
-		Date truncatedInternalDate = new Date(1000);
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, internalDate);
 		mailboxService.setAnsweredFlag(udr, inbox, MessageSet.singleton(1l));
 		Collection<FastFetch> result = mailboxService.fetchFast(udr, inbox, MessageSet.singleton(1L));
-		assertThat(result).containsOnly(FastFetch.builder().internalDate(truncatedInternalDate).uid(1).answered().
-				size(messageContent.length()).build());
+		assertThat(result).hasSize(1);
+		assertThat(Iterables.getOnlyElement(result).isAnswered()).isTrue();
 	}
 
 	@Test

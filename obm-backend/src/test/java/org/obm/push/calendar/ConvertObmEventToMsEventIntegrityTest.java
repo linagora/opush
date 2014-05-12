@@ -39,6 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -103,7 +105,7 @@ public abstract class ConvertObmEventToMsEventIntegrityTest {
 		event.setPriority(1);
 		event.setPrivacy(EventPrivacy.PRIVATE);
 		event.setSequence(1);
-		event.setStartDate(date("2004-12-13T21:39:45Z"));
+		event.setStartDate(new DateTime("2004-12-13T21:39:45Z", DateTimeZone.UTC).toLocalDateTime().toDate());
 		event.setTimeCreate(date("2004-12-11T10:10:10Z"));
 		event.setTimeUpdate(date("2004-12-11T11:15:10Z"));
 		event.setTimezoneName("Europe/Paris");
@@ -183,7 +185,7 @@ public abstract class ConvertObmEventToMsEventIntegrityTest {
 		User jaures = jauresUser();
 		MSEvent msEvent = converter.convert(event, new MSEventUid("mseventuid"), jaures);
 		assertThat(msEvent.getAllDayEvent()).isEqualTo(true);
-		assertThat(msEvent.getEndTime()).isEqualTo(date("2004-12-14T00:00:00"));
+		assertThat(msEvent.getEndTime()).isEqualTo(new DateTime("2004-12-14T00:00:00", DateTimeZone.UTC).toLocalDateTime().toDate());
 	}
 	
 	@Test

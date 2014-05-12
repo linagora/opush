@@ -32,14 +32,16 @@
 package org.obm.push.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.obm.DateUtils.date;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.WindowingContact;
@@ -2266,4 +2268,9 @@ public class JSONServiceTest {
 		
 		assertThat(deserializedSet).isEmpty();
 	}
+	
+	private Date date(String date) {
+		return new DateTime(date, DateTimeZone.forID("Europe/Paris")).toDate();
+	}
+
 }

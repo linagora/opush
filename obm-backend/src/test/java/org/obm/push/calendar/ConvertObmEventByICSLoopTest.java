@@ -81,4 +81,11 @@ public class ConvertObmEventByICSLoopTest extends ConvertObmEventToMsEventIntegr
 	public void testTimeZoneConversion() throws ConversionException {
 		super.testTimeZoneConversion();
 	}
+	
+	@Ignore("OBMFULL-4295")
+	@Test
+	@Override
+	public void testAllDayEvent() throws ConversionException {
+		super.testAllDayEvent();
+	}
 }

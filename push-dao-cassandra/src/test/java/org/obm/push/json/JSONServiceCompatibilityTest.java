@@ -32,17 +32,19 @@
 package org.obm.push.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.obm.DateUtils.date;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
@@ -161,8 +163,8 @@ public class JSONServiceCompatibilityTest {
 		contact.setOfficeLocation("OfficeLocation");
 		contact.setRadioPhoneNumber("RadioTelephoneNumber");
 		contact.setPicture("Picture");
-		contact.setAnniversary(date("2008-10-15T11:15:10Z"));
-		contact.setBirthday(date("2007-10-15T11:15:10Z"));
+		contact.setAnniversary(new DateTime("2008-10-15T11:15:10Z").toDate());
+		contact.setBirthday(new DateTime("2007-10-15T11:15:10Z").toDate());
 		contact.setCategories(Lists.newArrayList("category"));
 		contact.setChildren(Lists.newArrayList("children"));
 		contact.setCustomerId("CustomerId");
@@ -266,7 +268,7 @@ public class JSONServiceCompatibilityTest {
 		msEvent.setCategories(ImmutableList.of("category"));
 		msEvent.setCreated(date("2012-02-02T11:22:33"));
 		msEvent.setDescription("description");
-		msEvent.setDtStamp(date("2012-02-02T11:22:30"));
+		msEvent.setDtStamp(new DateTime("2012-02-02T10:22:30Z").toDate());
 		msEvent.setEndTime(date("2012-02-02T11:20:30"));
 		msEvent.setExceptions(ImmutableList.of(msEventException));
 		msEvent.setLastUpdate(date("2012-03-02T11:20:30"));
@@ -412,9 +414,9 @@ public class JSONServiceCompatibilityTest {
 	@Test
 	public void deserialize() throws Exception {
 		for (File jsonFile: findJsonFiles()) {
-			assertThat(jsonService.deserialize(filenameToClass(jsonFile), FileUtils.readFileToString(jsonFile)))
+			assertThat(serializedClasses.get(jsonFile.getName()))
 				.as("File " + jsonFile.getName())
-				.isEqualTo(serializedClasses.get(jsonFile.getName()));
+				.isEqualTo(jsonService.deserialize(filenameToClass(jsonFile), FileUtils.readFileToString(jsonFile)));
 		}
 	}
 	
@@ -435,5 +437,9 @@ public class JSONServiceCompatibilityTest {
 			}
 		});
 		return jsonFiles;
+	}
+	
+	private Date date(String date) {
+		return new DateTime(date, DateTimeZone.forID("Europe/Paris")).toDate();
 	}
 }
