@@ -66,6 +66,9 @@ import scala.concurrent.duration.FiniteDuration
 
 object RunGatling {
 
+	val STATUS_CODE_ERROR = 1
+	val STATUS_CODE_BAD_ARGS = 2
+	
 	val DEFAULT_DESCRIPTION = "opush-benchmark run"
 	val DEFAULT_SIMULATION_ID = "1"
 	val USERS_PREPARATION_PARALLELISM = 2
@@ -76,10 +79,12 @@ object RunGatling {
 			.map(run)
 			.getOrElse {
 				// arguments are bad, usage message will have been displayed
+				System.exit(STATUS_CODE_BAD_ARGS)
 			}
 		} catch {
-			case e: Exception => {
-				System.err.println(e.getMessage());
+			case e: Throwable => {
+				e.printStackTrace(System.err)
+				System.exit(STATUS_CODE_ERROR)
 			}
 		}
 	}
