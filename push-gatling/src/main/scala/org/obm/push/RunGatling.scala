@@ -109,7 +109,6 @@ object RunGatling {
 			val domain = config.userDomain
 			val login = fields("username")
 			val password = fields("password")
-			val email = fields("email")
 			val deviceId = new DeviceId(Configuration.defaultUserDeviceId + UUID.randomUUID().toString())
 			val deviceType = Configuration.defaultUserDeviceType
 			val loginAtDomain = login + "@" + domain
@@ -119,7 +118,7 @@ object RunGatling {
 			val provisionResponse = client.provisionStepTwo(firstPolicyKey).getResponse()
 			val folderSyncResponse = client.folderSync(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 			new User(
-				domain, login, password, email, deviceId, deviceType, provisionResponse, folderSyncResponse 
+				domain, login, password, deviceId, deviceType, provisionResponse, folderSyncResponse 
 			)
 		}
 

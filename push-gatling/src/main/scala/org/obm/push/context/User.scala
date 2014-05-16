@@ -45,15 +45,14 @@ case class User(
 	domain: String,
 	login: String,
 	password: String,
-	email: String,
 	deviceId: DeviceId,
 	deviceType: String,
 	provisionResponse: ProvisionResponse,	
 	folderSyncResponse: FolderSyncResponse
 ) {
   
-	val userProtocol = "%s@%s".format(login, domain)
-	lazy val mailbox = new Mailbox(email.split("@")(0), email.split("@")(1))
+	val email = "%s@%s".format(login, domain)
+	lazy val mailbox = new Mailbox(login, domain)
 	lazy val device = new Device.Factory().create(
 			null, 
 			deviceType,
