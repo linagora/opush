@@ -82,10 +82,10 @@ public class ServerFactoryModuleTest {
 		StatusSummary status = StatusSummary.status(Status.UP_TO_DATE).build();
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
-		expect(jettyFactory.buildServer(port)).andReturn(opushServer);
+		expect(jettyFactory.buildServer(port, 10, 5)).andReturn(opushServer);
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
 		mocks.verify();
 	}
 
@@ -94,13 +94,13 @@ public class ServerFactoryModuleTest {
 		StatusSummary status = StatusSummary.status(Status.UPGRADE_AVAILABLE).build();
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
-		expect(jettyFactory.buildServer(port)).andReturn(opushServer);
+		expect(jettyFactory.buildServer(port, 10, 5)).andReturn(opushServer);
 		
 		logger.warn("Cassandra schema not up-to-date, update is advised");
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
 		mocks.verify();
 	}
 
@@ -114,7 +114,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
 		mocks.verify();
 	}
 	
@@ -128,7 +128,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
 		mocks.verify();
 	}
 
@@ -142,7 +142,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
 		mocks.verify();
 	}
 }

@@ -95,7 +95,7 @@ public class FolderSyncScenarioTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		spushnikServer = new SpushnikServer(SpushnikModule.class);
+		spushnikServer = new SpushnikServer(SpushnikServer.JETTY_SELECTED_PORT, SpushnikModule.class, 4, 1);
 		spushnikServer.start();
 		baseURL = "http://localhost:" + spushnikServer.getPort() + "/spushnik/";
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();

@@ -48,7 +48,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.sync.LifecycleListenerHelper;
@@ -56,7 +55,6 @@ import org.slf4j.Logger;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 
-import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
@@ -65,9 +63,7 @@ import com.google.inject.servlet.GuiceFilter;
 public class OpushJettyServerFactory {
 
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final int POOL_THREAD_SIZE = Objects.firstNonNull( 
-			VMArgumentsUtils.integerArgumentValue("threadPoolSize"), 200);
-
+	
 	private final Injector injector;
 	private final OpushConfiguration configuration;
 	private final Logger logger;
@@ -81,13 +77,12 @@ public class OpushJettyServerFactory {
 		this.logger = logger;
 	}
 	
-	
-	public OpushServer buildServer(int port) {
-		final Server jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
+	public OpushServer buildServer(int port, int threadPoolSize, int acceptorCount) {
+		final Server jetty = new Server(new QueuedThreadPool(threadPoolSize));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
 		
-		final ServerConnector httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
+		final ServerConnector httpConnector = new ServerConnector(jetty, null, null, null, -1, acceptorCount, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
 		jetty.setHandler(buildHandlers(injector, configuration, logger));

@@ -54,7 +54,7 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 	
 	protected void configure() {
 		OverriddenModuleBuilder override = Modules.override(
-				new ServerFactoryModule(),
+				new ServerFactoryModule(ServerFactoryModule.JETTY_SELECTED_PORT, 4, 1),
 				new OpushModule(opushConfiguration(), noDatabase()),
 				new PendingQueryFilterModule());
 		try {

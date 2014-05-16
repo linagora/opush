@@ -49,26 +49,26 @@ public class SpushnikServer {
 	
 	public static final int JETTY_SELECTED_PORT = 0;
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
-	private static final int POOL_THREAD_SIZE = 10;
+	private static final int DEFAULT_THREADPOOL_SIZE = 10;
+	private static final int DEFAULT_SELECTOR_COUNT = 2;
 
 	private final Server jetty;
 	private final ServerConnector httpConnector;
 
-	public SpushnikServer(Class<? extends Module> module) {
-		this(JETTY_SELECTED_PORT, module);
+	public SpushnikServer(int port, Class<? extends Module> module) {
+		this(port, module, DEFAULT_THREADPOOL_SIZE, DEFAULT_SELECTOR_COUNT);
 	}
 	
-	public SpushnikServer(int port, Class<? extends Module> module) {
-		jetty = new Server(new QueuedThreadPool(POOL_THREAD_SIZE));
+	public SpushnikServer(int port, Class<? extends Module> module, int threadPoolSize, int selectorCount) {
+		jetty = new Server(new QueuedThreadPool(threadPoolSize));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
 		
-		httpConnector = new ServerConnector(jetty, new HttpConnectionFactory());
+		httpConnector = new ServerConnector(jetty, null, null, null,-1, selectorCount, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
 		jetty.setHandler(buildHandlers(module));
 	}
-	
 
 	private Handler buildHandlers(Class<? extends Module> module) {
 		HandlerCollection handlers = new HandlerCollection();
