@@ -52,7 +52,6 @@ import com.google.inject.name.Names;
 
 public class ServerFactoryModuleTest {
 
-	private int port;
 	private IMocksControl mocks;
 	private Injector injector;
 	private CassandraSchemaService cassandraSchemaService;
@@ -60,11 +59,12 @@ public class ServerFactoryModuleTest {
 	private OpushJettyServerFactory jettyFactory;
 	private OpushServer opushServer;
 	private NoopServer noopServer;
+	private ServerConfiguration serverConfiguration;
 
 	@Before
 	public void setUp() {
-		port = 9999;
-
+		serverConfiguration = ServerConfiguration.builder().port(9999).threadPoolSize(2).selectorCount(1).build();
+		
 		mocks = createControl();
 		injector = mocks.createMock(Injector.class);
 		cassandraSchemaService = mocks.createMock(CassandraSchemaService.class);
@@ -82,10 +82,12 @@ public class ServerFactoryModuleTest {
 		StatusSummary status = StatusSummary.status(Status.UP_TO_DATE).build();
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
-		expect(jettyFactory.buildServer(port, 10, 5)).andReturn(opushServer);
+		expect(jettyFactory.buildServer(
+				serverConfiguration.port(), serverConfiguration.threadPoolSize(), serverConfiguration.selectorCount()))
+				.andReturn(opushServer);
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
 	}
 
@@ -94,13 +96,15 @@ public class ServerFactoryModuleTest {
 		StatusSummary status = StatusSummary.status(Status.UPGRADE_AVAILABLE).build();
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
-		expect(jettyFactory.buildServer(port, 10, 5)).andReturn(opushServer);
+		expect(jettyFactory.buildServer(
+				serverConfiguration.port(), serverConfiguration.threadPoolSize(), serverConfiguration.selectorCount()))
+				.andReturn(opushServer);
 		
 		logger.warn("Cassandra schema not up-to-date, update is advised");
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
 	}
 
@@ -114,7 +118,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
 	}
 	
@@ -128,7 +132,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
 	}
 
@@ -142,7 +146,7 @@ public class ServerFactoryModuleTest {
 		expectLastCall();
 		
 		mocks.replay();
-		new ServerFactoryModule.LateInjectionServer(injector, port, 10, 5).createServer();
+		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
 	}
 }

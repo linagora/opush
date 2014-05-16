@@ -30,12 +30,14 @@
 package org.obm.push;
 
 import java.util.EnumSet;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -48,6 +50,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.Scheduler;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.sync.LifecycleListenerHelper;
@@ -63,7 +66,11 @@ import com.google.inject.servlet.GuiceFilter;
 public class OpushJettyServerFactory {
 
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(1);
-	
+	private static final Executor DEFAULT_EXECUTOR = null;
+	private static final Scheduler DEFAULT_SCHEDULER = null;
+	private static final ByteBufferPool DEFAULT_BUFFERPOOL_OBJECT = null;
+	private static final int DEFAULT_ACCEPTOR_COUNT = -1;
+
 	private final Injector injector;
 	private final OpushConfiguration configuration;
 	private final Logger logger;
@@ -77,12 +84,13 @@ public class OpushJettyServerFactory {
 		this.logger = logger;
 	}
 	
-	public OpushServer buildServer(int port, int threadPoolSize, int acceptorCount) {
+	public OpushServer buildServer(int port, int threadPoolSize, int selectorCount) {
 		final Server jetty = new Server(new QueuedThreadPool(threadPoolSize));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
 		
-		final ServerConnector httpConnector = new ServerConnector(jetty, null, null, null, -1, acceptorCount, new HttpConnectionFactory());
+		final ServerConnector httpConnector = new ServerConnector(jetty, 
+				DEFAULT_EXECUTOR, DEFAULT_SCHEDULER, DEFAULT_BUFFERPOOL_OBJECT, DEFAULT_ACCEPTOR_COUNT, selectorCount, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
 		jetty.setHandler(buildHandlers(injector, configuration, logger));

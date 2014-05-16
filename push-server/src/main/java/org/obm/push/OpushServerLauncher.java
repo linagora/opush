@@ -61,7 +61,8 @@ public class OpushServerLauncher {
 					Paths.get(ConfigurationService.GLOBAL_OBM_CONFIGURATION_PATH));
 		
 		
-		Injector injector = Guice.createInjector(new ServerFactoryModule(SERVER_PORT), new OpushModule(configuration));
+		Injector injector = Guice.createInjector(new ServerFactoryModule(
+				ServerConfiguration.builder().port(SERVER_PORT).build()), new OpushModule(configuration));
 		OpushServer opushServer = injector.getInstance(OpushServer.class);
 		
 		start(opushServer).join();

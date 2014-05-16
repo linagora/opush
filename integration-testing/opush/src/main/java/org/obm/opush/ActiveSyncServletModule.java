@@ -33,6 +33,7 @@ package org.obm.opush;
 
 import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.push.OpushModule;
+import org.obm.push.ServerConfiguration;
 import org.obm.push.ServerFactoryModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.utils.DOMUtils;
@@ -54,7 +55,8 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 	
 	protected void configure() {
 		OverriddenModuleBuilder override = Modules.override(
-				new ServerFactoryModule(ServerFactoryModule.JETTY_SELECTED_PORT, 4, 1),
+				new ServerFactoryModule(
+					ServerConfiguration.builder().jettySelectorPort().threadPoolSize(4).selectorCount(1).build()),
 				new OpushModule(opushConfiguration(), noDatabase()),
 				new PendingQueryFilterModule());
 		try {

@@ -31,8 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -40,6 +42,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.Scheduler;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
@@ -51,6 +54,11 @@ public class SpushnikServer {
 	private static final long GRACEFUL_STOP_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 	private static final int DEFAULT_THREADPOOL_SIZE = 10;
 	private static final int DEFAULT_SELECTOR_COUNT = 2;
+	private static final Executor DEFAULT_EXECUTOR = null;
+	private static final Scheduler DEFAULT_SCHEDULER = null;
+	private static final ByteBufferPool DEFAULT_BUFFERPOOL_OBJECT = null;
+	private static final int DEFAULT_ACCEPTOR_COUNT = -1;
+
 
 	private final Server jetty;
 	private final ServerConnector httpConnector;
@@ -63,8 +71,9 @@ public class SpushnikServer {
 		jetty = new Server(new QueuedThreadPool(threadPoolSize));
 		jetty.setStopAtShutdown(true);
 		jetty.setStopTimeout(GRACEFUL_STOP_TIMEOUT_MS);
-		
-		httpConnector = new ServerConnector(jetty, null, null, null,-1, selectorCount, new HttpConnectionFactory());
+
+		httpConnector = new ServerConnector(jetty, 
+				DEFAULT_EXECUTOR, DEFAULT_SCHEDULER, DEFAULT_BUFFERPOOL_OBJECT, DEFAULT_ACCEPTOR_COUNT, selectorCount, new HttpConnectionFactory());
 		httpConnector.setPort(port);
 		jetty.addConnector(httpConnector);
 		jetty.setHandler(buildHandlers(module));

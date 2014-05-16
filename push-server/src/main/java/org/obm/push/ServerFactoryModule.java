@@ -33,7 +33,6 @@ package org.obm.push;
 
 import java.util.TimeZone;
 
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.schema.CassandraSchemaService;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.StatusSummary.Status;
@@ -43,7 +42,6 @@ import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
@@ -55,31 +53,16 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
 public class ServerFactoryModule extends AbstractModule {
-
+	
 	static {
 		XTrustProvider.install();
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 	}
 	
-	public static final int JETTY_SELECTED_PORT = 0;
-	private static final int DEFAULT_THREADPOOL_SIZE = Objects.firstNonNull( 
-			VMArgumentsUtils.integerArgumentValue("threadPoolSize"), 200);
-	private static final int DEFAULT_ACCEPTOR_COUNT = 10;
+	private ServerConfiguration serverConfiguration;
 	
-	private final int port;
-	private final int threadPoolSize;
-	private final int acceptorCount;
-	
-	
-	public ServerFactoryModule(int port) {
-		this(port, DEFAULT_THREADPOOL_SIZE, DEFAULT_ACCEPTOR_COUNT);
-	}
-	
-	public ServerFactoryModule(int port, int threadPoolSize, int acceptorCount) {
-		this.port = port;
-		this.threadPoolSize = threadPoolSize;
-		this.acceptorCount = acceptorCount;
-		
+	public ServerFactoryModule(ServerConfiguration serverConfiguration) {
+		this.serverConfiguration = serverConfiguration;
 	}
 	
 	@Override
@@ -88,22 +71,18 @@ public class ServerFactoryModule extends AbstractModule {
 	
 	@Provides @Singleton
 	public OpushServer createServer(Injector injector) {
-		return new LateInjectionServer(injector, port, threadPoolSize, acceptorCount);
+		return new LateInjectionServer(injector, serverConfiguration);
 	}
 	
 	public static class LateInjectionServer implements OpushServer {
 
 		private final Injector injector;
-		private final int port;
-		private final int threadPoolSize;
-		private final int acceptorCount;
 		private final Supplier<OpushServer> realServerSupplier;
+		private final ServerConfiguration serverConfiguration;
 
-		public LateInjectionServer(Injector injector, int port, int threadPoolSize, int acceptorCount) {
+		public LateInjectionServer(Injector injector, ServerConfiguration serverConfiguration) {
 			this.injector = injector;
-			this.port = port;
-			this.threadPoolSize = threadPoolSize;
-			this.acceptorCount = acceptorCount;
+			this.serverConfiguration = serverConfiguration;
 			this.realServerSupplier = Suppliers.memoize(new Supplier<OpushServer>() {
 				
 				@Override
@@ -145,7 +124,8 @@ public class ServerFactoryModule extends AbstractModule {
 			if (!statusSummary.getStatus().equals(Status.UP_TO_DATE)) {
 				logger.warn("Cassandra schema not up-to-date, update is advised");
 			}
-			return injector.getInstance(OpushJettyServerFactory.class).buildServer(port, threadPoolSize, acceptorCount);
+			return injector.getInstance(OpushJettyServerFactory.class)
+					.buildServer(serverConfiguration.port(), serverConfiguration.threadPoolSize(), serverConfiguration.selectorCount());
 		}
 		
 		private OpushServer getRealServer() {
