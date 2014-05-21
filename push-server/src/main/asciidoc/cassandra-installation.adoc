@@ -125,7 +125,7 @@ Where:
 
   * +opush+ is the keyspace name (Opush 3.0.0 requires a keyspace named "opush", see http://ci-obm.linagora.com/jira/browse/OP-35[OP-35])
   * +CHOSEN_STRATEGY+ use +SimpleStrategy+ unless your cluster is deployed across multiple data centers
-  * +CHOSEN_FACTOR+ must be +1+ for a single node installation, we suggest +2+ for a three nodes cluster
+  * +CHOSEN_FACTOR+ must be +1+ for a single node installation, we suggest +3+ for a three nodes cluster
   
 Finally, still in the +cqlsh+ shell, create a *Cassandra* user for Opush:
 [source]
