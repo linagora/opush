@@ -126,9 +126,9 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 
 	public Summary getSummary() {
 		return Summary.builder()
-				.changes(countChanges())
-				.deletions(countDeletions())
-				.fetchs(countFetchs())
+				.changeCount(countChanges())
+				.deletionCount(countDeletions())
+				.fetchCount(countFetchs())
 				.build();
 	}
 	

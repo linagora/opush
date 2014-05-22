@@ -56,7 +56,7 @@ public class SyncCollectionCommandsResponseTest {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes, SyncClientCommands.empty())
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(1).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
 
 	@Test
@@ -65,7 +65,7 @@ public class SyncCollectionCommandsResponseTest {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes, SyncClientCommands.empty())
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(1).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class SyncCollectionCommandsResponseTest {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes, SyncClientCommands.builder().putAdd(new Add("789456", "123")).build())
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(1).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
 	
 	@Test
@@ -83,7 +83,7 @@ public class SyncCollectionCommandsResponseTest {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.fetchs(fetchs)
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().fetchs(1).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().fetchCount(1).build());
 	}
 	
 	@Test
@@ -92,7 +92,7 @@ public class SyncCollectionCommandsResponseTest {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.deletions(deletions)
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().deletions(1).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().deletionCount(1).build());
 	}
 
 	@Test
@@ -116,6 +116,6 @@ public class SyncCollectionCommandsResponseTest {
 				.fetchs(fetchs)
 				.deletions(deletions)
 				.build();
-		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(10).deletions(1).fetchs(2).build());
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(10).deletionCount(1).fetchCount(2).build());
 	}
 }

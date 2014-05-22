@@ -37,69 +37,68 @@ import org.junit.Test;
 
 public class SummaryTest {
 
-
 	@Test
 	public void builderChangesNotSet() {
 		Summary summary = Summary.builder()
-			.deletions(1)
-			.fetchs(1)
+			.deletionCount(1)
+			.fetchCount(1)
 			.build();
-		assertThat(summary.getChanges()).isEqualTo(0);
-		assertThat(summary.getDeletions()).isEqualTo(1);
-		assertThat(summary.getFetchs()).isEqualTo(1);
+		assertThat(summary.getChangeCount()).isEqualTo(0);
+		assertThat(summary.getDeletionCount()).isEqualTo(1);
+		assertThat(summary.getFetchCount()).isEqualTo(1);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void builderChangesNegative() {
 		Summary.builder()
-			.changes(-1);
+			.changeCount(-1);
 	}
 
 	@Test
 	public void builderDeletionsNotSet() {
 		Summary summary = Summary.builder()
-			.changes(1)
-			.fetchs(1)
+			.changeCount(1)
+			.fetchCount(1)
 			.build();
-		assertThat(summary.getChanges()).isEqualTo(1);
-		assertThat(summary.getDeletions()).isEqualTo(0);
-		assertThat(summary.getFetchs()).isEqualTo(1);
+		assertThat(summary.getChangeCount()).isEqualTo(1);
+		assertThat(summary.getDeletionCount()).isEqualTo(0);
+		assertThat(summary.getFetchCount()).isEqualTo(1);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void builderDeletionsNegative() {
 		Summary.builder()
-			.deletions(-1);
+			.deletionCount(-1);
 	}
 
 	@Test
 	public void builderFetchsNotSet() {
 		Summary summary = Summary.builder()
-			.deletions(1)
-			.changes(1)
+			.deletionCount(1)
+			.changeCount(1)
 			.build();
-		assertThat(summary.getChanges()).isEqualTo(1);
-		assertThat(summary.getDeletions()).isEqualTo(1);
-		assertThat(summary.getFetchs()).isEqualTo(0);
+		assertThat(summary.getChangeCount()).isEqualTo(1);
+		assertThat(summary.getDeletionCount()).isEqualTo(1);
+		assertThat(summary.getFetchCount()).isEqualTo(0);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void builderFetchsNegative() {
 		Summary.builder()
-			.fetchs(-1);
+			.fetchCount(-1);
 	}
 
 	@Test
 	public void builder() {
 		Summary summary = Summary.builder()
-			.changes(1)
-			.deletions(2)
-			.fetchs(3)
+			.changeCount(1)
+			.deletionCount(2)
+			.fetchCount(3)
 			.build();
 
-		assertThat(summary.getChanges()).isEqualTo(1);
-		assertThat(summary.getDeletions()).isEqualTo(2);
-		assertThat(summary.getFetchs()).isEqualTo(3);
+		assertThat(summary.getChangeCount()).isEqualTo(1);
+		assertThat(summary.getDeletionCount()).isEqualTo(2);
+		assertThat(summary.getFetchCount()).isEqualTo(3);
 	}
 	
 	@Test
@@ -111,11 +110,52 @@ public class SummaryTest {
 	@Test
 	public void testSummaryPrint() {
 		Summary summary = Summary.builder()
-				.changes(1)
-				.deletions(2)
-				.fetchs(3)
+				.changeCount(1)
+				.deletionCount(2)
+				.fetchCount(3)
 				.build();
 
 		assertThat(summary.summary()).isEqualTo("CHANGE: 1, DELETE: 2, FETCH: 3");
+	}
+	
+	@Test
+	public void testMerge() {
+		Summary merged = Summary.builder()
+							.changeCount(1)
+							.deletionCount(2)
+							.fetchCount(3)
+							.build()
+				.merge(
+						Summary.builder()
+							.changeCount(4)
+							.deletionCount(6)
+							.fetchCount(9)
+							.build());
+		assertThat(merged).isEqualTo(Summary.builder()
+							.changeCount(5)
+							.deletionCount(8)
+							.fetchCount(12)
+							.build());
+	}
+	
+	@Test(expected=NullPointerException.class)
+	public void testMergeNull() {
+		Summary.builder().changeCount(1).build()
+				.merge(null);
+	}
+	
+	@Test
+	public void testMergeEmptyIsIdentity() {
+		Summary merged = Summary.builder()
+							.changeCount(1)
+							.deletionCount(2)
+							.fetchCount(3)
+							.build()
+				.merge(Summary.empty());
+		assertThat(merged).isEqualTo(Summary.builder()
+				.changeCount(1)
+				.deletionCount(2)
+				.fetchCount(3)
+				.build());
 	}
 }

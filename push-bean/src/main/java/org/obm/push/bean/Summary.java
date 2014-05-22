@@ -48,26 +48,26 @@ public class Summary {
 		
 		private Integer changes;
 		private Integer deletions;
-		private Integer fetchs;
+		private Integer fetches;
 
 		private Builder() {
 		}
 		
-		public Builder changes(int changes) {
-			Preconditions.checkArgument(changes >= 0, "Illegal changes value: " + changes);
+		public Builder changeCount(int changes) {
+			Preconditions.checkArgument(changes >= 0, "Illegal changeCount value: " + changes);
 			this.changes = changes;
 			return this;
 		}
 		
-		public Builder deletions(int deletions) {
-			Preconditions.checkArgument(deletions >= 0, "Illegal deletions value: " + deletions);
+		public Builder deletionCount(int deletions) {
+			Preconditions.checkArgument(deletions >= 0, "Illegal deletionCount value: " + deletions);
 			this.deletions = deletions;
 			return this;
 		}
 		
-		public Builder fetchs(int fetchs) {
-			Preconditions.checkArgument(fetchs >= 0, "Illegal fetchs value: " + fetchs);
-			this.fetchs = fetchs;
+		public Builder fetchCount(int fetches) {
+			Preconditions.checkArgument(fetches >= 0, "Illegal fetchCount value: " + fetches);
+			this.fetches = fetches;
 			return this;
 		}
 		
@@ -75,48 +75,58 @@ public class Summary {
 			return new Summary(
 					Objects.firstNonNull(changes, 0), 
 					Objects.firstNonNull(deletions, 0), 
-					Objects.firstNonNull(fetchs, 0));
+					Objects.firstNonNull(fetches, 0));
 		}
 	}
 	
-	private int changes;
-	private int deletions;
-	private int fetchs;
+	private int changeCount;
+	private int deletionCount;
+	private int fetchCount;
 
-	private Summary(int changes, int deletions, int fetchs) {
-		this.changes = changes;
-		this.deletions = deletions;
-		this.fetchs = fetchs;
+	private Summary(int changeCount, int deletionCount, int fetchCount) {
+		this.changeCount = changeCount;
+		this.deletionCount = deletionCount;
+		this.fetchCount = fetchCount;
 	}
 	
-	public int getChanges() {
-		return changes;
+	public int getChangeCount() {
+		return changeCount;
 	}
 	
-	public int getDeletions() {
-		return deletions;
+	public int getDeletionCount() {
+		return deletionCount;
 	}
 	
-	public int getFetchs() {
-		return fetchs;
+	public int getFetchCount() {
+		return fetchCount;
 	}
 	
 	public String summary() {
-		return String.format("CHANGE: %d, DELETE: %d, FETCH: %d", changes, deletions, fetchs);
+		return String.format("CHANGE: %d, DELETE: %d, FETCH: %d", changeCount, deletionCount, fetchCount);
 	}
 
+	public Summary merge(Summary other) {
+		Preconditions.checkNotNull(other);
+		
+		return Summary.builder()
+			.changeCount(changeCount + other.changeCount)
+			.deletionCount(deletionCount + other.deletionCount)
+			.fetchCount(fetchCount + other.fetchCount)
+			.build();
+	}
+	
 	@Override
 	public int hashCode(){
-		return Objects.hashCode(changes, deletions, fetchs);
+		return Objects.hashCode(changeCount, deletionCount, fetchCount);
 	}
 	
 	@Override
 	public boolean equals(Object object){
 		if (object instanceof Summary) {
 			Summary that = (Summary) object;
-			return Objects.equal(this.changes, that.changes)
-				&& Objects.equal(this.deletions, that.deletions)
-				&& Objects.equal(this.fetchs, that.fetchs);
+			return Objects.equal(this.changeCount, that.changeCount)
+				&& Objects.equal(this.deletionCount, that.deletionCount)
+				&& Objects.equal(this.fetchCount, that.fetchCount);
 		}
 		return false;
 	}
@@ -124,10 +134,10 @@ public class Summary {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("changes", changes)
-			.add("deletions", deletions)
-			.add("fetchs", fetchs)
+			.add("changes", changeCount)
+			.add("deletions", deletionCount)
+			.add("fetches", fetchCount)
 			.toString();
 	}
-	
+
 }
