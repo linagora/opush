@@ -34,6 +34,7 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.collect.ImmutableList;
 
@@ -74,6 +75,65 @@ public class SyncCollectionRequestCommandsTest {
 		assertThat(commands.getCommands()).containsOnly(
 				SyncCollectionRequestCommand.builder().name("Delete").serverId("3").build(),
 				SyncCollectionRequestCommand.builder().name("Fetch").serverId("8").build());
+	}
+	
+	@Test
+	public void testRequestSummaryManyEntries() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId("123786").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("45789").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("165873").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("1234478").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId("234").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("75332").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("78675").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("4358").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("37534").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("1321231").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("5469863").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId("123").build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("1234535").build())
+				.build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 10, DELETE: 1, FETCH: 2");
+	}
+
+	@Test
+	public void testRequestSummaryOneDeletion() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId("234").build())
+				.build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 1, FETCH: 0");
+	}
+	
+	@Test
+	public void testRequestSummaryOneFetch() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId("123").build())
+				.build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 0, FETCH: 1");
+	}
+	
+
+	@Test
+	public void testRequestSummaryNoEntry() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder().build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 0, FETCH: 0");
+	}
+
+	@Test
+	public void testRequestSummaryOneChange() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("123").build())
+				.build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 1, DELETE: 0, FETCH: 0");
+	}
+	
+	@Test
+	public void testRequestSummaryOneAddition() {
+		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("45679").build())
+				.build();
+		assertThat(commands.summary()).isEqualTo("CHANGE: 1, DELETE: 0, FETCH: 0");
 	}
 	
 }

@@ -62,7 +62,7 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 			return this;
 		}
 		
-		public C abstractBuild() {
+		protected C abstractBuild() {
 			commands = this.commandsBuilder.build();
 			commandsByType = commandsByType(commands);
 			return buildImpl(commandsByType, commands);
@@ -103,6 +103,25 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 	
 	public List<T> getCommands() {
 		return commands;
+	}
+
+	public String summary() {
+		return String.format("CHANGE: %d, DELETE: %d, FETCH: %d", countChanges(), countDeletions(), countFetchs());
+	}
+	
+
+	private int countChanges() {
+		return getCommandsForType(SyncCommand.ADD).size() 
+				+ getCommandsForType(SyncCommand.CHANGE).size() 
+				+ getCommandsForType(SyncCommand.MODIFY).size();
+	}
+	
+	private Object countDeletions() {
+		return getCommandsForType(SyncCommand.DELETE).size();
+	}
+
+	private Object countFetchs() {
+		return getCommandsForType(SyncCommand.FETCH).size();
 	}
 
 	@Override
