@@ -105,28 +105,31 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 		return commands;
 	}
 
-	public String summary() {
-		return String.format("CHANGE: %d, DELETE: %d, FETCH: %d", countChanges(), countDeletions(), countFetchs());
-	}
-	
-
 	private int countChanges() {
 		return getCommandsForType(SyncCommand.ADD).size() 
 				+ getCommandsForType(SyncCommand.CHANGE).size() 
 				+ getCommandsForType(SyncCommand.MODIFY).size();
 	}
 	
-	private Object countDeletions() {
+	private int countDeletions() {
 		return getCommandsForType(SyncCommand.DELETE).size();
 	}
 
-	private Object countFetchs() {
+	private int countFetchs() {
 		return getCommandsForType(SyncCommand.FETCH).size();
 	}
 
 	@Override
 	public final int hashCode(){
 		return Objects.hashCode(commandsByType, commands);
+	}
+
+	public Summary getSummary() {
+		return Summary.builder()
+				.changes(countChanges())
+				.deletions(countDeletions())
+				.fetchs(countFetchs())
+				.build();
 	}
 	
 	@Override

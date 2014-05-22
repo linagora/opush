@@ -127,6 +127,7 @@ public class BeansTest {
 					.add(WindowingEventChanges.class)
 					.add(WindowingEvent.class)
 					.add(SnapshotKey.class)
+					.add(Summary.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

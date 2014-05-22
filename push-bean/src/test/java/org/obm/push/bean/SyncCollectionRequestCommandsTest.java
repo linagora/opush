@@ -94,7 +94,7 @@ public class SyncCollectionRequestCommandsTest {
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId("123").build())
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("1234535").build())
 				.build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 10, DELETE: 1, FETCH: 2");
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(10).deletions(1).fetchs(2).build());
 	}
 
 	@Test
@@ -102,7 +102,7 @@ public class SyncCollectionRequestCommandsTest {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId("234").build())
 				.build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 1, FETCH: 0");
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().deletions(1).build());
 	}
 	
 	@Test
@@ -110,14 +110,14 @@ public class SyncCollectionRequestCommandsTest {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId("123").build())
 				.build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 0, FETCH: 1");
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().fetchs(1).build());
 	}
 	
 
 	@Test
 	public void testRequestSummaryNoEntry() {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder().build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 0, DELETE: 0, FETCH: 0");
+		assertThat(commands.getSummary()).isEqualTo(Summary.empty());
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class SyncCollectionRequestCommandsTest {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE).serverId("123").build())
 				.build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 1, DELETE: 0, FETCH: 0");
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(1).build());
 	}
 	
 	@Test
@@ -133,7 +133,7 @@ public class SyncCollectionRequestCommandsTest {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
 				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId("45679").build())
 				.build();
-		assertThat(commands.summary()).isEqualTo("CHANGE: 1, DELETE: 0, FETCH: 0");
+		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changes(1).build());
 	}
 	
 }
