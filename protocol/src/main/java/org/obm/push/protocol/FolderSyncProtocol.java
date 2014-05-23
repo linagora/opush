@@ -87,6 +87,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		FolderSyncStatus status = FolderSyncStatus.fromSpecificationValue(statusAsString);
 		if (!status.equals(FolderSyncStatus.OK)) {
 			return FolderSyncResponse.builder()
+					.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
 					.status(status)
 					.build();
 		}

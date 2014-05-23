@@ -39,6 +39,9 @@ import com.google.common.collect.Lists;
 
 public class HierarchyCollectionChanges {
 
+	public static HierarchyCollectionChanges empty() {
+		return builder().build();
+	}
 	public static Builder builder() {
 		return new Builder();
 	}

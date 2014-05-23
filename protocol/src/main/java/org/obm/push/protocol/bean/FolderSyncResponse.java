@@ -40,6 +40,7 @@ import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 public class FolderSyncResponse {
 	
@@ -71,6 +72,8 @@ public class FolderSyncResponse {
 		}
 		
 		public FolderSyncResponse build() {
+			Preconditions.checkNotNull(status);
+			Preconditions.checkNotNull(hierarchyItemsChanges);
 			return new FolderSyncResponse(status, hierarchyItemsChanges, newSyncKey);
 		}
 	}
@@ -95,14 +98,9 @@ public class FolderSyncResponse {
 	}
 	
 	public int getCount() {
-		int count = 0;
-		if (getCollectionsAddedAndUpdated() != null) {
-			count += getCollectionsAddedAndUpdated().size();
-		}
-		if (getCollectionsDeleted() != null) {
-			count += getCollectionsDeleted().size();
-		}
-		return count;
+		return 
+			getCollectionsAddedAndUpdated().size() +
+			getCollectionsDeleted().size();
 	}
 
 	public List<CollectionChange> getCollectionsAddedAndUpdated() {
