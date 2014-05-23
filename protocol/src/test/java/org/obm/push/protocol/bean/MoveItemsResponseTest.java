@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -11,7 +11,7 @@
  * subsections (b), (c), and (e), pursuant to which you must notably (i) retain 
  * the “Message sent thanks to OBM, Free Communication by Linagora” 
  * signature notice appended to any and all outbound messages 
- * (notably e-mail and meeting requests), (ii) retain all hypertext links between 
+ * (notably e-mail and meeting responses), (ii) retain all hypertext links between 
  * OBM and obm.org, as well as between Linagora and linagora.com, and (iii) refrain 
  * from infringing Linagora intellectual property rights over its trademarks 
  * and commercial brands. Other Additional Terms apply, 
@@ -31,73 +31,41 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.bean;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Test;
+import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.bean.Summary;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+public class MoveItemsResponseTest {
 
-public class MoveItemsResponse {
+	@Test
+	public void summaryWhenNothing() {
+		MoveItemsResponse response = MoveItemsResponse.builder().build();
 
-	public static Builder builder() {
-		return new Builder();
-	}
-	
-	public static class Builder {
-		private List<MoveItemsItem> moveItemsItems;
-
-		private Builder() {
-			this.moveItemsItems = Lists.newLinkedList();
-		}
-		
-		public Builder moveItemsItem(List<MoveItemsItem> moveItemsItem) {
-			this.moveItemsItems = moveItemsItem;
-			return this;
-		}
-		
-		public Builder add(MoveItemsItem moveItemsItem) {
-			this.moveItemsItems.add(moveItemsItem);
-			return this;
-		}
-		
-		public MoveItemsResponse build() {
-			return new MoveItemsResponse(moveItemsItems);
-		}
-	}
-	
-	private final List<MoveItemsItem> moveItemsItems;
-	
-	private MoveItemsResponse(List<MoveItemsItem> moveItemsItem) {
-		this.moveItemsItems = moveItemsItem;
-	}
-	
-	public List<MoveItemsItem> getMoveItemsItems() {
-		return moveItemsItems;
+		assertThat(response.getSummary()).isEqualTo(
+			Summary.empty());
 	}
 
-	public Summary getSummary() {
-		return Summary.builder().changeCount(moveItemsItems.size()).build();
-	}
-	
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(moveItemsItems);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof MoveItemsResponse) {
-			MoveItemsResponse that = (MoveItemsResponse) object;
-			return Objects.equal(this.moveItemsItems, that.moveItemsItems);
-		}
-		return false;
-	}
+	@Test
+	public void summaryWhenSome() {
+		MoveItemsResponse response = MoveItemsResponse.builder()
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.SUCCESS)
+				.newDstId("dest1")
+				.sourceMessageId("1").build())
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.SERVER_ERROR)
+				.newDstId("dest2")
+				.sourceMessageId("2").build())
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.ITEM_ALREADY_EXISTS_AT_DESTINATION)
+				.newDstId("dest3")
+				.sourceMessageId("3").build())
+			.build();
 
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("moveItemsItem", moveItemsItems)
-			.toString();
+		assertThat(response.getSummary()).isEqualTo(
+			Summary.builder().changeCount(3).build());
 	}
+	
 }

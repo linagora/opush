@@ -41,6 +41,8 @@ import org.junit.Test;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
+import org.obm.push.bean.MoveItem;
+import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
@@ -54,6 +56,9 @@ import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.protocol.bean.FolderSyncResponse;
+import org.obm.push.protocol.bean.MoveItemsItem;
+import org.obm.push.protocol.bean.MoveItemsRequest;
+import org.obm.push.protocol.bean.MoveItemsResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.slf4j.Logger;
 
@@ -291,4 +296,75 @@ public class SummaryLoggerServiceTest {
 		testee.logOutgoingFolderSync(response);
 		mocks.verify();
 	}
+	
+	@Test
+	public void moveItemLoggerInWhenEmpty() {
+		MoveItemsRequest request = MoveItemsRequest.builder().build();
+
+		loggerIn.info("CHANGE: 0, DELETE: 0, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logIncomingMoveItem(request);
+		mocks.verify();
+	}
+	
+	@Test
+	public void moveItemLoggerInWhenSome() {
+		MoveItemsRequest request = MoveItemsRequest.builder()
+			.add(MoveItem.builder()
+				.destinationFolderId("dest1")
+				.sourceFolderId("src1")
+				.sourceMessageId("1").build())
+			.add(MoveItem.builder()
+				.destinationFolderId("dest2")
+				.sourceFolderId("src2")
+				.sourceMessageId("2").build())
+			.add(MoveItem.builder()
+				.destinationFolderId("dest3")
+				.sourceFolderId("src3")
+				.sourceMessageId("3").build())
+			.build();
+
+		loggerIn.info("CHANGE: 3, DELETE: 0, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logIncomingMoveItem(request);
+		mocks.verify();
+	}
+	
+	@Test
+	public void moveItemLoggerOutWhenEmpty() {
+		MoveItemsResponse response = MoveItemsResponse.builder().build();
+
+		loggerOut.info("CHANGE: 0, DELETE: 0, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logOutgoingMoveItem(response);
+		mocks.verify();
+	}
+	
+	@Test
+	public void moveItemLoggerOutWhenSome() {
+		MoveItemsResponse response = MoveItemsResponse.builder()
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.SUCCESS)
+				.newDstId("dest1")
+				.sourceMessageId("1").build())
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.SERVER_ERROR)
+				.newDstId("dest2")
+				.sourceMessageId("2").build())
+			.add(MoveItemsItem.builder()
+				.itemStatus(MoveItemsStatus.ITEM_ALREADY_EXISTS_AT_DESTINATION)
+				.newDstId("dest3")
+				.sourceMessageId("3").build())
+			.build();
+
+		loggerOut.info("CHANGE: 3, DELETE: 0, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logOutgoingMoveItem(response);
+		mocks.verify();
+	}
+
 }

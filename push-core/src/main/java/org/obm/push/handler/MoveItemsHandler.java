@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import org.obm.push.SummaryLoggerService;
 import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -74,19 +75,22 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 
 	private final MoveItemsProtocol moveItemsProtocol;
 	private final ICollectionPathHelper collectionPathHelper;
+	private final SummaryLoggerService summaryLoggerService;
 
 	@Inject
 	protected MoveItemsHandler(IBackend backend, EncoderFactory encoderFactory,
 			IContentsImporter contentsImporter, IContentsExporter contentsExporter, 
 			StateMachine stMachine, MoveItemsProtocol moveItemsProtocol,
 			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper,
-			ICollectionPathHelper collectionPathHelper) {
+			ICollectionPathHelper collectionPathHelper,
+			SummaryLoggerService summaryLoggerService) {
 		
 		super(backend, encoderFactory, contentsImporter, contentsExporter, 
 				stMachine, collectionDao, wbxmlTools, domDumper);
 		
 		this.moveItemsProtocol = moveItemsProtocol;
 		this.collectionPathHelper = collectionPathHelper;
+		this.summaryLoggerService = summaryLoggerService;
 	}
 
 	// <?xml version="1.0" encoding="UTF-8"?>
@@ -109,9 +113,12 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 		logger.info("process(" + udr.getUser().getLoginAtDomain() + "/" + udr.getDevType()
 				+ ")");
 		try {
-		
 			MoveItemsRequest moveItemsRequest = moveItemsProtocol.decodeRequest(doc);
+			summaryLoggerService.logIncomingMoveItem(moveItemsRequest);
+			
 			MoveItemsResponse moveItemsResponse = doTheJob(moveItemsRequest, udr);
+			summaryLoggerService.logOutgoingMoveItem(moveItemsResponse);
+			
 			Document reply = moveItemsProtocol.encodeResponse(udr.getDevice(), moveItemsResponse);
 			sendResponse(responder, reply);
 

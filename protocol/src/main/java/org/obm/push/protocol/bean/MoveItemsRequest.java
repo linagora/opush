@@ -34,6 +34,7 @@ package org.obm.push.protocol.bean;
 import java.util.List;
 
 import org.obm.push.bean.MoveItem;
+import org.obm.push.bean.Summary;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -74,6 +75,10 @@ public class MoveItemsRequest {
 	
 	public List<MoveItem> getMoveItems() {
 		return moveItems;
+	}
+	
+	public Summary getSummary() {
+		return Summary.builder().changeCount(moveItems.size()).build();
 	}
 	
 	@Override

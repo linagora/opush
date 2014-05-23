@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,73 +31,41 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.bean;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Test;
+import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.Summary;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+public class MoveItemsRequestTest {
 
-public class MoveItemsResponse {
+	@Test
+	public void summaryWhenNothing() {
+		MoveItemsRequest request = MoveItemsRequest.builder().build();
 
-	public static Builder builder() {
-		return new Builder();
-	}
-	
-	public static class Builder {
-		private List<MoveItemsItem> moveItemsItems;
-
-		private Builder() {
-			this.moveItemsItems = Lists.newLinkedList();
-		}
-		
-		public Builder moveItemsItem(List<MoveItemsItem> moveItemsItem) {
-			this.moveItemsItems = moveItemsItem;
-			return this;
-		}
-		
-		public Builder add(MoveItemsItem moveItemsItem) {
-			this.moveItemsItems.add(moveItemsItem);
-			return this;
-		}
-		
-		public MoveItemsResponse build() {
-			return new MoveItemsResponse(moveItemsItems);
-		}
-	}
-	
-	private final List<MoveItemsItem> moveItemsItems;
-	
-	private MoveItemsResponse(List<MoveItemsItem> moveItemsItem) {
-		this.moveItemsItems = moveItemsItem;
-	}
-	
-	public List<MoveItemsItem> getMoveItemsItems() {
-		return moveItemsItems;
+		assertThat(request.getSummary()).isEqualTo(
+			Summary.empty());
 	}
 
-	public Summary getSummary() {
-		return Summary.builder().changeCount(moveItemsItems.size()).build();
-	}
-	
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(moveItemsItems);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof MoveItemsResponse) {
-			MoveItemsResponse that = (MoveItemsResponse) object;
-			return Objects.equal(this.moveItemsItems, that.moveItemsItems);
-		}
-		return false;
-	}
+	@Test
+	public void summaryWhenSome() {
+		MoveItemsRequest request = MoveItemsRequest.builder()
+			.add(MoveItem.builder()
+				.destinationFolderId("dest1")
+				.sourceFolderId("src1")
+				.sourceMessageId("1").build())
+			.add(MoveItem.builder()
+				.destinationFolderId("dest2")
+				.sourceFolderId("src2")
+				.sourceMessageId("2").build())
+			.add(MoveItem.builder()
+				.destinationFolderId("dest3")
+				.sourceFolderId("src3")
+				.sourceMessageId("3").build())
+			.build();
 
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("moveItemsItem", moveItemsItems)
-			.toString();
+		assertThat(request.getSummary()).isEqualTo(
+			Summary.builder().changeCount(3).build());
 	}
+	
 }
