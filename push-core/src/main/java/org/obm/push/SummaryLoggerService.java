@@ -35,6 +35,7 @@ import org.obm.push.bean.AbstractSyncCollection;
 import org.obm.push.bean.Summary;
 import org.obm.push.bean.Sync;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.slf4j.Logger;
 
@@ -63,6 +64,10 @@ public class SummaryLoggerService {
 	
 	public void logOutgoingSync(SyncResponse response) {
 		logSummary(loggerOut, response.getCollectionResponses());
+	}
+
+	public void logOutgoingFolderSync(FolderSyncResponse folderSyncResponse) {
+		loggerOut.info(folderSyncResponse.getSummary().summary());
 	}
 	
 	private static <TYPE extends AbstractSyncCollection<?>> 

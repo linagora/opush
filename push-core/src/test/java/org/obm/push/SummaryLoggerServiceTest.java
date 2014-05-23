@@ -39,6 +39,8 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FolderSyncStatus;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
@@ -46,8 +48,12 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.hierarchy.CollectionChange;
+import org.obm.push.bean.change.hierarchy.CollectionDeletion;
+import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.slf4j.Logger;
 
@@ -232,6 +238,57 @@ public class SummaryLoggerServiceTest {
 		expectLastCall();
 		mocks.replay();
 		testee.logOutgoingSync(response);
+		mocks.verify();
+	}
+	
+	@Test
+	public void folderSyncloggerOutWhenEmpty() {
+		FolderSyncResponse response = FolderSyncResponse.builder()
+			.status(FolderSyncStatus.OK)
+			.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
+			.newSyncKey(new SyncKey("123"))
+			.build();
+
+		loggerOut.info("CHANGE: 0, DELETE: 0, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logOutgoingFolderSync(response);
+		mocks.verify();
+	}
+	
+	@Test
+	public void folderSyncloggerOutWhenOneOfEach() {
+		CollectionChange add = CollectionChange.builder()
+			.collectionId("1")
+			.parentCollectionId("0")
+			.displayName("INBOX")
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.isNew(true)
+			.build();
+		CollectionChange change = CollectionChange.builder()
+			.collectionId("3")
+			.parentCollectionId("0")
+			.displayName("FOLDER")
+			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+			.isNew(false)
+			.build();
+		CollectionDeletion del = CollectionDeletion.builder()
+			.collectionId("8")
+			.build();
+		
+		FolderSyncResponse response = FolderSyncResponse.builder()
+			.status(FolderSyncStatus.OK)
+			.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
+				.changes(ImmutableList.of(add, change))
+				.deletions(ImmutableList.of(del))
+				.build())
+			.newSyncKey(new SyncKey("123"))
+			.build();
+
+		loggerOut.info("CHANGE: 2, DELETE: 1, FETCH: 0");
+		expectLastCall();
+		mocks.replay();
+		testee.logOutgoingFolderSync(response);
 		mocks.verify();
 	}
 }

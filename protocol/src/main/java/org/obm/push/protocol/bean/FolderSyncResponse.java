@@ -34,6 +34,7 @@ package org.obm.push.protocol.bean;
 import java.util.List;
 
 import org.obm.push.bean.FolderSyncStatus;
+import org.obm.push.bean.Summary;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -113,6 +114,13 @@ public class FolderSyncResponse {
 	
 	public FolderSyncStatus getStatus() {
 		return status;
+	}
+
+	public Summary getSummary() {
+		return Summary.builder()
+				.changeCount(getCollectionsAddedAndUpdated().size())
+				.deletionCount(getCollectionsDeleted().size())
+				.build();
 	}
 
 	@Override

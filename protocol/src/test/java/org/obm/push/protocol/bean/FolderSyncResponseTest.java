@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
+import org.obm.push.bean.Summary;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -62,13 +63,14 @@ public class FolderSyncResponseTest {
 	}
 
 	@Test
-	public void getCountWhenEmpty() {
-		assertThat(FolderSyncResponse.builder()
+	public void testWhenEmpty() {
+		FolderSyncResponse response = FolderSyncResponse.builder()
 			.status(FolderSyncStatus.OK)
 			.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
 			.newSyncKey(new SyncKey("123"))
-			.build()
-			.getCount()).isEqualTo(0);
+			.build();
+		assertThat(response.getCount()).isEqualTo(0);
+		assertThat(response.getSummary()).isEqualTo(Summary.empty());
 	}
 	
 	@Test
@@ -81,14 +83,17 @@ public class FolderSyncResponseTest {
 			.isNew(true)
 			.build();
 		
-		assertThat(FolderSyncResponse.builder()
+		FolderSyncResponse response = FolderSyncResponse.builder()
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.changes(ImmutableList.of(add))
 						.build())
 				.newSyncKey(new SyncKey("123"))
-				.build()
-				.getCount()).isEqualTo(1);
+				.build();
+		
+		assertThat(response.getCount()).isEqualTo(1);
+		assertThat(response.getSummary()).isEqualTo(
+				Summary.builder().changeCount(1).build());
 	}
 	
 	@Test
@@ -101,14 +106,16 @@ public class FolderSyncResponseTest {
 			.isNew(false)
 			.build();
 		
-		assertThat(FolderSyncResponse.builder()
+		FolderSyncResponse response = FolderSyncResponse.builder()
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.changes(ImmutableList.of(change))
 						.build())
 				.newSyncKey(new SyncKey("123"))
-				.build()
-				.getCount()).isEqualTo(1);
+				.build();
+		assertThat(response.getCount()).isEqualTo(1);
+		assertThat(response.getSummary()).isEqualTo(
+				Summary.builder().changeCount(1).build());
 	}
 	
 	@Test
@@ -117,14 +124,17 @@ public class FolderSyncResponseTest {
 			.collectionId("1")
 			.build();
 		
-		assertThat(FolderSyncResponse.builder()
+		FolderSyncResponse response = FolderSyncResponse.builder()
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.deletions(ImmutableList.of(del))
 						.build())
 				.newSyncKey(new SyncKey("123"))
-				.build()
-				.getCount()).isEqualTo(1);
+				.build();
+		
+		assertThat(response.getCount()).isEqualTo(1);
+		assertThat(response.getSummary()).isEqualTo(
+				Summary.builder().deletionCount(1).build());
 	}
 	
 	@Test
@@ -147,14 +157,17 @@ public class FolderSyncResponseTest {
 			.collectionId("8")
 			.build();
 		
-		assertThat(FolderSyncResponse.builder()
+		FolderSyncResponse response = FolderSyncResponse.builder()
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.changes(ImmutableList.of(add, change))
 						.deletions(ImmutableList.of(del))
 						.build())
 				.newSyncKey(new SyncKey("123"))
-				.build()
-				.getCount()).isEqualTo(3);
+				.build();
+		
+		assertThat(response.getCount()).isEqualTo(3);
+		assertThat(response.getSummary()).isEqualTo(
+				Summary.builder().changeCount(2).deletionCount(1).build());
 	}
 }

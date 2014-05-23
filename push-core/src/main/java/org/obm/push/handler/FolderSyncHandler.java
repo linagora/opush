@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
+import org.obm.push.SummaryLoggerService;
 import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -66,19 +67,22 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 
 	private final IHierarchyExporter hierarchyExporter;
 	private final FolderSyncProtocol protocol;
+	private final SummaryLoggerService summaryLoggerService;
 	
 	@Inject
 	protected FolderSyncHandler(IBackend backend, EncoderFactory encoderFactory,
 			IContentsImporter contentsImporter, IHierarchyExporter hierarchyExporter,
 			IContentsExporter contentsExporter, StateMachine stMachine,
 			CollectionDao collectionDao, FolderSyncProtocol protocol,
-			WBXMLTools wbxmlTools, DOMDumper domDumper) {
+			WBXMLTools wbxmlTools, DOMDumper domDumper,
+			SummaryLoggerService summaryLoggerService) {
 		
 		super(backend, encoderFactory, contentsImporter,
 				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
 		
 		this.hierarchyExporter = hierarchyExporter;
 		this.protocol = protocol;
+		this.summaryLoggerService = summaryLoggerService;
 	}
 
 	@Override
@@ -87,7 +91,9 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 		
 		try {
 			FolderSyncRequest folderSyncRequest = protocol.decodeRequest(doc);
+			
 			FolderSyncResponse folderSyncResponse = doTheJob(udr, folderSyncRequest);
+			summaryLoggerService.logOutgoingFolderSync(folderSyncResponse);
 			Document ret = protocol.encodeResponse(udr.getDevice(), folderSyncResponse);
 			sendResponse(responder, ret);
 			
