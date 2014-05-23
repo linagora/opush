@@ -140,7 +140,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 			}
 			return new AnalysedSyncCollection(dataType, syncKey, collectionId, 
 					collectionPath, deletesAsMoves, changes, windowSize, options, 
-					Objects.firstNonNull(commands, SyncCollectionCommandsResponse.builder().build()),
+					Objects.firstNonNull(commands, SyncCollectionCommandsResponse.empty()),
 					status);
 		}
 

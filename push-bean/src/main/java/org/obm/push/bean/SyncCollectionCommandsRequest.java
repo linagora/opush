@@ -47,6 +47,10 @@ public class SyncCollectionCommandsRequest extends SyncCollectionCommands<SyncCo
 		super(commandsByType, commands);
 	}
 	
+	public static SyncCollectionCommandsRequest empty() {
+		return builder().build();
+	}
+	
 	public static Builder builder() {
 		return new Builder();
 	}

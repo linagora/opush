@@ -40,6 +40,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ContentsImporter;
+import org.obm.push.SummaryLoggerService;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
@@ -63,6 +64,7 @@ public class SyncHandlerTest {
 
 	private IMocksControl mocks;
 	private ContentsImporter contentsImporter;
+	private SummaryLoggerService summaryLoggerService;
 	private SyncHandler testee;
 
 	@Before
@@ -73,9 +75,10 @@ public class SyncHandlerTest {
 
 		mocks = createControl();
 		contentsImporter = mocks.createMock(ContentsImporter.class);
+		summaryLoggerService = mocks.createMock(SummaryLoggerService.class);
 		
 		testee = new SyncHandler(null, null, contentsImporter, null, null, null, null,
-				null, null, null, null, null, null, false, null, null, null);
+				null, null, null, null, null, null, false, null, null, null, summaryLoggerService);
 	}
 
 	@Test

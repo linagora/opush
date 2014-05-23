@@ -50,6 +50,10 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 		super(commandsByType, commands);
 	}
 	
+	public static SyncCollectionCommandsResponse empty() {
+		return builder().build();
+	}
+	
 	public static Builder builder() {
 		return new Builder();
 	}

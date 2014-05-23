@@ -114,7 +114,8 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 				windowSize = DEFAULT_WINDOW_SIZE;
 			}
 			return new SyncCollectionRequest(dataType, syncKey, collectionId, 
-					deletesAsMoves, changes, windowSize, options, commands);
+					deletesAsMoves, changes, windowSize, options, 
+					Objects.firstNonNull(commands, SyncCollectionCommandsRequest.empty()));
 		}
 
 	}

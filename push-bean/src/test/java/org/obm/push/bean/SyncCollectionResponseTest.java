@@ -29,36 +29,55 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.configuration;
+package org.obm.push.bean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.inject.name.Names;
+import org.junit.Test;
+import org.obm.push.bean.change.item.ItemDeletion;
 
-public class LoggerModule extends org.obm.configuration.module.LoggerModule {
+import com.google.common.collect.ImmutableList;
 
-	public static final String AUTH = "AUTHENTICATION";
-	public static final String TRIMMED_REQUEST = "REQUEST.TRIMMED";
-	public static final String FULL_REQUEST = "REQUEST.FULL";
-	public static final String MAIL_DATA = "MAIL.DATA";
-	public static final String CASSANDRA = "CASSANDRA";
-	public static final String CONTAINER = "CONTAINER";
-	public static final String SUMMARY_IN = "SUMMARY.IN";
-	public static final String SUMMARY_OUT = "SUMMARY.OUT";
-	
-	@Override
-	protected void configure() {
-		super.configure();
-		bind(Logger.class).annotatedWith(Names.named(AUTH)).toInstance(LoggerFactory.getLogger(AUTH));
-		bind(Logger.class).annotatedWith(Names.named(TRIMMED_REQUEST)).toInstance(LoggerFactory.getLogger(TRIMMED_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(FULL_REQUEST)).toInstance(LoggerFactory.getLogger(FULL_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(MAIL_DATA)).toInstance(LoggerFactory.getLogger(MAIL_DATA));
-		bind(Logger.class).annotatedWith(Names.named(CASSANDRA)).toInstance(LoggerFactory.getLogger(CASSANDRA));
-		bind(Logger.class).annotatedWith(Names.named(CONTAINER)).toInstance(LoggerFactory.getLogger(CONTAINER));
-		bind(Logger.class).annotatedWith(Names.named(SUMMARY_IN)).toInstance(LoggerFactory.getLogger(SUMMARY_IN));
-		bind(Logger.class).annotatedWith(Names.named(SUMMARY_OUT)).toInstance(LoggerFactory.getLogger(SUMMARY_OUT));
+public class SyncCollectionResponseTest {
+
+	@Test
+	public void testBuildNoResponseGiveEmptyCommand() {
+		SyncCollectionResponse collection = SyncCollectionResponse.builder()
+			.collectionId(5)
+			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.dataType(PIMDataType.EMAIL)
+			.build();
+		
+		assertThat(collection.getCommands())
+			.isEqualTo(SyncCollectionCommandsResponse.empty());
 	}
 
-	
+	@Test
+	public void testBuildNullResponseGiveEmptyCommand() {
+		SyncCollectionResponse collection = SyncCollectionResponse.builder()
+			.collectionId(5)
+			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.dataType(PIMDataType.EMAIL)
+			.responses(null)
+			.build();
+		
+		assertThat(collection.getCommands())
+			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	}
+
+	@Test
+	public void testBuildResponseGiveNotEmptyCommands() {
+		SyncCollectionCommandsResponse responses = SyncCollectionCommandsResponse.builder()
+				.deletions(ImmutableList.of(ItemDeletion.builder().serverId("156").build()))
+				.build();
+		
+		SyncCollectionResponse collection = SyncCollectionResponse.builder()
+			.collectionId(5)
+			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.dataType(PIMDataType.EMAIL)
+			.responses(responses)
+			.build();
+		
+		assertThat(collection.getCommands()).isEqualTo(responses);
+	}
 }

@@ -40,6 +40,7 @@ import javax.naming.NoPermissionException;
 
 import org.eclipse.jetty.continuation.ContinuationThrowable;
 import org.obm.push.ContinuationService;
+import org.obm.push.SummaryLoggerService;
 import org.obm.push.backend.CollectionChangeListener;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IBackend;
@@ -125,6 +126,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final SyncKeyFactory syncKeyFactory;
 	private final DateService dateService;
 	private final SyncAnalyser syncAnalyser;
+	private final SummaryLoggerService summaryLoggerService;
 
 	@Inject SyncHandler(IBackend backend, EncoderFactory encoderFactory,
 			IContentsImporter contentsImporter, IContentsExporter contentsExporter,
@@ -135,7 +137,8 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			ContinuationService continuationService,
 			@Named("enable-push") boolean enablePush,
 			SyncKeyFactory syncKeyFactory,
-			DateService dateService, SyncAnalyser syncAnalyser) {
+			DateService dateService, SyncAnalyser syncAnalyser,
+			SummaryLoggerService summaryLoggerService) {
 		
 		super(backend, encoderFactory, contentsImporter, contentsExporter, 
 				stMachine, collectionDao, wbxmlTools, domDumper);
@@ -149,6 +152,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		this.syncKeyFactory = syncKeyFactory;
 		this.dateService = dateService;
 		this.syncAnalyser = syncAnalyser;
+		this.summaryLoggerService = summaryLoggerService;
 	}
 
 	@Override
@@ -214,9 +218,11 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		Preconditions.checkNotNull(userDataRequest);
 		Preconditions.checkNotNull(syncRequest);
 		
-		return new AnalysedSyncRequest( syncAnalyser.analyseSync(userDataRequest, syncRequest) );
+		Sync analyseSync = syncAnalyser.analyseSync(userDataRequest, syncRequest);
+		summaryLoggerService.logIncomingSync(analyseSync);
+		return new AnalysedSyncRequest( analyseSync );
 	}
-	
+
 	private void sendResponse(Responder responder, Document document) {
 		responder.sendWBXMLResponse("AirSync", document);
 	}
@@ -410,14 +416,16 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			UnexpectedObmSyncServerException, ProcessingEmailException, InvalidServerId, ConversionException, HierarchyChangedException {
 
 		SyncResponse.Builder builder = SyncResponse.builder();
-		
 		for (AnalysedSyncCollection c : changedFolders) {
 			builder.addResponse(computeSyncState(udr, clientCommands, c));
 		}
+		SyncResponse response = builder.build();
+
 		logger.info("Resp for requestId = {}", continuation.getReqId());
-		return builder.build();
+		summaryLoggerService.logOutgoingSync(response);
+		return response;
 	}
-	
+
 	private SyncCollectionResponse computeSyncState(UserDataRequest udr,
 			SyncClientCommands clientCommands, AnalysedSyncCollection syncCollectionRequest)
 			throws DaoException, CollectionNotFoundException, InvalidServerId,

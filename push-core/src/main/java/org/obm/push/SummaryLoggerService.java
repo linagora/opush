@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,36 +29,52 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.configuration;
+package org.obm.push;
 
+import org.obm.push.bean.AbstractSyncCollection;
+import org.obm.push.bean.Summary;
+import org.obm.push.bean.Sync;
+import org.obm.push.configuration.LoggerModule;
+import org.obm.push.protocol.bean.SyncResponse;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.google.inject.name.Names;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
-public class LoggerModule extends org.obm.configuration.module.LoggerModule {
+@Singleton
+public class SummaryLoggerService {
 
-	public static final String AUTH = "AUTHENTICATION";
-	public static final String TRIMMED_REQUEST = "REQUEST.TRIMMED";
-	public static final String FULL_REQUEST = "REQUEST.FULL";
-	public static final String MAIL_DATA = "MAIL.DATA";
-	public static final String CASSANDRA = "CASSANDRA";
-	public static final String CONTAINER = "CONTAINER";
-	public static final String SUMMARY_IN = "SUMMARY.IN";
-	public static final String SUMMARY_OUT = "SUMMARY.OUT";
-	
-	@Override
-	protected void configure() {
-		super.configure();
-		bind(Logger.class).annotatedWith(Names.named(AUTH)).toInstance(LoggerFactory.getLogger(AUTH));
-		bind(Logger.class).annotatedWith(Names.named(TRIMMED_REQUEST)).toInstance(LoggerFactory.getLogger(TRIMMED_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(FULL_REQUEST)).toInstance(LoggerFactory.getLogger(FULL_REQUEST));
-		bind(Logger.class).annotatedWith(Names.named(MAIL_DATA)).toInstance(LoggerFactory.getLogger(MAIL_DATA));
-		bind(Logger.class).annotatedWith(Names.named(CASSANDRA)).toInstance(LoggerFactory.getLogger(CASSANDRA));
-		bind(Logger.class).annotatedWith(Names.named(CONTAINER)).toInstance(LoggerFactory.getLogger(CONTAINER));
-		bind(Logger.class).annotatedWith(Names.named(SUMMARY_IN)).toInstance(LoggerFactory.getLogger(SUMMARY_IN));
-		bind(Logger.class).annotatedWith(Names.named(SUMMARY_OUT)).toInstance(LoggerFactory.getLogger(SUMMARY_OUT));
+	private final Logger loggerIn;
+	private final Logger loggerOut;
+
+	@Inject
+	@VisibleForTesting SummaryLoggerService(
+			@Named(LoggerModule.SUMMARY_IN) Logger loggerIn,
+			@Named(LoggerModule.SUMMARY_OUT) Logger loggerOut) {
+		this.loggerIn = loggerIn;
+		this.loggerOut = loggerOut;
 	}
-
 	
+	public void logIncomingSync(Sync analyseSync) {
+		logSummary(loggerIn, analyseSync.getCollections());
+	}
+	
+	public void logOutgoingSync(SyncResponse response) {
+		logSummary(loggerOut, response.getCollectionResponses());
+	}
+	
+	private static <TYPE extends AbstractSyncCollection<?>> 
+			void logSummary(Logger logger, Iterable<TYPE> collections) {
+		
+		if (!logger.isInfoEnabled()) {
+			return;
+		}
+		Summary summary = Summary.empty();
+		for (AbstractSyncCollection<?> collection : collections) {
+			summary = summary.merge(collection.getCommands().getSummary());
+		}
+		logger.info(summary.summary());
+	}
 }

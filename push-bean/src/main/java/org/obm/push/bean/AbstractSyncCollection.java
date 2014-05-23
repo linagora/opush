@@ -36,10 +36,10 @@ import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 
 public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>> implements Serializable {
 	
@@ -48,7 +48,7 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>
 	private final int collectionId;
 	private final T commands;
 	
-	protected AbstractSyncCollection(PIMDataType dataType, SyncKey syncKey, int collectionId, T commands) {
+	@VisibleForTesting AbstractSyncCollection(PIMDataType dataType, SyncKey syncKey, int collectionId, T commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;
@@ -79,9 +79,6 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>
 	}
 
 	public List<String> getFetchIds() {
-		if (commands == null) {
-			return ImmutableList.of();
-		}
 		return FluentIterable.from(
 				commands.getCommandsForType(SyncCommand.FETCH))
 				.transform(new Function<SyncCollectionCommand, String>() {

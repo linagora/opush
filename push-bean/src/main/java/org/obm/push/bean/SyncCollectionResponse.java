@@ -103,7 +103,8 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 			checkSyncCollectionCommonElements();
 			boolean moreAvailable = Objects.firstNonNull(this.moreAvailable, false);
 			SyncKey syncKey = Objects.firstNonNull(this.syncKey, SyncKey.INITIAL_FOLDER_SYNC_KEY);
-			return new SyncCollectionResponse(dataType, syncKey, collectionId, status, moreAvailable, responses);
+			SyncCollectionCommandsResponse response = Objects.firstNonNull(this.responses, SyncCollectionCommandsResponse.empty());
+			return new SyncCollectionResponse(dataType, syncKey, collectionId, status, moreAvailable, response);
 		}
 
 	}

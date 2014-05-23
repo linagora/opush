@@ -134,7 +134,8 @@ public class SyncCollectionRequestTest {
 	public void testBuilderCommandsIsNotRequired() {
 		SyncCollectionRequest syncRequestCollection = builderWithRequirement().commands(null).build();
 		
-		assertThat(syncRequestCollection.getCommands()).isNull();
+		assertThat(syncRequestCollection.getCommands())
+			.isEqualTo(SyncCollectionCommandsRequest.empty());
 	}
 
 	@Test
