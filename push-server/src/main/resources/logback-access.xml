@@ -9,7 +9,7 @@
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${logDir:-${defaultLogDir}}/access.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${logDir:-${defaultLogDir}}/access.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+      <fileNamePattern>${logDir:-${defaultLogDir}}/access.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
     </rollingPolicy>
 
     <encoder>
