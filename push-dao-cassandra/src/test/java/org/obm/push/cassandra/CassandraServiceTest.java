@@ -29,56 +29,42 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
-
-import static org.easymock.EasyMock.createMock;
+package org.obm.push.cassandra;
 
 import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.obm.push.cassandra.PublicCassandraService;
-import org.obm.push.cassandra.TestCassandraConfiguration;
+import org.obm.push.cassandra.dao.CassandraSchemaDao;
+import org.obm.push.cassandra.dao.CassandraStructure;
+import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
+import org.obm.push.cassandra.dao.SchemaCQLDataSet;
+import org.obm.push.cassandra.dao.SessionProvider;
 import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.CassandraConfiguration;
-import org.obm.sync.date.DateProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class CassandraSchemaDaoNoTableTest {
+public class CassandraServiceTest {
 
-	private static final String KEYSPACE = "opush";
-	private static final String CQL = "empty.cql";
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet(CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	private static final String KEYSPACE = "my_keyspace";
+	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(CassandraSchemaDao.class);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
-	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoNoTableTest.class);
-	
-	private CassandraSchemaDao schemaDao;
+	private CassandraService testee;
 	
 	@Before
 	public void init() {
-		DateProvider dateProvider = createMock(DateProvider.class);
-
-		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
 		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
-		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
-				new PublicCassandraService(sessionProvider, configuration), dateProvider);
+		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
+		testee = new CassandraService(sessionProvider, configuration);
 	}
 
-	@Test(expected=NoTableException.class)
-	public void getCurrentVersionWhenNoTable() {
-		schemaDao.getCurrentVersion();
+	@Test
+	public void testErrorIfNoTableWhenTable() {
+		testee.errorIfNoTable(CassandraStructure.Schema.TABLE.get());
 	}
 	
 	@Test(expected=NoTableException.class)
-	public void getHistoryWhenNoTable() {
-		schemaDao.getHistory();
-	}
-	
-	@Test(expected=NoTableException.class)
-	public void updateVersionWhenNoTable() {
-		schemaDao.updateVersion(Version.of(5));
+	public void testErrorIfNoTableWhenNoTable() {
+		testee.errorIfNoTable("notExistingTable");
 	}
 }

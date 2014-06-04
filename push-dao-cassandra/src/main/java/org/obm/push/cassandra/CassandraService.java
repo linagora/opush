@@ -35,6 +35,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import org.obm.push.cassandra.exception.NoTableException;
+import org.obm.push.configuration.CassandraConfiguration;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
@@ -47,15 +48,19 @@ import com.google.inject.Singleton;
 public class CassandraService {
 
 	private final Provider<Session> sessionProvider;
+	private final CassandraConfiguration configuration;
 
 	@Inject
-	protected CassandraService(Provider<Session> sessionProvider) {
+	protected CassandraService(
+			Provider<Session> sessionProvider,
+			CassandraConfiguration configuration) {
 		this.sessionProvider = sessionProvider;
+		this.configuration = configuration;
 	}
 	
 	public void errorIfNoTable(String tableName) {
 		Where query = select("columnfamily_name").from("System", "schema_columnfamilies")
-			.where(eq("keyspace_name", "opush"))
+			.where(eq("keyspace_name", configuration.keyspace()))
 			.and(eq("columnfamily_name", tableName));
 		ResultSet resultSet = sessionProvider.get().execute(query);
 		if (resultSet.isExhausted()) {

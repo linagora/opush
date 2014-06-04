@@ -29,56 +29,39 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra;
 
-import static org.easymock.EasyMock.createMock;
+import java.util.Collection;
 
-import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.obm.push.cassandra.PublicCassandraService;
-import org.obm.push.cassandra.TestCassandraConfiguration;
-import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.CassandraConfiguration;
-import org.obm.sync.date.DateProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class CassandraSchemaDaoNoTableTest {
+import com.google.common.collect.ImmutableSet;
 
-	private static final String KEYSPACE = "opush";
-	private static final String CQL = "empty.cql";
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet(CQL, KEYSPACE), "cassandra.yaml", "localhost", 9042);
-	
-	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoNoTableTest.class);
-	
-	private CassandraSchemaDao schemaDao;
-	
-	@Before
-	public void init() {
-		DateProvider dateProvider = createMock(DateProvider.class);
+public class TestCassandraConfiguration implements CassandraConfiguration {
 
-		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
-		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
-		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
-				new PublicCassandraService(sessionProvider, configuration), dateProvider);
+	private final String keyspace;
+
+	public TestCassandraConfiguration(String keyspace) {
+		this.keyspace = keyspace;
 	}
 
-	@Test(expected=NoTableException.class)
-	public void getCurrentVersionWhenNoTable() {
-		schemaDao.getCurrentVersion();
+	@Override
+	public Collection<String> seeds() {
+		return ImmutableSet.of("localhost");
 	}
-	
-	@Test(expected=NoTableException.class)
-	public void getHistoryWhenNoTable() {
-		schemaDao.getHistory();
+
+	@Override
+	public String keyspace() {
+		return keyspace;
 	}
-	
-	@Test(expected=NoTableException.class)
-	public void updateVersionWhenNoTable() {
-		schemaDao.updateVersion(Version.of(5));
+
+	@Override
+	public String user() {
+		return "user";
+	}
+
+	@Override
+	public String password() {
+		return "password";
 	}
 }

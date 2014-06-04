@@ -44,9 +44,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.obm.push.cassandra.PublicCassandraService;
+import org.obm.push.cassandra.TestCassandraConfiguration;
 import org.obm.push.cassandra.exception.NoVersionException;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
+import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,14 +64,17 @@ public class CassandraSchemaDaoTest {
 	protected IMocksControl control;
 	protected DateProvider dateProvider;
 	protected CassandraSchemaDao schemaDao;
+	protected CassandraConfiguration configuration;
 	
 	@Before
 	public void init() {
 		control = createControl();
 		dateProvider = control.createMock(DateProvider.class);
+		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
+		
 		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
 		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
-				new PublicCassandraService(sessionProvider), dateProvider);
+				new PublicCassandraService(sessionProvider, configuration), dateProvider);
 	}
 	
 	@Test(expected=NoVersionException.class)

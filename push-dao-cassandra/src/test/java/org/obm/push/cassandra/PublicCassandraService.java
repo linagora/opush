@@ -31,12 +31,15 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.configuration.CassandraConfiguration;
+
 import com.datastax.driver.core.Session;
 import com.google.inject.Provider;
 
 public class PublicCassandraService extends CassandraService {
 
-	public PublicCassandraService(Provider<Session> session) {
-		super(session);
+	public PublicCassandraService(
+			Provider<Session> session, CassandraConfiguration configuration) {
+		super(session, configuration);
 	}
 }
