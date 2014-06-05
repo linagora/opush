@@ -97,7 +97,9 @@ rpc_address: 192.168.56.1
 ----
 ****
 
-=== Preparing for Opush
+=== Authentication Configuration
+
+==== Configure the Authentication Backend
 
 Authentication in *Cassandra* must be delegated to the password authenticator backend, 
 you have to edit the +cassandra.yaml+ file and check the authenticator backend:
@@ -106,12 +108,48 @@ you have to edit the +cassandra.yaml+ file and check the authenticator backend:
 ----
 authenticator: PasswordAuthenticator
 ----
+Make the change on each node and restart them, that will create the +system_auth+ keyspace on the cluster.
 
+==== Configure the System Users Replication
+
+[WARNING]
+====
+.We advise to replicate the +system_auth+ keyspace on every cluster's node. +
+*Cassandra* uses the +system_auth+ keyspace for storing security authentication and authorization information.
+So if you only have one node, you're already done and you can skip this step.
+====
+
+Connect your *Cassandra* cluster from any node, and change the keyspace configuration *on this node only*. +
+Replace in the following command +CLUSTER_NODE_COUNT+ by the cluster node count.
+
+[source]
+----
+$ cqlsh -u cassandra -p cassandra NODE_RPC_ADDRESS
+cqlsh> ALTER KEYSPACE system_auth WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': CLUSTER_NODE_COUNT};
+----
+
+You can check the new keyspace configuration:
+
+[source]
+----
+cqlsh> DESCRIBE KEYSPACE system_auth ;
+----
+
+Now you have to propagate this change *on every node* with the +nodetool+ binary.
+If your cluster is not in a production context you can run it on every node at the same time.
+Be aware that this command can be long to terminate.
+
+[source]
+----
+$ nodetool repair system_auth
+----
+
+=== Preparing for Opush
 First of all, you have to create a keyspace, this must be done in the +cqlsh+ shell with *Cassandra* administrator:
 
 [source]
 ----
-$ cqlsh -u cassandra -p cassandra CASSANDRA_RPC_ADDRESS
+$ cqlsh -u cassandra -p cassandra NODE_RPC_ADDRESS
 ---- 
 
 A keyspace is created with a data replication configuration, to understand it please read this http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html[page]. +
