@@ -36,11 +36,12 @@ import java.util.Set;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 
 public interface MonitoredCollectionDao {
 	
 	Set<AnalysedSyncCollection> list(Credentials credentials, Device device);
 	
-	void put(Credentials credentials, Device device, Set<AnalysedSyncCollection> collections);
+	void put(User user, Device device, Set<AnalysedSyncCollection> collections);
 
 }

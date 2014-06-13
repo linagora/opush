@@ -31,12 +31,32 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Set;
+
 import org.cassandraunit.CassandraCQLUnit;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
+import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.Credentials;
+import org.obm.push.bean.Device;
+import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.dao.testsuite.MonitoredCollectionDaoTest;
+import org.obm.push.json.JSONService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.Select.Where;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Provider;
 
 public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollectionDaoTest {
 
@@ -45,10 +65,105 @@ public class MonitoredCollectionDaoCassandraImplTest extends MonitoredCollection
 	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
 	
 	private Logger logger = LoggerFactory.getLogger(MonitoredCollectionDaoCassandraImplTest.class);
+	private PublicJSONService jsonService;
+	private SessionProvider sessionProvider;
+	private MonitoredCollectionDaoV1 monitoredCollectionDaoV1;
 	
 	@Before
 	public void init() {
-		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
-		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
+		sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		jsonService = new PublicJSONService();
+		monitoredCollectionDao = new MonitoredCollectionDaoCassandraImpl(sessionProvider, jsonService, logger);
+		monitoredCollectionDaoV1 = new MonitoredCollectionDaoV1(jsonService, sessionProvider);
+	}
+	
+	@Test
+	public void listShouldReturnV1WhenPutDoneByV1UsingCredentials() {
+		Set<AnalysedSyncCollection> collections = buildListCollection(1);
+		monitoredCollectionDaoV1.put(credentials, device, collections);
+		
+		assertThat(monitoredCollectionDao.list(credentials, device))
+			.isEqualTo(collections);
+	}
+	
+	@Test
+	public void listShouldReturnEmptyWhenEmptyPutByV2() {
+		Set<AnalysedSyncCollection> collections = buildListCollection(1);
+		monitoredCollectionDaoV1.put(credentials, device, collections);
+		
+		monitoredCollectionDao.put(user, device, ImmutableSet.<AnalysedSyncCollection>of());
+		
+		assertThat(monitoredCollectionDao.list(credentials, device))
+			.isEmpty();
+	}
+	
+	@Test
+	public void listShouldReturnV2WhenPutDoneByV1AndV2() {
+		Set<AnalysedSyncCollection> collections1 = buildListCollection(1, 2);
+		Set<AnalysedSyncCollection> collections2 = buildListCollection(3, 4);
+		
+		monitoredCollectionDaoV1.put(credentials, device, collections1);
+		monitoredCollectionDao.put(user, device, collections2);
+		
+		assertThat(monitoredCollectionDao.list(credentials, device))
+			.isEqualTo(collections2);
+	}
+	
+	@Test
+	public void listShouldReturnV1WhenPutDoneByBothAndReadByV1() {
+		Set<AnalysedSyncCollection> collections1 = buildListCollection(1, 2);
+		Set<AnalysedSyncCollection> collections2 = buildListCollection(3, 4);
+		
+		monitoredCollectionDaoV1.put(credentials, device, collections1);
+		monitoredCollectionDao.put(user, device, collections2);
+		
+		assertThat(monitoredCollectionDaoV1.list(credentials, device))
+			.isEqualTo(collections1);
+	}
+	
+	@Test
+	public void listShouldReturnV1WhenPutDoneByV2AndReadByV1() {
+		Set<AnalysedSyncCollection> collections = buildListCollection(1, 2);
+		
+		monitoredCollectionDao.put(user, device, collections);
+		
+		assertThat(monitoredCollectionDaoV1.list(credentials, device)).isEmpty();
+	}
+	
+	public static class MonitoredCollectionDaoV1 {
+		
+		private final Logger logger = LoggerFactory.getLogger("DAO V1");
+		private final JSONService jsonService;
+		private final Provider<Session> sessionProvider;
+		
+		public MonitoredCollectionDaoV1(JSONService jsonService, Provider<Session> sessionProvider) {
+			this.jsonService = jsonService;
+			this.sessionProvider = sessionProvider;
+		}
+
+		public Set<AnalysedSyncCollection> list(Credentials credentials, Device device) {
+			Where query = select(V1.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS)
+					.from(V1.MonitoredCollection.TABLE.get())
+					.where(eq(V1.MonitoredCollection.Columns.CREDENTIALS, jsonService.serialize(credentials)))
+					.and(eq(V1.MonitoredCollection.Columns.DEVICE, jsonService.serialize(device)));
+			logger.debug("Getting {}", query.getQueryString());
+			ResultSet resultSet = sessionProvider.get().execute(query);
+			if (resultSet.isExhausted()) {
+				logger.debug("No result found, returning empty set");
+				return ImmutableSet.<AnalysedSyncCollection> of();
+			}
+			Set<String> jsons = resultSet.one().getSet(V1.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS, String.class);
+			logger.debug("Result found {}", jsons);
+			return jsonService.deserializeSet(AnalysedSyncCollection.class, jsons);
+		}
+
+		public void put(Credentials credentials, Device device, Set<AnalysedSyncCollection> collections) {
+			Insert query = insertInto(V1.MonitoredCollection.TABLE.get())
+					.value(V1.MonitoredCollection.Columns.CREDENTIALS, jsonService.serialize(credentials))
+					.value(V1.MonitoredCollection.Columns.DEVICE, jsonService.serialize(device))
+					.value(V1.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS, jsonService.serializeSet(collections));
+			logger.debug("Inserting {}", query.getQueryString());
+			sessionProvider.get().execute(query);
+		}
 	}
 }

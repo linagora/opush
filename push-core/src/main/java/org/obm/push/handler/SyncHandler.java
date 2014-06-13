@@ -248,7 +248,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 		
 		continuation.setLastContinuationHandler(this);
-		monitoredCollectionService.put(udr.getCredentials(), udr.getDevice(), syncRequest.getCollections());
+		monitoredCollectionService.put(udr.getUser(), udr.getDevice(), syncRequest.getCollections());
 		CollectionChangeListener l = new CollectionChangeListener(udr, continuation, syncRequest.getCollections());
 		IListenerRegistration reg = backend.addChangeListener(l);
 		continuation.setListenerRegistration(reg);

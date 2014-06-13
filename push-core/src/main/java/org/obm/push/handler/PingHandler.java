@@ -139,7 +139,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 	}
 
 	private void monitoreCollection(UserDataRequest udr, AnalysedPingRequest pingRequest) {
-		monitoredCollectionDao.put(udr.getCredentials(), udr.getDevice(), pingRequest.getSyncCollections());
+		monitoredCollectionDao.put(udr.getUser(), udr.getDevice(), pingRequest.getSyncCollections());
 	}
 
 	private void startEmailMonitoringThreadIfNeeded(UserDataRequest udr, AnalysedPingRequest pingRequest) 

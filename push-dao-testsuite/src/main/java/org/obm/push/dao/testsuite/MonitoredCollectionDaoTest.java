@@ -59,9 +59,9 @@ public abstract class MonitoredCollectionDaoTest {
 
 	@Inject protected MonitoredCollectionDao monitoredCollectionDao;
 	
-	private User user;
-	private Device device;
-	private Credentials credentials;
+	protected User user;
+	protected Device device;
+	protected Credentials credentials;
 
 	@Before
 	public void setUp() {
@@ -79,22 +79,22 @@ public abstract class MonitoredCollectionDaoTest {
 	@Test
 	public void testListWhenPutWithOtherDevice() {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		monitoredCollectionDao.put(credentials, otherDevice, buildListCollection(1));
+		monitoredCollectionDao.put(user, otherDevice, buildListCollection(1));
 		
 		assertThat(monitoredCollectionDao.list(credentials, device)).isEmpty();
 	}
 	
 	@Test
 	public void testListWhenPutWithOtherCredentials() {
-		Credentials otherCredentials = new Credentials(user, "other");
-		monitoredCollectionDao.put(otherCredentials, device, buildListCollection(1));
+		User otherUser = Factory.create().createUser("login@domain2", "email@domain2", "displayName2");
+		monitoredCollectionDao.put(otherUser, device, buildListCollection(1));
 		
 		assertThat(monitoredCollectionDao.list(credentials, device)).isEmpty();
 	}
 	
 	@Test
 	public void testOnePut() {
-		monitoredCollectionDao.put(credentials, device, buildListCollection(1));
+		monitoredCollectionDao.put(user, device, buildListCollection(1));
 		
 		Collection<AnalysedSyncCollection> syncCollections = monitoredCollectionDao.list(credentials, device);
 		
@@ -104,8 +104,8 @@ public abstract class MonitoredCollectionDaoTest {
 	
 	@Test
 	public void testTwoPut() {
-		monitoredCollectionDao.put(credentials, device, buildListCollection(1));
-		monitoredCollectionDao.put(credentials, device, buildListCollection(2, 3));
+		monitoredCollectionDao.put(user, device, buildListCollection(1));
+		monitoredCollectionDao.put(user, device, buildListCollection(2, 3));
 
 		Collection<AnalysedSyncCollection> syncCollections = monitoredCollectionDao.list(credentials, device);
 		
@@ -114,7 +114,7 @@ public abstract class MonitoredCollectionDaoTest {
 		containsCollectionWithId(syncCollections, 3);
 	}
 	
-	private void containsCollectionWithId(Collection<AnalysedSyncCollection> syncCollections, Integer id) {
+	protected void containsCollectionWithId(Collection<AnalysedSyncCollection> syncCollections, Integer id) {
 		boolean find = false;
 		for(AnalysedSyncCollection col : syncCollections){
 			if(col.getCollectionId() == id){
@@ -124,7 +124,7 @@ public abstract class MonitoredCollectionDaoTest {
 		assertThat(find).isTrue();
 	}
 
-	private Set<AnalysedSyncCollection> buildListCollection(Integer... ids) {
+	protected Set<AnalysedSyncCollection> buildListCollection(Integer... ids) {
 		Set<AnalysedSyncCollection> cols = Sets.newHashSet();
 		for(Integer id : ids){
 			cols.add(AnalysedSyncCollection.builder()

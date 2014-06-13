@@ -36,8 +36,8 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.TABLE;
 import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS;
-import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.Columns.CREDENTIALS;
 import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.Columns.DEVICE;
+import static org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection.Columns.USER;
 
 import java.util.Set;
 
@@ -46,6 +46,7 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
 import org.obm.push.store.MonitoredCollectionDao;
@@ -56,6 +57,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -74,24 +76,48 @@ public class MonitoredCollectionDaoCassandraImpl extends AbstractCassandraDao im
 
 	@Override
 	public Set<AnalysedSyncCollection> list(Credentials credentials, Device device) {
+		Optional<Set<AnalysedSyncCollection>> result = listV2(credentials.getUser(), device);
+		if (result.isPresent()) {
+			return result.get();
+		}
+		return listV1(credentials, device);
+	}
+
+	private Optional<Set<AnalysedSyncCollection>> listV2(User user, Device device) {
 		Where query = select(ANALYSED_SYNC_COLLECTIONS).from(TABLE.get())
-				.where(eq(CREDENTIALS, jsonService.serialize(credentials)))
+				.where(eq(USER, user.getLoginAtDomain()))
 				.and(eq(DEVICE, jsonService.serialize(device)));
+		logger.debug("Getting {}", query.getQueryString());
+		ResultSet resultSet = getSession().execute(query);
+		if (resultSet.isExhausted()) {
+			logger.debug("No result found, returning empty set");
+			return Optional.absent();
+		}
+		Set<String> jsons = resultSet.one().getSet(ANALYSED_SYNC_COLLECTIONS, String.class);
+		logger.debug("Result found {}", jsons);
+		return Optional.of(jsonService.deserializeSet(AnalysedSyncCollection.class, jsons));
+	}
+
+	private Set<AnalysedSyncCollection> listV1(Credentials credentials, Device device) {
+		Where query = select(V1.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS)
+				.from(V1.MonitoredCollection.TABLE.get())
+				.where(eq(V1.MonitoredCollection.Columns.CREDENTIALS, jsonService.serialize(credentials)))
+				.and(eq(V1.MonitoredCollection.Columns.DEVICE, jsonService.serialize(device)));
 		logger.debug("Getting {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {
 			logger.debug("No result found, returning empty set");
 			return ImmutableSet.<AnalysedSyncCollection> of();
 		}
-		Set<String> jsons = resultSet.one().getSet(ANALYSED_SYNC_COLLECTIONS, String.class);
+		Set<String> jsons = resultSet.one().getSet(V1.MonitoredCollection.Columns.ANALYSED_SYNC_COLLECTIONS, String.class);
 		logger.debug("Result found {}", jsons);
 		return jsonService.deserializeSet(AnalysedSyncCollection.class, jsons);
 	}
 
 	@Override
-	public void put(Credentials credentials, Device device, Set<AnalysedSyncCollection> collections) {
+	public void put(User user, Device device, Set<AnalysedSyncCollection> collections) {
 		Insert query = insertInto(TABLE.get())
-				.value(CREDENTIALS, jsonService.serialize(credentials))
+				.value(USER, user.getLoginAtDomain())
 				.value(DEVICE, jsonService.serialize(device))
 				.value(ANALYSED_SYNC_COLLECTIONS, jsonService.serializeSet(collections));
 		logger.debug("Inserting {}", query.getQueryString());

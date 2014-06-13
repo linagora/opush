@@ -72,7 +72,7 @@ public class OpushCassandraModule extends AbstractModule {
 	public static final String LATEST_SCHEMA_VERSION_NAME = "latestSchemaVersion";
 	
 	public static final DaoTables TABLES_OF_DAO = DaoTables.builder()
-		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE)
+		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE, V1.MonitoredCollection.TABLE)
 		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
 		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE, V1.SyncedCollection.TABLE)
 		.put(WindowingDaoCassandraImpl.class, WindowingIndex.TABLE, Windowing.TABLE)

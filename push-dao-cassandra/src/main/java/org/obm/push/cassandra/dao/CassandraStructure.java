@@ -58,11 +58,11 @@ public interface CassandraStructure {
 	}
 	
 	interface MonitoredCollection {
-		Table TABLE = Table.of("monitored_collection");
-		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE };
+		Table TABLE = Table.of("monitored_collection_v2");
+		String[] PK = { Columns.USER, Columns.DEVICE };
 		
 		interface Columns {
-			String CREDENTIALS = "credentials";
+			String USER = "user";
 			String DEVICE = "device";
 			String ANALYSED_SYNC_COLLECTIONS = "analysed_sync_collections";
 		}
@@ -131,5 +131,15 @@ public interface CassandraStructure {
 			}
 		}
 		
+		interface MonitoredCollection {
+			Table TABLE = Table.of("monitored_collection");
+			String[] PK = { Columns.CREDENTIALS, Columns.DEVICE };
+			
+			interface Columns {
+				String CREDENTIALS = "credentials";
+				String DEVICE = "device";
+				String ANALYSED_SYNC_COLLECTIONS = "analysed_sync_collections";
+			}
+		}
 	}
 }
