@@ -148,7 +148,7 @@ public class SyncAnalyserTest {
 		AnalysedSyncCollection requestSyncCollectionToStore = buildRequestCollectionWithOptions(requestOptionsToStore, "0");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, requestSyncCollectionToStore);
+		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
 		mocks.replay();
@@ -173,7 +173,7 @@ public class SyncAnalyserTest {
 		AnalysedSyncCollection requestSyncCollectionToStore = buildRequestCollectionWithOptions(requestOptionsToStore, "0");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, requestSyncCollectionToStore);
+		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
 		mocks.replay();
@@ -198,7 +198,7 @@ public class SyncAnalyserTest {
 		Document requestWithoutOptions = buildRequestWithoutOptions("156");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, toStoreSyncCollection);
+		syncedCollectionDao.put(udr.getUser(), device, toStoreSyncCollection);
 		expectLastCall().once();
 		
 		mocks.replay();
@@ -252,11 +252,11 @@ public class SyncAnalyserTest {
 		AnalysedSyncCollection secondSyncCollectionToStore = buildRequestCollectionWithOptions(firstRequestOptionsToStore, "156");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, firstSyncCollectionToStore);
+		syncedCollectionDao.put(udr.getUser(), device, firstSyncCollectionToStore);
 		expectLastCall().once();
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(firstSyncCollectionToStore).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, secondSyncCollectionToStore);
+		syncedCollectionDao.put(udr.getUser(), device, secondSyncCollectionToStore);
 		expectLastCall().once();
 		
 		mocks.replay();
@@ -304,7 +304,7 @@ public class SyncAnalyserTest {
 				"</Options>");
 
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, syncCollection);
+		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
 		mocks.replay();
@@ -341,7 +341,7 @@ public class SyncAnalyserTest {
 				.build();
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, syncCollection);
+		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
 		Document firstRequest = buildRequestWithOptions("0",
@@ -388,7 +388,7 @@ public class SyncAnalyserTest {
 					"</Sync>");
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		syncedCollectionDao.put(udr.getCredentials(), device, syncCollection);
+		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
 		mocks.replay();

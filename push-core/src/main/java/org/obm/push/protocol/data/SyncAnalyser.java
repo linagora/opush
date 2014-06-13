@@ -116,7 +116,7 @@ public class SyncAnalyser {
 			builder.commands(analyseCommands(collectionRequest.getCommands(), dataType));
 			
 			AnalysedSyncCollection analysed = builder.build();
-			syncedCollectionStoreService.put(udr.getCredentials(), udr.getDevice(), analysed);
+			syncedCollectionStoreService.put(udr.getUser(), udr.getDevice(), analysed);
 			return analysed;
 		} catch (CollectionNotFoundException e) {
 			return builder.status(SyncStatus.OBJECT_NOT_FOUND).build();

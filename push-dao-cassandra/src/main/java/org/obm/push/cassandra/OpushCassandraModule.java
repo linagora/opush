@@ -38,6 +38,7 @@ import org.obm.push.cassandra.dao.CassandraStructure.Schema;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable;
 import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
+import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
@@ -65,15 +66,15 @@ import com.google.inject.name.Names;
 
 public class OpushCassandraModule extends AbstractModule {
 
-	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(1);
-	public static final Version LATEST_SCHEMA_VERSION = Version.of(1);
+	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(2);
+	public static final Version LATEST_SCHEMA_VERSION = Version.of(2);
 	public static final String MINIMAL_SCHEMA_VERSION_NAME = "minimalSchemaVersion";
 	public static final String LATEST_SCHEMA_VERSION_NAME = "latestSchemaVersion";
 	
 	public static final DaoTables TABLES_OF_DAO = DaoTables.builder()
 		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE)
 		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
-		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE)
+		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE, V1.SyncedCollection.TABLE)
 		.put(WindowingDaoCassandraImpl.class, WindowingIndex.TABLE, Windowing.TABLE)
 		.put(CassandraSchemaDao.class, Schema.TABLE)
 		.build();

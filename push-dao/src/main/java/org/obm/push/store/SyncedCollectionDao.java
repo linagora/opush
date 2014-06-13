@@ -34,10 +34,11 @@ package org.obm.push.store;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 
 public interface SyncedCollectionDao {
 	
 	AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId);
 	
-	void put(Credentials credentials, Device device, AnalysedSyncCollection collection);
+	void put(User user, Device device, AnalysedSyncCollection collection);
 }

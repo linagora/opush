@@ -54,9 +54,9 @@ public abstract class SyncedCollectionDaoTest {
 
 	protected SyncedCollectionDao syncedCollectionDao;
 	
-	private User user;
-	private Device device;
-	private Credentials credentials;
+	protected User user;
+	protected Device device;
+	protected Credentials credentials;
 
 	@Before
 	public void setUp() {
@@ -74,22 +74,22 @@ public abstract class SyncedCollectionDaoTest {
 	@Test
 	public void testGetWhenPutWithOtherDevice() {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		syncedCollectionDao.put(credentials, otherDevice, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user, otherDevice, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
 		
 		assertThat(syncedCollectionDao.get(credentials, device, 1)).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPutWithOtherCredentials() {
-		Credentials otherCredentials = new Credentials(user, "other");
-		syncedCollectionDao.put(otherCredentials, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		User user2 = Factory.create().createUser("login@domain2", "email@domain2", "displayName2");
+		syncedCollectionDao.put(user2, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
 
 		assertThat(syncedCollectionDao.get(credentials, device, 1)).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPut() {
-		syncedCollectionDao.put(credentials, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
 		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, 1);
 		assertThat(syncCollection).isNotNull();
 		assertThat(syncCollection.getCollectionId()).isEqualTo(1);
@@ -99,9 +99,9 @@ public abstract class SyncedCollectionDaoTest {
 	public void testGetWhenOverridingPut() {
 		SyncKey expectedSyncKey = new SyncKey("123");
 		AnalysedSyncCollection col = buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY);
-		syncedCollectionDao.put(credentials, device, col);
+		syncedCollectionDao.put(user, device, col);
 		col = buildCollection(1, expectedSyncKey);
-		syncedCollectionDao.put(credentials, device, col);
+		syncedCollectionDao.put(user, device, col);
 		
 		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, 1);
 		assertThat(syncCollection).isNotNull();
@@ -109,7 +109,7 @@ public abstract class SyncedCollectionDaoTest {
 		assertThat(syncCollection.getSyncKey()).isEqualTo(expectedSyncKey);
 	}
 
-	private AnalysedSyncCollection buildCollection(Integer id, SyncKey syncKey) {
+	protected AnalysedSyncCollection buildCollection(Integer id, SyncKey syncKey) {
 		return AnalysedSyncCollection.builder()
 				.collectionId(id)
 				.syncKey(syncKey)

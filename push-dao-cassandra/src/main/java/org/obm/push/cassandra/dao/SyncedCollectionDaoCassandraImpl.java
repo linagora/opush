@@ -37,14 +37,15 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.TABLE;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.COLLECTION_ID;
-import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.CREDENTIALS;
 import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.DEVICE;
+import static org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection.Columns.USER;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.User;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
 import org.obm.push.store.SyncedCollectionDao;
@@ -71,9 +72,9 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 	}
 
 	@Override
-	public void put(Credentials credentials, Device device, AnalysedSyncCollection collection) {
+	public void put(User user, Device device, AnalysedSyncCollection collection) {
 		Insert query = insertInto(TABLE.get())
-				.value(CREDENTIALS, jsonService.serialize(credentials))
+				.value(USER, user.getLoginAtDomain())
 				.value(DEVICE, jsonService.serialize(device))
 				.value(COLLECTION_ID, collection.getCollectionId())
 				.value(ANALYSED_SYNC_COLLECTION, jsonService.serialize(collection));
@@ -83,8 +84,16 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 	
 	@Override
 	public AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId) {
+		AnalysedSyncCollection result = getV2(credentials.getUser(), device, collectionId);
+		if (result != null) {
+			return result;
+		}
+		return getV1(credentials, device, collectionId);
+	}
+	
+	private AnalysedSyncCollection getV2(User user, Device device, Integer collectionId) {
 		Where query = select(ANALYSED_SYNC_COLLECTION).from(TABLE.get())
-				.where(eq(CREDENTIALS, jsonService.serialize(credentials)))
+				.where(eq(USER, user.getLoginAtDomain()))
 				.and(eq(DEVICE, jsonService.serialize(device)))
 				.and(eq(COLLECTION_ID, collectionId));
 		logger.debug("Getting {}", query.getQueryString());
@@ -94,6 +103,23 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 			return null;
 		}
 		String json = resultSet.one().getString(ANALYSED_SYNC_COLLECTION);
+		logger.debug("Result found {}", json);
+		return jsonService.deserialize(AnalysedSyncCollection.class, json);
+	}
+
+	private AnalysedSyncCollection getV1(Credentials credentials, Device device, Integer collectionId) {
+		Where query = select(V1.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION)
+				.from(V1.SyncedCollection.TABLE.get())
+				.where(eq(V1.SyncedCollection.Columns.CREDENTIALS, jsonService.serialize(credentials)))
+				.and(eq(V1.SyncedCollection.Columns.DEVICE, jsonService.serialize(device)))
+				.and(eq(V1.SyncedCollection.Columns.COLLECTION_ID, collectionId));
+		logger.debug("Getting {}", query.getQueryString());
+		ResultSet resultSet = getSession().execute(query);
+		if (resultSet.isExhausted()) {
+			logger.debug("No result found, returning null");
+			return null;
+		}
+		String json = resultSet.one().getString(V1.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION);
 		logger.debug("Result found {}", json);
 		return jsonService.deserialize(AnalysedSyncCollection.class, json);
 	}

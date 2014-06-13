@@ -46,11 +46,11 @@ public interface CassandraStructure {
 	}
 
 	interface SyncedCollection {
-		Table TABLE = Table.of("synced_collection");
-		String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 
+		Table TABLE = Table.of("synced_collection_v2");
+		String[] PK = { Columns.USER, Columns.DEVICE, Columns.COLLECTION_ID }; 
 		
 		interface Columns {
-			String CREDENTIALS = "credentials";
+			String USER = "user";
 			String DEVICE = "device";
 			String COLLECTION_ID = "collection_id";
 			String ANALYSED_SYNC_COLLECTION = "analysed_sync_collection";
@@ -115,5 +115,21 @@ public interface CassandraStructure {
 			String SYNC_KEY = "sync_key";
 			String SNAPSHOT_ID = "snapshot_id";
 		}
+	}
+	
+	interface V1 {
+
+		interface SyncedCollection {
+			Table TABLE = Table.of("synced_collection");
+			String[] PK = { Columns.CREDENTIALS, Columns.DEVICE, Columns.COLLECTION_ID }; 
+			
+			interface Columns {
+				String CREDENTIALS = "credentials";
+				String DEVICE = "device";
+				String COLLECTION_ID = "collection_id";
+				String ANALYSED_SYNC_COLLECTION = "analysed_sync_collection";
+			}
+		}
+		
 	}
 }
