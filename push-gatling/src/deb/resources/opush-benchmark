@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ -z "$JAVA_HOME" ]; then
-	JAVA_HOME="/usr/lib/jvm/java-7-openjdk-"`dpkg --print-architecture`
-fi
-
-JAVA_BIN="$JAVA_HOME/bin/java"
-
-$JAVA_BIN -jar /usr/share/opush-benchmark/opush-benchmark.jar "$@"
