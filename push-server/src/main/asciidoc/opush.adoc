@@ -45,7 +45,7 @@ However, there's a limited list of officially supported devices:
 |Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Motorola (Android 4.4.2)	|Moto G		|[green]#YES# http://ci-obm.linagora.com/jira/browse/OP-53[(no creation)]	|[green]#YES#	|[green]#YES#	
+|Motorola (Android 4.4.2)	|Moto G		|[red]#NO# http://ci-obm.linagora.com/jira/browse/OP-53[OP-53]	|[green]#YES#	|[green]#YES#	
 |Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |===============================================================================
 
