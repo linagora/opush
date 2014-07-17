@@ -36,6 +36,8 @@ import org.obm.push.configuration.CassandraConfiguration;
 import org.slf4j.Logger;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.annotations.VisibleForTesting;
@@ -68,6 +70,8 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 					return Cluster.builder()
 							.addContactPoints(Iterables.toArray(cassandraConfiguration.seeds(), String.class))
 							.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
+							.withQueryOptions(new QueryOptions()
+								.setConsistencyLevel(ConsistencyLevel.QUORUM))
 							.build()
 							.connect(cassandraConfiguration.keyspace());
 				} catch (NoHostAvailableException e) {

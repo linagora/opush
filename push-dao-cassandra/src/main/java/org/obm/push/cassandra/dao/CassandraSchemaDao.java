@@ -54,11 +54,9 @@ import org.obm.push.json.JSONService;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 
-import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.annotations.VisibleForTesting;
@@ -96,7 +94,7 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 				.orderBy(desc(VERSION));
 		logger.debug("perform getCurrentVersion request {}", query.getQueryString());
 		
-		ResultSet resultSet = executeWithQuorum(query);
+		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {
 			throw new NoVersionException();
 		}
@@ -114,7 +112,7 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 		logger.debug("perform getHistory request {}", query.getQueryString());
 		
 		ImmutableList.Builder<VersionUpdate> historyBuilder = ImmutableList.builder();
-		Iterator<Row> results = executeWithQuorum(query).iterator();
+		Iterator<Row> results = getSession().execute(query).iterator();
 		while (results.hasNext()) {
 			historyBuilder.add(rowToSchemaUpdate(results.next()));
 		}
@@ -128,14 +126,9 @@ public class CassandraSchemaDao extends AbstractCassandraDao implements Cassandr
 				.value(VERSION, target.get())
 				.value(DATE, dateProvider.getDate());
 		logger.debug("perform updateVersion request {}", query.getQueryString());
-		executeWithQuorum(query);
+		getSession().execute(query);
 	}
 
-	private ResultSet executeWithQuorum(Statement statement) {
-		statement.setConsistencyLevel(ConsistencyLevel.QUORUM);
-		return getSession().execute(statement);
-	}
-	
 	private VersionUpdate rowToSchemaUpdate(Row schemaUpdateRow) {
 		return VersionUpdate
 				.version(Version.of(schemaUpdateRow.getInt(VERSION)))
