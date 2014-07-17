@@ -111,7 +111,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	@Override
-	public <T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey newSyncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize) {
+	public <T extends WindowingItem> void pushPendingChanges(WindowingKey key, WindowingChanges<T> changes, PIMDataType kind, int windowSize) {
 		insertNewIndex(key, key.getSyncKey(), insertWindowingChanges(changes), kind, STARTING_WINDOWING_INDEX);
 	}
 

@@ -113,7 +113,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 					.moreAvailable(false)
 					.build();
 		} else {
-			windowingDao.pushPendingChanges(key, newSyncKey, windowingChanges, PIMDataType.CALENDAR, collection.getWindowSize());
+			windowingDao.pushPendingChanges(key, windowingChanges, PIMDataType.CALENDAR, collection.getWindowSize());
 			return continueWindowing(collection, key, newSyncKey, lastSync);
 		}
 	}

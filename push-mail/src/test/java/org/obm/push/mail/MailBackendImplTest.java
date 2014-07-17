@@ -591,7 +591,7 @@ public class MailBackendImplTest {
 		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, previousSnapshot, previousEmails, actualEmails, allChanges, syncDataDate, syncState);
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmails);
-		windowingDao.pushPendingChanges(windowingKey, newSyncKey, allChanges, PIMDataType.EMAIL, windowSize);
+		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL, windowSize);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		

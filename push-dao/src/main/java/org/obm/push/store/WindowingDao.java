@@ -42,7 +42,7 @@ public interface WindowingDao {
 
 	<T extends WindowingItem> WindowingChangesBuilder<T> popNextChanges(WindowingKey key, int maxSize, SyncKey newSyncKey, WindowingChangesBuilder<T> changesBuilder);
 	
-	<T extends WindowingItem> void pushPendingChanges(WindowingKey key, SyncKey syncKey, WindowingChanges<T> changes, PIMDataType kind, int windowSize);
+	<T extends WindowingItem> void pushPendingChanges(WindowingKey key, WindowingChanges<T> changes, PIMDataType kind, int windowSize);
 
 	boolean hasPendingChanges(WindowingKey key);
 

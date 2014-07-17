@@ -349,7 +349,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		if (collection.getWindowSize() >= syncData.getEmailChanges().sumOfChanges()) {
 			return fetchChanges(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey, syncData.getEmailChanges());
 		} else {
-			windowingDao.pushPendingChanges(key, newSyncKey, syncData.getEmailChanges(), PIMDataType.EMAIL, collection.getWindowSize());
+			windowingDao.pushPendingChanges(key, syncData.getEmailChanges(), PIMDataType.EMAIL, collection.getWindowSize());
 			return continueWindowing(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey);
 		}
 	}
