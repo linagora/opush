@@ -378,6 +378,9 @@ You can use the following logger modules:
 	with sensitive data
 * +REQUEST.TRIMMED+ for requests and responses from and to the server,
 	without sensitive data
+* +SUMMARY.IN+ for a summary of changes contained in an incoming request from the server point of view
+* +SUMMARY.OUT+ for a summary of changes contained in an outgoing request from the server point of view
+
 
 === +BREAKDOWN+ Logs
 
@@ -410,3 +413,20 @@ There are few fundamental rules that can be considered for better performance an
 * Duration of a category is always the sum of its children
 * A branch of the tree can only have one occurrence of each category
 * Children of a category are ordered by descending duration except for the +OTHER+ entry that is always the last
+
+=== +SUMMARY.*+ Logs
+
+A summary log looks like this :
+
+[source]
+----
+11:46:03.976 [INFO ] {SUMMARY.OUT} [t106/cSync/r164/user@domain] CHANGE: 10, DELETE: 2, FETCH: 0
+----
+
+The three fields are always present even when the actual value is 0.
+
+* +CHANGE+ counts the added or changed objects
+* +DELETE+ counts the removed objects
+* +FETCH+ counts the retrieved objects
+
+This log is written for every request that retrieve or modify some data.
