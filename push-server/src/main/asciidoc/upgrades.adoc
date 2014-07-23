@@ -6,6 +6,7 @@
 [width="80%",cols="0,1",options="header"]
 |=====================================
 |*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-63[OP-63]|QUORUM is our default ConsistencyLevel
 |http://ci-obm.linagora.com/jira/browse/OP-61[OP-61]|Use latest OBM libs as dependencies
 |http://ci-obm.linagora.com/jira/browse/OP-59[OP-59]|Remove gatling stuff from sources
 |http://ci-obm.linagora.com/jira/browse/OP-56[OP-56]|Opush 3.0 stores plain password in database
