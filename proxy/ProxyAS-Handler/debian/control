@@ -1,0 +1,12 @@
+Source: libproxyas-handler-perl
+Section: perl
+Priority: extra
+Maintainer: Clement Oudot <coudot@linagora.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: libproxyas-handler-perl
+Depends: apache2, libapache2-mod-perl2, libnet-ldap-perl, libfile-cache-perl, libwww-perl, perl-modules, libcrypt-ssleay-perl
+Architecture: all
+Description: ActiveSync mod_perl Proxy
+

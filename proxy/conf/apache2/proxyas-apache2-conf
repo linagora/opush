@@ -1,0 +1,46 @@
+<IfModule mod_ssl.c>
+#====================================================================
+# Apache configuration for ProxyAS::Handler
+#====================================================================
+
+# Sample application
+<VirtualHost *:443>
+    ServerName proxyas.__domain_name__
+
+    # ProxyAS activation and configuration
+    PerlModule ProxyAS::HandlerLinagora
+    SetHandler perl-script
+    PerlHandler ProxyAS::HandlerLinagora
+
+    PerlSetVar ProxyASPrimaryServer __hostname_or_ip_address__
+    PerlSetVar ProxyASPrimaryServerPort __port__
+    PerlSetVar ProxyASSecondaryServer __hostname_or_ip_address__
+    PerlSetVar ProxyASSecondaryServerPort __port__
+    PerlAddVar ProxyASSecondaryServerUser __login1__
+    PerlAddVar ProxyASSecondaryServerUser __login2__
+    PertSetVar ProxyASPathToRemove __path__
+    PertSetVar ProxyASPathToAdd __path__
+    PerlSetVar PositiveTTL __number_of_seconds__
+	# PerlSetVar PositiveTTL 86400 [ Optional, default : 86400 seconds ]
+    PerlSetVar NegativeTTL __number_of_seconds__
+	# PerlSetVar NegativeTTL 3600 [ Optional, default : 3600 seconds ]
+    PerlSetVar ProxyASHTTPS __flag__
+        # PerlSetVar ProxyASHTTPS 1 [ Optional, default : 0 ]
+    SetEnv HTTPS_CA_FILE __path_to_cacert__
+        #  SetEnv HTTPS_CA_FILE /usr/local/proxyas/cacert.pem [ MANDATORY if ProxyASHTTPS is set ]
+    SetEnv PERL_LWP_SSL_VERIFY_HOSTNAME __flag__
+        # SetEnv PERL_LWP_SSL_VERIFY_HOSTNAME 0 [ Optional, default : 1 ]
+
+    # Activate SSL Support
+    SSLEngine on
+    SSLSessionCacheTimeout 600 
+    SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+
+    ErrorLog ${APACHE_LOG_DIR}/proxyas/error.log
+    # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+    LogLevel debug
+    CustomLog ${APACHE_LOG_DIR}/proxyas/access.log combined
+    
+</VirtualHost>
+</IfModule>

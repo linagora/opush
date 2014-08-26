@@ -1,0 +1,13 @@
+libproxyas-handler-perl (0.2) stable; urgency=medium
+
+  * Release a more generic version
+
+ -- Matthieu Baechler <mbaechler@linagora.com>  Tue, 26 Aug 2014 16:25:01 +0200
+
+libproxyas-handler-perl (0.1) stable; urgency=low
+
+  First release for Linagora
+
+ -- Clement Oudot <coudot@linagora.com>  Fri, 08 Nov 2013 18:50:11 +0200
+
+
