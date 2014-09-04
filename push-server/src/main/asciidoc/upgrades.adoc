@@ -8,15 +8,11 @@
 |*Key*|*Summary*
 |http://ci-obm.linagora.com/jira/browse/OP-63[OP-63]|QUORUM is our default ConsistencyLevel
 |http://ci-obm.linagora.com/jira/browse/OP-61[OP-61]|Use latest OBM libs as dependencies
-|http://ci-obm.linagora.com/jira/browse/OP-59[OP-59]|Remove gatling stuff from sources
 |http://ci-obm.linagora.com/jira/browse/OP-56[OP-56]|Opush 3.0 stores plain password in database
-|http://ci-obm.linagora.com/jira/browse/OP-52[OP-52]|Advice on the replication factor on the system_auth keyspace 
-|http://ci-obm.linagora.com/jira/browse/OP-49[OP-49]|Advise a replication factor of 3 on a cluster of three nodes
 |http://ci-obm.linagora.com/jira/browse/OP-48[OP-48]|Log a summary of changes done by each active-sync request
 |http://ci-obm.linagora.com/jira/browse/OP-44[OP-44]|Reduce the number of thread jetty use during tests
 |http://ci-obm.linagora.com/jira/browse/OP-40[OP-40]|Access log files should be gz compressed as other logs
 |http://ci-obm.linagora.com/jira/browse/OP-35[OP-35]|Support any keyspace name
-|http://ci-obm.linagora.com/jira/browse/OP-32[OP-32]|Link to apache cassandra documentation instead of datastax
 |=====================================
 
 .Make the upgrade
