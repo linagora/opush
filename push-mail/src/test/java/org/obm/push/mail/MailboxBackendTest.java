@@ -147,8 +147,8 @@ public class MailboxBackendTest {
 				null, mappingService, msEmailFetcher, null, null, null, windowingDao, smtpSender, emailConfiguration);
 	}
 	
-	@Test(expected=ItemNotFoundException.class)
-	public void testFetchWithFailure() throws Exception {
+	@Test
+	public void fetchShouldQuietlyIgnoreMissingEmail() throws Exception {
 		long itemId = 2;
 		int collectionId = 1;
 		String serverId = collectionId + ":" + itemId;
@@ -162,12 +162,10 @@ public class MailboxBackendTest {
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		
 		mocks.replay();
-		try {
-			mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions);
-		} catch (ItemNotFoundException e) {
-			mocks.verify();
-			throw e;
-		}
+		List<ItemChange> items = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions);
+		mocks.verify();
+		
+		assertThat(items).isEmpty();
 	}
 
 	@Test

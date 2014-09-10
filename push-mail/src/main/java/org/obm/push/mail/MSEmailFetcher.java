@@ -41,6 +41,7 @@ import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
+import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.mail.conversation.EmailView;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.slf4j.Logger;
@@ -81,6 +82,8 @@ public class MSEmailFetcher {
 				msEmails.add(msEmailConverter.convert(emailView, udr));
 			} catch (EmailViewBuildException e) {
 				logger.error(e.getMessage(), e);
+			} catch (ItemNotFoundException e) {
+				logger.info(e.getMessage());
 			}
 		}
 		return msEmails;

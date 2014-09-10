@@ -643,6 +643,7 @@ public class MailBackendGetChangedTest {
 	
 	@Test
 	public void windowingShouldSupportItemDeletion() throws Exception {
+		String emailId2 = ":2";
 		String emailId3 = ":3";
 		String emailId4 = ":4";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
@@ -651,6 +652,7 @@ public class MailBackendGetChangedTest {
 		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
+		int newAllocatedStateId = 5;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
@@ -666,14 +668,22 @@ public class MailBackendGetChangedTest {
 				.syncKey(secondAllocatedSyncKey)
 				.id(allocatedStateId2)
 				.build();
+		ItemSyncState newAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:17:26Z"))
+				.syncKey(newAllocatedSyncKey)
+				.id(newAllocatedStateId)
+				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKey)).andReturn(secondAllocatedState).times(2);
+		expect(collectionDao.updateState(user.device, inboxCollectionId, newAllocatedSyncKey, secondAllocatedState.getSyncDate()))
+			.andReturn(newAllocatedState);
 
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId + emailId3))).andReturn(false);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId + emailId4))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, new ServerId(inboxCollectionId + emailId2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -691,7 +701,15 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 3);
-		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.CONVERSATION_ERROR_OR_INVALID_ITEM);
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
+		assertThat(inboxResponse.getItemChangesDeletion()).isEmpty();
+		assertEqualsWithoutApplicationData(inboxResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(inboxCollectionIdAsString + emailId2)
+						.isNew(true)
+						.build()));
 	}
 	
 	@Test(expected=AssertionError.class)

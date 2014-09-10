@@ -101,15 +101,15 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 		
 		final Map<Long, UidMSEmail> uidToMSEmailMap = fetchMSEmails(udr, collectionId, collectionPath, bodyPreferences, additions); 
 		return FluentIterable
-				.from(additions)
-				.transform(new Function<Email, ItemChange>() {
+				.from(uidToMSEmailMap.keySet())
+				.transform(new Function<Long, ItemChange>() {
 
 					@Override
-					public ItemChange apply(Email email) {
+					public ItemChange apply(Long uid) {
 						
 						return ItemChange.builder()
-								.serverId(ServerId.buildServerIdString(collectionId, email.getUid()))
-								.data(uidToMSEmailMap.get(email.getUid()))
+								.serverId(ServerId.buildServerIdString(collectionId, uid))
+								.data(uidToMSEmailMap.get(uid))
 								.isNew(true)
 								.build();
 					}}
