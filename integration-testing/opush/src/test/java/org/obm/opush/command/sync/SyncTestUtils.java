@@ -77,7 +77,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 
-public class EmailSyncTestUtils {
+public class SyncTestUtils {
 	
 	public static void checkMailFolderHasNoChange(SyncResponse response, String serverId) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);

@@ -38,8 +38,8 @@ import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationTestUtils.expectSyncState;
 import static org.obm.opush.IntegrationTestUtils.expectUserCollectionsNeverChange;
 import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-import static org.obm.opush.command.sync.EmailSyncTestUtils.mockCollectionDaoForEmailSync;
-import static org.obm.opush.command.sync.EmailSyncTestUtils.mockItemTrackingDao;
+import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoForEmailSync;
+import static org.obm.opush.command.sync.SyncTestUtils.mockItemTrackingDao;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,7 +59,7 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.opush.Users;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.command.sync.EmailSyncTestUtils;
+import org.obm.opush.command.sync.SyncTestUtils;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
@@ -174,7 +174,7 @@ public class GetItemEstimateHandlerTest {
 		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
 
 		DataDelta delta = DataDelta.builder().syncDate(new Date()).syncKey(syncKey).build();
-		EmailSyncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, Arrays.asList(users.jaures), classToInstanceMap);
+		SyncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, Arrays.asList(users.jaures), classToInstanceMap);
 		mocksControl.replay();
 		opushServer.start();
 	}

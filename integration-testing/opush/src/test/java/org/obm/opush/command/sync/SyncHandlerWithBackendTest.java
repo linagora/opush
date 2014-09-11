@@ -42,8 +42,8 @@ import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
 import static org.obm.opush.IntegrationTestUtils.appendToINBOX;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-import static org.obm.opush.command.sync.EmailSyncTestUtils.assertEqualsWithoutApplicationData;
-import static org.obm.opush.command.sync.EmailSyncTestUtils.getCollectionWithId;
+import static org.obm.opush.command.sync.SyncTestUtils.assertEqualsWithoutApplicationData;
+import static org.obm.opush.command.sync.SyncTestUtils.getCollectionWithId;
 
 import java.util.Arrays;
 import java.util.Calendar;
