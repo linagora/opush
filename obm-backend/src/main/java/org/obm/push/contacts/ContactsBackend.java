@@ -374,43 +374,43 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ItemNotFoundException, NoPermissionException {
 
 		MSContact contact = (MSContact) data;
-		Integer contactId = mappingService.getItemIdFromServerId(serverId);
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		try {
 
-			if (serverId != null) {
-				Contact convertedContact = contactConverter.contact(contact);
-				convertedContact.setUid(contactId);
-				modifyContact(udr, addressBookId, convertedContact);
-			} else {
-				Contact createdContact = createContact(udr, addressBookId, contactConverter.contact(contact), clientId);
-				contactId = createdContact.getUid();
-			}
-
+			Contact storedContact = storeContact(udr, addressBookId, 
+					convertContact(serverId, contact), 
+					hashClientId(udr, clientId));
+			
+			return mappingService.getServerIdFor(collectionId, String.valueOf(storedContact.getUid()));
 		} catch (ContactNotFoundException e) {
 			throw new ItemNotFoundException(e);
 		}
 		
-		return mappingService.getServerIdFor(collectionId, String.valueOf(contactId));
 	}
 
-	private Contact modifyContact(UserDataRequest udr, Integer addressBookId, Contact contact) 
+	private Contact convertContact(String serverId, MSContact contact) {
+		if (serverId == null) {
+			return contactConverter.contact(contact);
+		}
+		
+		Contact convertedContact = contactConverter.contact(contact);
+		convertedContact.setUid(mappingService.getItemIdFromServerId(serverId));
+		return convertedContact;
+	}
+
+	private String hashClientId(UserDataRequest udr, String clientId) {
+		if (clientId == null) {
+			return null;
+		}
+		return clientIdService.hash(udr, clientId);
+	}
+
+	private Contact storeContact(UserDataRequest udr, Integer addressBookId, Contact contact, String clientId) 
 			throws UnexpectedObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
 		AccessToken token = getAccessToken(udr);
 		try {
-			return getBookClient(udr).modifyContact(token, addressBookId, contact);
-		} catch (ServerFault e) {
-			throw new UnexpectedObmSyncServerException(e);
-		}
-	}
-	
-	private Contact createContact(UserDataRequest udr, Integer addressBookId, Contact contact, String clientId) 
-			throws UnexpectedObmSyncServerException, NoPermissionException {
-		
-		AccessToken token = getAccessToken(udr);
-		try {
-			return getBookClient(udr).createContact(token, addressBookId, contact, clientIdService.hash(udr, clientId));
+			return getBookClient(udr).storeContact(token, addressBookId, contact, clientId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}

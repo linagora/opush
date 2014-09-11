@@ -321,10 +321,12 @@ public class ContactsBackendTest {
 		int serverId = 215;
 		String serverIdAsString = String.valueOf(serverId);
 		String clientId = "1";
+		String clientIdHash = "146565647814688";
 
 		List<AddressBook> books = ImmutableList.of(
 				newAddressBookObject("folder", otherContactCollectionUid, false),
 				newAddressBookObject("folder_1", targetcontactCollectionUid, false));
+		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
 		
 		expectLoginBehavior(token);
 		expectListAllBooks(token,books);
@@ -332,7 +334,7 @@ public class ContactsBackendTest {
 		expectBuildCollectionPath("folder_1", targetcontactCollectionUid);
 		
 		Contact contact = newContactObject(serverId);
-		expect(bookClient.modifyContact(token, targetcontactCollectionUid, contact))
+		expect(bookClient.storeContact(token, targetcontactCollectionUid, contact, clientIdHash))
 			.andReturn(contact).once();
 		
 		expectMappingServiceCollectionIdBehavior(books);
@@ -372,14 +374,12 @@ public class ContactsBackendTest {
 		
 		Contact contact = newContactObject(serverId);
 		Contact convertedContact = contactConverter.contact(msContact);
-		expect(bookClient.createContact(token, targetcontactCollectionUid, convertedContact, clientIdHash))
+		expect(bookClient.storeContact(token, targetcontactCollectionUid, convertedContact, clientIdHash))
 			.andReturn(contact).once();
 		
 		expectMappingServiceCollectionIdBehavior(books);
 		
 		String serverIdAsString = String.valueOf(serverId);
-		expect(mappingService.getItemIdFromServerId(null))
-			.andReturn(null).once();
 		expect(mappingService.getServerIdFor(targetcontactCollectionUid, serverIdAsString))
 			.andReturn(serverIdAsString);
 
@@ -395,7 +395,6 @@ public class ContactsBackendTest {
 	@Test(expected=NoPermissionException.class)
 	public void testCreateNoPermissionLetsPropagateTheException() throws Exception {
 		int contactCollectionUid = 2;
-		int itemId = 215;
 		String serverId = null;
 		String clientId = "489654";
 		String clientIdHash = "78481484087";
@@ -408,10 +407,9 @@ public class ContactsBackendTest {
 		expectListAllBooks(token,books);
 		expectBuildCollectionPath("folder", contactCollectionUid);
 		expectMappingServiceCollectionIdBehavior(books);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(itemId).once();
 		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
 		
-		expect(bookClient.createContact(token, contactCollectionUid, new Contact(), clientIdHash)).andThrow(new NoPermissionException());
+		expect(bookClient.storeContact(token, contactCollectionUid, new Contact(), clientIdHash)).andThrow(new NoPermissionException());
 
 		mocks.replay();
 		try {
@@ -427,7 +425,8 @@ public class ContactsBackendTest {
 		int contactCollectionUid = 2;
 		int itemId = 215;
 		String serverId = "2:215";
-		String clientId = null;
+		String clientId = "489654";
+		String clientIdHash = "78481484087";
 		MSContact msContact = new MSContact();
 
 		List<AddressBook> books = ImmutableList.of(
@@ -438,9 +437,10 @@ public class ContactsBackendTest {
 		expectBuildCollectionPath("folder", contactCollectionUid);
 		expectMappingServiceCollectionIdBehavior(books);
 		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(itemId).once();
+		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
 		
 		Contact contact = newContactObject(itemId);
-		expect(bookClient.modifyContact(token, contactCollectionUid, contact)).andThrow(new NoPermissionException());
+		expect(bookClient.storeContact(token, contactCollectionUid, contact, clientIdHash)).andThrow(new NoPermissionException());
 
 		mocks.replay();
 		try {
