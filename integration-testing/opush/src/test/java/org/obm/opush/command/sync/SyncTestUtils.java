@@ -221,4 +221,13 @@ public class SyncTestUtils {
 			.andReturn(delta.getItemEstimateSize()).anyTimes();
 	}
 
+
+	public static void mockCollectionDaoPerformSync(CollectionDao collectionDao, Device device, SyncKey requestSyncKey,
+			ItemSyncState requestSyncState, ItemSyncState updateSyncState, int collectionId)
+					throws DaoException {
+		
+		expect(collectionDao.findItemStateForKey(requestSyncKey)).andReturn(requestSyncState).times(2);
+		expect(collectionDao.updateState(device, collectionId, updateSyncState.getSyncKey(), updateSyncState.getSyncDate()))
+				.andReturn(updateSyncState);
+	}
 }
