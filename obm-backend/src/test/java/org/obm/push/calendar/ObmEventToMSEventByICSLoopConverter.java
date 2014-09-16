@@ -32,12 +32,13 @@
 package org.obm.push.calendar;
 
 import java.io.IOException;
-import java.util.List;
 
 import net.fortuna.ical4j.data.ParserException;
+import net.fortuna.ical4j.model.component.VEvent;
 
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
+import org.obm.icalendar.ParsingResults;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.User;
@@ -67,8 +68,8 @@ public class ObmEventToMSEventByICSLoopConverter implements ObmEventToMSEventCon
 		try {
 			Ical4jUser ical4jUser = convertIcal4jUser(user);
 			String eventAsICS = ical4j.parseEvent(eventToConvert, ical4jUser, new AccessToken(0, "unit testing"));
-			List<Event> eventsFromICS = ical4j.parseICSEvent(eventAsICS, ical4jUser, 0);
-			Event eventFromICS = Iterables.getOnlyElement(eventsFromICS);
+			ParsingResults<Event, VEvent> results = ical4j.parseICSEvent(eventAsICS, ical4jUser, 0);
+			Event eventFromICS = Iterables.getOnlyElement(results.getParsedItems());
 			return obmEventToMSEventConverter.convert(eventFromICS, uid, user);
 		} catch (ParserException e) {
 			throw new ConversionException(e);

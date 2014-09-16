@@ -39,11 +39,13 @@ import java.util.List;
 import java.util.Set;
 
 import net.fortuna.ical4j.data.ParserException;
+import net.fortuna.ical4j.model.component.VEvent;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.Ical4jUser.Factory;
+import org.obm.icalendar.ParsingResults;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.OpushCollection;
@@ -655,8 +657,8 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			throws IOException, ParserException {
 		
 		Ical4jUser ical4jUser = ical4jUserFactory.createIcal4jUser(udr.getUser().getEmail(), accessToken.getDomain());
-		List<Event> parsedEvents = ical4jHelper.parseICSEvent(iCalendar.getICalendar(), ical4jUser, accessToken.getObmId());
-		return appendOrganizerIfNone(parsedEvents, iCalendar.getICalendarEvent());
+		ParsingResults<Event, VEvent> results = ical4jHelper.parseICSEvent(iCalendar.getICalendar(), ical4jUser, accessToken.getObmId());
+		return appendOrganizerIfNone(results.getParsedItems(), iCalendar.getICalendarEvent());
 	}
 
 	@VisibleForTesting Iterable<Event> appendOrganizerIfNone(Iterable<Event> events, ICalendarEvent iCalendarEvent) {

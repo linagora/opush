@@ -32,7 +32,7 @@
 package org.obm.push.calendar;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 import net.fortuna.ical4j.data.ParserException;
 
@@ -57,6 +57,7 @@ import org.obm.sync.calendar.EventExtId;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.inject.Inject;
@@ -145,10 +146,12 @@ public class EventServiceImpl implements EventService {
 		try {
 			AccessToken accessToken = ResourcesUtils.getAccessToken(udr);
 			Ical4jUser ical4jUser = ical4jUserFactory.createIcal4jUser(udr.getUser().getEmail(), accessToken.getDomain());
-			List<Event> obmEvents = ical4jHelper.parseICSEvent(ics, ical4jUser, accessToken.getObmId());
-			
+			Collection<Event> obmEvents = ical4jHelper
+					.parseICSEvent(ics, ical4jUser, accessToken.getObmId())
+					.getParsedItems();
+
 			if (!obmEvents.isEmpty()) {
-				final Event icsEvent = obmEvents.get(0);
+				final Event icsEvent = Iterables.get(obmEvents, 0);
 				return convertEventToMSEvent(udr, icsEvent);
 			}
 			return null;
