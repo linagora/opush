@@ -97,7 +97,6 @@ import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
-import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -108,7 +107,7 @@ import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
-import org.obm.push.service.EventService;
+import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
@@ -163,7 +162,6 @@ public class SyncHandlerWithBackendTest {
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject MailboxService mailboxService;
-	@Inject EventService eventService;
 	@Inject SyncDecoder decoder;
 	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
@@ -173,6 +171,7 @@ public class SyncHandlerWithBackendTest {
 	private SnapshotDao snapshotDao;
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
+	private CalendarDao calendarDao;
 	private DateService dateService;
 	private CalendarClient calendarClient;
 	private BookClient bookClient;
@@ -216,10 +215,10 @@ public class SyncHandlerWithBackendTest {
 		
 		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
+		calendarDao = classToInstanceMap.get(CalendarDao.class);
 		dateService = classToInstanceMap.get(DateService.class);
 		calendarClient = classToInstanceMap.get(CalendarClient.class);
 		bookClient = classToInstanceMap.get(BookClient.class);
-		eventService = classToInstanceMap.get(EventService.class);
 		snapshotDao = injector.getInstance(SnapshotDao.class);
 
 		bindCollectionIdToPath();
@@ -431,12 +430,18 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		EventExtId eventExtId = new EventExtId("1");
 		Event event = new Event();
 		event.setUid(new EventObmId(1));
 		event.setTitle("event");
+		event.setExtId(eventExtId);
+		event.setStartDate(secondDate);
+		EventExtId eventExtId2 = new EventExtId("2");
 		Event event2 = new Event();
 		event2.setUid(new EventObmId(2));
 		event2.setTitle("event2");
+		event2.setExtId(eventExtId2);
+		event2.setStartDate(secondDate);
 		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
 			.andReturn(EventChanges.builder()
 					.lastSync(secondDate)
@@ -447,26 +452,28 @@ public class SyncHandlerWithBackendTest {
 		
 		TimeZone timeZone = TimeZone.getTimeZone("GMT");
 		Calendar calendar = DateUtils.getEpochCalendar(timeZone);
+		MSEventUid msEventUid = new MSEventUid("1");
 		MSEvent msEvent = new MSEvent();
-		msEvent.setUid(new MSEventUid("1"));
+		msEvent.setUid(msEventUid);
 		msEvent.setSubject("event");
 		msEvent.setSensitivity(CalendarSensitivity.NORMAL);
 		msEvent.setBusyStatus(CalendarBusyStatus.FREE);
 		msEvent.setAllDayEvent(false);
 		msEvent.setDtStamp(calendar.getTime());
 		msEvent.setTimeZone(timeZone);
+		MSEventUid msEventUid2 = new MSEventUid("2");
 		MSEvent msEvent2 = new MSEvent();
-		msEvent2.setUid(new MSEventUid("2"));
+		msEvent2.setUid(msEventUid2);
 		msEvent2.setSubject("event2");
 		msEvent2.setSensitivity(CalendarSensitivity.NORMAL);
 		msEvent2.setBusyStatus(CalendarBusyStatus.FREE);
 		msEvent2.setAllDayEvent(false);
 		msEvent2.setDtStamp(calendar.getTime());
 		msEvent2.setTimeZone(timeZone);
-		expect(eventService.convertEventToMSEvent(anyObject(UserDataRequest.class), eq(event)))
-			.andReturn(msEvent).times(2);
-		expect(eventService.convertEventToMSEvent(anyObject(UserDataRequest.class), eq(event2)))
-			.andReturn(msEvent2).times(2);
+		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
+			.andReturn(msEventUid).times(2);
+		expect(calendarDao.getMSEventUidFor(eventExtId2, user.device))
+			.andReturn(msEventUid2).times(2);
 		
 		String serverId = calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString();
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
@@ -978,7 +985,7 @@ public class SyncHandlerWithBackendTest {
 		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
-		expect(eventService.getMSEventUidFor(anyObject(String.class), eq(users.jaures.device)))
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
 			.andReturn(new MSEventUid("1"));
 		
 		mocksControl.replay();
@@ -1020,7 +1027,7 @@ public class SyncHandlerWithBackendTest {
 		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
-		expect(eventService.getMSEventUidFor(anyObject(String.class), eq(users.jaures.device)))
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
 			.andReturn(new MSEventUid("1"));
 		
 		mocksControl.replay();
@@ -1290,8 +1297,8 @@ public class SyncHandlerWithBackendTest {
 		msEvent.setTimeZone(timeZone);
 		msEvent.setStartTime(secondDate);
 		msEvent.setEndTime(secondDate);
-		expect(eventService.convertEventToMSEvent(anyObject(UserDataRequest.class), eq(event)))
-			.andReturn(msEvent);
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
+			.andReturn(msEventUid);
 		
 		String serverId = calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString();
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
@@ -1301,8 +1308,8 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().anyTimes();
 
 		// Second Sync
-		expect(eventService.getEventExtIdFor(msEventUid, user.device))
-			.andReturn(eventExtId.getExtId());
+		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
+			.andReturn(eventExtId);
 		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
 			.andReturn(event);
 		// We check that the Privacy of the Event is not modified on update (only this field, other may vary

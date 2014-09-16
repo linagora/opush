@@ -40,6 +40,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.resource.ResourceCloser;
+import org.obm.push.service.EventService;
 import org.obm.push.task.TaskBackend;
 
 public class BackendsModule extends AbstractOverrideModule {
@@ -58,6 +59,7 @@ public class BackendsModule extends AbstractOverrideModule {
 	
 	protected void bindCalendarBackend() {
 		bindWithMock(CalendarBackend.class);
+		bindWithMock(EventService.class);
 		CalendarBackend calendarBackend = getMock(CalendarBackend.class);
 		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR);
 	}

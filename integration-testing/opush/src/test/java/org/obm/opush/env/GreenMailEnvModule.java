@@ -42,7 +42,6 @@ import org.obm.push.mail.greenmail.GreenMailProviderModule;
 import org.obm.push.mail.imap.MinigStoreClient;
 import org.obm.push.mail.smtp.SmtpProvider;
 import org.obm.push.minig.imap.StoreClient;
-import org.obm.push.service.EventService;
 import org.obm.push.service.OpushLocatorService;
 
 import com.google.inject.name.Names;
@@ -56,7 +55,6 @@ public class GreenMailEnvModule extends AbstractOverrideModule {
 	@Override
 	protected void configureImpl() {
 		install(new GreenMailProviderModule());
-		bindWithMock(EventService.class);
 		bind(OpushLocatorService.class).toInstance(new OpushLocatorService() {
 			
 			@Override
