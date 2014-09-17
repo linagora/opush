@@ -71,6 +71,7 @@ And then replace the default value:
 search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*))) +
 search.ldap.url=ldap://192.168.56.3 +
 search.ldap.basedn=dc=%d,dc=local +
+# search.ldap.limit=100 +
 ****
 
 See <<_ldap>> for more information.

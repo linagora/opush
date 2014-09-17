@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.search.ldap;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -59,6 +59,8 @@ public class ConfigurationTest {
 	private static final String KEY_URL = "search.ldap.url";
 	private static final String KEY_BASE = "search.ldap.basedn";
 	private static final String KEY_FILTER = "search.ldap.filter";
+	private static final String KEY_LIMIT = "search.ldap.limit";
+	private static final int DEFAULT_LIMIT = 100;
 	
 	private IMocksControl mocks;
 	private Factory iniFileFactory;
@@ -78,6 +80,7 @@ public class ConfigurationTest {
 				KEY_BASE, "%d,dc=local",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -94,6 +97,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -110,6 +114,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "127.0.0.1");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -126,6 +131,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "http://ldapserver");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -142,6 +148,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "ldap://");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -158,6 +165,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "ldap://ldapserver");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -174,6 +182,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_URL, "ldaps://ldapserver");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -189,6 +198,7 @@ public class ConfigurationTest {
 				KEY_URL, "ldaps://ldapserver",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -205,6 +215,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_BASE, "");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -221,6 +232,7 @@ public class ConfigurationTest {
 				KEY_FILTER, "filter",
 				KEY_BASE, "%d,dc=local");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -236,6 +248,7 @@ public class ConfigurationTest {
 				KEY_URL, "ldaps://ldapserver",
 				KEY_BASE, "%d,dc=local");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -252,6 +265,7 @@ public class ConfigurationTest {
 				KEY_BASE, "%d,dc=local",
 				KEY_FILTER, "");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -268,6 +282,7 @@ public class ConfigurationTest {
 				KEY_BASE, "%d,dc=local",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		Configuration configuration = new Configuration(iniFileFactory, logger);
@@ -277,12 +292,83 @@ public class ConfigurationTest {
 		assertThat(configuration.isValidConfiguration()).isTrue();
 	}
 
+	@SuppressWarnings("unused")
+	@Test(expected=RuntimeException.class)
+	public void limitShouldTriggerExceptionWhenLessThanZero() {
+		Map<String, String> settings = ImmutableMap.of(
+				KEY_URL, "ldaps://ldapserver",
+				KEY_BASE, "%d,dc=local",
+				KEY_FILTER, "filter");
+		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(-5);
+		
+		mocks.replay();
+		try {
+			new Configuration(iniFileFactory, logger);
+		} catch (Exception e) {
+			mocks.verify();
+			throw e;
+		}
+	}
+
+	@Test
+	public void limitShouldBeZeroWhenZero() {
+		Map<String, String> settings = ImmutableMap.of(
+				KEY_URL, "ldaps://ldapserver",
+				KEY_BASE, "%d,dc=local",
+				KEY_FILTER, "filter");
+		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(0);
+		
+		mocks.replay();
+		Configuration configuration = new Configuration(iniFileFactory, logger);
+		mocks.verify();
+
+		assertThat(configuration.getLimit()).isEqualTo(0);
+		assertThat(configuration.isValidConfiguration()).isTrue();
+	}
+	
+	@Test
+	public void limitShouldNotBeDefaultWhenFive() {
+		Map<String, String> settings = ImmutableMap.of(
+				KEY_URL, "ldaps://ldapserver",
+				KEY_BASE, "%d,dc=local",
+				KEY_FILTER, "filter");
+		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
+		
+		mocks.replay();
+		Configuration configuration = new Configuration(iniFileFactory, logger);
+		mocks.verify();
+
+		assertThat(configuration.getLimit()).isEqualTo(5);
+		assertThat(configuration.isValidConfiguration()).isTrue();
+	}
+	
+	@Test
+	public void limitShouldBeDefaultWhenNotDefined() {
+		Map<String, String> settings = ImmutableMap.of(
+				KEY_URL, "ldaps://ldapserver",
+				KEY_BASE, "%d,dc=local",
+				KEY_FILTER, "filter");
+		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(null);
+		
+		mocks.replay();
+		Configuration configuration = new Configuration(iniFileFactory, logger);
+		mocks.verify();
+		
+		assertThat(configuration.getLimit()).isEqualTo(DEFAULT_LIMIT);
+		assertThat(configuration.isValidConfiguration()).isTrue();
+	}
+	
 	@Test(expected=IllegalStateException.class)
 	public void testBuildContextConnectionFailsIfUrlIsMissing() throws Exception {
 		Map<String, String> settings = ImmutableMap.of(
 				KEY_BASE, "%d,dc=local",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		new Configuration(iniFileFactory, logger).buildContextConnection();
@@ -294,6 +380,7 @@ public class ConfigurationTest {
 				KEY_URL, "ldaps://ldapserver",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		new Configuration(iniFileFactory, logger).buildContextConnection();
@@ -305,6 +392,7 @@ public class ConfigurationTest {
 				KEY_URL, "ldaps://ldapserver",
 				KEY_BASE, "%d,dc=local");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		new Configuration(iniFileFactory, logger).buildContextConnection();
@@ -318,6 +406,7 @@ public class ConfigurationTest {
 				KEY_BASE, "%d,dc=local",
 				KEY_FILTER, "filter");
 		expect(iniFile.getData()).andReturn(settings).anyTimes();
+		expect(iniFile.getIntegerValue(KEY_LIMIT, null)).andReturn(5);
 		
 		mocks.replay();
 		DirContext connection = new Configuration(iniFileFactory, logger).buildContextConnection();

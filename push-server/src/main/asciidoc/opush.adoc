@@ -33,8 +33,9 @@ Opush.
 
 However, there's a limited list of officially supported devices:
 
+[cols="2,2,1,1,1",options="header"]
 |===============================================================================
-|*Vendor (OS)*			|*Model*	|*Contacts*	|*Mail*	|*Agenda*
+|Vendor (OS)			|Model		|Contacts	|Mail		|Agenda
 |Apple (iOS 5, iOS6, iOS7)	|iPhone, iPad 	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |BlackBerry (OS 10)		|Z10		|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |Google (Android 4.2.1)		|Nexus 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	

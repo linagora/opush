@@ -15,8 +15,9 @@ This can be done by two different ways in *OBM*:
 Here is a list of devices which are known to be compatible with this
 operation:
 
+[cols="2,2,1", options="header"]
 |=======================================================================
-|*Device*				| *By obm-ui*	|*By device*	
+|Device					| By obm-ui	|By device	
 |HTC HD Mini (Windows Mobile 6.5)	| [green]#YES#	| [green]#YES#	
 |iPhone 4 (iOS 5.1.1)			| [green]#YES#	| [green]#YES#	
 |iPad 3 (iOS 6.0.1)			| [green]#YES#	| [green]#YES#	
@@ -119,8 +120,9 @@ ActiveSync defines some special folders: +Inbox+, +Drafts+, +Sent+ and
 
 These folders are mapped to default IMAP folders that way:
 
+[cols="1,2", options="header"]
 |=======================================
-| *ActiveSync folder* 	| *IMAP folder*	
+| ActiveSync folder 	| IMAP folder	
 | +Inbox+		| +INBOX+	
 | +Drafts+		| +Drafts+	
 | +Deleted+		| +Trash+	
@@ -130,8 +132,9 @@ These folders are mapped to default IMAP folders that way:
 You can change these default mappings by defining the following keys in
 +/etc/opush/mail_conf.ini+:
 
+[cols="1,2", options="header"]
 |===============================================
-| *ActiveSync folder*	| *Configuration key*	
+| ActiveSync folder	| Configuration key	
 | +Drafts+		| +imap.mailbox.draft+	
 | +Deleted+		| +imap.mailbox.sent+	
 | +Sent+		| +imap.mailbox.trash+	
@@ -169,8 +172,9 @@ Below is the default +/etc/opush/mail_conf.ini+ file:
 include::sources/mail_conf.ini[]
 ----
 
+[cols="1,1,2", options="header"]
 |===============================================================================================================
-| *Configuration key*		| *Value type*			| *Comments*					
+| Configuration key		| Value type			| Comments					
 | +imap.activateTLS+		| +boolean+ (true/false)	| Opush uses startTLS to secure IMAP
 	 							  connection					
 | +imap.loginWithDomain+	| +boolean+ (true/false)	| Opush includes @domain in login
@@ -198,15 +202,16 @@ for authentication. These two features are delegated to obm-sync.
 
 The Opush LDAP configuration file is located at +/etc/opush/ldap_conf.ini+.
 
-Every field is required and cannot be empty:
-
+[cols="2,1,1,5", options="header"]
 |===============================================================================================
-| *Configuration key*	| *Value type*	| *Comments*						
-| +search.ldap.filter+	| +String+	| The filter expression to use for the search		
-| +search.ldap.url+	| +String+	| The address where the ldap server can be 
-					  reached (we advise to specify the protocol
-					  used, +ldap://+ or +ldaps://+)			
-| +search.ldap.basedn+	| +String+	| The name of the context or object to search for	
+| Configuration key	| Value type	|Required	| Comments						
+| +search.ldap.filter+	| +String+	| True		|The filter expression to use for the search		
+| +search.ldap.url+	| +String+	| True		|The address where the ldap server can be 
+					  		  reached (we advise to specify the protocol
+							  used, +ldap://+ or +ldaps://+)			
+| +search.ldap.basedn+	| +String+	| True		|The name of the context or object to search for
+| +search.ldap.filter+	| +String+	| False		|The max entry count to read from the ldap server 
+					  		  (20 by default)
 |===============================================================================================
 
 
@@ -214,7 +219,8 @@ Every field is required and cannot be empty:
 ****
 search.ldap.filter=(&(objectClass=inetOrgPerson) (|(mail=%q*)(sn=%q*)(givenName=%q*))) +
 search.ldap.url=ldap://127.0.0.1 +
-search.ldap.basedn=dc=%d,dc=local
+search.ldap.basedn=dc=%d,dc=local +
+# search.ldap.limit=100
 ****
 
 ==== Troubleshooting
@@ -263,8 +269,9 @@ each device. Please refer to your device documentation for more details.
 
 ===== Compatibility
 
+[options="header"]
 |===============================================================================
-|*Device*		|*ROM / Version*	|*Compatibility*		
+|Device			|ROM / Version		|Compatibility		
 |HTC SAGA SENSE 3.0	|Orange / Android 2.3.5 |[green]#YES#			
 |IPHONE 4		|IOS 5.1.1		|[green]#YES#			
 |IPAD 3			|IOS 6.0.1		|[green]#YES#			

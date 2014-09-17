@@ -58,15 +58,18 @@ class Configuration {
 	private static final String SEARCH_LDAP_URL = "search.ldap.url";
 	private static final String SEARCH_LDAP_BASE = "search.ldap.basedn";
 	private static final String SEARCH_LDAP_FILTER = "search.ldap.filter";
+	private static final String SEARCH_LDAP_LIMIT = "search.ldap.limit";
 	private static final String PROTOCOL_LDAP = "ldap";
 	private static final String PROTOCOL_LDAPS = "ldaps";
 	private static final String PROTOCOL_DEFAULT = PROTOCOL_LDAP;
+	private static final int DEFAULT_SEARCH_LDAP_LIMIT = 100;
 
 	private final String url;
 	private final String baseDn;
 	private final String filter;
 	private final Properties settings;
 	private final boolean isValidConfiguration;
+	private final int limit;
 
 	@Inject
 	@VisibleForTesting Configuration(IniFile.Factory iniFileFactory,
@@ -77,10 +80,22 @@ class Configuration {
 		url = validUrlOrNull(ini.getData().get(SEARCH_LDAP_URL));
 		baseDn = Strings.emptyToNull(ini.getData().get(SEARCH_LDAP_BASE));
 		filter = Strings.emptyToNull(ini.getData().get(SEARCH_LDAP_FILTER));
+		limit = getValidLimit(ini);
 		settings = buildSettings();
 		isValidConfiguration = checkConfigurationValidity();
 		
 		logConfiguration();
+	}
+
+	private int getValidLimit(IniFile ini) {
+		Integer intValue = ini.getIntegerValue(SEARCH_LDAP_LIMIT, null);
+		if (intValue == null) {
+			return DEFAULT_SEARCH_LDAP_LIMIT;
+		} else if (intValue >= 0) {
+			return intValue;
+		} else {
+			throw new RuntimeException("Illegal limit value: " + intValue);
+		}
 	}
 
 	private String validUrlOrNull(String url) {
@@ -151,6 +166,10 @@ class Configuration {
 
 	public String getFilter() {
 		return filter;
+	}
+	
+	public int getLimit() {
+		return limit;
 	}
 
 	public void cleanup(DirContext ctx) {

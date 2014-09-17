@@ -86,7 +86,7 @@ public class BookSource implements ISearchSource {
 				LdapUtils u = new LdapUtils(ctx, conf.getBaseDn().replaceAll(
 						"%d", domain));
 				List<Map<String, List<String>>> l = u.getAttributes(
-						conf.getFilter(), query, new String[] { "displayName",
+						conf.getFilter(), query, conf.getLimit(), new String[] { "displayName",
 								"cn", "sn", "givenName", "mail",
 								"telephoneNumber", "mobile" });
 				l = l.subList(0, Math.min(limit, l.size()));
