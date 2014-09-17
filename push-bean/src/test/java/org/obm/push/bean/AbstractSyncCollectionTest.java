@@ -40,7 +40,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForNullDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();
@@ -50,7 +50,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForUnknownDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.UNKNOWN)
@@ -61,7 +61,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForEmailDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.EMAIL)
@@ -72,7 +72,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForCalendarDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CALENDAR)
@@ -83,7 +83,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForContactDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CONTACTS)
@@ -94,7 +94,7 @@ public class AbstractSyncCollectionTest {
 
 	@Test
 	public void testDataClassForDefaultDataType() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
+		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(1)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();

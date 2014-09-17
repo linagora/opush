@@ -43,7 +43,6 @@ import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -52,6 +51,7 @@ import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -105,8 +105,8 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return uniqueIntegerFieldValue(root, SyncRequestFields.WINDOW_SIZE);
 	}
 
-	@VisibleForTesting SyncCollectionRequest getCollection(Element collection) {
-		return SyncCollectionRequest.builder()
+	@VisibleForTesting SyncCollection getCollection(Element collection) {
+		return SyncCollection.builder()
 			.dataType(PIMDataType.fromSpecificationValue(uniqueStringFieldValue(collection, SyncRequestFields.DATA_CLASS)))
 			.syncKey(syncKey(uniqueStringFieldValue(collection, SyncRequestFields.SYNC_KEY)))
 			.collectionId(uniqueIntegerFieldValue(collection, SyncRequestFields.COLLECTION_ID))

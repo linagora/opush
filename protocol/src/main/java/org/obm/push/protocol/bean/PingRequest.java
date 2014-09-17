@@ -33,8 +33,6 @@ package org.obm.push.protocol.bean;
 
 import java.util.Set;
 
-import org.obm.push.bean.SyncCollectionRequest;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
@@ -46,7 +44,7 @@ public class PingRequest {
 	
 	public static class Builder {
 		private Long heartbeatInterval;
-		private final ImmutableSet.Builder<SyncCollectionRequest> syncCollectionBuilder;
+		private final ImmutableSet.Builder<SyncCollection> syncCollectionBuilder;
 		
 		private Builder() {
 			super();
@@ -58,14 +56,14 @@ public class PingRequest {
 			return this;
 		}
 
-		public Builder syncCollections(Set<SyncCollectionRequest> syncCollectionRequests) {
+		public Builder syncCollections(Set<SyncCollection> syncCollectionRequests) {
 			if (syncCollectionRequests != null) {
 				syncCollectionBuilder.addAll(syncCollectionRequests);
 			}
 			return this;
 		}
 		
-		public Builder add(SyncCollectionRequest syncCollectionRequest) {
+		public Builder add(SyncCollection syncCollectionRequest) {
 			syncCollectionBuilder.add(syncCollectionRequest);
 			return this;
 		}
@@ -77,9 +75,9 @@ public class PingRequest {
 	}
 	
 	private final Long heartbeatInterval;
-	private final Set<SyncCollectionRequest> syncCollections;
+	private final Set<SyncCollection> syncCollections;
 
-	private PingRequest(Long heartbeatInterval, Set<SyncCollectionRequest> syncCollections) {
+	private PingRequest(Long heartbeatInterval, Set<SyncCollection> syncCollections) {
 		this.heartbeatInterval = heartbeatInterval;
 		this.syncCollections = syncCollections;
 	}
@@ -88,7 +86,7 @@ public class PingRequest {
 		return heartbeatInterval;
 	}
 
-	public Set<SyncCollectionRequest> getSyncCollections() {
+	public Set<SyncCollection> getSyncCollections() {
 		return syncCollections;
 	}
 

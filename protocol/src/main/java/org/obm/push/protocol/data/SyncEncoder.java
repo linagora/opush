@@ -37,7 +37,7 @@ import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
@@ -80,16 +80,16 @@ public class SyncEncoder extends ActiveSyncDecoder {
 
 	private void appendCollections(Element root, SyncRequest request) {
 			
-		Set<SyncCollectionRequest> requestCollections = request.getCollections();
+		Set<SyncCollection> requestCollections = request.getCollections();
 		if (requestCollections != null && !requestCollections.isEmpty()) {
 			Element collections = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
-			for (SyncCollectionRequest collection : requestCollections) {
+			for (SyncCollection collection : requestCollections) {
 				appendCollection(collections, collection);
 			}
 		}
 	}
 	
-	private void appendCollection(Element collections, SyncCollectionRequest collection) {
+	private void appendCollection(Element collections, SyncCollection collection) {
 			
 		Element collectionEl = DOMUtils.createElement(collections, SyncRequestFields.COLLECTION.getName());
 		appendString(collectionEl, SyncRequestFields.DATA_CLASS, collection.getDataClass());

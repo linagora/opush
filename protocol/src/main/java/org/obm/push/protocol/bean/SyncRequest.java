@@ -35,7 +35,6 @@ import java.util.Set;
 
 import org.joda.time.Minutes;
 import org.joda.time.Seconds;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncDefaultValues;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 
@@ -54,7 +53,7 @@ public class SyncRequest implements SyncDefaultValues {
 		private Integer waitInMinute;
 		private Boolean partial;
 		private Integer windowSize;
-		private Set<SyncCollectionRequest> collections;
+		private Set<SyncCollection> collections;
 
 		private Builder() {
 			this.collections = Sets.newHashSet();
@@ -75,7 +74,7 @@ public class SyncRequest implements SyncDefaultValues {
 			return this;
 		}
 
-		public Builder addCollection(SyncCollectionRequest collection) {
+		public Builder addCollection(SyncCollection collection) {
 			collections.add(collection);
 			return this;
 		}
@@ -114,10 +113,10 @@ public class SyncRequest implements SyncDefaultValues {
 	private final int waitInSecond;
 	private final Boolean partial;
 	private final int windowSize;
-	private final Set<SyncCollectionRequest> collections;
+	private final Set<SyncCollection> collections;
 	
 	protected SyncRequest(int waitInSecond, Boolean partial, int windowSize,
-			Set<SyncCollectionRequest> collections) {
+			Set<SyncCollection> collections) {
 		this.waitInSecond = waitInSecond;
 		this.partial = partial;
 		this.windowSize = windowSize;
@@ -136,7 +135,7 @@ public class SyncRequest implements SyncDefaultValues {
 		return partial;
 	}
 	
-	public Set<SyncCollectionRequest> getCollections() {
+	public Set<SyncCollection> getCollections() {
 		return collections;
 	}
 

@@ -55,13 +55,13 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ContactDecoder;
@@ -270,27 +270,23 @@ public class SyncProtocolTest {
 	}
 
 	@Test
-	public void testSyncCollectionDefaultValues() throws Exception {
-		int syncingCollectionId = 3;
-		String syncingCollectionSyncKey = "1234-5678";
+	public void testSyncCollectionNoValues() throws Exception {
 		Document request = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
-							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
 
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
-		SyncCollectionRequest expectedSyncCollection = SyncCollectionRequest.builder()
-			.collectionId(syncingCollectionId)
+		SyncCollection expectedSyncCollection = SyncCollection.builder()
+			.collectionId(null)
 			.dataType(null)
-			.syncKey(new SyncKey(syncingCollectionSyncKey))
-			.windowSize(100)
+			.syncKey(null)
+			.windowSize(null)
 			.commands(SyncCollectionCommandsRequest.builder().build())
 			.options(null)
 			.build();
@@ -298,27 +294,36 @@ public class SyncProtocolTest {
 	}
 
 	@Test
-	public void testWindowSizeIsTookInParentSync() throws Exception {
+	public void testSyncCollectionWithValues() throws Exception {
+		int windowSize = 55;
 		int syncingCollectionId = 3;
 		String syncingCollectionSyncKey = "1234-5678";
 		Document request = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
-					"<WindowSize>150</WindowSize>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Email</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
+							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<WindowSize>" + windowSize + "</WindowSize>" +
+							"<DeletesAsMoves />" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
 
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
-		assertThat(syncRequest.getCollections()).hasSize(1);
-		assertThat(syncRequest.getWindowSize()).isEqualTo(150);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getWindowSize()).isEqualTo(100);
+		SyncCollection expectedSyncCollection = SyncCollection.builder()
+			.collectionId(syncingCollectionId)
+			.dataType(PIMDataType.EMAIL)
+			.syncKey(new SyncKey(syncingCollectionSyncKey))
+			.windowSize(windowSize)
+			.deletesAsMoves(true)
+			.commands(SyncCollectionCommandsRequest.builder().build())
+			.options(null)
+			.build();
+		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
 	}
 
 	@Test
@@ -341,7 +346,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		assertThat(syncCollection.getWindowSize()).isEqualTo(75);
 	}
 
@@ -369,7 +374,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 		assertThat(syncCollectionOptions.getBodyPreferences()).isEmpty();
 		assertThat(syncCollectionOptions.getConflict()).isEqualTo(0);
@@ -402,7 +407,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 		assertThat(syncCollectionOptions.getBodyPreferences()).isEmpty();
 		assertThat(syncCollectionOptions.getConflict()).isEqualTo(1);
@@ -436,7 +441,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 		assertThat(syncCollectionOptions.getBodyPreferences()).containsOnly(bodyPreference(1, 0, false));
 	}
@@ -472,7 +477,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 		assertThat(syncCollectionOptions.getBodyPreferences()).containsOnly(
 				bodyPreference(1, 0, false),
@@ -505,7 +510,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 		assertThat(syncCollectionOptions.getBodyPreferences()).containsOnly(bodyPreference(8, maxSpecTruncationSize, true));
 	}
@@ -535,7 +540,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		assertThat(syncCollection.getCommands().getCommands().iterator().next().getApplicationData()).isNull();
 	}
 
@@ -562,7 +567,7 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollectionRequest syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
 		assertThat(syncCollection.getCommands().getCommands().iterator().next().getApplicationData()).isNull();
 	}
 
@@ -1092,11 +1097,13 @@ public class SyncProtocolTest {
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
 					"<Wait>0</Wait>" +
+					"<WindowSize>12</WindowSize>" +
 					"<Collections>" +
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>1234-5678</SyncKey>" +
 							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<WindowSize>12</WindowSize>" +
 							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
 							"<Commands>" +
 								"<Delete>" +

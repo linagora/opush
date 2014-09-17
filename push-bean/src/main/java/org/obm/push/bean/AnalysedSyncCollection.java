@@ -46,17 +46,6 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 		return new Builder();
 	}
 	
-	public static Builder builderCopyOf(SyncCollectionRequest syncCollectionRequest) {
-		return new Builder()
-			.dataType(syncCollectionRequest.getDataType())
-			.syncKey(syncCollectionRequest.getSyncKey())
-			.collectionId(syncCollectionRequest.getCollectionId())
-			.deletesAsMoves(syncCollectionRequest.getDeletesAsMoves())
-			.changes(syncCollectionRequest.isChanges())
-			.windowSize(syncCollectionRequest.getWindowSize())
-			.options(syncCollectionRequest.getOptions());
-	}
-	
 	public static class Builder {
 		private PIMDataType dataType;
 		private SyncKey syncKey;
@@ -70,7 +59,6 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 		private SyncStatus status;
 
 		private Builder() {
-			options = SyncCollectionOptions.builder().build();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {
@@ -134,12 +122,10 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 		
 		public AnalysedSyncCollection build() {
 			checkSyncCollectionCommonElements();
-			
-			if (windowSize == null) {
-				windowSize = DEFAULT_WINDOW_SIZE;
-			}
 			return new AnalysedSyncCollection(dataType, syncKey, collectionId, 
-					collectionPath, deletesAsMoves, changes, windowSize, options, 
+					collectionPath, deletesAsMoves, changes, 
+					Objects.firstNonNull(windowSize, DEFAULT_WINDOW_SIZE), 
+					Objects.firstNonNull(options, SyncCollectionOptions.defaultOptions()), 
 					Objects.firstNonNull(commands, SyncCollectionCommandsResponse.empty()),
 					status);
 		}

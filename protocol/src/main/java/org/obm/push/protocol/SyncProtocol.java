@@ -134,7 +134,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 			throw new ServerErrorException(e);
 		}
 	}
-	
+
 	public Document encodeResponse() {
 		Document reply = DOMUtils.createDoc(null, "Sync");
 		Element root = reply.getDocumentElement();

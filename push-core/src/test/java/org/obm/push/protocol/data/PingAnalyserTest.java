@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -42,19 +42,19 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.PingRequest;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
@@ -104,7 +104,7 @@ public class PingAnalyserTest {
 	public void testAnalysePingWithoutHeartbeat() throws Exception {
 		SyncKey syncKey = new SyncKey("123");
 		PingRequest pingRequest = PingRequest.builder()
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId)
 						.syncKey(syncKey)
 						.build())
@@ -143,7 +143,7 @@ public class PingAnalyserTest {
 	public void testAnalysePingWithoutHeartbeatAndNoneStored() throws Exception {
 		SyncKey syncKey = new SyncKey("123");
 		PingRequest pingRequest = PingRequest.builder()
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId)
 						.syncKey(syncKey)
 						.build())
@@ -167,7 +167,7 @@ public class PingAnalyserTest {
 		SyncKey syncKey = new SyncKey("123");
 		long heartbeat = 1;
 		PingRequest pingRequest = PingRequest.builder()
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId)
 						.syncKey(syncKey)
 						.build())
@@ -206,7 +206,7 @@ public class PingAnalyserTest {
 	public void testAnalysePingWithKnownState() throws Exception {
 		SyncKey syncKey = new SyncKey("123");
 		PingRequest pingRequest = PingRequest.builder()
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId)
 						.syncKey(syncKey)
 						.build())
@@ -251,11 +251,11 @@ public class PingAnalyserTest {
 		SyncKey syncKey = new SyncKey("123");
 		Integer collectionId2 = 785;
 		PingRequest pingRequest = PingRequest.builder()
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId)
 						.syncKey(syncKey)
 						.build())
-				.add(SyncCollectionRequest.builder()
+				.add(SyncCollection.builder()
 						.collectionId(collectionId2)
 						.syncKey(syncKey)
 						.build())

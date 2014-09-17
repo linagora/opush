@@ -29,16 +29,16 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.protocol.bean;
 
-import java.io.Serializable;
-
-import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
-import org.obm.push.exception.activesync.ASRequestStringFieldException;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
+import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.bean.SyncKey;
 
 import com.google.common.base.Objects;
 
-public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollectionCommandsRequest> implements SyncDefaultValues, Serializable {
+public class SyncCollection {
 
 	public static Builder builder() {
 		return new Builder();
@@ -55,7 +55,6 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 		private SyncCollectionCommandsRequest commands;
 
 		private Builder() {
-			options = SyncCollectionOptions.builder().build();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {
@@ -97,44 +96,59 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 			this.commands = commands;
 			return this;
 		}
-		
-		private void checkSyncCollectionCommonElements() {
-			if (collectionId == null) {
-				throw new ASRequestIntegerFieldException("Collection id field is required");
-			}
-			if (syncKey == null) {
-				throw new ASRequestStringFieldException("Sync Key field is required");
-			}
-		}
-		
-		public SyncCollectionRequest build() {
-			checkSyncCollectionCommonElements();
-			
-			if (windowSize == null) {
-				windowSize = DEFAULT_WINDOW_SIZE;
-			}
-			return new SyncCollectionRequest(dataType, syncKey, collectionId, 
+
+		public SyncCollection build() {
+			return new SyncCollection(dataType, syncKey, collectionId, 
 					deletesAsMoves, changes, windowSize, options, 
 					Objects.firstNonNull(commands, SyncCollectionCommandsRequest.empty()));
 		}
-
 	}
 	
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
-	private final int windowSize;
+	private final Integer windowSize;
 	private final SyncCollectionOptions options;
+	private final PIMDataType dataType;
+	private final SyncKey syncKey;
+	private final Integer collectionId;
+	private final SyncCollectionCommandsRequest commands;
 	
-	protected SyncCollectionRequest(PIMDataType dataType, SyncKey syncKey, int collectionId,
+	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, Integer collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
 			SyncCollectionOptions options, SyncCollectionCommandsRequest commands) {
-		super(dataType, syncKey, collectionId, commands);
+		this.dataType = dataType;
+		this.syncKey = syncKey;
+		this.collectionId = collectionId;
 		this.deletesAsMoves = deletesAsMoves;
 		this.changes = changes;
 		this.windowSize = windowSize;
 		this.options = options;
+		this.commands = commands;
+	}
+
+	public PIMDataType getDataType() {
+		return dataType;
 	}
 	
+	public String getDataClass() {
+		if (dataType != null && dataType != PIMDataType.UNKNOWN) {
+			return dataType.asXmlValue();
+		}
+		return null;
+	}
+
+	public Integer getCollectionId() {
+		return collectionId;
+	}
+
+	public SyncKey getSyncKey() {
+		return syncKey;
+	}
+	
+	public SyncCollectionCommandsRequest getCommands() {
+		return commands;
+	}
+
 	public Boolean getDeletesAsMoves() {
 		return deletesAsMoves;
 	}
@@ -143,7 +157,7 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 		return changes;
 	}
 
-	public int getWindowSize() {
+	public Integer getWindowSize() {
 		return windowSize;
 	}
 
@@ -156,30 +170,39 @@ public class SyncCollectionRequest extends AbstractSyncCollection<SyncCollection
 	}
 
 	@Override
-	protected int hashCodeImpl() {
-		return Objects.hashCode(deletesAsMoves, changes, windowSize, options);
+	public int hashCode() {
+		return Objects.hashCode(deletesAsMoves, changes, windowSize, options, dataType, syncKey, collectionId, commands);
 	}
 	
 	@Override
-	protected boolean equalsImpl(AbstractSyncCollection<?> object) {
-		if (object instanceof SyncCollectionRequest) {
-			SyncCollectionRequest that = (SyncCollectionRequest) object;
-			return Objects.equal(this.deletesAsMoves, that.deletesAsMoves)
-				&& Objects.equal(this.changes, that.changes)
+	public boolean equals(Object object) {
+		if (object instanceof SyncCollection) {
+			SyncCollection that = (SyncCollection) object;
+			return Objects.equal(this.collectionId, that.collectionId)
+				&& Objects.equal(this.syncKey, that.syncKey)
+				&& Objects.equal(this.dataType, that.dataType)
 				&& Objects.equal(this.windowSize, that.windowSize)
-				&& Objects.equal(this.options, that.options);
+				&& Objects.equal(this.deletesAsMoves, that.deletesAsMoves)
+				&& Objects.equal(this.changes, that.changes)
+				&& Objects.equal(this.options, that.options)
+				&& Objects.equal(this.commands, that.commands);
 		}
 		return false;
 	}
 
 
 	@Override
-	protected String toStringImpl() {
+	public String toString() {
 		return Objects.toStringHelper(this)
+			.add("collectionId", collectionId)
+			.add("syncKey", syncKey)
+			.add("dataType", dataType)
+			.add("windowSize", windowSize)
 			.add("deletesAsMoves", deletesAsMoves)
 			.add("changes", changes)
-			.add("windowSize", windowSize)
 			.add("options", options)
+			.add("syncKey", syncKey)
+			.add("commands", commands)
 			.toString();
 	}
 }

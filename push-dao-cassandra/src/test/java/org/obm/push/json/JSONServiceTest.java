@@ -75,7 +75,6 @@ import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
@@ -269,74 +268,6 @@ public class JSONServiceTest {
 						.truncationSize(5).build()))
 				.build();
 		assertThat(syncCollectionOptions).isEqualTo(expectedSyncCollectionOptions);
-	}
-	
-	@Test
-	public void testSerializeSyncCollectionRequest() {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
-				.collectionId(1)
-				.syncKey(new SyncKey("key"))
-				.dataType(PIMDataType.EMAIL)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId("serverId")
-								.clientId("clientId")
-								.type(SyncCommand.ADD)
-								.applicationData(null)
-								.build())
-						.build())
-				.build();
-		
-		String serialized = new JSONService().serialize(syncCollection);
-		assertThat(serialized).isEqualTo(
-				"{" +
-					"\"changes\":null," + 
-					"\"collectionId\":1," + 
-					"\"commands\":{}," + 
-					"\"dataType\":\"EMAIL\"," + 
-					"\"deletesAsMoves\":null," + 
-					"\"options\":" + 
-						"{" +
-							"\"bodyPreferences\":[]," + 
-							"\"conflict\":1," + 
-							"\"deletesAsMoves\":true," + 
-							"\"filterType\":\"THREE_DAYS_BACK\"," + 
-							"\"mimeSupport\":null," + 
-							"\"mimeTruncation\":null," + 
-							"\"truncation\":9" + 
-						"}," + 
-					"\"syncKey\":{\"syncKey\":\"key\"}," + 
-					"\"windowSize\":100" + 
-				"}");
-	}
-	
-	@Test
-	public void testDeserializeSyncCollectionRequest() {
-		SyncCollectionRequest syncCollectionRequest = new JSONService().deserialize(SyncCollectionRequest.class,
-				"{\"changes\":null," + 
-					"\"collectionId\":1," + 
-					"\"commands\":null," + 
-					"\"dataType\":\"EMAIL\"," + 
-					"\"deletesAsMoves\":null," + 
-					"\"options\":" + 
-						"{\"truncation\":9," + 
-							"\"mimeSupport\":null," + 
-							"\"mimeTruncation\":null," + 
-							"\"conflict\":1," + 
-							"\"deletesAsMoves\":true," + 
-							"\"filterType\":\"THREE_DAYS_BACK\"," + 
-							"\"bodyPreferences\":[]" + 
-						"}," + 
-					"\"syncKey\":{\"syncKey\":\"key\"}," + 
-					"\"windowSize\":100" + 
-				"}");
-		
-		assertThat(syncCollectionRequest).isEqualTo(
-			SyncCollectionRequest.builder()
-				.collectionId(1)
-				.dataType(PIMDataType.EMAIL)
-				.syncKey(new SyncKey("key"))
-				.build());
 	}
 	
 	@Test

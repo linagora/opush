@@ -36,11 +36,11 @@ import java.util.LinkedHashSet;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,13 +68,13 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 			heartbeatInterval = Long.valueOf(hb.getTextContent());
 		}
 		
-		LinkedHashSet<SyncCollectionRequest> syncCollections = Sets.newLinkedHashSet();
+		LinkedHashSet<SyncCollection> syncCollections = Sets.newLinkedHashSet();
 		NodeList folders = pr.getElementsByTagName("Folder");
 		for (int i = 0; i < folders.getLength(); i++) {
 			Element f = (Element) folders.item(i);
 			int id = Integer.valueOf(DOMUtils.getElementText(f, "Id"));
 			
-			syncCollections.add(SyncCollectionRequest.builder()
+			syncCollections.add(SyncCollection.builder()
 				.dataType(PIMDataType.recognizeDataType(DOMUtils.getElementText(f, "Class")))
 				.collectionId(id)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
@@ -142,7 +142,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		
 		DOMUtils.createElementAndText(root, "HeartbeatInterval", String.valueOf(pingRequest.getHeartbeatInterval()));
 		Element folders = DOMUtils.createElement(root, "Folders");
-		for (SyncCollectionRequest syncCollection : pingRequest.getSyncCollections()) {
+		for (SyncCollection syncCollection : pingRequest.getSyncCollections()) {
 			Element folder = DOMUtils.createElement(folders, "Folder");
 			DOMUtils.createElementAndText(folder, "Id", String.valueOf(syncCollection.getCollectionId()));
 			DOMUtils.createElementAndText(folder, "Class", syncCollection.getDataClass());

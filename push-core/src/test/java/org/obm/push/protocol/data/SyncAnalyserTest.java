@@ -32,7 +32,9 @@
 package org.obm.push.protocol.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
@@ -58,6 +60,8 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
+import org.obm.push.exception.activesync.ASRequestStringFieldException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ServerErrorException;
 import org.obm.push.protocol.bean.SyncRequest;
@@ -466,4 +470,131 @@ public class SyncAnalyserTest {
 		syncAnalyser.analyseSync(udr, syncRequest);
 	}
 
+	@Test
+	public void windowSizeShouldTookInParentWhenNone() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<WindowSize>150</WindowSize>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
+							"<CollectionId>" +collectionId + "</CollectionId>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(150);
+	}
+
+	@Test
+	public void windowSizeShouldNotTookInParentWhenOne() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<WindowSize>150</WindowSize>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
+							"<CollectionId>" +collectionId + "</CollectionId>" +
+							"<WindowSize>75</WindowSize>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(75);
+	}
+
+	@Test
+	public void windowSizeShouldBeDefaultWhenNone() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
+							"<CollectionId>" +collectionId + "</CollectionId>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(100);
+	}
+
+
+	@Test(expected=ASRequestStringFieldException.class)
+	public void analyzeShouldTriggerExceptionWhenNoSyncKey() throws Exception {
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<CollectionId>" +collectionId + "</CollectionId>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		try {
+			syncAnalyser.analyseSync(udr, syncRequest);
+		} catch (Exception e) {
+			mocks.verify();
+			throw e;
+		}
+	}
+
+	@Test(expected=ASRequestIntegerFieldException.class)
+	public void analyzeShouldTriggerExceptionWhenNoCollectionId() throws Exception {
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>1324-1231</SyncKey>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		try {
+			syncAnalyser.analyseSync(udr, syncRequest);
+		} catch (Exception e) {
+			mocks.verify();
+			throw e;
+		}
+	}
 }

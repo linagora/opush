@@ -43,21 +43,23 @@ import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -80,15 +82,15 @@ public class SyncAnalyser {
 		this.decoderFactory = decoderFactory;
 	}
 
-	public Sync analyseSync(UserDataRequest userDataRequest, SyncRequest syncRequest) 
+	public Sync analyseSync(UserDataRequest udr, SyncRequest syncRequest) 
 			throws PartialException, ProtocolException, DaoException, CollectionPathException {
 		assertNotPartialRequest(syncRequest);
 
 		Sync.Builder builder = Sync.builder()
 				.waitInMinutes(syncRequest.getWaitInMinute());
 	
-		for (SyncCollectionRequest syncCollectionRequest : syncRequest.getCollections()) {
-			builder.addCollection(getCollection(userDataRequest, syncCollectionRequest, false));
+		for (SyncCollection syncCollectionRequest : syncRequest.getCollections()) {
+			builder.addCollection(getCollection(syncRequest, udr, syncCollectionRequest, false));
 		}
 		return builder.build();
 	}
@@ -99,15 +101,15 @@ public class SyncAnalyser {
 		}
 	}
 	
-	private AnalysedSyncCollection getCollection(UserDataRequest udr, SyncCollectionRequest collectionRequest, boolean isPartial)
+	private AnalysedSyncCollection getCollection(SyncRequest syncRequest, UserDataRequest udr, SyncCollection collectionRequest, boolean isPartial)
 			throws PartialException, ProtocolException, DaoException, CollectionPathException{
 		
 		AnalysedSyncCollection.Builder builder = AnalysedSyncCollection.builder();
-		int collectionId = collectionRequest.getCollectionId();
+		int collectionId = getCollectionId(collectionRequest);
 		try {
 			builder.collectionId(collectionId)
 				.syncKey(collectionRequest.getSyncKey())
-				.windowSize(collectionRequest.getWindowSize())
+				.windowSize(getWindowSize(syncRequest, collectionRequest))
 				.options(getUpdatedOptions(
 						findLastSyncedCollectionOptions(udr, isPartial, collectionId), collectionRequest))
 				.status(SyncStatus.OK);
@@ -124,6 +126,18 @@ public class SyncAnalyser {
 		// TODO sync supported
 		// TODO sync <getchanges/>
 
+	}
+
+	private int getCollectionId(SyncCollection collectionRequest) {
+		Integer collectionId = collectionRequest.getCollectionId();
+		if (collectionId == null) {
+			throw new ASRequestIntegerFieldException("Collection id field is required");
+		}
+		return collectionId;
+	}
+
+	private Integer getWindowSize(SyncRequest syncRequest, SyncCollection collectionRequest) {
+		return Objects.firstNonNull(collectionRequest.getWindowSize(), syncRequest.getWindowSize());
 	}
 
 	private AnalysedSyncCollection findLastSyncedCollectionOptions(UserDataRequest udr, boolean isPartial, int collectionId) {
@@ -152,7 +166,7 @@ public class SyncAnalyser {
 		return !Strings.isNullOrEmpty(dataClass) && !dataType.asXmlValue().equals(dataClass);
 	}
 
-	private SyncCollectionOptions getUpdatedOptions(AnalysedSyncCollection lastSyncCollection, SyncCollectionRequest requestCollection) {
+	private SyncCollectionOptions getUpdatedOptions(AnalysedSyncCollection lastSyncCollection, SyncCollection requestCollection) {
 		SyncCollectionOptions lastUsedOptions = null;
 		if (lastSyncCollection != null) {
 			lastUsedOptions = lastSyncCollection.getOptions();

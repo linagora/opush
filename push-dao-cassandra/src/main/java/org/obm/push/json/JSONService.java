@@ -56,7 +56,6 @@ import org.obm.push.bean.SyncCollectionCommands;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.change.item.ItemChange;
@@ -93,7 +92,6 @@ import org.obm.push.json.mixin.SyncCollectionCommandsMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsRequestMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsResponseMixIn;
 import org.obm.push.json.mixin.SyncCollectionOptionsMixIn;
-import org.obm.push.json.mixin.SyncCollectionRequestMixIn;
 import org.obm.push.json.mixin.SyncKeyMixIn;
 import org.obm.push.json.mixin.UserMixIn;
 import org.obm.push.json.mixin.WindowingContactMixIn;
@@ -225,7 +223,6 @@ public class JSONService {
 			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionOptions.class, SyncCollectionOptionsMixIn.class)
-			.setMixInAnnotation(SyncCollectionRequest.class, SyncCollectionRequestMixIn.class)
 			.setMixInAnnotation(SyncKey.class, SyncKeyMixIn.class)
 			.setMixInAnnotation(User.class, UserMixIn.class)
 			.setMixInAnnotation(WindowingContact.class, WindowingContactMixIn.class)

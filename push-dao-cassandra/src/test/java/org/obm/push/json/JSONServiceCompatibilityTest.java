@@ -77,7 +77,6 @@ import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
@@ -316,12 +315,6 @@ public class JSONServiceCompatibilityTest {
 							.build()))
 				.build())
 			.put(filename(SyncCollectionOptions.class), syncCollectionOptions)
-			.put(filename(SyncCollectionRequest.class), SyncCollectionRequest.builder()
-						.collectionId(1)
-						.syncKey(new SyncKey("key"))
-						.dataType(PIMDataType.EMAIL)
-						.commands(SyncCollectionCommandsRequest.builder().build())
-						.build())
 			.put(filename(SyncCollectionCommandsRequest.class), SyncCollectionCommandsRequest.builder().build())
 			.put(filename(SyncKey.class), new SyncKey("123"))
 			.put(filename(SyncCollectionCommandRequest.class), SyncCollectionCommandRequest.builder()

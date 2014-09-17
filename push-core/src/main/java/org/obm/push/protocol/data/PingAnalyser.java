@@ -36,7 +36,6 @@ import java.util.Set;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.CollectionPathException;
@@ -44,6 +43,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.PingRequest;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
@@ -108,7 +108,7 @@ public class PingAnalyser {
 			throws MissingRequestParameterException, CollectionNotFoundException, DaoException, CollectionPathException {
 		
 		Set<AnalysedSyncCollection> analysedSyncCollections = Sets.newHashSet();
-		Set<SyncCollectionRequest> syncCollections = pingRequest.getSyncCollections();
+		Set<SyncCollection> syncCollections = pingRequest.getSyncCollections();
 		if (syncCollections == null || syncCollections.isEmpty()) {
 			Set<AnalysedSyncCollection> lastMonitoredCollection = monitoredCollectionDao.list(udr.getCredentials(), udr.getDevice());
 			if (lastMonitoredCollection.isEmpty()) {
@@ -121,12 +121,19 @@ public class PingAnalyser {
 		return analysedSyncCollections;
 	}
 
-	private Set<AnalysedSyncCollection> loadSyncKeys(UserDataRequest udr, Set<SyncCollectionRequest> syncCollections) {
+	private Set<AnalysedSyncCollection> loadSyncKeys(UserDataRequest udr, Set<SyncCollection> syncCollections) {
 		Set<AnalysedSyncCollection> analysedSyncCollections = Sets.newHashSet();
-		for (SyncCollectionRequest collection: syncCollections) {
+		for (SyncCollection collection: syncCollections) {
 			String collectionPath = collectionDao.getCollectionPath(collection.getCollectionId());
 			
-			AnalysedSyncCollection.Builder syncCollectionRequestBuilder = AnalysedSyncCollection.builderCopyOf(collection)
+			AnalysedSyncCollection.Builder syncCollectionRequestBuilder = AnalysedSyncCollection.builder()
+					.dataType(collection.getDataType())
+					.syncKey(collection.getSyncKey())
+					.collectionId(collection.getCollectionId())
+					.deletesAsMoves(collection.getDeletesAsMoves())
+					.changes(collection.isChanges())
+					.windowSize(collection.getWindowSize())
+					.options(collection.getOptions())
 					.collectionPath(collectionPath)
 					.dataType(collectionPathHelper.recognizePIMDataType(collectionPath));
 			

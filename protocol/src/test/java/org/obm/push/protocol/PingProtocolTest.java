@@ -44,11 +44,11 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
@@ -130,12 +130,12 @@ public class PingProtocolTest {
 
 		assertThat(pingProtocol.decodeRequest(document)).isEqualTo(PingRequest.builder()
 				.syncCollections(ImmutableSet.of(
-					SyncCollectionRequest.builder()
+					SyncCollection.builder()
 						.collectionId(1)
 						.dataType(PIMDataType.CALENDAR)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 						.build(),
-					SyncCollectionRequest.builder()
+						SyncCollection.builder()
 						.collectionId(4)
 						.dataType(PIMDataType.CONTACTS)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
@@ -209,17 +209,17 @@ public class PingProtocolTest {
 		PingRequest decoded = pingProtocol.decodeRequest(document);
 		
 		assertThat(decoded.getSyncCollections()).containsOnly(
-			SyncCollectionRequest.builder()
+			SyncCollection.builder()
 				.collectionId(1)
 				.dataType(null)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build(), 
-			SyncCollectionRequest.builder()
+			SyncCollection.builder()
 				.collectionId(2)
 				.dataType(PIMDataType.UNKNOWN)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build(), 
-			SyncCollectionRequest.builder()
+			SyncCollection.builder()
 				.collectionId(3)
 				.dataType(PIMDataType.CONTACTS)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)

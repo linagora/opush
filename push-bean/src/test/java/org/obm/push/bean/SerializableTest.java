@@ -45,7 +45,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.User.Factory;
-import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.ms.UidMSEmail;
@@ -77,23 +76,6 @@ public class SerializableTest {
 	public void testSyncCollectionOptions() throws IOException {
 		SyncCollectionOptions obj = SyncCollectionOptions.builder().bodyPreferences(ImmutableList.of(BodyPreference.builder().build())).build();
 		objectOutputStream.writeObject(obj);
-	}
-	
-	@Test
-	public void testSyncCollection() throws IOException {
-		SyncCollectionRequest syncCollection = SyncCollectionRequest.builder()
-				.collectionId(1)
-				.syncKey(new SyncKey("key"))
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId("serverId")
-								.clientId("clientId")
-								.type(SyncCommand.ADD)
-								.applicationData(null)
-								.build())
-						.build())
-				.build();
-		objectOutputStream.writeObject(syncCollection);
 	}
 	
 	@Test

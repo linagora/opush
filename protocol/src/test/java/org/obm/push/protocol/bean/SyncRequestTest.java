@@ -34,7 +34,6 @@ package org.obm.push.protocol.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.SyncCollectionRequest;
 import org.obm.push.bean.SyncDefaultValues;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
@@ -120,7 +119,7 @@ public class SyncRequestTest implements SyncDefaultValues {
 	@Test
 	public void testBuilderCollectionsNonEmpty() {
 		SyncRequest syncRequest = SyncRequest.builder()
-				.addCollection(SyncCollectionRequest.builder()
+				.addCollection(SyncCollection.builder()
 						.collectionId(1)
 						.syncKey(new SyncKey("1234"))
 						.build())
