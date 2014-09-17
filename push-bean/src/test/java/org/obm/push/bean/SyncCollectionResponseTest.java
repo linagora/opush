@@ -34,7 +34,7 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.bean.change.client.SyncClientCommands;
 
 import com.google.common.collect.ImmutableList;
 
@@ -67,8 +67,8 @@ public class SyncCollectionResponseTest {
 
 	@Test
 	public void testBuildResponseGiveNotEmptyCommands() {
-		SyncCollectionCommandsResponse responses = SyncCollectionCommandsResponse.builder()
-				.deletions(ImmutableList.of(ItemDeletion.builder().serverId("156").build()))
+		SyncCollectionResponsesResponse responses = SyncCollectionResponsesResponse.builder()
+				.deletions(ImmutableList.of(new SyncClientCommands.Deletion("156", SyncStatus.OK)))
 				.build();
 		
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
@@ -78,6 +78,6 @@ public class SyncCollectionResponseTest {
 			.responses(responses)
 			.build();
 		
-		assertThat(collection.getCommands()).isEqualTo(responses);
+		assertThat(collection.getResponses()).isEqualTo(responses);
 	}
 }

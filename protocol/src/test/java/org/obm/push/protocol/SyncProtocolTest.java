@@ -54,11 +54,14 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.SyncCollection;
@@ -74,6 +77,7 @@ import org.obm.push.protocol.data.ms.MSEmailDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -1196,5 +1200,361 @@ public class SyncProtocolTest {
 					},
 					null, null, null);
 		}
+	}
+
+	@Test
+	public void encodeAddCommand() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.commands(SyncCollectionCommandsResponse.builder()
+							.addCommand(SyncCollectionCommandResponse.builder()
+									.type(SyncCommand.ADD)
+									.serverId(serverId)
+									.applicationData(contact)
+									.build())
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Commands>" +
+								"<Add>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+									"<ApplicationData>" +
+										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
+										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
+										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
+										"<AirSyncBase:Body>" + 
+										"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
+										"</AirSyncBase:Body>" +
+										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
+									"</ApplicationData>" +
+								"</Add>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeDeleteCommand() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.commands(SyncCollectionCommandsResponse.builder()
+							.addCommand(SyncCollectionCommandResponse.builder()
+									.type(SyncCommand.DELETE)
+									.serverId(serverId)
+									.build())
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Commands>" +
+								"<Delete>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+								"</Delete>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeChangeCommand() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		String clientId = "123";
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.commands(SyncCollectionCommandsResponse.builder()
+							.addCommand(SyncCollectionCommandResponse.builder()
+									.type(SyncCommand.CHANGE)
+									.serverId(serverId)
+									.clientId(clientId)
+									.applicationData(contact)
+									.build())
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Commands>" +
+								"<Change>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+									"<ApplicationData>" +
+										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
+										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
+										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
+										"<AirSyncBase:Body>" + 
+										"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
+										"</AirSyncBase:Body>" +
+										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
+									"</ApplicationData>" +
+								"</Change>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeAddResponse() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		String clientId = "123";
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.responses(SyncCollectionResponsesResponse.builder()
+							.adds(ImmutableList.of(new SyncClientCommands.Add(clientId, serverId, SyncStatus.CONVERSATION_ERROR_OR_INVALID_ITEM)))
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Responses>" +
+								"<Add>" +
+									"<ClientId>" + clientId + "</ClientId>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+									"<Status>6</Status>" +
+								"</Add>" +
+							"</Responses>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeDeleteResponse() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.responses(SyncCollectionResponsesResponse.builder()
+							.deletions(ImmutableList.of(new SyncClientCommands.Deletion(serverId, SyncStatus.CONVERSATION_ERROR_OR_INVALID_ITEM)))
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Responses>" +
+								"<Delete>" +
+								"<ServerId>" + serverId + "</ServerId>" +
+									"<Status>6</Status>" +
+								"</Delete>" +
+							"</Responses>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeChangeResponse() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.responses(SyncCollectionResponsesResponse.builder()
+							.updates(ImmutableList.of(new SyncClientCommands.Update(serverId, SyncStatus.CONVERSATION_ERROR_OR_INVALID_ITEM)))
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Responses>" +
+								"<Change>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+									"<Status>6</Status>" +
+								"</Change>" +
+							"</Responses>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
+
+	@Test
+	public void encodeFetchResponse() throws Exception {
+		int collectionId = 3;
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		String serverId = "3:6";
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.responses(SyncCollectionResponsesResponse.builder()
+							.fetchs(ImmutableList.of(new SyncClientCommands.Fetch(serverId, SyncStatus.CONVERSATION_ERROR_OR_INVALID_ITEM, contact)))
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Responses>" +
+								"<Fetch>" +
+									"<ServerId>" + serverId + "</ServerId>" +
+									"<Status>6</Status>" +
+									"<ApplicationData>" +
+										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
+										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
+										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
+										"<AirSyncBase:Body>" + 
+											"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
+										"</AirSyncBase:Body>" +
+										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
+									"</ApplicationData>" +
+								"</Fetch>" +
+							"</Responses>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
 	}
 }

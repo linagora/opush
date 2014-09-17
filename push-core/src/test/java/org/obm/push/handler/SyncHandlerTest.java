@@ -39,21 +39,29 @@ import static org.easymock.EasyMock.expectLastCall;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ContentsExporter;
 import org.obm.push.ContentsImporter;
 import org.obm.push.SummaryLoggerService;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.item.ItemChange;
+import org.obm.push.utils.DateUtils;
+
+import com.google.common.collect.ImmutableList;
 
 
 public class SyncHandlerTest {
@@ -64,6 +72,7 @@ public class SyncHandlerTest {
 
 	private IMocksControl mocks;
 	private ContentsImporter contentsImporter;
+	private ContentsExporter contentsExporter;
 	private SummaryLoggerService summaryLoggerService;
 	private SyncHandler testee;
 
@@ -75,60 +84,94 @@ public class SyncHandlerTest {
 
 		mocks = createControl();
 		contentsImporter = mocks.createMock(ContentsImporter.class);
+		contentsExporter = mocks.createMock(ContentsExporter.class);
 		summaryLoggerService = mocks.createMock(SummaryLoggerService.class);
 		
-		testee = new SyncHandler(null, null, contentsImporter, null, null, null, null,
+		testee = new SyncHandler(null, null, contentsImporter, contentsExporter, null, null, null,
 				null, null, null, null, null, null, false, null, null, null, summaryLoggerService);
 	}
 
 	@Test
 	public void testProcessModificationForFetch() throws Exception {
+		String serverId = "15:2";
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5"))
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
 				.syncKey(new SyncKey("123"))
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
-								.serverId("15:2")
+								.serverId(serverId)
 								.type(SyncCommand.FETCH)
 								.build())
 						.build())
 				.build();
 
+		IApplicationData data = mocks.createMock(IApplicationData.class);
+		expect(contentsExporter.fetch(udr, syncState, collection))
+			.andReturn(ImmutableList.of(ItemChange.builder()
+						.data(data)
+						.serverId(serverId)
+						.build()));
+		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).isEmpty();
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).containsOnly(new SyncClientCommands.Fetch(serverId, SyncStatus.OK, data));
 	}
 
 	@Test
 	public void testProcessModificationForFetchWithClientId() throws Exception {
+		String serverId = "15:2";
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5"))
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
 				.syncKey(new SyncKey("123"))
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
-								.serverId("15:2")
+								.serverId(serverId)
 								.clientId("1234")
 								.type(SyncCommand.FETCH)
 								.build())
 						.build())
 				.build();
 
+		IApplicationData data = mocks.createMock(IApplicationData.class);
+		expect(contentsExporter.fetch(udr, syncState, collection))
+			.andReturn(ImmutableList.of(ItemChange.builder()
+						.data(data)
+						.serverId(serverId)
+						.build()));
+
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).isEmpty();
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).containsOnly(new SyncClientCommands.Fetch(serverId, SyncStatus.OK, data));
 	}
 	
 	@Test
 	public void testProcessModificationForModify() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -137,21 +180,29 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn("15:3");
+		String serverId = "15:3";
+		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn(serverId);
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Update("15:3"));
+		assertThat(clientCommands.getUpdates()).containsOnly(new SyncClientCommands.Update(serverId, SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test
 	public void testProcessModificationForModifyWithClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -161,21 +212,29 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn("15:3");
+		String serverId = "15:3";
+		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Update("15:3"));
+		assertThat(clientCommands.getUpdates()).containsOnly(new SyncClientCommands.Update(serverId, SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testProcessModificationForAddNoClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -187,14 +246,19 @@ public class SyncHandlerTest {
 		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn("15:3");
 		
 		mocks.replay();
-		testee.processClientModification(udr, collection);
+		testee.processClientModification(udr, syncState, collection);
 	}
 	
 	@Test
 	public void testProcessModificationForAddWithClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -207,18 +271,25 @@ public class SyncHandlerTest {
 		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn("15:3");
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
-		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3"));
-		assertThat(clientCommands.getChanges()).isEmpty();
+		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3", SyncStatus.OK));
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test
 	public void testProcessModificationForAddWithOnlyClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId(null)
@@ -231,19 +302,26 @@ public class SyncHandlerTest {
 		expect(contentsImporter.importMessageChange(udr, 15, null, "1234", null)).andReturn("15:3");
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
-		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3"));
-		assertThat(clientCommands.getChanges()).isEmpty();
+		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3", SyncStatus.OK));
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test
 	public void testProcessModificationForDelete() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.dataType(PIMDataType.EMAIL)
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -257,19 +335,26 @@ public class SyncHandlerTest {
 		expectLastCall();
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Deletion("15:2"));
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion("15:2", SyncStatus.OK));
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test
 	public void testProcessModificationForDeleteWithClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.dataType(PIMDataType.EMAIL)
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -283,18 +368,25 @@ public class SyncHandlerTest {
 		expectLastCall();
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Deletion("15:2"));
+		assertThat(clientCommands.getUpdates()).isEmpty();
+		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion("15:2", SyncStatus.OK));
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 
 	@Test
 	public void testProcessModificationForChange() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -304,21 +396,29 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn("15:3");
+		String serverId = "15:3";
+		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn(serverId);
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Update("15:3"));
+		assertThat(clientCommands.getUpdates()).containsOnly(new SyncClientCommands.Update(serverId, SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 
 	@Test
 	public void testProcessModificationForChangeWithClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId("15:2")
@@ -328,21 +428,29 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn("15:3");
+		String serverId = "15:3";
+		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Update("15:3"));
+		assertThat(clientCommands.getUpdates()).containsOnly(new SyncClientCommands.Update(serverId, SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
 	@Test
 	public void testProcessModificationForChangeWithOnlyClientId() throws Exception {
+		SyncKey syncKey = new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5");
+		ItemSyncState syncState = ItemSyncState.builder()
+				.syncKey(syncKey)
+				.syncDate(DateUtils.getCurrentDate())
+				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(15)
-				.syncKey(new SyncKey("123"))
+				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommandResponse.builder()
 								.serverId(null)
@@ -352,13 +460,16 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, null, "1234", null)).andReturn("15:3");
+		String serverId = "15:3";
+		expect(contentsImporter.importMessageChange(udr, 15, null, "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
-		SyncClientCommands clientCommands = testee.processClientModification(udr, collection);
+		SyncClientCommands clientCommands = testee.processClientModification(udr, syncState, collection);
 		mocks.verify();
 		
 		assertThat(clientCommands.getAdds()).isEmpty();
-		assertThat(clientCommands.getChanges()).containsOnly(new SyncClientCommands.Update("15:3"));
+		assertThat(clientCommands.getUpdates()).containsOnly(new SyncClientCommands.Update(serverId, SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).isEmpty();
+		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 }

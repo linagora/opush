@@ -47,6 +47,7 @@ import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoPerformS
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -77,7 +78,9 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
@@ -195,7 +198,7 @@ public class SyncHandlerOnCalendarsTest {
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, calendarCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, calendarCollectionId);
 		
@@ -287,6 +290,7 @@ public class SyncHandlerOnCalendarsTest {
 		SyncKey thirdAllocatedSyncKey = new SyncKey("f909aa0f-cc7e-44b7-8395-2d6e69be54a4");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
+		int thirdAllocatedStateId = 5;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
@@ -304,14 +308,19 @@ public class SyncHandlerOnCalendarsTest {
 				.syncKey(secondAllocatedSyncKey)
 				.id(secondAllocatedStateId)
 				.build();
-		
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(secondDate)
+				.syncKey(thirdAllocatedSyncKey)
+				.id(thirdAllocatedStateId)
+				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
-		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKey)).andReturn(secondAllocatedState);
+		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate());
 
 		// First Sync
 		EventRecurrence eventRecurrence = new EventRecurrence();
@@ -351,6 +360,8 @@ public class SyncHandlerOnCalendarsTest {
 			.andReturn(msEventUid);
 		
 		String serverId = calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString();
+		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
+			.andReturn(eventExtId);
 		
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
@@ -394,10 +405,13 @@ public class SyncHandlerOnCalendarsTest {
 		msEventUpdated.setRecurrence(recurrenceUpdated);
 		msEventUpdated.setStartTime(secondDate);
 		msEventUpdated.setExceptions(ImmutableList.of(msEventException, msEventException2));
-		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
-			.andReturn(eventExtId);
+		
 		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
 			.andReturn(event);
+		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getEmail()), anyObject(Date.class)))
+			.andReturn(EventChanges.builder().lastSync(secondDate).build());
+		expect(calendarClient.getUserEmail(user.accessToken))
+			.andReturn(user.user.getLoginAtDomain());
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -420,7 +434,15 @@ public class SyncHandlerOnCalendarsTest {
 						.isNew(true)
 						.build()));
 		
-		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
+		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse updateCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponsesResponse responses = updateCollectionResponse.getResponses();
+		List<SyncCollectionCommandResponse> changes = responses.getCommandsForType(SyncCommand.CHANGE);
+		assertThat(changes).containsOnly(SyncCollectionCommandResponse.builder()
+				.syncStatus(SyncStatus.SERVER_ERROR)
+				.type(SyncCommand.CHANGE)
+				.serverId(serverId)
+				.build());
 	}
 
 	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId) throws DaoException {

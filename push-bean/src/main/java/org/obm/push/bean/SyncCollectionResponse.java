@@ -57,7 +57,8 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		private Integer collectionId;
 		private SyncStatus status;
 		private boolean moreAvailable;
-		private SyncCollectionCommandsResponse responses;
+		private SyncCollectionCommandsResponse commands;
+		private SyncCollectionResponsesResponse responses;
 
 		private Builder() {
 			super();
@@ -88,7 +89,12 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 			return this;
 		}
 		
-		public Builder responses(SyncCollectionCommandsResponse responses) {
+		public Builder commands(SyncCollectionCommandsResponse commands) {
+			this.commands = commands;
+			return this;
+		}
+		
+		public Builder responses(SyncCollectionResponsesResponse responses) {
 			this.responses = responses;
 			return this;
 		}
@@ -103,20 +109,23 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 			checkSyncCollectionCommonElements();
 			boolean moreAvailable = Objects.firstNonNull(this.moreAvailable, false);
 			SyncKey syncKey = Objects.firstNonNull(this.syncKey, SyncKey.INITIAL_FOLDER_SYNC_KEY);
-			SyncCollectionCommandsResponse response = Objects.firstNonNull(this.responses, SyncCollectionCommandsResponse.empty());
-			return new SyncCollectionResponse(dataType, syncKey, collectionId, status, moreAvailable, response);
+			return new SyncCollectionResponse(dataType, syncKey, collectionId, status, moreAvailable,
+					Objects.firstNonNull(this.commands, SyncCollectionCommandsResponse.empty()),
+					Objects.firstNonNull(this.responses, SyncCollectionResponsesResponse.empty()));
 		}
 
 	}
 	
 	private final SyncStatus status;
 	private final boolean moreAvailable;
+	private final SyncCollectionResponsesResponse responses;
 	
 	private SyncCollectionResponse(PIMDataType dataType, SyncKey syncKey, int collectionId,
-			SyncStatus status, boolean moreAvailable, SyncCollectionCommandsResponse responses) {
-		super(dataType, syncKey, collectionId, responses);
+			SyncStatus status, boolean moreAvailable, SyncCollectionCommandsResponse commands, SyncCollectionResponsesResponse responses) {
+		super(dataType, syncKey, collectionId, commands);
 		this.status = status;
 		this.moreAvailable = moreAvailable;
+		this.responses = responses;
 	}
 	
 	public SyncStatus getStatus() {
@@ -127,8 +136,19 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return moreAvailable;
 	}
 
-	public SyncCollectionCommandsResponse getResponses() {
-		return getCommands();
+	public SyncCollectionResponsesResponse getResponses() {
+		return responses;
+	}
+
+	public List<String> getResponseFetchIds() {
+		return FluentIterable.from(
+				responses.getCommandsForType(SyncCommand.FETCH))
+				.transform(new Function<SyncCollectionCommand, String>() {
+					@Override
+					public String apply(SyncCollectionCommand input) {
+						return input.getServerId();
+					}
+				}).toList();
 	}
 
 	public List<ItemDeletion> getItemChangesDeletion() {
@@ -167,7 +187,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	private Iterable<SyncCollectionCommandResponse> getFetchs() {
-		SyncCollectionCommandsResponse commands = getCommands();
+		SyncCollectionResponsesResponse commands = getResponses();
 		if (commands != null) {
 			return commands.getCommandsForType(SyncCommand.FETCH);
 		}

@@ -44,6 +44,7 @@ import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
@@ -218,7 +219,8 @@ public class SyncDecoder extends ActiveSyncDecoder {
 				.collectionId(uniqueIntegerFieldValue(collectionEl, SyncResponseFields.COLLECTION_ID))
 				.status(getCollectionStatus(collectionEl))
 				.moreAvailable(getMoreAvailable(collectionEl))
-				.responses(appendCommands(dataType, collectionEl));
+				.commands(appendCommands(dataType, collectionEl))
+				.responses(appendResponses(dataType, collectionEl));
 		return syncCollectionBuilder.build();
  	}
 	
@@ -248,7 +250,11 @@ public class SyncDecoder extends ActiveSyncDecoder {
 				builder.addCommand(getCommand((Element)collectionNodes.item(i), dataType));
 			}
 		}
+		return builder.build();	 		
+	}
 		
+	private SyncCollectionResponsesResponse appendResponses(PIMDataType dataType, Element collectionEl) {
+		SyncCollectionResponsesResponse.Builder builder = SyncCollectionResponsesResponse.builder();
 		Element responsesEl = DOMUtils.getUniqueElement(collectionEl, SyncResponseFields.RESPONSES.getName());
 		if (responsesEl != null) {
 			NodeList collectionNodes = responsesEl.getChildNodes();

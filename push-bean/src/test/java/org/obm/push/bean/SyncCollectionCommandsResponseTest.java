@@ -72,7 +72,7 @@ public class SyncCollectionCommandsResponseTest {
 	public void testResponseSummaryOneAdditionFromClient() {
 		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").isNew(true).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.builder().putAdd(new Add("789456", "123")).build())
+				.changes(changes, SyncClientCommands.builder().putAdd(new Add("789456", "123", SyncStatus.OK)).build())
 				.build();
 		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}

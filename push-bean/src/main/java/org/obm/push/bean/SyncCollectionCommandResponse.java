@@ -43,6 +43,7 @@ public class SyncCollectionCommandResponse extends SyncCollectionCommand {
 
 	public static class Builder extends SyncCollectionCommand.Builder<SyncCollectionCommandResponse> {
 		private IApplicationData applicationData;
+		private SyncStatus syncStatus;
 		
 		private Builder() {
 			super();
@@ -54,20 +55,31 @@ public class SyncCollectionCommandResponse extends SyncCollectionCommand {
 			return this;
 		}
 		
+		public Builder syncStatus(SyncStatus syncStatus) {
+			this.syncStatus = syncStatus;
+			return this;
+		}
+		
 		@Override
 		public SyncCollectionCommandResponse build() {
-			return new SyncCollectionCommandResponse(type, serverId, clientId, applicationData);
+			return new SyncCollectionCommandResponse(type, serverId, clientId, applicationData, syncStatus);
 		}
 	}
 	
 	private final IApplicationData applicationData;
+	private final SyncStatus syncStatus;
 	
-	private SyncCollectionCommandResponse(SyncCommand commandType, String serverId, String clientId, IApplicationData applicationData) {
+	private SyncCollectionCommandResponse(SyncCommand commandType, String serverId, String clientId, IApplicationData applicationData, SyncStatus syncStatus) {
 		super(commandType, serverId, clientId);
 		this.applicationData = applicationData;
+		this.syncStatus = syncStatus;
 	}
 	
 	public IApplicationData getApplicationData() {
 		return applicationData;
+	}
+	
+	public SyncStatus getSyncStatus() {
+		return syncStatus;
 	}
 }

@@ -81,7 +81,7 @@ public class ContentsExporter implements IContentsExporter {
 			ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
 		
 		PIMBackend backend = backends.getBackend(syncCollection.getDataType());
-		return backend.fetch(udr, syncCollection.getCollectionId(), syncCollection.getFetchIds(), syncCollectionOptions);
+		return backend.fetch(udr, syncCollection.getCollectionId(), syncCollection.getResponseFetchIds(), syncCollectionOptions);
 	}
 
 	@Override

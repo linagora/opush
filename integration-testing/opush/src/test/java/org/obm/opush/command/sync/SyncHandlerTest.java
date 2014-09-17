@@ -97,6 +97,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
@@ -443,9 +444,9 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncWithCommand(decoder, 
 				syncEmailSyncKey, inbox.getCollectionId(), SyncCommand.FETCH, serverId);
 
-		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(),
-				ItemChange.builder().serverId(syncEmailCollectionId + ":123")
-					.isNew(false)
+		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId + ":123"));
+		checkMailFolderHasDeleteItems(syncEmailResponse, inbox.getCollectionId(),
+				ItemDeletion.builder().serverId(syncEmailCollectionId + ":122")
 					.build());
 	}
 	

@@ -35,9 +35,12 @@ import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableListMultimap;
 
 public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncCollectionCommandResponse> {
@@ -86,7 +89,9 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 					.serverId(serverId);
 				
 				if (clientCommands.hasAddWithServerId(serverId)){
-					builder.clientId(clientCommands.getAddWithServerId(serverId).get().getClientId());
+					Add add = clientCommands.getAddWithServerId(serverId).get();
+					builder.clientId(add.getClientId());
+					builder.syncStatus(add.getSyncStatus());
 				}
 				addCommand(builder.build());
 			}
@@ -119,5 +124,16 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 			}
 			return this;
 		}
+	}
+	
+	public boolean hasFetch() {
+		return FluentIterable.from(getCommands())
+			.anyMatch(new Predicate<SyncCollectionCommandResponse>() {
+
+				@Override
+				public boolean apply(SyncCollectionCommandResponse response) {
+					return response.getType().equals(SyncCommand.FETCH);
+				}
+			});
 	}
 }

@@ -47,9 +47,11 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -147,8 +149,8 @@ public class SummaryLoggerServiceTest {
 				.collectionId(1)
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
-				.responses(SyncCollectionCommandsResponse.builder()
-						.changes(ImmutableList.of(ItemChange.builder().serverId("987").build()), SyncClientCommands.empty())
+				.responses(SyncCollectionResponsesResponse.builder()
+						.adds(ImmutableList.of(new Add("12", "456", SyncStatus.OK)))
 						.build())
 				.build())
 			.build();
@@ -200,7 +202,7 @@ public class SummaryLoggerServiceTest {
 				.collectionId(1)
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
-				.responses(SyncCollectionCommandsResponse.builder().build())
+				.responses(SyncCollectionResponsesResponse.empty())
 				.build())
 			.build();
 		
@@ -220,7 +222,7 @@ public class SummaryLoggerServiceTest {
 				.collectionId(1)
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
-				.responses( SyncCollectionCommandsResponse.builder()
+				.commands( SyncCollectionCommandsResponse.builder()
 					.fetchs(ImmutableList.of(ItemChange.builder().serverId("103").build()))
 					.deletions(ImmutableList.of(ItemDeletion.builder().serverId("234").build()))
 					.build())
@@ -229,7 +231,7 @@ public class SummaryLoggerServiceTest {
 				.collectionId(1)
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
-				.responses( SyncCollectionCommandsResponse.builder()
+				.commands( SyncCollectionCommandsResponse.builder()
 					.changes(
 						ImmutableList.of(ItemChange.builder().serverId("456").build()),
 						SyncClientCommands.empty())

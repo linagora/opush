@@ -307,9 +307,18 @@ public class SyncHandlerOnContactsTest {
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
+		Contact storedContact = new Contact();
+		storedContact.setFirstname("firstname");
+		storedContact.setLastname("lastname");
+		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+		int uid = 456;
+		storedContact.setUid(uid);
 		expect(bookClient.storeContact(user.accessToken, contactCollectionId, createdContact, hashedClientId))
-			.andReturn(createdContact);
+			.andReturn(storedContact);
 		
+		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(new ServerId(contactCollectionIdAsString + ":" + uid)));
+		expectLastCall().once();
+
 		mocksControl.replay();
 		opushServer.start();
 

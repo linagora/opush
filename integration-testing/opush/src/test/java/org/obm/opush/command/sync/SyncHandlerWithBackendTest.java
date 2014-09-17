@@ -99,7 +99,6 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.MailboxService;
@@ -757,15 +756,13 @@ public class SyncHandlerWithBackendTest {
 				.id(secondAllocatedStateId)
 				.build();
 		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T17:00:00"))
+				.syncDate(date("2012-10-10T16:22:53"))
 				.syncKey(thirdAllocatedSyncKey)
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(4);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-
-		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 
 		String serverId = inboxCollectionIdAsString + ":" + 1;
@@ -795,13 +792,7 @@ public class SyncHandlerWithBackendTest {
 						.isNew(true)
 						.build()));
 		
-		SyncCollectionResponse secondCollectionResponse = getCollectionWithId(secondSyncResponse, inboxCollectionIdAsString);
 		assertThat(secondSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		assertThat(secondCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		assertThat(secondCollectionResponse.getItemFetchs()).isEmpty();
-		assertThat(secondCollectionResponse.getItemChanges()).isEmpty();
-		assertThat(secondCollectionResponse.getItemChangesDeletion())
-			.containsOnly(ItemDeletion.builder().serverId(serverId).build());
 	}
 
 	private void initializeEmptySnapshotForSyncKey(SyncKey firstAllocatedSyncKey) throws SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException, NotSupportedException {

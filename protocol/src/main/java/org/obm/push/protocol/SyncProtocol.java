@@ -32,14 +32,13 @@
 package org.obm.push.protocol;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.obm.push.bean.Device;
+import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.item.ItemChange;
@@ -59,7 +58,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncResponse> {
@@ -118,12 +116,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 							DOMUtils.createElement(ce, "MoreAvailable");
 						}
 
-						if (collectionResponse.getFetchIds().isEmpty()) {
-							buildUpdateItemChange(device, collectionResponse, 
-									Maps.newHashMap(syncResponse.getProcessedClientIds()), ce);
-						} else {
-							buildFetchItemChange(device, collectionResponse, ce);
-						}
+						buildUpdateItemChange(device, collectionResponse, ce);
 					}
 					
 					sk.setTextContent(collectionResponse.getSyncKey().getSyncKey());
@@ -153,85 +146,60 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		DOMUtils.createElementAndText(root, "Status", error);
 		return ret;
 	}
-
-	private void buildFetchItemChange(Device device, SyncCollectionResponse c, Element ce) throws IOException {
-		
-		Element commands = DOMUtils.createElement(ce, "Responses");
-		for (ItemChange ic : c.getItemFetchs()) {
-			Element add = DOMUtils.createElement(commands, "Fetch");
-			DOMUtils.createElementAndText(add, "ServerId", ic.getServerId());
-			DOMUtils.createElementAndText(add, "Status", c.getStatus().asSpecificationValue());
-			serializeChange(device, add, ic);
-		}
-	}
 	
-	private void serializeChange(Device device, Element col, ItemChange ic) throws IOException {
-		if (ic.getData() != null) {
+	private void serializeChange(Device device, Element col, IApplicationData applicationData) throws IOException {
+		if (applicationData != null) {
 			Element apData = DOMUtils.createElement(col, "ApplicationData");
-			encoderFactory.encode(device, apData, ic.getData(), true);
+			encoderFactory.encode(device, apData, applicationData, true);
 		}
 	}
 	
-	private void buildUpdateItemChange(Device device, SyncCollectionResponse c, Map<String, String> processedClientIds, 
-			Element ce) throws IOException {
+	private void buildUpdateItemChange(Device device, SyncCollectionResponse collectionResponse, Element ce) throws IOException {
 		
-		
-		Element responses = DOMUtils.createElement(ce, "Responses");
 		Element commands = DOMUtils.createElement(ce, "Commands");
 		
-		List<ItemDeletion> itemChangesDeletion = c.getItemChangesDeletion();
+		List<ItemDeletion> itemChangesDeletion = collectionResponse.getItemChangesDeletion();
 		for (ItemDeletion deletion: itemChangesDeletion) {
 			serializeDeletion(commands, deletion);
-			processedClientIds.remove(deletion.getServerId());
 		}
 		
-		for (ItemChange ic : c.getItemChanges()) {
-			String clientId = processedClientIds.get(ic.getServerId());
-			if (itemChangeIsClientAddAck(clientId)) {
-				Element add = DOMUtils.createElement(responses, "Add");
-				DOMUtils.createElementAndText(add, "ClientId", clientId);
-				DOMUtils.createElementAndText(add, "ServerId", ic.getServerId());
-				DOMUtils.createElementAndText(add, "Status", SyncStatus.OK.asSpecificationValue());
-			
-			} else if (itemChangeIsClientChangeAck(processedClientIds, ic)) {
-				Element add = DOMUtils.createElement(responses, "Change");
-				DOMUtils.createElementAndText(add, "ServerId", ic.getServerId());
-				DOMUtils.createElementAndText(add, "Status", SyncStatus.OK.asSpecificationValue());
-			} else { // New change done on server
-				String commandName = selectCommandName(ic);
-				Element command = DOMUtils.createElement(commands, commandName);
-				DOMUtils.createElementAndText(command, "ServerId", ic.getServerId());
-				serializeChange(device, command, ic);
-			}
-			processedClientIds.remove(ic.getServerId());
+		for (ItemChange itemChange : collectionResponse.getItemChanges()) {
+			String commandName = selectCommandName(itemChange);
+			Element command = DOMUtils.createElement(commands, commandName);
+			DOMUtils.createElementAndText(command, "ServerId", itemChange.getServerId());
+			serializeChange(device, command, itemChange.getData());
 		}
 
-		// Send error for the remaining entry in the Map because the
-		// client has requested the addition of a resource that already exists
-		// on the server
-		Set<Entry<String, String>> entries = new HashSet<Map.Entry<String, String>>(
-				processedClientIds.entrySet());
-		for (Entry<String, String> entry : entries) {
-			if (entry.getKey() != null) {
-				if (entry.getKey().startsWith(String.valueOf(c.getCollectionId()))) {
-					Element add = null;
-					if (entry.getValue() != null) {
-						add = DOMUtils.createElement(responses, "Add");
-						DOMUtils.createElementAndText(add, "ClientId",
-								entry.getValue());
-					} else {
-						add = DOMUtils.createElement(responses, "Change");
-					}
-					DOMUtils.createElementAndText(add, "ServerId",
-							entry.getKey());
-					// need send ok since we do not synchronize event with
-					// ParticipationState need-action
-					DOMUtils.createElementAndText(add, "Status",
-							SyncStatus.OK.asSpecificationValue());
-					processedClientIds.remove(entry.getKey());
-				}
+		Element responses = DOMUtils.createElement(ce, "Responses");
+		SyncCollectionResponsesResponse responsesToClientCommands = collectionResponse.getResponses();
+		for (SyncCollectionCommandResponse responseToClientCommand : responsesToClientCommands.getCommands()) {
+			switch (responseToClientCommand.getType()) {
+			case ADD:
+				Element add = DOMUtils.createElement(responses, "Add");
+				DOMUtils.createElementAndText(add, "ClientId", responseToClientCommand.getClientId());
+				DOMUtils.createElementAndText(add, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(add, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				break;
+			case CHANGE:
+			case MODIFY:
+				Element change = DOMUtils.createElement(responses, "Change");
+				DOMUtils.createElementAndText(change, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(change, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				break;
+			case DELETE:
+				Element delete = DOMUtils.createElement(responses, "Delete");
+				DOMUtils.createElementAndText(delete, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(delete, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				break;
+			case FETCH:
+				Element fetch = DOMUtils.createElement(responses, "Fetch");
+				DOMUtils.createElementAndText(fetch, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(fetch, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				serializeChange(device, fetch, responseToClientCommand.getApplicationData());
+				break;
 			}
 		}
+
 		if (commands.getChildNodes().getLength() == 0) {
 			commands.getParentNode().removeChild(commands);
 		}
@@ -246,15 +214,6 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		} else {
 			return "Change";
 		}
-	}
-
-	private boolean itemChangeIsClientChangeAck(
-			Map<String, String> processedClientIds, ItemChange ic) {
-		return processedClientIds.keySet().contains(ic.getServerId());
-	}
-
-	private boolean itemChangeIsClientAddAck(String clientId) {
-		return clientId != null;
 	}
 	
 	private static void serializeDeletion(Element commands, ItemDeletion deletion) {

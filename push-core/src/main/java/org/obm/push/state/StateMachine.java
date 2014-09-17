@@ -34,14 +34,19 @@ package org.obm.push.state;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ASItem;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -54,8 +59,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -118,21 +127,49 @@ public class StateMachine implements IStateMachine {
 	}
 	
 	@Override
-	public void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, 
-		Collection<ItemChange> changes, Collection<ItemDeletion> deletedItems, SyncKey newSyncKey) throws DaoException, InvalidServerId {
+	public void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
+			throws DaoException, InvalidServerId {
 
 		ItemSyncState newState = collectionDao.updateState(udr.getDevice(), collectionId, newSyncKey, lastSync);
 		
-		if (changes != null && !changes.isEmpty()) {
-			itemTrackingDao.markAsSynced(newState, listNewItems(changes));
+		Set<ServerId> listNewItems = ImmutableSet.<ServerId> builder()
+				.addAll(listNewItems(syncCollectionResponse.getItemChanges()))
+				.addAll(filterNotOk(syncCollectionResponse.getResponses().getCommandsForType(SyncCommand.ADD)))
+				.build();
+		if (!listNewItems.isEmpty()) {
+			itemTrackingDao.markAsSynced(newState, listNewItems);
 		}
-		if (deletedItems != null && !deletedItems.isEmpty()) {
-			itemTrackingDao.markAsDeleted(newState, itemDeletionsAsServerIdSet(deletedItems));
+		
+		Set<ServerId> listDeletedItems = ImmutableSet.<ServerId> builder()
+				.addAll(itemDeletionsAsServerIdSet(syncCollectionResponse.getItemChangesDeletion()))
+				.addAll(filterNotOk(syncCollectionResponse.getResponses().getCommandsForType(SyncCommand.DELETE)))
+				.build();
+		if (!listDeletedItems.isEmpty()) {
+			itemTrackingDao.markAsDeleted(newState, listDeletedItems);
 		}
 		
 		log(udr, newState);
 	}
 	
+	private Iterable<ServerId> filterNotOk(List<SyncCollectionCommandResponse> commands) {
+		return FluentIterable
+				.from(commands)
+				.filter(new Predicate<SyncCollectionCommandResponse>() {
+		
+					@Override
+					public boolean apply(SyncCollectionCommandResponse input) {
+						return SyncStatus.OK == input.getSyncStatus();
+					}
+				})
+				.transform(new Function<SyncCollectionCommandResponse, ServerId>() {
+
+					@Override
+					public ServerId apply(SyncCollectionCommandResponse input) {
+						return new ServerId(input.getServerId());
+					}
+				});
+	}
+
 	@Override
 	public void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId {
 
@@ -142,6 +179,10 @@ public class StateMachine implements IStateMachine {
 
 	private Set<ServerId> itemDeletionsAsServerIdSet(Iterable<ItemDeletion> deletions) throws InvalidServerId {
 		Set<ServerId> ids = Sets.newHashSet();
+		if (ids == null) {
+			return ids;
+		}
+		
 		for (ItemDeletion deletion: deletions) {
 			addServerItemId(ids, deletion);
 		}
@@ -150,6 +191,10 @@ public class StateMachine implements IStateMachine {
 
 	private Set<ServerId> listNewItems(Collection<ItemChange> changes) throws InvalidServerId {
 		HashSet<ServerId> serverIds = Sets.newHashSet();
+		if (changes == null) {
+			return serverIds;
+		}
+		
 		for (ItemChange change: changes) {
 			if (change.isNew()) {
 				addServerItemId(serverIds, change);

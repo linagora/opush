@@ -34,12 +34,10 @@ package org.obm.push.protocol.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.client.SyncClientCommands.Add;
-import org.obm.push.bean.change.item.ItemChange;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -66,11 +64,8 @@ public class SyncResponseTest {
 		SyncResponse syncResponse = SyncResponse.builder()
 				.addResponse(SyncCollectionResponse.builder()
 						.collectionId(1)
-						.responses(SyncCollectionCommandsResponse.builder()
-								.changes(ImmutableList.of(ItemChange.builder().serverId(serverId).build()), 
-										SyncClientCommands.builder()
-											.putAdd(new Add(clientId , serverId))
-											.build())
+						.responses(SyncCollectionResponsesResponse.builder()
+								.adds(ImmutableList.of(new SyncClientCommands.Add(clientId, serverId, SyncStatus.OK)))
 								.build())
 						.build())
 				.status(SyncStatus.OK)

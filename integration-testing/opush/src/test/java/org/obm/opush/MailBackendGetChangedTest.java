@@ -45,6 +45,7 @@ import static org.obm.opush.command.sync.SyncTestUtils.getCollectionWithId;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -72,6 +73,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.Resource;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -636,8 +638,10 @@ public class MailBackendGetChangedTest {
 
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
 		assertThat(inboxResponse.getItemChanges()).isEmpty();
-		assertThat(inboxResponse.getItemChangesDeletion()).containsOnly(
-				ItemDeletion.builder().serverId("1234:1").build());
+		List<SyncCollectionCommandResponse> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
+		assertThat(deletions).hasSize(1);
+		SyncCollectionCommandResponse deletion = deletions.get(0);
+		assertThat(deletion.getServerId()).isEqualTo("1234:1");
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 	}
 	
@@ -712,8 +716,8 @@ public class MailBackendGetChangedTest {
 						.build()));
 	}
 	
-	@Test(expected=AssertionError.class)
-	public void testGetChangedDoesnotReturnDeleteAskByClient() throws Exception {
+	@Test
+	public void testGetChangedShouldReturnDeleteResponseAskByClient() throws Exception {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
@@ -767,9 +771,9 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
-		assertThat(inboxResponse.getItemChanges()).isEmpty();
-		assertThat(inboxResponse.getItemChangesDeletion()).isEmpty();
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		List<ServerId> deletions = inboxResponse.getResponses().deletions();
+		assertThat(deletions).containsOnly(new ServerId(inboxCollectionId + emailId1));
 	}
 
 	@Test
@@ -1117,7 +1121,6 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId + ":" + emailId))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, new ServerId(inboxCollectionId + ":" + emailId))).andReturn(true);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		

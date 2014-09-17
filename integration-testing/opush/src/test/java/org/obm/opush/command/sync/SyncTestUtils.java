@@ -90,16 +90,13 @@ public class SyncTestUtils {
 		assertThat(collection.getItemChangesDeletion()).isEmpty();
 	}
 
-	public static void checkMailFolderHasFetchItems(SyncResponse response, String serverId, ItemChange... changes) {
+	public static void checkMailFolderHasFetchItems(SyncResponse response, String serverId, ServerId... fetches) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
-		List<ItemChange> itemChanges = collection.getItemFetchs();
-		assertThat(itemChanges).containsOnly(changes);
-		assertThat(collection.getItemChangesDeletion()).isEmpty();
+		assertThat(collection.getResponses().fetches()).containsOnly(fetches);
 	}
 
 	public static void checkMailFolderHasDeleteItems(SyncResponse response, String serverId, ItemDeletion... deletes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
-		assertThat(collection.getItemChanges()).isEmpty();
 		assertThat(collection.getItemChangesDeletion()).containsOnly(deletes);
 	}
 

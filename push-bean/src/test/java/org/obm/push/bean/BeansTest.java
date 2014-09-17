@@ -46,6 +46,10 @@ import org.obm.push.bean.autodiscover.AutodiscoverResponseUser;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.bean.change.client.SyncClientCommands.Add;
+import org.obm.push.bean.change.client.SyncClientCommands.Deletion;
+import org.obm.push.bean.change.client.SyncClientCommands.Fetch;
+import org.obm.push.bean.change.client.SyncClientCommands.Update;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.item.ItemChange;
@@ -128,6 +132,10 @@ public class BeansTest {
 					.add(WindowingEvent.class)
 					.add(SnapshotKey.class)
 					.add(Summary.class)
+					.add(Add.class)
+					.add(Update.class)
+					.add(Deletion.class)
+					.add(Fetch.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

@@ -34,32 +34,56 @@ package org.obm.push.state;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Date;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.Credentials;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
+import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommandsResponse;
+import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
+import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.store.CollectionDao;
+import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.UUIDFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 
 public class StateMachineTest {
 	
-	private SyncKeyFactory syncKeyFactory;
-	private IMocksControl control;
+	SyncKeyFactory syncKeyFactory;
+	User user;
+	Device device;
+	UserDataRequest udr;
+	IMocksControl control;
 
 	@Before
 	public void setUp() {
 		UUIDFactory uuidFactory = new UUIDFactory() {};
 		syncKeyFactory = new SyncKeyFactory(uuidFactory);
+
+		user = Factory.create().createUser("test@test", "test@domain", "displayName");
+		device = new Device.Factory().create(3, "type", "agent", new DeviceId("my phone"), ProtocolVersion.V121);
+		udr = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
 		
 		control = createControl();
 	}
@@ -129,19 +153,129 @@ public class StateMachineTest {
 	}
 
 	@Test
+	public void allocateNewSyncStateShouldTrackAllCommandAddsAndDeletions() throws Exception {
+		Integer collectionId = 1;
+		Date lastSync = DateUtils.getCurrentDate();
+		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
+		ItemSyncState allocatedState = ItemSyncState.builder().syncKey(newSyncKey).syncDate(lastSync).build();
+
+		SyncCollectionResponse response = SyncCollectionResponse.builder()
+			.collectionId(collectionId)
+			.dataType(PIMDataType.CALENDAR)
+			.moreAvailable(false)
+			.status(SyncStatus.OK)
+			.syncKey(newSyncKey)
+			.responses(SyncCollectionResponsesResponse.empty())
+			.commands(SyncCollectionCommandsResponse.builder()
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.OK)
+					.type(SyncCommand.ADD)
+					.serverId("12:5")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.SERVER_ERROR)
+					.type(SyncCommand.ADD)
+					.serverId("12:6")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.OK)
+					.type(SyncCommand.DELETE)
+					.serverId("12:1")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.SERVER_ERROR)
+					.type(SyncCommand.DELETE)
+					.serverId("12:2")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.CONFLICT)
+					.type(SyncCommand.DELETE)
+					.serverId("12:3")
+					.build())
+				.build())
+			.build();
+		
+		CollectionDao collectionDao = control.createMock(CollectionDao.class);
+		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync)).andReturn(allocatedState);
+		
+		ItemTrackingDao itemTrackingDao = control.createMock(ItemTrackingDao.class);
+		itemTrackingDao.markAsSynced(allocatedState, ImmutableSet.of(new ServerId("12:5"), new ServerId("12:6")));
+		expectLastCall();
+		itemTrackingDao.markAsDeleted(allocatedState, ImmutableSet.of(new ServerId("12:1"), new ServerId("12:2"), new ServerId("12:3")));
+		expectLastCall();
+		
+		control.replay();
+		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao, syncKeyFactory);
+		stateMachine.allocateNewSyncState(udr, collectionId, lastSync, response, newSyncKey);
+		control.verify();
+	}
+
+	@Test
+	public void allocateNewSyncStateShouldTrackOnlyOKResponses() throws Exception {
+		Integer collectionId = 1;
+		Date lastSync = DateUtils.getCurrentDate();
+		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
+		ItemSyncState allocatedState = ItemSyncState.builder().syncKey(newSyncKey).syncDate(lastSync).build();
+
+		SyncCollectionResponse response = SyncCollectionResponse.builder()
+			.collectionId(collectionId)
+			.dataType(PIMDataType.CALENDAR)
+			.moreAvailable(false)
+			.status(SyncStatus.OK)
+			.syncKey(newSyncKey)
+			.commands(SyncCollectionCommandsResponse.empty())
+			.responses(SyncCollectionResponsesResponse.builder()
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.OK)
+					.type(SyncCommand.ADD)
+					.serverId("12:5")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.SERVER_ERROR)
+					.type(SyncCommand.ADD)
+					.serverId("12:6")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.OK)
+					.type(SyncCommand.DELETE)
+					.serverId("12:1")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.OBJECT_NOT_FOUND)
+					.type(SyncCommand.DELETE)
+					.serverId("12:2")
+					.build())
+				.addCommand(SyncCollectionCommandResponse.builder()
+					.syncStatus(SyncStatus.CONFLICT)
+					.type(SyncCommand.DELETE)
+					.serverId("12:3")
+					.build())
+				.build())
+			.build();
+		
+		CollectionDao collectionDao = control.createMock(CollectionDao.class);
+		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync)).andReturn(allocatedState);
+		
+		ItemTrackingDao itemTrackingDao = control.createMock(ItemTrackingDao.class);
+		itemTrackingDao.markAsSynced(allocatedState, ImmutableSet.of(new ServerId("12:5")));
+		expectLastCall();
+		itemTrackingDao.markAsDeleted(allocatedState, ImmutableSet.of(new ServerId("12:1")));
+		expectLastCall();
+		
+		control.replay();
+		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao, syncKeyFactory);
+		stateMachine.allocateNewSyncState(udr, collectionId, lastSync, response, newSyncKey);
+		control.verify();
+	}
+
+	@Test
 	public void allocateNewSyncStateWithoutTrackingShouldStoreUpdatedState() throws Exception {
 		Integer collectionId = 1;
 		Date lastSync = DateUtils.getCurrentDate();
 		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
 		
-		UserDataRequest udr = control.createMock(UserDataRequest.class);
-		expect(udr.getDevice())
-			.andReturn(null);
-		expect(udr.getUser())
-			.andReturn(User.builder().email("jean.jaures@sfio.fr").domain("sfio.fr").login("jjaures").build());
-		
 		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.updateState(null, 1, newSyncKey, lastSync))
+		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync))
 			.andReturn(ItemSyncState.builder()
 					.syncKey(newSyncKey)
 					.syncDate(lastSync)

@@ -31,16 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.state;
 
-import java.util.Collection;
 import java.util.Date;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
@@ -55,9 +53,8 @@ public interface IStateMachine {
 	
 	FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException;
 	
-	void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, 
-		Collection<ItemChange> changes, Collection<ItemDeletion> deletedItems, SyncKey newSyncKey) 
-				throws DaoException, InvalidServerId;
+	void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
+			throws DaoException, InvalidServerId;
 	
 	void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId;
 }

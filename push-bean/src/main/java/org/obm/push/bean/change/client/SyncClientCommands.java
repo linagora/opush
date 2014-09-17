@@ -33,6 +33,8 @@ package org.obm.push.bean.change.client;
 
 import java.util.List;
 
+import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.base.Objects;
@@ -42,7 +44,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 public class SyncClientCommands {
 
@@ -56,109 +57,180 @@ public class SyncClientCommands {
 	
 	public static class Builder {
 		
-		private final List<Add> adds;
-		private final List<Change> changes;
+		private final ImmutableList.Builder<Add> adds;
+		private final ImmutableList.Builder<Update> updates;
+		private final ImmutableList.Builder<Deletion> deletions;
+		private final ImmutableList.Builder<Fetch> fetches;
 
 		private Builder() {
-			adds = Lists.newArrayList();
-			changes = Lists.newArrayList();
-		}
-		
-		public Builder putChange(Change change) {
-			changes.add(change);
-			return this;
+			adds = ImmutableList.builder();
+			updates = ImmutableList.builder();
+			deletions = ImmutableList.builder();
+			fetches = ImmutableList.builder();
 		}
 		
 		public Builder putAdd(Add add) {
 			adds.add(add);
 			return this;
 		}
-
-		public Builder merge(SyncClientCommands clientCommands) {
-			adds.addAll(clientCommands.getAdds());
-			changes.addAll(clientCommands.getChanges());
+		
+		public Builder putUpdate(Update update) {
+			updates.add(update);
+			return this;
+		}
+		
+		public Builder putDeletion(Deletion deletion) {
+			deletions.add(deletion);
+			return this;
+		}
+		
+		public Builder putFetch(Fetch fetch) {
+			fetches.add(fetch);
 			return this;
 		}
 		
 		public SyncClientCommands build() {
-			return new SyncClientCommands(ImmutableList.copyOf(adds), ImmutableList.copyOf(changes));
+			return new SyncClientCommands(adds.build(), updates.build(), deletions.build(), fetches.build());
 		}
 	}
 
-	public static interface SyncClientCommand {
-		SyncCommand syncCommand();
-	}
-	
-	public static abstract class Change implements SyncClientCommand {
+	public static abstract class ClientCommand {
 		
-		public final String serverId;
+		protected final String serverId;
+		protected final SyncStatus syncStatus;
 
-		public Change(String serverId) {
+		protected ClientCommand(String serverId, SyncStatus syncStatus) {
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(serverId), "serverId is required");
+			Preconditions.checkArgument(syncStatus != null, "syncStatus is required");
 			this.serverId = serverId;
+			this.syncStatus = syncStatus;
+		}
+
+		public abstract SyncCommand syncCommand();
+
+		public String getServerId() {
+			return serverId;
 		}
 		
-		@Override
-		public final int hashCode(){
-			return Objects.hashCode(serverId);
+		public SyncStatus getSyncStatus() {
+			return syncStatus;
 		}
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this).add("serverId", serverId).toString();
+			return Objects.toStringHelper(this)
+					.add("serverId", serverId)
+					.add("syncStatus", syncStatus)
+					.toString();
 		}
 	}
 	
-	public static class Update extends Change {
+	public static class Update extends ClientCommand {
 
-		public Update(String serverId) {
-			super(serverId);
+		public Update(String serverId, SyncStatus syncStatus) {
+			super(serverId, syncStatus);
 		}
 
 		@Override
 		public SyncCommand syncCommand() {
 			return SyncCommand.CHANGE;
 		}
+		
+		@Override
+		public final int hashCode(){
+			return Objects.hashCode(serverId, syncStatus);
+		}
 
 		@Override
-		public final boolean equals(Object obj){
-			if (obj instanceof Update) {
-				return Objects.equal(this.serverId, ((Update)obj).serverId);
+		public boolean equals(Object object){
+			if (object instanceof Update) {
+				Update that = (Update) object;
+				return Objects.equal(this.serverId, that.serverId)
+					&& Objects.equal(this.syncStatus, that.syncStatus);
 			}
 			return false;
 		}
 	}
 	
-	public static class Deletion extends Change {
+	public static class Deletion extends ClientCommand {
 
-		public Deletion(String serverId) {
-			super(serverId);
+		public Deletion(String serverId, SyncStatus syncStatus) {
+			super(serverId, syncStatus);
 		}
 
 		@Override
 		public SyncCommand syncCommand() {
 			return SyncCommand.DELETE;
 		}
+		
+		@Override
+		public final int hashCode(){
+			return Objects.hashCode(serverId, syncStatus);
+		}
 
 		@Override
-		public final boolean equals(Object obj){
-			if (obj instanceof Deletion) {
-				return Objects.equal(this.serverId, ((Deletion)obj).serverId);
+		public final boolean equals(Object object){
+			if (object instanceof Deletion) {
+				Deletion that = (Deletion) object;
+				return Objects.equal(this.serverId, that.serverId)
+					&& Objects.equal(this.syncStatus, that.syncStatus);
 			}
 			return false;
 		}
 	}
+	
+	public static class Fetch extends ClientCommand {
 
-	public static class Add implements SyncClientCommand {
+		private final IApplicationData applicationData;
+
+		public Fetch(String serverId, SyncStatus syncStatus, IApplicationData applicationData) {
+			super(serverId, syncStatus);
+			this.applicationData = applicationData;
+		}
+
+		@Override
+		public SyncCommand syncCommand() {
+			return SyncCommand.FETCH;
+		}
+
+		public IApplicationData getApplicationData() {
+			return applicationData;
+		}
 		
-		public final String serverId;
+		@Override
+		public final int hashCode(){
+			return Objects.hashCode(serverId, syncStatus, applicationData);
+		}
+		
+		@Override
+		public final boolean equals(Object object){
+			if (object instanceof Fetch) {
+				Fetch that = (Fetch) object;
+				return Objects.equal(this.serverId, that.serverId)
+					&& Objects.equal(this.syncStatus, that.syncStatus)
+					&& Objects.equal(this.applicationData, that.applicationData);
+			}
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+				.add("serverId", serverId)
+				.add("syncStatus", syncStatus)
+				.add("data", applicationData)
+				.toString();
+		}
+	}
+
+	public static class Add extends ClientCommand {
+		
 		public final String clientId;
 
-		public Add(String clientId, String serverId) {
+		public Add(String clientId, String serverId, SyncStatus syncStatus) {
+			super(serverId, syncStatus);
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(clientId), "clientId is required");
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(serverId), "serverId is required");
 			this.clientId = clientId;
-			this.serverId = serverId;
 		}
 
 		public String getClientId() {
@@ -170,17 +242,22 @@ public class SyncClientCommands {
 			return SyncCommand.ADD;
 		}
 
+		public SyncStatus getSyncStatus() {
+			return syncStatus;
+		}
+		
 		@Override
 		public final int hashCode(){
-			return Objects.hashCode(clientId, serverId);
+			return Objects.hashCode(serverId, syncStatus, clientId);
 		}
 		
 		@Override
 		public final boolean equals(Object object){
 			if (object instanceof Add) {
 				Add that = (Add) object;
-				return Objects.equal(this.clientId, that.clientId)
-					&& Objects.equal(this.serverId, that.serverId);
+				return Objects.equal(this.serverId, that.serverId)
+					&& Objects.equal(this.syncStatus, that.syncStatus)
+					&& Objects.equal(this.clientId, that.clientId);
 			}
 			return false;
 		}
@@ -188,56 +265,51 @@ public class SyncClientCommands {
 		@Override
 		public String toString() {
 			return Objects.toStringHelper(this)
-				.add("clientId", clientId)
 				.add("serverId", serverId)
+				.add("syncStatus", syncStatus)
+				.add("clientId", clientId)
 				.toString();
 		}
 	}
 	
 	private final List<Add> adds;
-	private final List<Change> changes;
+	private final List<Update> updates;
+	private final List<Deletion> deletions;
+	private final List<Fetch> fetches;
 
-	private SyncClientCommands(List<Add> adds, List<Change> changes) {
+	private SyncClientCommands(List<Add> adds, List<Update> updates, List<Deletion> deletions, List<Fetch> fetches) {
 		this.adds = adds;
-		this.changes = changes;
+		this.updates = updates;
+		this.deletions = deletions;
+		this.fetches = fetches;
 	}
 	
 	public List<Add> getAdds() {
 		return adds;
 	}
-
-	public List<Change> getChanges() {
-		return changes;
+	
+	public List<Add> getAddsAsItemChange() {
+		return adds;
+	}
+	
+	public List<Update> getUpdates() {
+		return updates;
+	}
+	
+	public List<Deletion> getDeletions() {
+		return deletions;
+	}
+	
+	public List<Fetch> getFetches() {
+		return fetches;
 	}
 
 	public int sumOfCommands() {
-		return changes.size() + adds.size();
-	}
-
-	public boolean hasCommandWithServerId(String serverId) {
-		return hasChangeWithServerId(serverId) || hasAddWithServerId(serverId);
-	}
-
-	public boolean hasChangeWithServerId(String serverId) {
-		return changes.contains(new Update(serverId));
+		return adds.size() + updates.size() + deletions.size() + fetches.size();
 	}
 
 	public boolean hasAddWithServerId(final String serverId) {
 		return getAddWithServerId(serverId).isPresent();
-	}
-
-	public Change getChange(String serverId) {
-		return getChangeWithServerId(serverId).get();
-	}
-
-	public Optional<Change> getChangeWithServerId(final String serverId) {
-		return FluentIterable.from(changes).firstMatch(new Predicate<Change>() {
-			
-				@Override
-				public boolean apply(Change input) {
-					return serverId.equals(input.serverId);
-				}
-			});
 	}
 
 	public Optional<Add> getAddWithServerId(final String serverId) {
@@ -252,15 +324,17 @@ public class SyncClientCommands {
 
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(changes, adds);
+		return Objects.hashCode(adds, updates, deletions, fetches);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
 		if (object instanceof SyncClientCommands) {
 			SyncClientCommands that = (SyncClientCommands) object;
-			return Objects.equal(this.changes, that.changes)
-				&& Objects.equal(this.adds, that.adds);
+			return Objects.equal(this.adds, that.adds)
+				&& Objects.equal(this.updates, that.updates)
+				&& Objects.equal(this.deletions, that.deletions)
+				&& Objects.equal(this.fetches, that.fetches);
 		}
 		return false;
 	}
@@ -268,8 +342,10 @@ public class SyncClientCommands {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("changes", changes)
 			.add("adds", adds)
+			.add("updates", updates)
+			.add("deletions", deletions)
+			.add("fetches", fetches)
 			.toString();
 	}
 	

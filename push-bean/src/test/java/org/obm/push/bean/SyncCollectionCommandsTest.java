@@ -91,7 +91,7 @@ public class SyncCollectionCommandsTest {
 		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes, SyncClientCommands.builder()
-						.putAdd(new Add(clientId, serverId))
+						.putAdd(new Add(clientId, serverId, SyncStatus.OK))
 						.build())
 				.build();
 				
