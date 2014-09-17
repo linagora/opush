@@ -466,8 +466,7 @@ public class SyncHandlerTest {
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).times(2);
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
-		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(null).times(2);
+		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(null);
 		expect(collectionDao.updateState(anyObject(Device.class), anyInt(), anyObject(SyncKey.class), anyObject(Date.class)))
 			.andReturn(firstItemSyncState)
 			.anyTimes();
@@ -522,8 +521,7 @@ public class SyncHandlerTest {
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
-		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(secondRequestSyncState).times(2);
+		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(secondRequestSyncState);
 		expect(collectionDao.updateState(anyObject(Device.class), anyInt(),
 				anyObject(SyncKey.class), anyObject(Date.class))).andReturn(secondRequestSyncState).times(2);
 		collectionDao.resetCollection(user.device, collectionId);

@@ -284,11 +284,12 @@ public class SyncHandlerOnCalendarsTest {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
 		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("f909aa0f-cc7e-44b7-8395-2d6e69be54a4");
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -306,7 +307,7 @@ public class SyncHandlerOnCalendarsTest {
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, calendarCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKey)).andReturn(secondAllocatedState);
 
@@ -422,11 +423,7 @@ public class SyncHandlerOnCalendarsTest {
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
 	}
 
-	private void expectCollectionDaoPerformInitialSync(SyncKey initialSyncKey,
-			ItemSyncState itemSyncState, int collectionId)
-					throws DaoException {
-		
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId) throws DaoException {
 		expect(collectionDao.updateState(user.device, collectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
 		collectionDao.resetCollection(user.device, collectionId);

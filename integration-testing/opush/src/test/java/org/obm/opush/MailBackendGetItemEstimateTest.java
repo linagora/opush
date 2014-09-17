@@ -188,7 +188,7 @@ public class MailBackendGetItemEstimateTest {
 				.id(lastStateId)
 				.build();
 		
-		expectInitialSyncWithTwoMails(initialSyncKey, firstAllocatedSyncKey, lastSyncKey);
+		expectInitialSyncWithTwoMails(firstAllocatedSyncKey, lastSyncKey);
 
 		expect(dateService.getCurrentDate()).andReturn(DateUtils.getCurrentDate()).once();
 		expect(collectionDao.findItemStateForKey(lastSyncKey)).andReturn(lastSyncState).once();
@@ -233,7 +233,7 @@ public class MailBackendGetItemEstimateTest {
 				.id(lastStateId)
 				.build();
 		
-		expectInitialSyncWithTwoMails(initialSyncKey, firstAllocatedSyncKey, lastSyncKey);
+		expectInitialSyncWithTwoMails(firstAllocatedSyncKey, lastSyncKey);
 
 		expect(dateService.getCurrentDate()).andReturn(DateUtils.getCurrentDate()).once();
 		expect(collectionDao.findItemStateForKey(lastSyncKey)).andReturn(lastSyncState).once();
@@ -278,7 +278,7 @@ public class MailBackendGetItemEstimateTest {
 				.id(lastStateId)
 				.build();
 		
-		expectInitialSyncWithTwoMails(initialSyncKey, firstAllocatedSyncKey, lastSyncKey);
+		expectInitialSyncWithTwoMails(firstAllocatedSyncKey, lastSyncKey);
 
 		expect(dateService.getCurrentDate()).andReturn(DateUtils.getCurrentDate()).once();
 		expect(collectionDao.findItemStateForKey(lastSyncKey)).andReturn(lastSyncState).once();
@@ -308,7 +308,7 @@ public class MailBackendGetItemEstimateTest {
 		assertThat(imapConnectionCounter.listMailboxesCounter.get()).isEqualTo(0);
 	}
 
-	private void expectInitialSyncWithTwoMails(SyncKey initialSyncKey, SyncKey firstAllocatedSyncKey, SyncKey secondAllocatedSyncKey) throws Exception {
+	private void expectInitialSyncWithTwoMails(SyncKey firstAllocatedSyncKey, SyncKey secondAllocatedSyncKey) throws Exception {
 		String emailId1 = ":1";
 		String emailId2 = ":2";
 		int allocatedStateId = 3;
@@ -329,7 +329,7 @@ public class MailBackendGetItemEstimateTest {
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
 		expect(dateService.getCurrentDate()).andReturn(allocatedState.getSyncDate()).times(2);
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, allocatedState);
 		
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId + emailId1))).andReturn(false);
@@ -338,15 +338,12 @@ public class MailBackendGetItemEstimateTest {
 
 	private void expectCollectionDaoPerformSync(SyncKey requestSyncKey, ItemSyncState allocatedState, ItemSyncState newItemSyncState)
 			throws DaoException {
-		expect(collectionDao.findItemStateForKey(requestSyncKey)).andReturn(allocatedState).times(2);
+		expect(collectionDao.findItemStateForKey(requestSyncKey)).andReturn(allocatedState);
 		expect(collectionDao.updateState(user.device, inboxCollectionId, newItemSyncState.getSyncKey(), newItemSyncState.getSyncDate()))
 				.andReturn(newItemSyncState);
 	}
 
-	private void expectCollectionDaoPerformInitialSync(SyncKey initialSyncKey, ItemSyncState itemSyncState)
-			throws DaoException {
-		
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState) throws DaoException {
 		expect(collectionDao.updateState(user.device, inboxCollectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
 		collectionDao.resetCollection(user.device, inboxCollectionId);

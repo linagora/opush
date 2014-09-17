@@ -55,8 +55,8 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.Users.OpushUser;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
@@ -201,9 +201,8 @@ public class MailBackendImapTimeoutTest {
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
 		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
-		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState);
-		
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expect(collectionDao.findItemStateForKey(firstAllocatedSyncKey)).andReturn(firstAllocatedState);
 		mocksControl.replay();
 		opushServer.start();
 
@@ -391,17 +390,9 @@ public class MailBackendImapTimeoutTest {
 		assertThat(pingResponse.getPingStatus()).isEqualTo(PingStatus.SERVER_ERROR);
 	}
 
-	private void expectCollectionDaoPerformSync(SyncKey requestSyncKey,
-			ItemSyncState allocatedState)
-					throws DaoException {
-		expect(collectionDao.findItemStateForKey(requestSyncKey)).andReturn(allocatedState).times(2);
-	}
-
-	private void expectCollectionDaoPerformInitialSync(SyncKey initialSyncKey,
-			ItemSyncState itemSyncState, int collectionId)
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId)
 					throws DaoException {
 		
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
 		expect(collectionDao.updateState(user.device, collectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
 		collectionDao.resetCollection(user.device, collectionId);

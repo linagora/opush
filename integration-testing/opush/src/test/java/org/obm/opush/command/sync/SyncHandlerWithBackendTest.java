@@ -297,7 +297,7 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		String serverId = inboxCollectionId + ":2";
@@ -306,7 +306,7 @@ public class SyncHandlerWithBackendTest {
 			.andReturn(false);
 		
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(4);
-		expectCollectionDaoPerformInitialSync(initialSyncKey, newFirstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, inboxCollectionId);
@@ -426,7 +426,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, calendarCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
@@ -480,7 +480,7 @@ public class SyncHandlerWithBackendTest {
 				new ServerId(serverId)))
 			.andReturn(false);
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, newFirstAllocatedState, calendarCollectionId);
+		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, calendarCollectionId);
@@ -612,7 +612,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, contactCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
@@ -641,7 +641,7 @@ public class SyncHandlerWithBackendTest {
 				new ServerId(serverId)))
 			.andReturn(false);
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, newFirstAllocatedState, contactCollectionId);
+		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, contactCollectionId);
@@ -710,11 +710,9 @@ public class SyncHandlerWithBackendTest {
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 	}
 
-	private void expectCollectionDaoPerformInitialSync(SyncKey initialSyncKey,
-			ItemSyncState itemSyncState, int collectionId)
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId)
 					throws DaoException {
 		
-		expect(collectionDao.findItemStateForKey(initialSyncKey)).andReturn(null);
 		expect(collectionDao.updateState(user.device, collectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
 		collectionDao.resetCollection(user.device, collectionId);
@@ -1257,7 +1255,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, calendarCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
 
@@ -1402,7 +1400,7 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
@@ -1476,7 +1474,7 @@ public class SyncHandlerWithBackendTest {
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(1);
-		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
