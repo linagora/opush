@@ -257,7 +257,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 				ConversionException, FilterTypeChangedException, HierarchyChangedException, InvalidServerId, UnsupportedBackendFunctionException {
 
 		SyncClientCommands clientCommands = processClientModification(udr, request);
-		DataDelta delta = contentsExporter.getChanged(udr, syncState, request, clientCommands, newSyncKey);
+		DataDelta delta = contentsExporter.getChanged(udr, syncState, request, newSyncKey);
 		
 		responseBuilder
 			.responses(SyncCollectionCommandsResponse.builder()

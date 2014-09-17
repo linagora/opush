@@ -74,7 +74,6 @@ import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.PingResponse;
@@ -187,7 +186,6 @@ public class PushContinuationTest {
 		expect(mailBackend.getChanged(eq(new UserDataRequest(credentials, "Sync", user.device)), 
 				eq(itemSyncState), 
 				anyObject(AnalysedSyncCollection.class), 
-				anyObject(SyncClientCommands.class), 
 				anyObject(SyncKey.class)))
 			.andReturn(DataDelta.builder()
 				.syncDate(DateUtils.getCurrentDate())

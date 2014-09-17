@@ -55,7 +55,6 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -209,7 +208,6 @@ public class SyncTestUtils {
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
 				anyObject(AnalysedSyncCollection.class),
-				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 				.andReturn(delta).once();
 		

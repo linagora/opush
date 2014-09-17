@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import org.easymock.IMocksControl;
@@ -51,7 +51,6 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.client.SyncClientCommands;
 
 
 public class ContentsExporterTest {
@@ -92,18 +91,17 @@ public class ContentsExporterTest {
 				.syncKey(new SyncKey("123"))
 				.id(5)
 				.build();
-		SyncClientCommands clientCommands = SyncClientCommands.empty();
 
 		PIMBackend emailBackend = mocks.createMock(PIMBackend.class);
 		expect(backends.getBackend(PIMDataType.EMAIL)).andReturn(emailBackend);
 
 		SyncKey allocatedSyncKey = new SyncKey("456");
 		DataDelta backendDataDelta = DataDelta.newEmptyDelta(date("2012-05-04T12:22:53"), allocatedSyncKey);
-		expect(emailBackend.getChanged(udr, syncState, syncCollection, clientCommands, allocatedSyncKey))
+		expect(emailBackend.getChanged(udr, syncState, syncCollection, allocatedSyncKey))
 			.andReturn(backendDataDelta);
 		
 		mocks.replay();
-		DataDelta dataDelta = testee.getChanged(udr, syncState, syncCollection, clientCommands, allocatedSyncKey);
+		DataDelta dataDelta = testee.getChanged(udr, syncState, syncCollection, allocatedSyncKey);
 		mocks.verify();
 		
 		assertThat(dataDelta.getSyncDate()).isEqualTo(date("2012-05-04T12:22:53"));

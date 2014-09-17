@@ -71,7 +71,6 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -214,7 +213,7 @@ public class MailBackendImplTest {
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
 		
 		control.replay();
-		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 		
 		assertThat(actual.getDeletions()).isEmpty();
@@ -261,7 +260,7 @@ public class MailBackendImplTest {
 		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
 		
 		control.replay();
-		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 
 		assertThat(actual.getDeletions()).isEmpty();
@@ -353,7 +352,7 @@ public class MailBackendImplTest {
 		expectServerItemChanges(bodyPreferences, emailChanges, modifiedEmail, newEmail, deletedEmail);
 		
 		control.replay();
-		testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		
 		control.verify();
 	}
@@ -569,7 +568,7 @@ public class MailBackendImplTest {
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
 		
 		control.replay();
-		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 		
 		assertThat(windowedChanges).isEqualTo(DataDelta.builder()
@@ -634,7 +633,7 @@ public class MailBackendImplTest {
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
 		
 		control.replay();
-		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 		
 
@@ -686,7 +685,7 @@ public class MailBackendImplTest {
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
 		
 		control.replay();
-		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 		
 		assertThat(windowedChanges).isEqualTo(DataDelta.builder()
@@ -737,7 +736,7 @@ public class MailBackendImplTest {
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
 		
 		control.replay();
-		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		control.verify();
 
 		assertThat(windowedChanges).isEqualTo(DataDelta.builder()
@@ -780,7 +779,7 @@ public class MailBackendImplTest {
 		
 		control.replay();
 		try {
-			testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
+			testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
 		} catch (ProcessingEmailException e) {
 			control.verify();
 			throw e;

@@ -41,7 +41,6 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -53,8 +52,7 @@ import org.obm.push.mail.exception.FilterTypeChangedException;
 
 public interface IContentsExporter {
 
-	DataDelta getChanged(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection syncCollection, 
-			SyncClientCommands clientCommands, SyncKey newSyncKey)
+	DataDelta getChanged(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection syncCollection, SyncKey newSyncKey)
 		throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException,
 			ProcessingEmailException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
 

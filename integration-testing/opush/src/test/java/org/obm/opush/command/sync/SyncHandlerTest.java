@@ -103,7 +103,6 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
@@ -275,7 +274,6 @@ public class SyncHandlerTest {
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
 				anyObject(AnalysedSyncCollection.class),
-				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 				.andThrow(new ItemNotFoundException());
 		
@@ -513,7 +511,6 @@ public class SyncHandlerTest {
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
 				anyObject(AnalysedSyncCollection.class),
-				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 			.andReturn(DataDelta.newEmptyDelta(secondRequestSyncState.getSyncDate(), secondRequestSyncState.getSyncKey()));
 		contentsExporter.initialize(anyObject(UserDataRequest.class), eq(collectionId), eq(PIMDataType.EMAIL), eq(THREE_DAYS_BACK), anyObject(SyncKey.class));
@@ -705,7 +702,6 @@ public class SyncHandlerTest {
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
 				anyObject(AnalysedSyncCollection.class),
-				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 				.andThrow(throwable);
 	}

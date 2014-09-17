@@ -47,7 +47,6 @@ import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingChangesBuilder;
 import org.obm.push.bean.change.WindowingItemWithData;
 import org.obm.push.bean.change.WindowingKey;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
@@ -86,8 +85,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 	}
 	
 	@Override
-	public DataDelta getChanged(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, 
-			SyncClientCommands clientCommands, SyncKey newSyncKey)
+	public DataDelta getChanged(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, SyncKey newSyncKey)
 		throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
 
 		SyncKey requestSyncKey = syncCollection.getSyncKey();

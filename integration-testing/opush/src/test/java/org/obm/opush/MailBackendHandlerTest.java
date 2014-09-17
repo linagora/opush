@@ -58,8 +58,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.Users.OpushUser;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
@@ -72,7 +72,6 @@ import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.ms.MSEmail;
@@ -193,7 +192,6 @@ public class MailBackendHandlerTest {
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
 				anyObject(AnalysedSyncCollection.class), 
-				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 			.andReturn(delta).once();
 	}
