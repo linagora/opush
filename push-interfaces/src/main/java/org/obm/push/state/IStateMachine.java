@@ -46,6 +46,7 @@ import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 
 public interface IStateMachine {
+	
 	ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException;
 	
 	ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException;
@@ -57,4 +58,6 @@ public interface IStateMachine {
 	void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, 
 		Collection<ItemChange> changes, Collection<ItemDeletion> deletedItems, SyncKey newSyncKey) 
 				throws DaoException, InvalidServerId;
+	
+	void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId;
 }

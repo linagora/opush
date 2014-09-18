@@ -31,29 +31,37 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.state;
 
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.expect;
 
+import java.util.Date;
+
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.FolderSyncState;
+import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.User;
+import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.store.CollectionDao;
+import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.UUIDFactory;
 
 
 public class StateMachineTest {
 	
 	private SyncKeyFactory syncKeyFactory;
+	private IMocksControl control;
 
 	@Before
 	public void setUp() {
 		UUIDFactory uuidFactory = new UUIDFactory() {};
 		syncKeyFactory = new SyncKeyFactory(uuidFactory);
+		
+		control = createControl();
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -90,14 +98,13 @@ public class StateMachineTest {
 				.id(knownSyncStateId)
 				.build();
 		
-		CollectionDao collectionDao = createStrictMock(CollectionDao.class);
+		CollectionDao collectionDao = control.createMock(CollectionDao.class);
 		expect(collectionDao.findFolderStateForKey(knownSyncKey)).andReturn(knownFolderSyncState).once();
-		replay(collectionDao);
 		
+		control.replay();
 		StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
 		FolderSyncState folderSyncState = stateMachine.getFolderSyncState(knownSyncKey);
-
-		verify(collectionDao);
+		control.verify();
 
 		assertThat(folderSyncState.getId()).isEqualTo(knownSyncStateId);
 		assertThat(folderSyncState.getSyncKey()).isEqualTo(knownSyncKey);
@@ -108,11 +115,41 @@ public class StateMachineTest {
 	public void testGetFolderSyncStateWithUnknownKey() throws Exception {
 		SyncKey unknownSyncKey = new SyncKey("1234");
 		
-		CollectionDao collectionDao = createStrictMock(CollectionDao.class);
+		CollectionDao collectionDao = control.createMock(CollectionDao.class);
 		expect(collectionDao.findFolderStateForKey(unknownSyncKey)).andReturn(null).once();
-		replay(collectionDao);
+
+		try {
+			control.replay();
+			StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
+			stateMachine.getFolderSyncState(unknownSyncKey);
+		} catch (Exception e) {
+			control.verify();
+			throw e;
+		}
+	}
+
+	@Test
+	public void allocateNewSyncStateWithoutTrackingShouldStoreUpdatedState() throws Exception {
+		Integer collectionId = 1;
+		Date lastSync = DateUtils.getCurrentDate();
+		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
 		
+		UserDataRequest udr = control.createMock(UserDataRequest.class);
+		expect(udr.getDevice())
+			.andReturn(null);
+		expect(udr.getUser())
+			.andReturn(User.builder().email("jean.jaures@sfio.fr").domain("sfio.fr").login("jjaures").build());
+		
+		CollectionDao collectionDao = control.createMock(CollectionDao.class);
+		expect(collectionDao.updateState(null, 1, newSyncKey, lastSync))
+			.andReturn(ItemSyncState.builder()
+					.syncKey(newSyncKey)
+					.syncDate(lastSync)
+					.build());
+		
+		control.replay();
 		StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
-		stateMachine.getFolderSyncState(unknownSyncKey);
+		stateMachine.allocateNewSyncStateWithoutTracking(udr, collectionId, lastSync, newSyncKey);
+		control.verify();
 	}
 }

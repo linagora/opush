@@ -65,7 +65,6 @@ import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.client.SyncClientCommands.Deletion;
 import org.obm.push.bean.change.client.SyncClientCommands.Update;
 import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -461,15 +460,8 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		
 		int collectionId = syncCollectionRequest.getCollectionId();
 		backend.resetCollection(udr, collectionId);
-		List<ItemChange> changed = ImmutableList.of();
-		List<ItemDeletion> deleted = ImmutableList.of();
 		SyncKey newSyncKey = syncKeyFactory.randomSyncKey();
-		stMachine.allocateNewSyncState(udr, 
-				collectionId, 
-				dateService.getEpochPlusOneSecondDate(), 
-				changed,
-				deleted,
-				newSyncKey);
+		stMachine.allocateNewSyncStateWithoutTracking(udr, collectionId, dateService.getEpochPlusOneSecondDate(), newSyncKey);
 		contentsExporter.initialize(udr, collectionId, syncCollectionRequest.getDataType(), syncCollectionRequest.getOptions().getFilterType(), newSyncKey);
 		
 		builder.syncKey(newSyncKey)

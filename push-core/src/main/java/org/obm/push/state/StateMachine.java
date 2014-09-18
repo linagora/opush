@@ -77,14 +77,17 @@ public class StateMachine implements IStateMachine {
 		this.syncKeyFactory = syncKeyFactory;
 	}
 
+	@Override
 	public ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException {
 		return collectionDao.lastKnownState(device, collectionId);
 	}
 	
+	@Override
 	public ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException {
 		return collectionDao.findItemStateForKey(syncKey);
 	}
 	
+	@Override
 	public FolderSyncState getFolderSyncState(SyncKey syncKey) throws DaoException, InvalidSyncKeyException {
 		Preconditions.checkArgument(syncKey != null && !Strings.isNullOrEmpty(syncKey.getSyncKey()));
 		
@@ -105,6 +108,7 @@ public class StateMachine implements IStateMachine {
 		return folderSyncStateForKey;
 	}
 	
+	@Override
 	public FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException {
 		SyncKey newSk = syncKeyFactory.randomSyncKey();
 		FolderSyncState newFolderState = collectionDao.allocateNewFolderSyncState(udr.getDevice(), newSk);
@@ -113,6 +117,7 @@ public class StateMachine implements IStateMachine {
 		return newFolderState;
 	}
 	
+	@Override
 	public void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, 
 		Collection<ItemChange> changes, Collection<ItemDeletion> deletedItems, SyncKey newSyncKey) throws DaoException, InvalidServerId {
 
@@ -125,6 +130,13 @@ public class StateMachine implements IStateMachine {
 			itemTrackingDao.markAsDeleted(newState, itemDeletionsAsServerIdSet(deletedItems));
 		}
 		
+		log(udr, newState);
+	}
+	
+	@Override
+	public void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId {
+
+		ItemSyncState newState = collectionDao.updateState(udr.getDevice(), collectionId, newSyncKey, lastSync);
 		log(udr, newState);
 	}
 
