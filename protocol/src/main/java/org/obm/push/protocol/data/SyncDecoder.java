@@ -50,8 +50,8 @@ import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -249,18 +249,6 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		}
 		return builder.build();	 		
 	}
-		
-	private SyncCollectionResponsesResponse appendResponses(PIMDataType dataType, Element collectionEl) {
-		SyncCollectionResponsesResponse.Builder builder = SyncCollectionResponsesResponse.builder();
-		Element responsesEl = DOMUtils.getUniqueElement(collectionEl, SyncResponseFields.RESPONSES.getName());
-		if (responsesEl != null) {
-			NodeList collectionNodes = responsesEl.getChildNodes();
-			for (int i = 0; i < collectionNodes.getLength(); i++) {
-				builder.addCommand(getCommand((Element)collectionNodes.item(i), dataType));
-			}
-		}
-		return builder.build();	 		
-	}
 
 	@VisibleForTesting SyncCollectionCommandResponse getCommand(Element commandElement, PIMDataType dataType) {
 		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
@@ -271,6 +259,33 @@ public class SyncDecoder extends ActiveSyncDecoder {
 			.type(syncCommand)
  			.serverId(uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID))
  			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
+ 			.applicationData(applicationData)
+ 			.build();
+	}
+		
+	private SyncCollectionResponsesResponse appendResponses(PIMDataType dataType, Element collectionEl) {
+		SyncCollectionResponsesResponse.Builder builder = SyncCollectionResponsesResponse.builder();
+		Element responsesEl = DOMUtils.getUniqueElement(collectionEl, SyncResponseFields.RESPONSES.getName());
+		if (responsesEl != null) {
+			NodeList collectionNodes = responsesEl.getChildNodes();
+			for (int i = 0; i < collectionNodes.getLength(); i++) {
+				builder.addCommand(getResponse((Element)collectionNodes.item(i), dataType));
+			}
+		}
+		return builder.build();	 		
+	}
+
+	@VisibleForTesting SyncCollectionCommandResponse getResponse(Element commandElement, PIMDataType dataType) {
+		SyncStatus syncStatus = SyncStatus.fromSpecificationValue(uniqueStringFieldValue(commandElement, SyncResponseFields.STATUS));
+		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
+		Element applicationDataElement = DOMUtils.getUniqueElement(commandElement, SyncResponseFields.APPLICATION_DATA.getName());
+		IApplicationData applicationData = decodeApplicationData(applicationDataElement, dataType, syncCommand);
+		
+		return SyncCollectionCommandResponse.builder()
+			.syncStatus(syncStatus)
+			.type(syncCommand)
+ 			.serverId(uniqueStringFieldValue(commandElement, SyncResponseFields.SERVER_ID))
+ 			.clientId(uniqueStringFieldValue(commandElement, SyncResponseFields.CLIENT_ID))
  			.applicationData(applicationData)
  			.build();
 	}

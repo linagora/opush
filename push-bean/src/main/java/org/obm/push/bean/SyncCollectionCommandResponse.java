@@ -33,6 +33,8 @@ package org.obm.push.bean;
 
 import org.obm.push.bean.change.SyncCommand;
 
+import com.google.common.base.Objects;
+
 public class SyncCollectionCommandResponse extends SyncCollectionCommand {
 
 	private static final long serialVersionUID = -246587854210988404L;
@@ -81,5 +83,30 @@ public class SyncCollectionCommandResponse extends SyncCollectionCommand {
 	
 	public SyncStatus getSyncStatus() {
 		return syncStatus;
+	}
+
+	@Override
+	public int hashCode(){
+		return Objects.hashCode(super.hashCode(), applicationData, syncStatus);
+	}
+	
+	@Override
+	public boolean equals(Object object){
+		if (object instanceof SyncCollectionCommandResponse) {
+			SyncCollectionCommandResponse that = (SyncCollectionCommandResponse) object;
+			return super.equals(that)
+				&& Objects.equal(this.syncStatus, that.syncStatus)
+				&& Objects.equal(this.applicationData, that.applicationData);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("super", super.toString())
+			.add("syncStatus", syncStatus)
+			.add("applicationData", applicationData)
+ 			.toString();
 	}
 }

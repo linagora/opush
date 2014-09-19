@@ -584,6 +584,7 @@ public class SyncProtocolTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
@@ -628,6 +629,7 @@ public class SyncProtocolTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
@@ -693,6 +695,7 @@ public class SyncProtocolTest {
 					"<Wait>10</Wait>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
@@ -737,6 +740,7 @@ public class SyncProtocolTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
@@ -958,6 +962,7 @@ public class SyncProtocolTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
+							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +

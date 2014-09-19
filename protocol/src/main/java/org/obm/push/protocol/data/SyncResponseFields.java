@@ -39,6 +39,7 @@ public enum SyncResponseFields implements ActiveSyncFields {
 	DATA_CLASS("Class"),
 	COMMANDS("Commands"),
 	SERVER_ID("ServerId"),
+	CLIENT_ID("ClientId"),
 	APPLICATION_DATA("ApplicationData"),
 	STATUS("Status"),
 	MORE_AVAILABLE("MoreAvailable"),

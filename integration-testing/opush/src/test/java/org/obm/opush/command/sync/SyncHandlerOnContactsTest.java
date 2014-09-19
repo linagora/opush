@@ -176,6 +176,13 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setLastname("lastname");
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
+
+		MSContact expectedMSContact = new MSContact();
+		expectedMSContact.setFileAs("firstname lastname");
+		expectedMSContact.setFirstName("firstname");
+		expectedMSContact.setLastName("lastname");
+		expectedMSContact.setEmail1Address("contact@mydomain.org");
+		expectedMSContact.setHomeFaxNumber("1234");
 		
 		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
@@ -206,10 +213,12 @@ public class SyncHandlerOnContactsTest {
 		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
 		
 		mocksControl.verify();
+		
 		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.ADD)
 				.serverId(serverId.toString())
 				.clientId(null)
+				.applicationData(expectedMSContact)
 				.build();
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);

@@ -101,12 +101,12 @@ public abstract class SyncCollectionCommand implements Serializable {
 	}
 
 	@Override
-	public final int hashCode(){
+	public int hashCode(){
 		return Objects.hashCode(type, serverId, clientId);
 	}
 	
 	@Override
-	public final boolean equals(Object object){
+	public boolean equals(Object object){
 		if (object instanceof SyncCollectionCommand) {
 			SyncCollectionCommand that = (SyncCollectionCommand) object;
 			return Objects.equal(this.type, that.type)

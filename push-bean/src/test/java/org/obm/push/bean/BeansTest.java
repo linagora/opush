@@ -140,23 +140,23 @@ public class BeansTest {
 		equalsVerifierUtilsTest.test(list);
 		
 		EqualsVerifierBuilder.builder()
-		.equalsVerifiers(ImmutableList.<Class<?>>of(SyncCollectionCommands.class))
-		.prefabValue(ImmutableListMultimap.class, 
-				ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
-						SyncCommand.ADD,
-						SyncCollectionCommandResponse.builder()
-							.clientId("1")
-							.type(SyncCommand.ADD)
-							.serverId("2")
-							.build()), 
-				ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
-						SyncCommand.CHANGE,
-						SyncCollectionCommandResponse.builder()
-							.clientId("3")
-							.type(SyncCommand.CHANGE)
-							.serverId("4")
-							.build())) 
-		.verify();
+			.equalsVerifiers(ImmutableList.<Class<?>>of(SyncCollectionCommands.class))
+			.prefabValue(ImmutableListMultimap.class, 
+					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
+							SyncCommand.ADD,
+							SyncCollectionCommandResponse.builder()
+								.clientId("1")
+								.type(SyncCommand.ADD)
+								.serverId("2")
+								.build()), 
+					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
+							SyncCommand.CHANGE,
+							SyncCollectionCommandResponse.builder()
+								.clientId("3")
+								.type(SyncCommand.CHANGE)
+								.serverId("4")
+								.build())) 
+			.verify();
 	}
 	
 	@Test
