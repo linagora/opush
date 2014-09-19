@@ -107,8 +107,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.inject.Inject;
@@ -285,13 +283,11 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		SyncClientCommands.Builder clientCommandsBuilder = SyncClientCommands.builder();
 		SyncCollectionCommandsResponse commands = collection.getCommands();
 		
-		List<ItemChange> fetches = fetch(udr, syncState, collection, commands);
-
 		for (SyncCollectionCommandResponse change: commands.getCommands()) {
 			try {
 				switch (change.getType()) {
 				case FETCH:
-					clientCommandsBuilder.putFetch(fetchServerItem(change, fetches));
+					clientCommandsBuilder.putFetch(fetchServerItem(udr, collection, change, syncState));
 					break;
 				case MODIFY:
 				case CHANGE:
@@ -304,8 +300,6 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 					clientCommandsBuilder.putAdd(addServerItem(udr, collection, change));
 					break;
 				}
-			} catch (ItemNotFoundException e) {
-				logger.warn("Item with server id {} not found.", change.getServerId());
 			} catch (NoPermissionException e) {
 				logger.warn("Client is not allowed to perform the command: {}", change);
 			}
@@ -313,21 +307,17 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		return clientCommandsBuilder.build();
 	}
 
-	private List<ItemChange> fetch(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, SyncCollectionCommandsResponse commands) {
-		if (commands.hasFetch()) {
-			return contentsExporter.fetch(udr, syncState, collection);
-		}
-		return ImmutableList.of();
-	}
-
 	private Update updateServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
-			ProcessingEmailException, ItemNotFoundException, ConversionException, HierarchyChangedException, NoPermissionException {
+			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
 		try {
 			return new SyncClientCommands.Update(contentsImporter.importMessageChange(
 						udr, collection.getCollectionId(), change.getServerId(), change.getClientId(), change.getApplicationData()),
 					SyncStatus.OK);
+		} catch (ItemNotFoundException e) {
+			logger.warn("Item with server id {} not found.", change.getServerId());
+			return new SyncClientCommands.Update(change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Update(change.getServerId(), SyncStatus.SERVER_ERROR);
 		}
@@ -335,12 +325,15 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 
 	private Add addServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
-			ProcessingEmailException, ItemNotFoundException, ConversionException, HierarchyChangedException, NoPermissionException {
+			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
 		try {
 			return new SyncClientCommands.Add(change.getClientId(), contentsImporter.importMessageChange(
 						udr, collection.getCollectionId(), change.getServerId(), change.getClientId(), change.getApplicationData()),
 					SyncStatus.OK);
+		} catch (ItemNotFoundException e) {
+			logger.warn("Item with server id {} not found.", change.getServerId());
+			return new SyncClientCommands.Add(change.getClientId(), change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Add(change.getClientId(), change.getServerId(), SyncStatus.SERVER_ERROR);
 		}
@@ -348,38 +341,35 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	
 	private Deletion deleteServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change)
 			throws CollectionNotFoundException, DaoException,
-			UnexpectedObmSyncServerException, ProcessingEmailException, ItemNotFoundException, UnsupportedBackendFunctionException {
+			UnexpectedObmSyncServerException, ProcessingEmailException, UnsupportedBackendFunctionException {
 
 		String serverId = change.getServerId();
 		try {
 			contentsImporter.importMessageDeletion(udr, collection.getDataType(), collection.getCollectionId(), serverId,
 					collection.getOptions().isDeletesAsMoves());
 			return new SyncClientCommands.Deletion(serverId, SyncStatus.OK);
+		} catch (ItemNotFoundException e) {
+			logger.warn("Item with server id {} not found.", change.getServerId());
+			return new SyncClientCommands.Deletion(change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Deletion(serverId, SyncStatus.SERVER_ERROR);
 		}
 	}
 	
-	private Fetch fetchServerItem(SyncCollectionCommandResponse change, List<ItemChange> fetches)
-			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException, ItemNotFoundException {
+	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change, ItemSyncState syncState)
+			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
 
 		final String serverId = change.getServerId();
 		try {
-			Optional<ItemChange> optional = FluentIterable.from(fetches)
-				.firstMatch(new Predicate<ItemChange>() {
-
-					@Override
-					public boolean apply(ItemChange itemChange) {
-						if (itemChange.getServerId().equals(serverId)) {
-							return true;
-						}
-						return false;
-					}
-				});
+			Optional<ItemChange> optional = contentsExporter.fetch(udr, syncState, collection.getDataType(), 
+					collection.getCollectionId(), collection.getOptions(), serverId);
 			
 			if (optional.isPresent()) {
 				return new SyncClientCommands.Fetch(serverId, SyncStatus.OK, optional.get().getData());
 			}
+			return new SyncClientCommands.Fetch(serverId, SyncStatus.OBJECT_NOT_FOUND, null);
+		} catch (ItemNotFoundException e) {
+			logger.warn("Item with server id {} not found.", change.getServerId());
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.OBJECT_NOT_FOUND, null);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.SERVER_ERROR, null);

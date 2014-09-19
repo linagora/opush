@@ -61,7 +61,7 @@ import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.utils.DateUtils;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 
 
 public class SyncHandlerTest {
@@ -110,8 +110,8 @@ public class SyncHandlerTest {
 				.build();
 
 		IApplicationData data = mocks.createMock(IApplicationData.class);
-		expect(contentsExporter.fetch(udr, syncState, collection))
-			.andReturn(ImmutableList.of(ItemChange.builder()
+		expect(contentsExporter.fetch(udr, syncState, collection.getDataType(), collection.getCollectionId(), collection.getOptions(), serverId))
+			.andReturn(Optional.of(ItemChange.builder()
 						.data(data)
 						.serverId(serverId)
 						.build()));
@@ -146,8 +146,8 @@ public class SyncHandlerTest {
 				.build();
 
 		IApplicationData data = mocks.createMock(IApplicationData.class);
-		expect(contentsExporter.fetch(udr, syncState, collection))
-			.andReturn(ImmutableList.of(ItemChange.builder()
+		expect(contentsExporter.fetch(udr, syncState, collection.getDataType(), collection.getCollectionId(), collection.getOptions(), serverId))
+			.andReturn(Optional.of(ItemChange.builder()
 						.data(data)
 						.serverId(serverId)
 						.build()));

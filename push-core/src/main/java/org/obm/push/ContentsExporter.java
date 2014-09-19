@@ -54,6 +54,9 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -90,6 +93,15 @@ public class ContentsExporter implements IContentsExporter {
 		
 		PIMBackend backend = backends.getBackend(syncCollection.getDataType());
 		return backend.fetch(udr, syncCollection.getCollectionId(), syncCollection.getFetchIds(), syncCollection.getOptions(), itemSyncState);
+	}
+	
+	@Override
+	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, int collectionId, SyncCollectionOptions options, String fetchId) 
+			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
+		
+		PIMBackend backend = backends.getBackend(dataType);
+		return FluentIterable.from(backend.fetch(udr, collectionId, ImmutableList.of(fetchId), options, itemSyncState))
+				.first();
 	}
 
 	@Override

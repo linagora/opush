@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Session;
@@ -50,12 +49,12 @@ import org.apache.http.client.HttpClient;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.IContentsExporter;
-import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemChange;
@@ -78,6 +77,7 @@ import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.WBXMLOPClient;
 import org.obm.sync.push.client.XMLOPClient;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -245,8 +245,8 @@ public class IntegrationTestUtils {
 			.andReturn(mailStream);
 	}
 	
-	public static void expectContentExporterFetching(IContentsExporter iContentsExporter, UserDataRequest userDataRequest, List<ItemChange> itemChanges) throws Exception {
-		expect(iContentsExporter.fetch(eq(userDataRequest), anyObject(ItemSyncState.class), anyObject(AnalysedSyncCollection.class)))
-			.andReturn(itemChanges);
+	public static void expectContentExporterFetching(IContentsExporter iContentsExporter, UserDataRequest userDataRequest, ItemChange itemChange) throws Exception {
+		expect(iContentsExporter.fetch(eq(userDataRequest), anyObject(ItemSyncState.class), anyObject(PIMDataType.class), anyInt(), anyObject(SyncCollectionOptions.class), eq(itemChange.getServerId())))
+			.andReturn(Optional.of(itemChange));
 	}
 }

@@ -412,11 +412,10 @@ public class SyncHandlerTest {
 		int syncEmailCollectionId = 432;
 		String serverId = syncEmailCollectionId + ":123";
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
-		List<ItemChange> itemChanges = new ItemChangesBuilder()
-				.addItemChange(
-					ItemChange.builder().serverId(serverId)
-						.data(applicationData))
-				.build();
+		ItemChange itemChange = ItemChange.builder().serverId(serverId)
+			.data(applicationData)
+			.build();
+		List<ItemChange> itemChanges = ImmutableList.of(itemChange);
 		DataDelta delta = DataDelta.builder()
 			.changes(itemChanges)
 			.deletions(ImmutableList.of(
@@ -431,7 +430,7 @@ public class SyncHandlerTest {
 		
 		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
-		expectContentExporterFetching(classToInstanceMap.get(IContentsExporter.class), userDataRequest, itemChanges);
+		expectContentExporterFetching(classToInstanceMap.get(IContentsExporter.class), userDataRequest, itemChange);
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, ImmutableList.<Integer> of(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
 		mocksControl.replay();
