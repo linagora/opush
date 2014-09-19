@@ -31,12 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.bean;
 
+import java.util.List;
+
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 public class SyncCollection {
 
@@ -52,7 +54,7 @@ public class SyncCollection {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private SyncCollectionCommandsRequest commands;
+		private List<SyncCollectionCommandDto> commands;
 
 		private Builder() {
 		}
@@ -92,7 +94,7 @@ public class SyncCollection {
 			return this;
 		}
 		
-		public Builder commands(SyncCollectionCommandsRequest commands) {
+		public Builder commands(List<SyncCollectionCommandDto> commands) {
 			this.commands = commands;
 			return this;
 		}
@@ -100,7 +102,7 @@ public class SyncCollection {
 		public SyncCollection build() {
 			return new SyncCollection(dataType, syncKey, collectionId, 
 					deletesAsMoves, changes, windowSize, options, 
-					Objects.firstNonNull(commands, SyncCollectionCommandsRequest.empty()));
+					Objects.firstNonNull(commands, ImmutableList.<SyncCollectionCommandDto>of()));
 		}
 	}
 	
@@ -111,11 +113,11 @@ public class SyncCollection {
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
 	private final Integer collectionId;
-	private final SyncCollectionCommandsRequest commands;
+	private final List<SyncCollectionCommandDto> commands;
 	
 	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, Integer collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, SyncCollectionCommandsRequest commands) {
+			SyncCollectionOptions options, List<SyncCollectionCommandDto> commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;
@@ -145,7 +147,7 @@ public class SyncCollection {
 		return syncKey;
 	}
 	
-	public SyncCollectionCommandsRequest getCommands() {
+	public List<SyncCollectionCommandDto> getCommands() {
 		return commands;
 	}
 

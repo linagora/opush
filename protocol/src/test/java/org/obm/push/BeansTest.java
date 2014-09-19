@@ -57,6 +57,7 @@ import org.obm.push.protocol.bean.ProvisionRequest;
 import org.obm.push.protocol.bean.ProvisionResponse;
 import org.obm.push.protocol.bean.SearchRequest;
 import org.obm.push.protocol.bean.SearchResponse;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.request.SendEmailSyncRequest;
 import org.obm.sync.bean.EqualsVerifierUtils;
@@ -97,6 +98,7 @@ public class BeansTest {
 					.add(SearchRequest.class)
 					.add(SearchResponse.class)
 					.add(SyncRequest.class)
+					.add(SyncCollectionCommandDto.class)
 					.add(AnalysedSyncRequest.class)
 					.add(SendEmailSyncRequest.class)
 					.build();

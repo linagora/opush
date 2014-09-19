@@ -38,9 +38,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
@@ -53,6 +51,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
@@ -180,20 +179,17 @@ public class SyncAnalyser {
 		return SyncCollectionOptions.defaultOptions();
 	}
 
-	private SyncCollectionCommandsResponse analyseCommands(SyncCollectionCommandsRequest requestCommands, PIMDataType dataType) {
+	private SyncCollectionCommandsResponse analyseCommands(List<SyncCollectionCommandDto> requestCommands, PIMDataType dataType) {
 		SyncCollectionCommandsResponse.Builder commandsResponseBuilder = SyncCollectionCommandsResponse.builder();
-		List<SyncCollectionCommandRequest> commands = requestCommands.getCommands();
-		if (commands != null) {
-			for (SyncCollectionCommandRequest command : commands) {
-				SyncCommand type = command.getType();
-				commandsResponseBuilder.addCommand(
-					SyncCollectionCommandResponse.builder()
-						.type(type)
-						.serverId(command.getServerId())
-						.clientId(command.getClientId())
-						.applicationData(decodeApplicationData(command.getApplicationData(), dataType, type))
-						.build());
-			}
+		for (SyncCollectionCommandDto command : requestCommands) {
+			SyncCommand type = SyncCommand.fromSpecificationValue(command.getName());
+			commandsResponseBuilder.addCommand(
+				SyncCollectionCommandResponse.builder()
+					.type(type)
+					.serverId(command.getServerId())
+					.clientId(command.getClientId())
+					.applicationData(decodeApplicationData(command.getApplicationData(), dataType, type))
+					.build());
 		}
 		return commandsResponseBuilder.build();
 	}

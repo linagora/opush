@@ -33,21 +33,18 @@ package org.obm.push.protocol.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
 import org.junit.Test;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.ASRequestBooleanFieldException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -670,16 +667,13 @@ public class SyncDecoderTest {
 		Element changeElement = DOMUtils.getUniqueElement(request, "Change");
 		Element changeDataElement = DOMUtils.getUniqueElement(changeElement, "ApplicationData");
 		
-		assertThat(collection.getCommands().getCommandsForType(SyncCommand.FETCH)).containsOnly(
-				SyncCollectionCommandRequest.builder().name("Fetch").serverId("56").build());
-		List<SyncCollectionCommandRequest> commands = collection.getCommands().getCommands();
-		assertThat(commands).containsOnly(
-				SyncCollectionCommandRequest.builder()
+		assertThat( collection.getCommands()).containsOnly(
+				SyncCollectionCommandDto.builder()
 					.name("Add").serverId("12").clientId("120").applicationData(addDataElement).build(),
-				SyncCollectionCommandRequest.builder()
+				SyncCollectionCommandDto.builder()
 					.name("Change").serverId("35").clientId("350").applicationData(changeDataElement).build(),
-				SyncCollectionCommandRequest.builder().name("Fetch").serverId("56").build(),
-				SyncCollectionCommandRequest.builder().name("Delete").serverId("79").build());
+				SyncCollectionCommandDto.builder().name("Fetch").serverId("56").build(),
+				SyncCollectionCommandDto.builder().name("Delete").serverId("79").build());
 	}
 
 	@Test
@@ -698,7 +692,7 @@ public class SyncDecoderTest {
 		contact.setFileAs("Dobney, JoLynn Julie");
 		contact.setFirstName("JoLynn");
 		
-		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandDto command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getServerId()).isNull();
 	}
@@ -719,7 +713,7 @@ public class SyncDecoderTest {
 		contact.setFileAs("Dobney, JoLynn Julie");
 		contact.setFirstName("JoLynn");
 		
-		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandDto command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getClientId()).isNull();
 	}
@@ -732,7 +726,7 @@ public class SyncDecoderTest {
 							"<ClientId>120</ClientId>" +
 						"</Add>");
 		
-		SyncCollectionCommandRequest command = new SyncDecoder(null).getCommand(request.getDocumentElement());
+		SyncCollectionCommandDto command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
 		assertThat(command.getApplicationData()).isNull();
 	}

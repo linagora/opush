@@ -53,7 +53,6 @@ import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -65,6 +64,7 @@ import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ContactDecoder;
@@ -286,15 +286,15 @@ public class SyncProtocolTest {
 
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
-		SyncCollection expectedSyncCollection = SyncCollection.builder()
-			.collectionId(null)
-			.dataType(null)
-			.syncKey(null)
-			.windowSize(null)
-			.commands(SyncCollectionCommandsRequest.builder().build())
-			.options(null)
-			.build();
-		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
+		assertThat(syncRequest.getCollections()).containsOnly(
+			SyncCollection.builder()
+				.collectionId(null)
+				.dataType(null)
+				.syncKey(null)
+				.windowSize(null)
+				.commands(null)
+				.options(null)
+				.build());
 	}
 
 	@Test
@@ -324,7 +324,7 @@ public class SyncProtocolTest {
 			.syncKey(new SyncKey(syncingCollectionSyncKey))
 			.windowSize(windowSize)
 			.deletesAsMoves(true)
-			.commands(SyncCollectionCommandsRequest.builder().build())
+			.commands(ImmutableList.<SyncCollectionCommandDto>of())
 			.options(null)
 			.build();
 		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
@@ -545,7 +545,7 @@ public class SyncProtocolTest {
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getCommands().getCommands().iterator().next().getApplicationData()).isNull();
+		assertThat(syncCollection.getCommands().iterator().next().getApplicationData()).isNull();
 	}
 
 	@Test
@@ -572,7 +572,7 @@ public class SyncProtocolTest {
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getCommands().getCommands().iterator().next().getApplicationData()).isNull();
+		assertThat(syncCollection.getCommands().iterator().next().getApplicationData()).isNull();
 	}
 
 	@Test

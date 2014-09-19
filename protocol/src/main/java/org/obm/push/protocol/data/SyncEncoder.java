@@ -31,12 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
+import java.util.List;
 import java.util.Set;
 
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.utils.DOMUtils;
@@ -125,19 +125,18 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendBoolean(bodyPreferenceEl, SyncRequestFields.ALL_OR_NONE, bodyPreference.isAllOrNone());
 	}
 	
-	private void appendCommands(Element collectionElement, SyncCollectionCommandsRequest commands) {
-			
-		if (commands == null) {
+	private void appendCommands(Element collectionElement, List<SyncCollectionCommandDto> commands) {
+		if (commands.isEmpty()) {
 			return;
 		}
 		Element commandsElement = DOMUtils.createElement(collectionElement, SyncRequestFields.COMMANDS.getName());
-		for (SyncCollectionCommandRequest command : commands.getCommands()) {
+		for (SyncCollectionCommandDto command : commands) {
 			appendCommand(commandsElement, command);
 		}
 	}
 
-	private void appendCommand(Element commandsElement, SyncCollectionCommandRequest command) {
-		Element commandElement = DOMUtils.createElement(commandsElement, command.getType().asSpecificationValue());
+	private void appendCommand(Element commandsElement, SyncCollectionCommandDto command) {
+		Element commandElement = DOMUtils.createElement(commandsElement, command.getName());
 		appendString(commandElement, SyncRequestFields.SERVER_ID, command.getServerId());
 		appendString(commandElement, SyncRequestFields.CLIENT_ID, command.getClientId());
 		if (command.getApplicationData() != null) {

@@ -47,7 +47,7 @@ public class SyncCollectionCommandsTest {
 
 	@Test
 	public void testBuilderCommandsIsNotRequired() {
-		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
+		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 			.build();
 		
 		assertThat(commands.getCommands()).isEmpty();
@@ -55,14 +55,14 @@ public class SyncCollectionCommandsTest {
 
 	@Test
 	public void testBuilderCommandsValid() {
-		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
-			.addCommand(SyncCollectionCommandRequest.builder().name("Delete").serverId("3").build())
-			.addCommand(SyncCollectionCommandRequest.builder().name("Fetch").serverId("8").build())
+		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
+			.addCommand(SyncCollectionCommandResponse.builder().name("Delete").serverId("3").build())
+			.addCommand(SyncCollectionCommandResponse.builder().name("Fetch").serverId("8").build())
 			.build();
 		
 		assertThat(commands.getCommands()).containsOnly(
-				SyncCollectionCommandRequest.builder().name("Delete").serverId("3").build(),
-				SyncCollectionCommandRequest.builder().name("Fetch").serverId("8").build());
+				SyncCollectionCommandResponse.builder().name("Delete").serverId("3").build(),
+				SyncCollectionCommandResponse.builder().name("Fetch").serverId("8").build());
 	}
 	
 	@Test

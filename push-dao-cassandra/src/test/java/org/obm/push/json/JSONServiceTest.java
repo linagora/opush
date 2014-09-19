@@ -70,9 +70,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -268,67 +266,6 @@ public class JSONServiceTest {
 						.truncationSize(5).build()))
 				.build();
 		assertThat(syncCollectionOptions).isEqualTo(expectedSyncCollectionOptions);
-	}
-	
-	@Test
-	public void testSerializeSyncCollectionCommandsRequest() {
-		SyncCollectionCommandsRequest request = SyncCollectionCommandsRequest.builder()
-				.addCommand(SyncCollectionCommandRequest.builder()
-						.applicationData(null)
-						.clientId("1")
-						.type(SyncCommand.ADD)
-						.name(SyncCommand.ADD.asSpecificationValue())
-						.serverId("2")
-						.build())
-				.build();
-		
-		String serialized = new JSONService().serialize(request);
-		assertThat(serialized).isEqualTo(
-				"{}");
-	}
-	
-	@Test
-	public void testDeserializeSyncCollectionCommandsRequest() {
-		SyncCollectionCommandsRequest request = new JSONService().deserialize(SyncCollectionCommandsRequest.class,
-				"{}");
-		
-		assertThat(request).isEqualTo(
-				SyncCollectionCommandsRequest.builder()
-				.build());
-	}
-	
-	@Test
-	public void testSerializeSyncCollectionCommandRequest() {
-		SyncCollectionCommandRequest syncCollectionCommandRequest = SyncCollectionCommandRequest.builder()
-				.applicationData(null)
-				.clientId("1")
-				.type(SyncCommand.ADD)
-				.name(SyncCommand.ADD.asSpecificationValue())
-				.serverId("2")
-				.build();
-		
-		String serialized = new JSONService().serialize(syncCollectionCommandRequest);
-		assertThat(serialized).isEqualTo(
-				"{" + 
-					"\"applicationData\":null," + 
-					"\"clientId\":\"1\"," + 
-					"\"serverId\":\"2\"," + 
-					"\"type\":\"ADD\"" + 
-				"}");
-	}
-	
-	@Test
-	public void testDeserializeSyncCollectionCommandRequest() {
-		SyncCollectionCommandRequest syncCollectionCommandRequest = new JSONService().deserialize(SyncCollectionCommandRequest.class,
-				"{\"type\":\"ADD\",\"serverId\":\"2\",\"clientId\":\"1\",\"applicationData\":null}");
-		
-		assertThat(syncCollectionCommandRequest).isEqualTo(SyncCollectionCommandRequest.builder()
-				.applicationData(null)
-				.clientId("1")
-				.type(SyncCommand.ADD)
-				.name(SyncCommand.ADD.asSpecificationValue())
-				.serverId("2")
-				.build());
 	}
 	
 	@Test

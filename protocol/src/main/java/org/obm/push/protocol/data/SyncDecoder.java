@@ -38,9 +38,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -52,6 +50,7 @@ import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
@@ -63,6 +62,7 @@ import org.w3c.dom.NodeList;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -146,23 +146,20 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return builder.build();
 	}
 
-	@VisibleForTesting SyncCollectionCommandsRequest getCommands(Element commandsElement) {
-		SyncCollectionCommandsRequest.Builder builder = SyncCollectionCommandsRequest.builder();
+	@VisibleForTesting List<SyncCollectionCommandDto> getCommands(Element commandsElement) {
+		ImmutableList.Builder<SyncCollectionCommandDto> builder = ImmutableList.builder();
 		if (commandsElement != null) {
 			NodeList collectionNodes = commandsElement.getChildNodes();
 			for (int i = 0; i < collectionNodes.getLength(); i++) {
-				SyncCollectionCommandRequest command = getCommand((Element)collectionNodes.item(i));
-				builder.addCommand(command);
+				builder.add(getCommand((Element)collectionNodes.item(i)));
 			}
 		}
 		return builder.build();
 	}
 	
-	@VisibleForTesting SyncCollectionCommandRequest getCommand(Element commandElement) {
-		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
-		
-		return SyncCollectionCommandRequest.builder()
-			.type(syncCommand)
+	@VisibleForTesting SyncCollectionCommandDto getCommand(Element commandElement) {
+		return SyncCollectionCommandDto.builder()
+			.name(commandElement.getNodeName())
  			.serverId(uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID))
  			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
  			.applicationData(DOMUtils.getUniqueElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName()))

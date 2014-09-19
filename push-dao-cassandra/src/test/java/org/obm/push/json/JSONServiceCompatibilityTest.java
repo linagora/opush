@@ -74,8 +74,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -315,9 +314,8 @@ public class JSONServiceCompatibilityTest {
 							.build()))
 				.build())
 			.put(filename(SyncCollectionOptions.class), syncCollectionOptions)
-			.put(filename(SyncCollectionCommandsRequest.class), SyncCollectionCommandsRequest.builder().build())
 			.put(filename(SyncKey.class), new SyncKey("123"))
-			.put(filename(SyncCollectionCommandRequest.class), SyncCollectionCommandRequest.builder()
+			.put(filename(SyncCollectionCommandResponse.class), SyncCollectionCommandResponse.builder()
 						.applicationData(null)
 						.clientId("1")
 						.type(SyncCommand.ADD)

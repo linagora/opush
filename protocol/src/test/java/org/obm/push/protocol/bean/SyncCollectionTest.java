@@ -36,10 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
+
+import com.google.common.collect.ImmutableList;
 
 public class SyncCollectionTest {
 
@@ -202,19 +202,18 @@ public class SyncCollectionTest {
 	public void testBuilderCommandsIsNotRequired() {
 		SyncCollection syncRequestCollection = builderWithRequirement().commands(null).build();
 		
-		assertThat(syncRequestCollection.getCommands())
-			.isEqualTo(SyncCollectionCommandsRequest.empty());
+		assertThat(syncRequestCollection.getCommands()).isEmpty();
 	}
 
 	@Test
 	public void testBuilderCommandsValid() {
-		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
-			.addCommand(SyncCollectionCommandRequest.builder().serverId("100").name("Delete").build())
-			.build();
+		SyncCollectionCommandDto command = SyncCollectionCommandDto.builder().serverId("100").name("Delete").build();
 		
-		SyncCollection syncRequestCollection = builderWithRequirement().commands(commands).build();
+		SyncCollection syncRequestCollection = builderWithRequirement()
+				.commands(ImmutableList.of(command))
+				.build();
 		
-		assertThat(syncRequestCollection.getCommands()).isEqualTo(commands);
+		assertThat(syncRequestCollection.getCommands()).containsOnly(command);
 	}
 
 	private SyncCollection.Builder builderWithRequirement() {
