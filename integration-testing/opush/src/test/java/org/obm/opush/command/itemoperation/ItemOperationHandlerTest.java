@@ -164,6 +164,29 @@ public class ItemOperationHandlerTest {
 	}
 
 	@Test
+	public void shouldReturnDocumentNotFoundWhenFetchAbsentEmail() throws Exception {
+		String emailId1 = ":1";
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
+		mocksControl.verify();
+
+		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
+		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.DOCUMENT_LIBRARY_NOT_FOUND);
+		
+		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
+		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(1);
+		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(1);
+		assertThat(imapConnectionCounter.listMailboxesCounter.get()).isEqualTo(0);
+	}
+
+	
+	@Test
 	public void testFetchForHtml() throws Exception {
 		String emailId1 = ":1";
 		

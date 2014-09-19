@@ -142,7 +142,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 			ItemOperationsStatus status, Exception exception) {
 		
 		logger.error(exception.getMessage(), exception);
-		responder.sendWBXMLResponse(NAMESPACE, protocol.encodeErrorRespponse(status));
+		responder.sendWBXMLResponse(NAMESPACE, protocol.encodeErrorResponse(status));
 	}
 	
 	@VisibleForTesting void sendResponse(Responder responder, Document document, ItemOperationsResponse response,

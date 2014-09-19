@@ -223,7 +223,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 		}
 	}
 	
-	public Document encodeErrorRespponse(ItemOperationsStatus status) {
+	public Document encodeErrorResponse(ItemOperationsStatus status) {
 		Document document = DOMUtils.createDoc(null, "ItemOperations");
 		Element root = document.getDocumentElement();
 		DOMUtils.createElementAndText(root, "Status", status.asSpecificationValue());
