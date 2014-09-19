@@ -37,55 +37,66 @@ import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.base.Objects;
 
-public abstract class SyncCollectionCommand implements Serializable {
+public class SyncCollectionCommand implements Serializable {
 
 	private static final long serialVersionUID = 5244279911428703760L;
 
-	public abstract static class Builder<T extends SyncCollectionCommand> {
+	public static Builder builder() {
+		return new Builder();
+	}
+	
+	public static class Builder {
 		
-		protected SyncCommand type;
-		protected String serverId;
-		protected String clientId;
+		private SyncStatus status;
+		private SyncCommand type;
+		private String serverId;
+		private String clientId;
+		private IApplicationData applicationData;
 
 		protected Builder() {}
 		
-		public Builder<T> name(String commandType) {
-			this.type = SyncCommand.fromSpecificationValue(commandType);
-			return this;
-		}
-		
-		public Builder<T> type(SyncCommand commandtype) {
+		public Builder type(SyncCommand commandtype) {
 			this.type = commandtype;
 			return this;
 		}
 		
-		public Builder<T> serverId(String serverId) {
+		public Builder serverId(String serverId) {
 			this.serverId = serverId;
 			return this;
 		}
 
-		public Builder<T> clientId(String clientId) {
+		public Builder clientId(String clientId) {
 			this.clientId = clientId;
 			return this;
 		}
 
-		public Builder<T> applicationData(Object applicationData) {
-			return applicationDataImpl(applicationData);
+		public Builder applicationData(IApplicationData applicationData) {
+			this.applicationData = applicationData;
+			return this;
+		}
+
+		public Builder status(SyncStatus status) {
+			this.status = status;
+			return this;
 		}
 		
-		protected abstract Builder<T> applicationDataImpl(Object applicationData);
-		
-		public abstract T build();
+		public SyncCollectionCommand build() {
+			return new SyncCollectionCommand(status, type, serverId, clientId, applicationData);
+		}
 	}
 	
+	private final SyncStatus status;
 	private final SyncCommand type;
 	private final String serverId;
 	private final String clientId;
+	private final IApplicationData applicationData;
 	
-	protected SyncCollectionCommand(SyncCommand type, String serverId, String clientId) {
+	protected SyncCollectionCommand(SyncStatus status, SyncCommand type, String serverId, String clientId, IApplicationData applicationData) {
 		this.type = type;
 		this.serverId = serverId;
 		this.clientId = clientId;
+		this.status = status;
+		this.applicationData = applicationData;
 	}
 
 	public SyncCommand getType() {
@@ -100,18 +111,28 @@ public abstract class SyncCollectionCommand implements Serializable {
 		return clientId;
 	}
 
-	@Override
-	public int hashCode(){
-		return Objects.hashCode(type, serverId, clientId);
+	public IApplicationData getApplicationData() {
+		return applicationData;
+	}
+	
+	public SyncStatus getStatus() {
+		return status;
 	}
 	
 	@Override
-	public boolean equals(Object object){
+	public final int hashCode(){
+		return Objects.hashCode(status, type, serverId, clientId, applicationData);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
 		if (object instanceof SyncCollectionCommand) {
 			SyncCollectionCommand that = (SyncCollectionCommand) object;
 			return Objects.equal(this.type, that.type)
+				&& Objects.equal(this.status, that.status)
 				&& Objects.equal(this.serverId, that.serverId)
-				&& Objects.equal(this.clientId, that.clientId);
+				&& Objects.equal(this.clientId, that.clientId)
+				&& Objects.equal(this.applicationData, that.applicationData);
 		}
 		return false;
 	}
@@ -120,8 +141,10 @@ public abstract class SyncCollectionCommand implements Serializable {
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("name", type)
+			.add("status", status)
 			.add("serverId", serverId)
 			.add("clientId", clientId)
+			.add("applicationData", applicationData)
  			.toString();
 	}
 }

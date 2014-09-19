@@ -41,7 +41,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
 
-public abstract class AbstractSyncCollection<T extends SyncCollectionCommands<?>> implements Serializable {
+public abstract class AbstractSyncCollection<T extends SyncCollectionCommands> implements Serializable {
 	
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;

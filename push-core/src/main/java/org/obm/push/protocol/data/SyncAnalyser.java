@@ -38,7 +38,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
@@ -51,8 +51,8 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
@@ -184,7 +184,7 @@ public class SyncAnalyser {
 		for (SyncCollectionCommandDto command : requestCommands) {
 			SyncCommand type = SyncCommand.fromSpecificationValue(command.getName());
 			commandsResponseBuilder.addCommand(
-				SyncCollectionCommandResponse.builder()
+				SyncCollectionCommand.builder()
 					.type(type)
 					.serverId(command.getServerId())
 					.clientId(command.getClientId())

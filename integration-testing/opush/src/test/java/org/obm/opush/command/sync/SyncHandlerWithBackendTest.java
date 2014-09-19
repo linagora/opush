@@ -95,7 +95,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -798,9 +798,9 @@ public class SyncHandlerWithBackendTest {
 		assertThat(secondSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse collectionResponse = getCollectionWithId(secondSyncResponse, inboxCollectionIdAsString);
 		SyncCollectionResponsesResponse responses = collectionResponse.getResponses();
-		List<SyncCollectionCommandResponse> fetches = responses.getCommandsForType(SyncCommand.FETCH);
-		assertThat(fetches).containsOnly(SyncCollectionCommandResponse.builder()
-				.syncStatus(SyncStatus.OBJECT_NOT_FOUND)
+		List<SyncCollectionCommand> fetches = responses.getCommandsForType(SyncCommand.FETCH);
+		assertThat(fetches).containsOnly(SyncCollectionCommand.builder()
+				.status(SyncStatus.OBJECT_NOT_FOUND)
 				.type(SyncCommand.FETCH)
 				.serverId(serverId)
 				.build());

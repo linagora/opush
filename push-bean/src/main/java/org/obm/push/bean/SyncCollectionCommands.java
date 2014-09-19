@@ -42,22 +42,22 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 
-public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> implements Serializable {
+public abstract class SyncCollectionCommands implements Serializable {
 
 	private static final long serialVersionUID = 5403154747427044879L;
 
-	public abstract static class Builder<T extends SyncCollectionCommand, C extends SyncCollectionCommands<?>> {
+	public abstract static class Builder<C extends SyncCollectionCommands> {
 		
-		private final ImmutableList.Builder<T> commandsBuilder;
-		private ImmutableList<T> commands;
- 		private ImmutableListMultimap<SyncCommand, T> commandsByType;
+		private final ImmutableList.Builder<SyncCollectionCommand> commandsBuilder;
+		private ImmutableList<SyncCollectionCommand> commands;
+ 		private ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType;
 
 		protected Builder() {
 			super();
 			commandsBuilder = ImmutableList.builder();
 		}
 		
-		public Builder<T, C> addCommand(T command) {
+		public Builder<C> addCommand(SyncCollectionCommand command) {
 			commandsBuilder.add(command);
 			return this;
 		}
@@ -71,37 +71,37 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 		public abstract C build();
 		
 		protected abstract C buildImpl(
-			ImmutableListMultimap<SyncCommand, T> commandsByType, 
-			List<T> commands);
+			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+			List<SyncCollectionCommand> commands);
 		
-		private ImmutableListMultimap<SyncCommand, T> commandsByType(List<T> commands) {
+		private ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType(List<SyncCollectionCommand> commands) {
 			return FluentIterable.from(commands)
-						.index(new Function<T, SyncCommand>() {
+						.index(new Function<SyncCollectionCommand, SyncCommand>() {
 
 					@Override
-					public SyncCommand apply(T input) {
+					public SyncCommand apply(SyncCollectionCommand input) {
 						return input.getType();
 					}
 				});
 		}
 	}
 	
-	private final ImmutableListMultimap<SyncCommand, T> commandsByType;
-	private final List<T> commands;
+	private final ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType;
+	private final List<SyncCollectionCommand> commands;
 	
 	protected SyncCollectionCommands(
-		ImmutableListMultimap<SyncCommand, T> commandsByType, 
-		List<T> commands) {
+		ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+		List<SyncCollectionCommand> commands) {
 		
 		this.commandsByType = commandsByType;
 		this.commands = commands;
 	}
 
-	public List<T> getCommandsForType(SyncCommand type) {
-		return Objects.firstNonNull(commandsByType.get(type), ImmutableList.<T>of());
+	public List<SyncCollectionCommand> getCommandsForType(SyncCommand type) {
+		return Objects.firstNonNull(commandsByType.get(type), ImmutableList.<SyncCollectionCommand>of());
 	}
 	
-	public List<T> getCommands() {
+	public List<SyncCollectionCommand> getCommands() {
 		return commands;
 	}
 
@@ -135,7 +135,7 @@ public abstract class SyncCollectionCommands<T extends SyncCollectionCommand> im
 	@Override
 	public final boolean equals(Object object){
 		if (object instanceof SyncCollectionCommands) {
-			SyncCollectionCommands<?> that = (SyncCollectionCommands<?>) object;
+			SyncCollectionCommands that = (SyncCollectionCommands) object;
 			return Objects.equal(this.commandsByType, that.commandsByType)
 				&& Objects.equal(this.commands, that.commands);
 		}

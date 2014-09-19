@@ -54,7 +54,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
@@ -283,7 +283,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		SyncClientCommands.Builder clientCommandsBuilder = SyncClientCommands.builder();
 		SyncCollectionCommandsResponse commands = collection.getCommands();
 		
-		for (SyncCollectionCommandResponse change: commands.getCommands()) {
+		for (SyncCollectionCommand change: commands.getCommands()) {
 			try {
 				switch (change.getType()) {
 				case FETCH:
@@ -307,7 +307,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		return clientCommandsBuilder.build();
 	}
 
-	private Update updateServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change) 
+	private Update updateServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
@@ -323,7 +323,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 	}
 
-	private Add addServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change)
+	private Add addServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
@@ -339,7 +339,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 	}
 	
-	private Deletion deleteServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change)
+	private Deletion deleteServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ProcessingEmailException, UnsupportedBackendFunctionException {
 
@@ -356,7 +356,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 	}
 	
-	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandResponse change, ItemSyncState syncState)
+	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change, ItemSyncState syncState)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
 
 		final String serverId = change.getServerId();

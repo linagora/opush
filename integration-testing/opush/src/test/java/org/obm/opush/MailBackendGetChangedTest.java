@@ -73,7 +73,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.Resource;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -638,9 +638,9 @@ public class MailBackendGetChangedTest {
 
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
 		assertThat(inboxResponse.getItemChanges()).isEmpty();
-		List<SyncCollectionCommandResponse> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
+		List<SyncCollectionCommand> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
 		assertThat(deletions).hasSize(1);
-		SyncCollectionCommandResponse deletion = deletions.get(0);
+		SyncCollectionCommand deletion = deletions.get(0);
 		assertThat(deletion.getServerId()).isEqualTo("1234:1");
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 	}

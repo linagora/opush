@@ -168,13 +168,13 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 	
 	public List<ItemChange> getItemFetchs() {
-		Iterable<SyncCollectionCommandResponse> fetchs = getFetchs();
+		Iterable<SyncCollectionCommand> fetchs = getFetchs();
 		if (fetchs != null) {
 			return FluentIterable.from(fetchs)
-					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
+					.transform(new Function<SyncCollectionCommand, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommandResponse fetch) {
+						public ItemChange apply(SyncCollectionCommand fetch) {
 							return ItemChange.builder()
 									.serverId(fetch.getServerId())
 									.isNew(false)
@@ -186,7 +186,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommandResponse> getFetchs() {
+	private Iterable<SyncCollectionCommand> getFetchs() {
 		SyncCollectionResponsesResponse commands = getResponses();
 		if (commands != null) {
 			return commands.getCommandsForType(SyncCommand.FETCH);
@@ -195,13 +195,13 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	public List<ItemChange> getItemChanges() {
-		Iterable<SyncCollectionCommandResponse> changes = getChanges();
+		Iterable<SyncCollectionCommand> changes = getChanges();
 		if (changes != null) {
 			return FluentIterable.from(changes)
-					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
+					.transform(new Function<SyncCollectionCommand, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommandResponse change) {
+						public ItemChange apply(SyncCollectionCommand change) {
 							return ItemChange.builder()
 									.serverId(change.getServerId())
 									.isNew(SyncCommand.ADD.equals(change.getType()))
@@ -213,7 +213,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommandResponse> getChanges() {
+	private Iterable<SyncCollectionCommand> getChanges() {
 		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return Iterables.concat(commands.getCommandsForType(SyncCommand.ADD),

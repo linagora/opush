@@ -36,7 +36,7 @@ import java.util.List;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -172,29 +172,29 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 
 		Element responses = DOMUtils.createElement(ce, "Responses");
 		SyncCollectionResponsesResponse responsesToClientCommands = collectionResponse.getResponses();
-		for (SyncCollectionCommandResponse responseToClientCommand : responsesToClientCommands.getCommands()) {
+		for (SyncCollectionCommand responseToClientCommand : responsesToClientCommands.getCommands()) {
 			switch (responseToClientCommand.getType()) {
 			case ADD:
 				Element add = DOMUtils.createElement(responses, "Add");
 				DOMUtils.createElementAndText(add, "ClientId", responseToClientCommand.getClientId());
 				DOMUtils.createElementAndText(add, "ServerId", responseToClientCommand.getServerId());
-				DOMUtils.createElementAndText(add, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				DOMUtils.createElementAndText(add, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case CHANGE:
 			case MODIFY:
 				Element change = DOMUtils.createElement(responses, "Change");
 				DOMUtils.createElementAndText(change, "ServerId", responseToClientCommand.getServerId());
-				DOMUtils.createElementAndText(change, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				DOMUtils.createElementAndText(change, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case DELETE:
 				Element delete = DOMUtils.createElement(responses, "Delete");
 				DOMUtils.createElementAndText(delete, "ServerId", responseToClientCommand.getServerId());
-				DOMUtils.createElementAndText(delete, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				DOMUtils.createElementAndText(delete, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case FETCH:
 				Element fetch = DOMUtils.createElement(responses, "Fetch");
 				DOMUtils.createElementAndText(fetch, "ServerId", responseToClientCommand.getServerId());
-				DOMUtils.createElementAndText(fetch, "Status", responseToClientCommand.getSyncStatus().asSpecificationValue());
+				DOMUtils.createElementAndText(fetch, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				serializeChange(device, fetch, responseToClientCommand.getApplicationData());
 				break;
 			}

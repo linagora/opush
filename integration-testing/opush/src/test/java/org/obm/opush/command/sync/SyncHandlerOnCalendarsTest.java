@@ -78,7 +78,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -437,9 +437,9 @@ public class SyncHandlerOnCalendarsTest {
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse updateCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionIdAsString);
 		SyncCollectionResponsesResponse responses = updateCollectionResponse.getResponses();
-		List<SyncCollectionCommandResponse> changes = responses.getCommandsForType(SyncCommand.CHANGE);
-		assertThat(changes).containsOnly(SyncCollectionCommandResponse.builder()
-				.syncStatus(SyncStatus.SERVER_ERROR)
+		List<SyncCollectionCommand> changes = responses.getCommandsForType(SyncCommand.CHANGE);
+		assertThat(changes).containsOnly(SyncCollectionCommand.builder()
+				.status(SyncStatus.SERVER_ERROR)
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
 				.build());

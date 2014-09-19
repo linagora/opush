@@ -56,13 +56,13 @@ public class SyncCollectionCommandsTest {
 	@Test
 	public void testBuilderCommandsValid() {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-			.addCommand(SyncCollectionCommandResponse.builder().name("Delete").serverId("3").build())
-			.addCommand(SyncCollectionCommandResponse.builder().name("Fetch").serverId("8").build())
+			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId("3").build())
+			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId("8").build())
 			.build();
 		
 		assertThat(commands.getCommands()).containsOnly(
-				SyncCollectionCommandResponse.builder().name("Delete").serverId("3").build(),
-				SyncCollectionCommandResponse.builder().name("Fetch").serverId("8").build());
+				SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId("3").build(),
+				SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId("8").build());
 	}
 	
 	@Test
@@ -74,11 +74,11 @@ public class SyncCollectionCommandsTest {
 				.deletions(deletions)
 				.build();
 				
-		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommandResponse.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
 				.type(SyncCommand.CHANGE)
 				.serverId("123")
 				.build());
-		assertThat(commands.getCommandsForType(SyncCommand.DELETE)).containsOnly(SyncCollectionCommandResponse.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.DELETE)).containsOnly(SyncCollectionCommand.builder()
 				.type(SyncCommand.DELETE)
 				.serverId("234")
 				.build());
@@ -88,14 +88,16 @@ public class SyncCollectionCommandsTest {
 	public void testChangesWithClientId() {
 		String serverId = "123";
 		String clientId = "456";
+		SyncStatus status = SyncStatus.OK;
 		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes, SyncClientCommands.builder()
-						.putAdd(new Add(clientId, serverId, SyncStatus.OK))
+						.putAdd(new Add(clientId, serverId, status))
 						.build())
 				.build();
 				
-		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommandResponse.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
+				.status(status)
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
 				.clientId(clientId)

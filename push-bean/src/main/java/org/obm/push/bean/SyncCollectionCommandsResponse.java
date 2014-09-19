@@ -39,15 +39,17 @@ import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableListMultimap;
 
-public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncCollectionCommandResponse> {
+public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
 
 	private static final long serialVersionUID = -6871877347639563687L;
 
 	private SyncCollectionCommandsResponse(
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommandResponse> commandsByType, 
-			List<SyncCollectionCommandResponse> commands) {
+			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+			List<SyncCollectionCommand> commands) {
 		super(commandsByType, commands);
 	}
 	
@@ -59,7 +61,7 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 		return new Builder();
 	}
 	
-	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommandResponse, SyncCollectionCommandsResponse> {
+	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommandsResponse> {
 		
 		private Builder() {
 			super();
@@ -67,8 +69,8 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 		
 		@Override
 		protected SyncCollectionCommandsResponse buildImpl(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommandResponse> commandsByType, 
-				List<SyncCollectionCommandResponse> commands) {
+				ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+				List<SyncCollectionCommand> commands) {
 			return new SyncCollectionCommandsResponse(commandsByType, commands);
 		}
 
@@ -81,7 +83,7 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 			for (ItemChange change: changes) {
 				String serverId = change.getServerId();
 				
-				SyncCollectionCommandResponse.Builder builder = SyncCollectionCommandResponse.builder();
+				SyncCollectionCommand.Builder builder = SyncCollectionCommand.builder();
 				builder.applicationData(change.getData())
 					.type(retrieveCommandType(change))
 					.serverId(serverId);
@@ -89,7 +91,7 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 				if (clientCommands.hasAddWithServerId(serverId)){
 					Add add = clientCommands.getAddWithServerId(serverId).get();
 					builder.clientId(add.getClientId());
-					builder.syncStatus(add.getSyncStatus());
+					builder.status(add.getSyncStatus());
 				}
 				addCommand(builder.build());
 			}
@@ -99,7 +101,7 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 		public Builder fetchs(List<ItemChange> fetchs) {
 			for (ItemChange fetch: fetchs) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
+						SyncCollectionCommand.builder()
 							.applicationData(fetch.getData())
 							.type(SyncCommand.FETCH)
 							.serverId(fetch.getServerId())
@@ -115,12 +117,23 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands<SyncC
 		public Builder deletions(List<ItemDeletion> deletions) {
 			for (ItemDeletion deletion: deletions) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
+						SyncCollectionCommand.builder()
 							.type(SyncCommand.DELETE)
 							.serverId(deletion.getServerId())
 							.build());
 			}
 			return this;
 		}
+	}
+	
+	public boolean hasFetch() {
+		return FluentIterable.from(getCommands())
+			.anyMatch(new Predicate<SyncCollectionCommand>() {
+
+				@Override
+				public boolean apply(SyncCollectionCommand response) {
+					return response.getType().equals(SyncCommand.FETCH);
+				}
+			});
 	}
 }

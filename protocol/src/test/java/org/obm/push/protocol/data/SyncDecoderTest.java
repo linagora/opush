@@ -33,6 +33,7 @@ package org.obm.push.protocol.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.FilterType;
@@ -47,16 +48,36 @@ import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
+import org.obm.push.protocol.data.ms.MSEmailDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.collect.Iterables;
+import com.google.inject.Provider;
 
 
 public class SyncDecoderTest {
 
-	public static final int DEFAULT_WINDOW_SIZE = 100;
+	static final int DEFAULT_WINDOW_SIZE = 100;
+	
+	Provider<CalendarDecoder> calendarProvider;
+	Provider<ContactDecoder> contactProvider;
+	Provider<TaskDecoder> taskProvider;
+	Provider<MSEmailDecoder> emailProvider;
+	DecoderFactory decoder;
+	
+	@Before
+	public void setUp() {
+		Provider<ContactDecoder> contactProvider = new Provider<ContactDecoder>() {
+
+			@Override
+			public ContactDecoder get() {
+				return new ContactDecoder(null, null);
+			}
+		};
+		decoder = new DecoderFactory(calendarProvider, contactProvider, taskProvider, emailProvider);
+	}
 	
 	@Test(expected=ASRequestIntegerFieldException.class)
 	public void testGetWaitWhenNotANumber() throws Exception {
@@ -629,12 +650,17 @@ public class SyncDecoderTest {
 
 	@Test
 	public void testCollectionCommands() throws Exception {
-		String applicationData = 
+		String contactApplicationData = 
 				"<ApplicationData>" +
 					"<Email1Address>opush@obm.org</Email1Address>" +
 					"<FileAs>Dobney, JoLynn Julie</FileAs>" +
 					"<FirstName>JoLynn</FirstName>" +
 				"</ApplicationData>";
+
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
 		
 		Element request = DOMUtils.parse(
 				"<Collection>" +
@@ -644,12 +670,12 @@ public class SyncDecoderTest {
 						"<Add>" +
 							"<ServerId>12</ServerId>" +
 							"<ClientId>120</ClientId>" +
-							applicationData +
+							contactApplicationData +
 						"</Add>" +
 						"<Change>" +
 							"<ServerId>35</ServerId>" +
 							"<ClientId>350</ClientId>" +
-							applicationData +
+							contactApplicationData +
 						"</Change>" +
 						"<Fetch>" +
 							"<ServerId>56</ServerId>" +
@@ -660,13 +686,13 @@ public class SyncDecoderTest {
 					"</Commands>" +
 				"</Collection>").getDocumentElement();
 		
-		SyncCollection collection = new SyncDecoder(null).getCollection(request);
+		SyncCollection collection = new SyncDecoder(decoder).getCollection(request);
 		
 		Element addElement = DOMUtils.getUniqueElement(request, "Add");
 		Element addDataElement = DOMUtils.getUniqueElement(addElement, "ApplicationData");
 		Element changeElement = DOMUtils.getUniqueElement(request, "Change");
 		Element changeDataElement = DOMUtils.getUniqueElement(changeElement, "ApplicationData");
-		
+
 		assertThat( collection.getCommands()).containsOnly(
 				SyncCollectionCommandDto.builder()
 					.name("Add").serverId("12").clientId("120").applicationData(addDataElement).build(),
@@ -687,10 +713,6 @@ public class SyncDecoderTest {
 								"<FirstName>JoLynn</FirstName>" +
 							"</ApplicationData>" +
 						"</Add>");
-		MSContact contact = new MSContact();
-		contact.setEmail1Address("opush@obm.org");
-		contact.setFileAs("Dobney, JoLynn Julie");
-		contact.setFirstName("JoLynn");
 		
 		SyncCollectionCommandDto command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		
@@ -708,10 +730,6 @@ public class SyncDecoderTest {
 								"<FirstName>JoLynn</FirstName>" +
 							"</ApplicationData>" +
 						"</Add>");
-		MSContact contact = new MSContact();
-		contact.setEmail1Address("opush@obm.org");
-		contact.setFileAs("Dobney, JoLynn Julie");
-		contact.setFirstName("JoLynn");
 		
 		SyncCollectionCommandDto command = new SyncDecoder(null).getCommand(request.getDocumentElement());
 		

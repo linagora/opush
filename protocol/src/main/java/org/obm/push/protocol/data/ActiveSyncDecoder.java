@@ -122,4 +122,10 @@ public class ActiveSyncDecoder implements SyncDefaultValues {
 			DOMUtils.createElementAndText(root, stringField.getName(), value);
 		}
 	}
+	
+	public void appendElement(Element root, Element value) {
+		if (value != null) {
+			root.appendChild(value);
+		}
+	}
 }

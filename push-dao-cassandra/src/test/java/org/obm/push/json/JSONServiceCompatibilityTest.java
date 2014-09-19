@@ -74,7 +74,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -315,11 +315,11 @@ public class JSONServiceCompatibilityTest {
 				.build())
 			.put(filename(SyncCollectionOptions.class), syncCollectionOptions)
 			.put(filename(SyncKey.class), new SyncKey("123"))
-			.put(filename(SyncCollectionCommandResponse.class), SyncCollectionCommandResponse.builder()
+			.put(filename(SyncCollectionCommand.class), SyncCollectionCommand.builder()
 						.applicationData(null)
+						.status(SyncStatus.OBJECT_NOT_FOUND)
 						.clientId("1")
 						.type(SyncCommand.ADD)
-						.name(SyncCommand.ADD.asSpecificationValue())
 						.serverId("2")
 						.build())
 			.put(filename(MSContact.class), contact)

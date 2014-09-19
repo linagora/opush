@@ -65,7 +65,7 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -213,8 +213,7 @@ public class SyncHandlerOnContactsTest {
 		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
 		
 		mocksControl.verify();
-		
-		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
+		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
 				.type(SyncCommand.ADD)
 				.serverId(serverId.toString())
 				.clientId(null)
@@ -226,12 +225,12 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionIdAsString);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
 		assertThat(commands).hasSize(1);
-		SyncCollectionCommandResponse syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
-		assertThat(syncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
+		SyncCollectionCommand SyncCollectionCommand = FluentIterable.from(commands).first().get();
+		assertThat(SyncCollectionCommand).isEqualTo(expectedCommandResponse);
 		
-		MSContact msContact = (MSContact) syncCollectionCommandResponse.getApplicationData();
+		MSContact msContact = (MSContact) SyncCollectionCommand.getApplicationData();
 		assertThat(msContact.getFirstName()).isEqualTo("firstname");
 		assertThat(msContact.getLastName()).isEqualTo("lastname");
 		assertThat(msContact.getEmail1Address()).isEqualTo("contact@mydomain.org");
@@ -647,10 +646,19 @@ public class SyncHandlerOnContactsTest {
 		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
 		
 		mocksControl.verify();
-		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
+		
+		MSContact newMSContact = new MSContact();
+		newMSContact.setFirstName("firstname");
+		newMSContact.setLastName("lastname");
+		newMSContact.setEmail1Address("contact@mydomain.org");
+		newMSContact.setHomeFaxNumber("1234");
+		newMSContact.setFileAs("firstname lastname");
+		
+		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
 				.type(SyncCommand.ADD)
 				.serverId(serverId.toString())
 				.clientId(null)
+				.applicationData(newMSContact)
 				.build();
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -658,9 +666,9 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionIdAsString);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
 		assertThat(commands).hasSize(1);
-		SyncCollectionCommandResponse syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
+		SyncCollectionCommand syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
 		assertThat(syncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
 		
 		MSContact msContact = (MSContact) syncCollectionCommandResponse.getApplicationData();
@@ -674,9 +682,9 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse sameSyncCollectionResponse = getCollectionWithId(sameSyncResponse, contactCollectionIdAsString);
 		assertThat(sameSyncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommandResponse> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommand> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();
 		assertThat(sameCommands).hasSize(1);
-		SyncCollectionCommandResponse sameSyncCollectionCommandResponse = FluentIterable.from(sameCommands).first().get();
+		SyncCollectionCommand sameSyncCollectionCommandResponse = FluentIterable.from(sameCommands).first().get();
 		assertThat(sameSyncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
 		
 		MSContact sameMSContact = (MSContact) sameSyncCollectionCommandResponse.getApplicationData();

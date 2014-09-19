@@ -45,13 +45,13 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 
-public class SyncCollectionResponsesResponse extends SyncCollectionCommands<SyncCollectionCommandResponse> {
+public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 
 	private static final long serialVersionUID = -6871877347639563687L;
 
 	private SyncCollectionResponsesResponse(
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommandResponse> commandsByType, 
-			List<SyncCollectionCommandResponse> commands) {
+			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+			List<SyncCollectionCommand> commands) {
 		super(commandsByType, commands);
 	}
 	
@@ -72,7 +72,7 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		return new Builder();
 	}
 	
-	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommandResponse, SyncCollectionResponsesResponse> {
+	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionResponsesResponse> {
 		
 		private Builder() {
 			super();
@@ -80,8 +80,8 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		
 		@Override
 		protected SyncCollectionResponsesResponse buildImpl(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommandResponse> commandsByType, 
-				List<SyncCollectionCommandResponse> commands) {
+				ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
+				List<SyncCollectionCommand> commands) {
 			return new SyncCollectionResponsesResponse(commandsByType, commands);
 		}
 
@@ -93,8 +93,8 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		public Builder adds(List<Add> adds) {
 			for (Add add: adds) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
-							.syncStatus(add.getSyncStatus())
+						SyncCollectionCommand.builder()
+							.status(add.getSyncStatus())
 							.type(add.syncCommand())
 							.serverId(add.getServerId())
 							.clientId(add.getClientId())
@@ -106,8 +106,8 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		public Builder updates(List<Update> updates) {
 			for (Update update: updates) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
-							.syncStatus(update.getSyncStatus())
+						SyncCollectionCommand.builder()
+							.status(update.getSyncStatus())
 							.type(update.syncCommand())
 							.serverId(update.getServerId())
 							.build());
@@ -118,8 +118,8 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		public Builder deletions(List<Deletion> deletions) {
 			for (Deletion deletion: deletions) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
-							.syncStatus(deletion.getSyncStatus())
+						SyncCollectionCommand.builder()
+							.status(deletion.getSyncStatus())
 							.type(deletion.syncCommand())
 							.serverId(deletion.getServerId())
 							.build());
@@ -130,8 +130,8 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 		public Builder fetchs(List<Fetch> fetches) {
 			for (Fetch fetch: fetches) {
 				addCommand(
-						SyncCollectionCommandResponse.builder()
-							.syncStatus(fetch.getSyncStatus())
+						SyncCollectionCommand.builder()
+							.status(fetch.getSyncStatus())
 							.type(fetch.syncCommand())
 							.serverId(fetch.getServerId())
 							.applicationData(fetch.getApplicationData())
@@ -163,11 +163,11 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands<Sync
 	private List<ServerId> serverIdsOfCommandType(SyncCommand syncCommand) {
 		return FluentIterable
 				.from(getCommandsForType(syncCommand))
-				.transform(new Function<SyncCollectionCommandResponse, ServerId>() {
+				.transform(new Function<SyncCollectionCommand, ServerId>() {
 
 					@Override
-					public ServerId apply(SyncCollectionCommandResponse syncCollectionCommandResponse) {
-						return new ServerId(syncCollectionCommandResponse.getServerId());
+					public ServerId apply(SyncCollectionCommand SyncCollectionCommand) {
+						return new ServerId(SyncCollectionCommand.getServerId());
 					}
 				}).toList();
 	}

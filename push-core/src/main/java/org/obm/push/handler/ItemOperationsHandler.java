@@ -45,7 +45,7 @@ import org.obm.push.bean.MSAttachementData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.StoreName;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
@@ -246,7 +246,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 					.dataType(dataType)
 					.collectionId(collectionId)
 					.responses(SyncCollectionResponsesResponse.builder()
-							.addCommand(SyncCollectionCommandResponse.builder()
+							.addCommand(SyncCollectionCommand.builder()
 									.type(SyncCommand.FETCH)
 									.serverId(serverId)
 									.build())

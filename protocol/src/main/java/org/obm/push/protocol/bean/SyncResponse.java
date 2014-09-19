@@ -34,7 +34,7 @@ package org.obm.push.protocol.bean;
 import java.util.Collection;
 import java.util.Map;
 
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncStatus;
@@ -81,7 +81,7 @@ public class SyncResponse {
 			for (SyncCollectionResponse response : responses) {
 				SyncCollectionResponsesResponse commands = response.getResponses();
 				if (commands != null) {
-					for (SyncCollectionCommandResponse command : commands.getCommands()) {
+					for (SyncCollectionCommand command : commands.getCommands()) {
 						if (!Strings.isNullOrEmpty(command.getClientId())) {
 							builder.put(command.getServerId(), command.getClientId());
 						}

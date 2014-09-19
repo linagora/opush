@@ -70,7 +70,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
-import org.obm.push.bean.SyncCollectionCommandResponse;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -268,6 +268,31 @@ public class JSONServiceTest {
 		assertThat(syncCollectionOptions).isEqualTo(expectedSyncCollectionOptions);
 	}
 	
+	@Test
+	public void testSerializeSyncCollectionCommandsResponse() {
+		SyncCollectionCommandsResponse request = SyncCollectionCommandsResponse.builder()
+				.addCommand(SyncCollectionCommand.builder()
+						.applicationData(null)
+						.clientId("1")
+						.type(SyncCommand.ADD)
+						.serverId("2")
+						.build())
+				.build();
+		
+		String serialized = new JSONService().serialize(request);
+		assertThat(serialized).isEqualTo(
+				"{}");
+	}
+	
+	@Test
+	public void testDeserializeSyncCollectionCommandsResponse() {
+		SyncCollectionCommandsResponse request = new JSONService().deserialize(SyncCollectionCommandsResponse.class,
+				"{}");
+		
+		assertThat(request).isEqualTo(
+				SyncCollectionCommandsResponse.builder()
+				.build());
+	}
 	@Test
 	public void testSerializeMSContact() {
 		MSContact contact = new MSContact();
@@ -1363,7 +1388,7 @@ public class JSONServiceTest {
 							.build())
 				.build();
 		SyncCollectionCommandsResponse syncCollectionCommands = SyncCollectionCommandsResponse.builder()
-				.addCommand(SyncCollectionCommandResponse.builder()
+				.addCommand(SyncCollectionCommand.builder()
 						.serverId("serverId")
 						.clientId("clientId")
 						.type(SyncCommand.ADD)
