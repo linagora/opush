@@ -35,8 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
@@ -70,7 +68,7 @@ public class SyncCollectionCommandsTest {
 		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId("123").build());
 		ImmutableList<ItemDeletion> deletions = ImmutableList.<ItemDeletion> of(ItemDeletion.builder().serverId("234").build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.builder().build())
+				.changes(changes)
 				.deletions(deletions)
 				.build();
 				
@@ -87,20 +85,14 @@ public class SyncCollectionCommandsTest {
 	@Test
 	public void testChangesWithClientId() {
 		String serverId = "123";
-		String clientId = "456";
-		SyncStatus status = SyncStatus.OK;
 		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.builder()
-						.putAdd(new Add(clientId, serverId, status))
-						.build())
+				.changes(changes)
 				.build();
 				
 		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
-				.status(status)
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
-				.clientId(clientId)
 				.build());
 	}
 }

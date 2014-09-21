@@ -263,7 +263,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		
 		responseBuilder
 			.commands(SyncCollectionCommandsResponse.builder()
-					.changes(identifyNewItems(delta.getChanges(), syncState), clientCommands)
+					.changes(identifyNewItems(delta.getChanges(), syncState))
 					.deletions(delta.getDeletions())
 					.build())
 			.responses(SyncCollectionResponsesResponse.from(clientCommands))

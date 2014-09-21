@@ -34,8 +34,6 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
@@ -54,7 +52,7 @@ public class SyncCollectionCommandsResponseTest {
 	public void testResponseSummaryOneChange() {
 		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.empty())
+				.changes(changes)
 				.build();
 		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
@@ -63,7 +61,7 @@ public class SyncCollectionCommandsResponseTest {
 	public void testResponseSummaryOneAddition() {
 		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").isNew(true).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.empty())
+				.changes(changes)
 				.build();
 		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
@@ -72,7 +70,7 @@ public class SyncCollectionCommandsResponseTest {
 	public void testResponseSummaryOneAdditionFromClient() {
 		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").isNew(true).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.builder().putAdd(new Add("789456", "123", SyncStatus.OK)).build())
+				.changes(changes)
 				.build();
 		assertThat(commands.getSummary()).isEqualTo(Summary.builder().changeCount(1).build());
 	}
@@ -112,7 +110,7 @@ public class SyncCollectionCommandsResponseTest {
 		ImmutableList<ItemChange> fetchs = ImmutableList.of(ItemChange.builder().serverId("14523").build(),
 				ItemChange.builder().serverId("56756").build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.changes(changes, SyncClientCommands.empty())
+				.changes(changes)
 				.fetchs(fetchs)
 				.deletions(deletions)
 				.build();

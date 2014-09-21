@@ -34,8 +34,6 @@ package org.obm.push.bean;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.client.SyncClientCommands;
-import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
@@ -79,21 +77,13 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
 			return abstractBuild();
 		}
 		
-		public Builder changes(List<ItemChange> changes, SyncClientCommands clientCommands) {
+		public Builder changes(List<ItemChange> changes) {
 			for (ItemChange change: changes) {
-				String serverId = change.getServerId();
-				
-				SyncCollectionCommand.Builder builder = SyncCollectionCommand.builder();
-				builder.applicationData(change.getData())
+				addCommand(SyncCollectionCommand.builder()
+					.applicationData(change.getData())
 					.type(retrieveCommandType(change))
-					.serverId(serverId);
-				
-				if (clientCommands.hasAddWithServerId(serverId)){
-					Add add = clientCommands.getAddWithServerId(serverId).get();
-					builder.clientId(add.getClientId());
-					builder.status(add.getSyncStatus());
-				}
-				addCommand(builder.build());
+					.serverId(change.getServerId())
+					.build());
 			}
 			return this;
 		}

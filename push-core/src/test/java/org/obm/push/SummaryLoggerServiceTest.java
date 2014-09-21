@@ -50,7 +50,6 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
-import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -128,7 +127,7 @@ public class SummaryLoggerServiceTest {
 				.syncKey(new SyncKey("456"))
 				.dataType(PIMDataType.CALENDAR)
 				.commands(SyncCollectionCommandsResponse.builder()
-					.changes(ImmutableList.of(ItemChange.builder().serverId("987").build()), SyncClientCommands.empty())
+					.changes(ImmutableList.of(ItemChange.builder().serverId("987").build()))
 					.build())
 				.build())
 			.build();
@@ -233,8 +232,7 @@ public class SummaryLoggerServiceTest {
 				.dataType(PIMDataType.EMAIL)
 				.commands( SyncCollectionCommandsResponse.builder()
 					.changes(
-						ImmutableList.of(ItemChange.builder().serverId("456").build()),
-						SyncClientCommands.empty())
+						ImmutableList.of(ItemChange.builder().serverId("456").build()))
 					.deletions(ImmutableList.of(ItemDeletion.builder().serverId("789").build()))
 					.build())
 				.build())
