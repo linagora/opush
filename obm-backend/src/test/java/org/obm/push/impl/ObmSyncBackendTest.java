@@ -48,6 +48,7 @@ import org.obm.push.bean.MSContact;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 
@@ -67,7 +68,8 @@ public class ObmSyncBackendTest {
 		testee = createMockBuilder(ObmSyncBackend.class)
 				.withConstructor(mappingService, 
 						mocks.createMock(Provider.class), 
-						mocks.createMock(WindowingDao.class))
+						mocks.createMock(WindowingDao.class),
+						mocks.createMock(DateService.class))
 				.createMock();
 	}
 	

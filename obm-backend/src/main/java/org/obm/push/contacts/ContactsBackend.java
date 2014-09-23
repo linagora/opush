@@ -71,6 +71,7 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.resource.ResourcesUtils;
 import org.obm.push.service.ClientIdService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
@@ -109,9 +110,10 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
 			WindowingDao windowingDao,
 			ClientIdService clientIdService,
-			ContactConverter contactConverter) {
+			ContactConverter contactConverter,
+			DateService dateService) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;

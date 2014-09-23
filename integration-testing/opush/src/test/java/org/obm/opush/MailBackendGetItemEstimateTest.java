@@ -58,8 +58,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.Users.OpushUser;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
@@ -328,7 +328,7 @@ public class MailBackendGetItemEstimateTest {
 				.id(allocatedStateId2)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(allocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(allocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, allocatedState);
 		

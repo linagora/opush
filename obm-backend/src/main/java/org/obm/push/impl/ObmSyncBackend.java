@@ -54,6 +54,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
@@ -72,10 +73,12 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 	
 	protected String obmSyncHost;
 	private final WindowingDao windowingDao;
+	private final DateService dateService;
 
-	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, WindowingDao windowingDao) {
+	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, WindowingDao windowingDao, DateService dateService) {
 		super(mappingService, collectionPathBuilderProvider);
 		this.windowingDao = windowingDao;
+		this.dateService = dateService;
 	}
 	
 	protected AccessToken getAccessToken(UserDataRequest udr) {
@@ -91,7 +94,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 		WindowingKey key = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), requestSyncKey);
 		
 		if (windowingDao.hasPendingChanges(key)) {
-			return continueWindowing(syncCollection, key, newSyncKey, itemSyncState.getSyncDate());
+			return continueWindowing(syncCollection, key, newSyncKey);
 		} else {
 			return startWindowing(udr, itemSyncState, syncCollection, key, newSyncKey);
 		}
@@ -104,18 +107,11 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 		WindowingChangesDelta<WindowingItemType> allChanges = 
 				getAllChanges(udr, syncState, collectionId, collection.getOptions());
 		WindowingChanges<WindowingItemType> windowingChanges = allChanges.windowingChanges;
-		Date lastSync = allChanges.deltaDate;
 		
-		if (collection.getWindowSize() >= windowingChanges.sumOfChanges()) {
-			return builderWithChangesAndDeletions(windowingChanges, collectionId)
-					.syncDate(lastSync)
-					.syncKey(newSyncKey)
-					.moreAvailable(false)
-					.build();
-		} else {
+		if (windowingChanges.sumOfChanges() >= 0) {
 			windowingDao.pushPendingChanges(key, windowingChanges, PIMDataType.CALENDAR, collection.getWindowSize());
-			return continueWindowing(collection, key, newSyncKey, lastSync);
 		}
+		return continueWindowing(collection, key, newSyncKey);
 	}
 
 	protected abstract WindowingChangesDelta<WindowingItemType> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions);
@@ -145,10 +141,10 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 						}).toList());
 	}
 
-	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey, Date lastSync) throws DaoException {
+	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey) throws DaoException {
 		WindowingChanges<WindowingItemType> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), syncKey, windowingChangesBuilder()).build();
 		return builderWithChangesAndDeletions(pendingChanges, collection.getCollectionId())
-				.syncDate(lastSync)
+				.syncDate(dateService.getCurrentDate())
 				.syncKey(syncKey)
 				.moreAvailable(windowingDao.hasPendingChanges(key.withSyncKey(syncKey)))
 				.build();

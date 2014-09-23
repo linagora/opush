@@ -85,6 +85,7 @@ import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
+import org.obm.push.service.DateService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -116,6 +117,7 @@ public class MailBackendImplTest {
 	private WindowingDao windowingDao;
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
+	private DateService dateService;
 
 	private MailBackendImpl testee;
 
@@ -139,12 +141,13 @@ public class MailBackendImplTest {
 		mailBackendSyncDataFactory = control.createMock(MailBackendSyncDataFactory.class);
 		windowingDao = control.createMock(WindowingDao.class);
 		smtpSender = control.createMock(SmtpSender.class);
+		dateService = control.createMock(DateService.class);
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
 		emailConfiguration = control.createMock(EmailConfiguration.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, snapshotDao,
 				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, null, mailBackendSyncDataFactory,
-				windowingDao, smtpSender, emailConfiguration);
+				windowingDao, smtpSender, emailConfiguration, dateService);
 	}
 	
 	@Test
@@ -172,6 +175,9 @@ public class MailBackendImplTest {
 		Set<Email> actualEmailsInServer = ImmutableSet.of(email1, email2);
 		EmailChanges emailChanges = EmailChanges.builder().additions(actualEmailsInServer).build();
 
+		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
+		expect(changesBuilder.build()).andReturn(emailChanges);
+		
 		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":" + 245).isNew(true).data(email1Data).build();
 		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":" + 546).isNew(true).data(email2Data).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
@@ -192,13 +198,24 @@ public class MailBackendImplTest {
 				.build();
 		
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
-		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
+		expectSnapshotDaoRecordOneSnapshot(syncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
 		
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer,
 				actualEmailsInServer, emailChanges, fromDate, syncState);
+
+		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL, windowSize);
+		expectLastCall();
+		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
+		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.syncKey(syncKey)
+				.deviceId(devId)
+				.collectionId(collectionId)
+				.build());
+		expectLastCall();
 
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
 		
@@ -240,9 +257,20 @@ public class MailBackendImplTest {
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
-		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
+		expectSnapshotDaoRecordOneSnapshot(syncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
+		
+		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
+		expect(changesBuilder.build()).andReturn(emailChanges);
+		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
+		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.syncKey(syncKey)
+				.deviceId(devId)
+				.collectionId(collectionId)
+				.build());
+		expectLastCall();
 		
 		control.replay();
 		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, SyncClientCommands.empty(), newSyncKey);
@@ -302,7 +330,7 @@ public class MailBackendImplTest {
 			.filterType(syncCollectionOptions.getFilterType())
 			.uidNext(previousUIDNext)
 			.build();
-		expectSnapshotDaoRecordOneSnapshot(newSyncKey, currentUIDNext, syncCollectionOptions, fetchedEmails);
+		expectSnapshotDaoRecordOneSnapshot(syncKey, currentUIDNext, syncCollectionOptions, fetchedEmails);
 		
 		EmailChanges emailChanges = EmailChanges.builder()
 				.changes(ImmutableSet.<Email> of(modifiedEmail))
@@ -326,6 +354,19 @@ public class MailBackendImplTest {
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectMailBackendSyncData(currentUIDNext, syncCollectionOptions, existingSnapshot, previousEmailsInServer, fetchedEmails, emailChanges, fromDate, syncState);
+		
+		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL, windowSize);
+		expectLastCall();
+		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
+		expect(changesBuilder.build()).andReturn(emailChanges);
+		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
+		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.syncKey(syncKey)
+				.deviceId(devId)
+				.collectionId(collectionId)
+				.build());
+		expectLastCall();
 
 		expectServerItemChanges(bodyPreferences, emailChanges, modifiedEmail, newEmail, deletedEmail);
 		
@@ -515,9 +556,11 @@ public class MailBackendImplTest {
 		EmailChanges allChanges = EmailChanges.builder().additions(actualEmails).build();
 		EmailChanges fittingChanges = allChanges;
 
+		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, previousSyncKey);
 		expect(windowingDao.hasPendingChanges(windowingKey)).andReturn(false);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(dateService.getCurrentDate()).andReturn(syncDataDate);
 		
 		Snapshot previousSnapshot = Snapshot.builder()
 				.emails(previousEmails)
@@ -525,9 +568,19 @@ public class MailBackendImplTest {
 				.uidNext(uidNext)
 				.build();
 		
-		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, previousSnapshot, previousEmails, actualEmails, allChanges, syncDataDate, syncState);
-		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmails);
+		expectSnapshotDaoRecordOneSnapshot(previousSyncKey, uidNext, syncCollectionOptions, actualEmails);
+		
+		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL, windowSize);
+		expectLastCall();
+		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
+		expect(changesBuilder.build()).andReturn(fittingChanges);
+		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.syncKey(previousSyncKey)
+				.deviceId(devId)
+				.collectionId(collectionId)
+				.build());
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
@@ -557,7 +610,9 @@ public class MailBackendImplTest {
 		int windowSize = 1;
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
-		ItemSyncState syncState = ItemSyncState.builder().syncDate(date("2004-12-14T22:00:00")).syncKey(previousSyncKey).build();
+		Date syncDataDate = date("2004-12-14T22:00:00");
+		expect(dateService.getCurrentDate()).andReturn(syncDataDate);
+		ItemSyncState syncState = ItemSyncState.builder().syncDate(syncDataDate).syncKey(previousSyncKey).build();
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 		AnalysedSyncCollection syncCollectionRequest = AnalysedSyncCollection.builder()
@@ -568,7 +623,7 @@ public class MailBackendImplTest {
 				.options(syncCollectionOptions)
 				.build();
 		
-		Email email1 = Email.builder().uid(245).read(false).date(date("2004-12-14T22:00:00")).build();
+		Email email1 = Email.builder().uid(245).read(false).date(syncDataDate).build();
 		Email email2 = Email.builder().uid(546).read(true).date(date("2012-12-12T23:59:00")).build();
 		Set<Email> previousEmails = ImmutableSet.of();
 		Set<Email> actualEmails = ImmutableSet.of(email1, email2);
@@ -588,12 +643,17 @@ public class MailBackendImplTest {
 				.uidNext(uidNext)
 				.build();
 		
-		Date syncDataDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, previousSnapshot, previousEmails, actualEmails, allChanges, syncDataDate, syncState);
-		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmails);
+		expectSnapshotDaoRecordOneSnapshot(previousSyncKey, uidNext, syncCollectionOptions, actualEmails);
 		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL, windowSize);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
+		
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.syncKey(previousSyncKey)
+				.deviceId(devId)
+				.collectionId(collectionId)
+				.build());
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
@@ -643,6 +703,7 @@ public class MailBackendImplTest {
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
+		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
 
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
@@ -671,7 +732,9 @@ public class MailBackendImplTest {
 		int windowSize = 1;
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
-		ItemSyncState syncState = ItemSyncState.builder().syncDate(date("2004-12-14T22:00:00")).syncKey(previousSyncKey).build();
+		Date syncDataDate = date("2004-12-14T22:00:00");
+		expect(dateService.getCurrentDate()).andReturn(syncDataDate);
+		ItemSyncState syncState = ItemSyncState.builder().syncDate(syncDataDate).syncKey(previousSyncKey).build();
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 		AnalysedSyncCollection syncCollectionRequest = AnalysedSyncCollection.builder()

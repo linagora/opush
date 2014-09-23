@@ -96,6 +96,7 @@ import org.obm.push.resource.AccessTokenResource;
 import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
@@ -149,6 +150,7 @@ public class CalendarBackendTest {
 	private ClientIdService clientIdService;
 	private Ical4jHelper ical4jHelper;
 	private Ical4jUser.Factory ical4jUserFactory;
+	private DateService dateService;
 	
 	private CalendarBackend calendarBackend;
 	private IMocksControl mockControl;
@@ -199,6 +201,7 @@ public class CalendarBackendTest {
 		this.clientIdService = mockControl.createMock(ClientIdService.class);
 		this.ical4jHelper = mockControl.createMock(Ical4jHelper.class);
 		this.ical4jUserFactory = mockControl.createMock(Ical4jUser.Factory.class);
+		this.dateService = mockControl.createMock(DateService.class);
 		
 		consistencyLogger.log(anyObject(Logger.class), anyObject(EventChanges.class));
 		expectLastCall().anyTimes();
@@ -214,7 +217,8 @@ public class CalendarBackendTest {
 				windowingDao,
 				clientIdService,
 				ical4jHelper,
-				ical4jUserFactory);
+				ical4jUserFactory,
+				dateService);
 	}
 	
 	@After

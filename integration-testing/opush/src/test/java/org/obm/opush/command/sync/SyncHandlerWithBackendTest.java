@@ -151,6 +151,7 @@ import com.icegreen.greenmail.util.GreenMailUtil;
 public class SyncHandlerWithBackendTest {
 
 	private final static int ONE_WINDOWS_SIZE = 1;
+	private final static int ONE_HUNDRED_WINDOWS_SIZE = 100;
 	
 	@Inject	Injector injector;
 	@Inject	Users users;
@@ -296,7 +297,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
@@ -305,7 +306,7 @@ public class SyncHandlerWithBackendTest {
 				new ServerId(serverId)))
 			.andReturn(false);
 		
-		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(4);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, newFirstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, inboxCollectionId);
@@ -429,6 +430,7 @@ public class SyncHandlerWithBackendTest {
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		Event event = new Event();
 		event.setUid(new EventObmId(1));
 		event.setTitle("event");
@@ -476,6 +478,9 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, calendarCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(newFourthAllocatedState.getSyncDate()).once();
 		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, 
 				new ServerId(serverId)))
 			.andReturn(false);
@@ -603,6 +608,7 @@ public class SyncHandlerWithBackendTest {
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		Contact contact = new Contact();
 		contact.setUid(1);
 		Contact contact2 = new Contact();
@@ -633,6 +639,9 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(newFourthAllocatedState.getSyncDate()).once();
 		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, 
 				new ServerId(serverId)))
 			.andReturn(false);
@@ -748,10 +757,10 @@ public class SyncHandlerWithBackendTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 
-		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 
 		String serverId = inboxCollectionIdAsString + ":" + 1;
@@ -821,7 +830,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
@@ -869,7 +878,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
@@ -912,7 +921,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
@@ -960,7 +969,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
@@ -1002,11 +1011,11 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
-		
+
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
@@ -1044,7 +1053,7 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		ServerId emailServerId = new ServerId(inboxCollectionIdAsString + ":" + 1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
@@ -1108,6 +1117,7 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
 			.andReturn(EventChanges.builder()
 					.lastSync(firstDate)
@@ -1187,6 +1197,7 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
 
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		expect(calendarClient.getUserEmail(user.accessToken)).andReturn(user.user.getLoginAtDomain());
 		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
@@ -1243,6 +1254,8 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
 
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		EventExtId eventExtId = new EventExtId("1");
 		EventObmId eventObmId = new EventObmId(1);
 		Event event = new Event();
@@ -1348,5 +1361,164 @@ public class SyncHandlerWithBackendTest {
 			}
 			return ((Event) getExpected()).getPrivacy().equals(((Event) actual).getPrivacy());
 		}
+	}
+
+	@Test
+	public void syncShouldRespondWhenAskingTwiceForFirstSyncKeyAndWindowing() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
+		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
+		SyncKey newSecondAllocatedSyncKey = new SyncKey("279cf50e-9f28-4c92-8ac6-7d3e7cab1056");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int newSecondAllocatedStateId = 5;
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState newSecondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(newSecondAllocatedSyncKey)
+				.id(newSecondAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
+		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
+		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
+		
+		String serverId = inboxCollectionId + ":2";
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
+				new ServerId(serverId)))
+			.andReturn(false).times(2);
+		
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		sendTwoEmailsToImapServer();
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
+		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
+		SyncResponse newFirstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
+		
+		mocksControl.verify();
+
+		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionIdAsString);
+		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":2")
+						.isNew(true)
+						.build()));
+		
+		assertThat(newFirstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse newFirstCollectionResponse = getCollectionWithId(newFirstSyncResponse, inboxCollectionIdAsString);
+		assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":2")
+						.isNew(true)
+						.build()));
+	}
+
+	@Test
+	public void syncShouldRespondWhenAskingTwiceForFirstSyncKey() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
+		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
+		SyncKey newSecondAllocatedSyncKey = new SyncKey("279cf50e-9f28-4c92-8ac6-7d3e7cab1056");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int newSecondAllocatedStateId = 5;
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState newSecondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:25:17"))
+				.syncKey(newSecondAllocatedSyncKey)
+				.id(newSecondAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
+		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(1);
+		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
+		
+		String serverId = inboxCollectionId + ":1";
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
+				new ServerId(serverId)))
+			.andReturn(false).times(2);
+		String serverId2 = inboxCollectionId + ":2";
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
+				new ServerId(serverId2)))
+			.andReturn(false).times(2);
+		
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		sendTwoEmailsToImapServer();
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
+		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
+		SyncResponse newFirstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
+		
+		mocksControl.verify();
+
+		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionIdAsString);
+		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":1")
+						.isNew(true)
+						.build(),
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":2")
+						.isNew(true)
+						.build()));
+		
+		assertThat(newFirstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse newFirstCollectionResponse = getCollectionWithId(newFirstSyncResponse, inboxCollectionIdAsString);
+		assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":1")
+						.isNew(true)
+						.build(),
+					ItemChange.builder()
+						.serverId(inboxCollectionId + ":2")
+						.isNew(true)
+						.build()));
 	}
 }

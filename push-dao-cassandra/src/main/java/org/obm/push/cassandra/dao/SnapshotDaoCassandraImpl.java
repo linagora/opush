@@ -101,17 +101,16 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 
 	@Override
 	public void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException {
-		SnapshotKey snapshotKeyForNewIndex = SnapshotKey.builder()
-			.collectionId(snapshotKey.getCollectionId())
-			.deviceId(snapshotKey.getDeviceId())
-			.syncKey(synckey)
-			.build();
-		
 		UUID selectSnapshotId = selectSnapshotId(snapshotKey);
 		if (selectSnapshotId == null) {
 			throw new DaoException("Not snapshot found for snapshot key " + snapshotKey);
 		}
 		
+		SnapshotKey snapshotKeyForNewIndex = SnapshotKey.builder()
+				.collectionId(snapshotKey.getCollectionId())
+				.deviceId(snapshotKey.getDeviceId())
+				.syncKey(synckey)
+				.build();
 		insertNewIndex(snapshotKeyForNewIndex, selectSnapshotId);
 	}
 

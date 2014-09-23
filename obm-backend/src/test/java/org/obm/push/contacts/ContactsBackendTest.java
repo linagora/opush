@@ -82,6 +82,7 @@ import org.obm.push.resource.AccessTokenResource;
 import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
@@ -124,6 +125,7 @@ public class ContactsBackendTest {
 	private ContactsBackend contactsBackend;
 	private CloseableHttpClient httpClient;
 	private ContactConverter contactConverter;
+	private DateService dateService;
 	
 	@Before
 	public void setUp() {
@@ -153,9 +155,10 @@ public class ContactsBackendTest {
 		windowingDao = mocks.createMock(WindowingDao.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
 		contactConverter = new ContactConverter();
+		dateService = mocks.createMock(DateService.class);
 		
 		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter);
+				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -185,7 +188,7 @@ public class ContactsBackendTest {
 	
 	@Test
 	public void testGetPIMDataType() {
-		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null);
+		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null);
 		assertThat(contactsBackend.getPIMDataType()).isEqualTo(PIMDataType.CONTACTS);
 	}
 

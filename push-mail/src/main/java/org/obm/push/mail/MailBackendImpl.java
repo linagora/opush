@@ -39,7 +39,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -114,6 +113,7 @@ import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.AuthenticationService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -168,10 +168,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final MailBackendSyncDataFactory mailBackendSyncDataFactory;
 	private final WindowingDao windowingDao;
 	private final SmtpSender smtpSender;
-
+	private final DateService dateService;
 
 	private final EmailConfiguration emailConfiguration;
-
 
 	@Inject
 	/* package */ MailBackendImpl(MailboxService mailboxService, 
@@ -186,7 +185,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			MailBackendSyncDataFactory mailBackendSyncDataFactory,
 			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
-			EmailConfiguration emailConfiguration)  {
+			EmailConfiguration emailConfiguration,
+			DateService dateService)  {
 
 		super(mappingService, collectionPathBuilderProvider);
 		this.mailboxService = mailboxService;
@@ -201,6 +201,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		this.windowingDao = windowingDao;
 		this.smtpSender = smtpSender;
 		this.emailConfiguration = emailConfiguration;
+		this.dateService = dateService;
 	}
 
 	@Override
@@ -324,11 +325,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), syncCollection.getSyncKey());
 			
 			if (windowingDao.hasPendingChanges(windowingKey)) {
-				snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
-						.collectionId(syncCollection.getCollectionId())
-						.deviceId(udr.getDevId())
-						.syncKey(syncCollection.getSyncKey()).build());
-				return continueWindowing(udr, syncCollection, windowingKey, syncState.getSyncDate(), newSyncKey);
+				return continueWindowing(udr, syncCollection, windowingKey, newSyncKey);
 			} else {
 				return startWindowing(udr, syncState, syncCollection, windowingKey, newSyncKey);
 			}
@@ -344,26 +341,29 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		SyncCollectionOptions options = collection.getOptions();
 		
 		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, collectionId, options);
-		takeSnapshot(udr, collectionId, collection.getOptions(), syncData, newSyncKey);
-
-		if (collection.getWindowSize() >= syncData.getEmailChanges().sumOfChanges()) {
-			return fetchChanges(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey, syncData.getEmailChanges());
-		} else {
+		takeSnapshot(udr, collectionId, collection.getOptions(), syncData, collection.getSyncKey());
+		
+		if (syncData.getEmailChanges().hasChanges()) {
 			windowingDao.pushPendingChanges(key, syncData.getEmailChanges(), PIMDataType.EMAIL, collection.getWindowSize());
-			return continueWindowing(udr, collection, key, syncData.getDataDeltaDate(), newSyncKey);
 		}
+		
+		return continueWindowing(udr, collection, key, newSyncKey);
 	}
 
-	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
-			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey)
+	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
+
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.collectionId(collection.getCollectionId())
+				.deviceId(udr.getDevId())
+				.syncKey(collection.getSyncKey()).build());
 		
-		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), dataDeltaSyncKey, EmailChanges.builder()).build();
-		return fetchChanges(udr, collection, key, dataDelaSyncDate, dataDeltaSyncKey, pendingChanges);
+		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), newSyncKey, EmailChanges.builder()).build();
+		return fetchChanges(udr, collection, key, newSyncKey, pendingChanges);
 	}
 	
 	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
-			Date dataDelaSyncDate, SyncKey dataDeltaSyncKey, WindowingChanges<Email> pendingChanges)
+			SyncKey newSyncKey, WindowingChanges<Email> pendingChanges)
 		throws EmailViewPartsFetcherException {
 		
 		int collectionId = collection.getCollectionId();
@@ -373,9 +373,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return DataDelta.builder()
 				.changes(serverItemChanges.getItemChanges())
 				.deletions(serverItemChanges.getItemDeletions())
-				.syncDate(dataDelaSyncDate)
-				.syncKey(dataDeltaSyncKey)
-				.moreAvailable(windowingDao.hasPendingChanges(key.withSyncKey(dataDeltaSyncKey)))
+				.syncDate(dateService.getCurrentDate())
+				.syncKey(newSyncKey)
+				.moreAvailable(windowingDao.hasPendingChanges(key.withSyncKey(newSyncKey)))
 				.build();
 	}
 

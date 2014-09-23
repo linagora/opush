@@ -72,6 +72,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.service.DateService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -108,6 +109,7 @@ public class SyncHandlerOnContactsTest {
 	private ItemTrackingDao itemTrackingDao;
 	private CollectionDao collectionDao;
 	private BookClient bookClient;
+	private DateService dateService;
 
 	private OpushUser user;
 	private String contactCollectionPath;
@@ -129,6 +131,7 @@ public class SyncHandlerOnContactsTest {
 		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
 		bookClient = classToInstanceMap.get(BookClient.class);
+		dateService = classToInstanceMap.get(DateService.class);
 
 		expect(collectionDao.getCollectionPath(contactCollectionId)).andReturn(contactCollectionPath).anyTimes();
 		
@@ -166,6 +169,7 @@ public class SyncHandlerOnContactsTest {
 		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		Contact initialContact = new Contact();
 		initialContact.setUid(1);
 		initialContact.setFirstname("firstname");
@@ -256,6 +260,8 @@ public class SyncHandlerOnContactsTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		// first sync
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
@@ -353,6 +359,8 @@ public class SyncHandlerOnContactsTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		Contact initialContact = new Contact();
 		initialContact.setUid(1);
 		initialContact.setFirstname("firstname");
@@ -466,6 +474,8 @@ public class SyncHandlerOnContactsTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		Contact initialContact = new Contact();
 		initialContact.setUid(1);
 		initialContact.setFirstname("firstname");
@@ -544,5 +554,117 @@ public class SyncHandlerOnContactsTest {
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
+	}
+
+	@Test
+	public void clientMayAskForAnOldSyncKey() throws Exception {
+		SyncKey firstAllocatedSyncKey = new SyncKey("4a2c7db8-b532-40a0-92c3-bfebb8da8f00");
+		SyncKey secondAllocatedSyncKey = new SyncKey("55df3cf4-b70d-4df2-ac48-d31646994321");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("6214c5ef-e76b-4d71-90ee-1ab92f28181c");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int thirdAllocatedStateId = 5;
+		
+		Date syncDate = date("2012-10-09T16:22:53");
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(syncDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-09T17:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-09T18:22:53"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(thirdAllocatedStateId)
+				.build();
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, contactCollectionId);
+		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
+		Contact initialContact = new Contact();
+		initialContact.setUid(1);
+		initialContact.setFirstname("firstname");
+		initialContact.setLastname("lastname");
+		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
+		
+		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
+			.andReturn(false)
+			.times(2);
+		
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
+		expectLastCall();
+		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
+		expectLastCall();
+
+		expect(bookClient.listAllBooks(user.accessToken))
+			.andReturn(ImmutableList.<AddressBook> of(AddressBook
+					.builder()
+					.name(contactCollectionIdAsString)
+					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.readOnly(false)
+					.build()));
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+			.andReturn(contactCollectionId);
+		
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
+					ImmutableSet.<Integer> of(),
+					syncDate));
+		
+		mocksControl.replay();
+		opushServer.start();
+
+		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		
+		mocksControl.verify();
+		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
+				.type(SyncCommand.ADD)
+				.serverId(serverId.toString())
+				.clientId(null)
+				.build();
+		
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionIdAsString);
+		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getCommands().getCommands();
+		assertThat(commands).hasSize(1);
+		SyncCollectionCommandResponse syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
+		assertThat(syncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
+		
+		MSContact msContact = (MSContact) syncCollectionCommandResponse.getApplicationData();
+		assertThat(msContact.getFirstName()).isEqualTo("firstname");
+		assertThat(msContact.getLastName()).isEqualTo("lastname");
+		assertThat(msContact.getEmail1Address()).isEqualTo("contact@mydomain.org");
+		assertThat(msContact.getHomeFaxNumber()).isEqualTo("1234");
+		
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		SyncCollectionResponse sameSyncCollectionResponse = getCollectionWithId(sameSyncResponse, contactCollectionIdAsString);
+		assertThat(sameSyncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		List<SyncCollectionCommandResponse> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();
+		assertThat(sameCommands).hasSize(1);
+		SyncCollectionCommandResponse sameSyncCollectionCommandResponse = FluentIterable.from(sameCommands).first().get();
+		assertThat(sameSyncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
+		
+		MSContact sameMSContact = (MSContact) sameSyncCollectionCommandResponse.getApplicationData();
+		assertThat(sameMSContact.getFirstName()).isEqualTo("firstname");
+		assertThat(sameMSContact.getLastName()).isEqualTo("lastname");
+		assertThat(sameMSContact.getEmail1Address()).isEqualTo("contact@mydomain.org");
+		assertThat(sameMSContact.getHomeFaxNumber()).isEqualTo("1234");
 	}
 }

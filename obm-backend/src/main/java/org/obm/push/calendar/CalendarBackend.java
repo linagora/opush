@@ -79,6 +79,7 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.resource.ResourcesUtils;
 import org.obm.push.service.ClientIdService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
@@ -134,9 +135,10 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			Ical4jHelper ical4jHelper, 
-			Ical4jUser.Factory ical4jUserFactory) {
+			Ical4jUser.Factory ical4jUserFactory,
+			DateService dateService) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService);
 		this.calendarClientFactory = calendarClientFactory;
 		this.eventConverter = eventConverter;
 		this.eventService = eventService;

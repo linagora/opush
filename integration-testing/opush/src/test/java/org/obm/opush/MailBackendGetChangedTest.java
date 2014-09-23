@@ -198,7 +198,7 @@ public class MailBackendGetChangedTest {
 				.id(allocatedStateId2)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(allocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(allocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, allocatedState, inboxCollectionId);
 
@@ -271,8 +271,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -339,8 +339,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -409,7 +409,7 @@ public class MailBackendGetChangedTest {
 				.id(allocatedStateId2)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 
@@ -480,8 +480,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -554,7 +554,7 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
 		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
@@ -612,8 +612,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -674,7 +674,7 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKey)).andReturn(secondAllocatedState).times(2);
@@ -744,8 +744,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -814,9 +814,9 @@ public class MailBackendGetChangedTest {
 				.id(allocatedStateId4)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(firstAllocatedStateTrash.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(firstAllocatedStateTrash.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
@@ -885,8 +885,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -959,8 +959,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -1033,7 +1033,7 @@ public class MailBackendGetChangedTest {
 				.id(allocatedStateId3)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
 
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
@@ -1110,8 +1110,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -1179,8 +1179,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
 		expectCollectionDaoPerformInitialSync(initialSyncKey, firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);

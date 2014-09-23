@@ -72,6 +72,7 @@ import org.obm.push.resource.AccessTokenResource;
 import org.obm.push.resource.HttpClientResource;
 import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.push.service.ClientIdService;
+import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
@@ -108,6 +109,7 @@ public class ContactsBackendHierarchyChangesTest {
 	private ContactsBackend contactsBackend;
 	private CloseableHttpClient httpClient;
 	private ContactConverter contactConverter;
+	private DateService dateService;
 
 	@Before
 	public void setUp() {
@@ -138,6 +140,7 @@ public class ContactsBackendHierarchyChangesTest {
 		collectionPathBuilderProvider = mocks.createMock(Provider.class);
 		windowingDao = mocks.createMock(WindowingDao.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
+		dateService = mocks.createMock(DateService.class);
 		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, 
@@ -146,7 +149,8 @@ public class ContactsBackendHierarchyChangesTest {
 				collectionPathBuilderProvider,
 				windowingDao,
 				clientIdService,
-				contactConverter);
+				contactConverter,
+				dateService);
 	}
 
 	@After
