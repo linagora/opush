@@ -42,13 +42,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.util.Strings;
 
 import org.apache.http.client.HttpClient;
@@ -62,8 +60,6 @@ import org.junit.Test;
 import org.obm.icalendar.ICalendar;
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
-import org.obm.icalendar.ParsingResults;
-import org.obm.icalendar.Reject;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.CollectionPath.Builder;
@@ -1055,15 +1051,12 @@ public class CalendarBackendTest {
 		eventFromICS.setInternalEvent(isInternal);
 		eventFromICS.setExtId(eventExtId);
 		eventFromICS.setSequence(12);
-		Collection<Event> events = ImmutableSet.of(eventFromICS);
-		Collection<Reject<VEvent>> rejectedEvents = ImmutableSet.of();
-		ParsingResults<Event, VEvent> results = new ParsingResults<>(events, rejectedEvents);
 		
 		ICalendar iCalendar = icalendar("simpleEvent.ics");
 		expect(ical4jUserFactory.createIcal4jUser(user.getEmail(), token.getDomain()))
 			.andReturn(null).once();
 		expect(ical4jHelper.parseICSEvent(iCalendar.getICalendar(), null, token.getObmId()))
-			.andReturn(results).once();
+			.andReturn(ImmutableList.of(eventFromICS)).once();
 		
 		EventObmId eventCreationDbId = new EventObmId(9);
 		expect(calendarClient.getEventFromExtId(token, calendar, eventExtId))
@@ -1110,15 +1103,12 @@ public class CalendarBackendTest {
 		eventWithMergedInfos.setSequence(eventFromDB.getSequence());
 		eventWithMergedInfos.setInternalEvent(eventFromICS.isInternalEvent());
 		eventWithMergedInfos.setExtId(eventFromICS.getExtId());
-		Collection<Event> events = ImmutableSet.of(eventFromICS);
-		Collection<Reject<VEvent>> rejectedEvents = ImmutableSet.of();
-		ParsingResults<Event, VEvent> results = new ParsingResults<>(events, rejectedEvents);
 
 		ICalendar iCalendar = icalendar("simpleEvent.ics");
 		expect(ical4jUserFactory.createIcal4jUser(user.getEmail(), token.getDomain()))
 			.andReturn(null).once();
 		expect(ical4jHelper.parseICSEvent(iCalendar.getICalendar(), null, token.getObmId()))
-			.andReturn(results).once();
+			.andReturn(ImmutableList.of(eventFromICS)).once();
 		
 		expect(calendarClient.getEventFromExtId(token, calendar, eventExtId)).andReturn(eventFromDB);
 		expect(eventConverter.getParticipation(AttendeeStatus.ACCEPT)).andReturn(Participation.accepted());
@@ -1147,16 +1137,13 @@ public class CalendarBackendTest {
 		Event iCSEvent = new Event();
 		iCSEvent.setInternalEvent(true);
 		iCSEvent.setExtId(eventExtId);
-		Collection<Event> events = ImmutableSet.of(iCSEvent);
-		Collection<Reject<VEvent>> rejectedEvents = ImmutableSet.of();
-		ParsingResults<Event, VEvent> results = new ParsingResults<>(events, rejectedEvents);
-		
+
 		ICalendar iCalendar = icalendar("simpleEvent.ics");
 		
 		expect(ical4jUserFactory.createIcal4jUser(user.getEmail(), token.getDomain()))
 			.andReturn(null).once();
 		expect(ical4jHelper.parseICSEvent(iCalendar.getICalendar(), null, token.getObmId()))
-			.andReturn(results).once();
+			.andReturn(ImmutableList.of(iCSEvent)).once();
 		
 		Event oBMEvent = new Event();
 		oBMEvent.setUid(new EventObmId(180));
@@ -1506,16 +1493,13 @@ public class CalendarBackendTest {
 		Event event = new Event();
 		event.setUid(new EventObmId(1));
 		event.setExtId(eventExtId);
-		Collection<Event> events = ImmutableSet.of(event);
-		Collection<Reject<VEvent>> rejectedEvents = ImmutableSet.of();
-		ParsingResults<Event, VEvent> results = new ParsingResults<>(events, rejectedEvents);
-		
+
 		ICalendar iCalendar = icalendar("simpleEvent.ics");
 		
 		expect(ical4jUserFactory.createIcal4jUser(user.getEmail(), token.getDomain()))
 			.andReturn(null).once();
 		expect(ical4jHelper.parseICSEvent(iCalendar.getICalendar(), null, token.getObmId()))
-			.andReturn(results).once();
+			.andReturn(ImmutableList.of(event)).once();
 		
 		expect(calendarClient.getEventFromExtId(token, calendar, eventExtId))
 			.andReturn(event).once();
