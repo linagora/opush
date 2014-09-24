@@ -791,8 +791,10 @@ public class MailBackendImplTest {
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().build();
 		List<String> itemIds = ImmutableList.of("1:1");
 
+		SyncKey previousSyncKey = new SyncKey("123");
+		SyncKey nextSyncKey = new SyncKey("456");
 		ItemSyncState previousItemSyncState = ItemSyncState.builder()
-				.syncKey(new SyncKey("123"))
+				.syncKey(previousSyncKey)
 				.syncDate(date("2004-12-14T22:00:00"))
 				.build();
 
@@ -803,10 +805,12 @@ public class MailBackendImplTest {
 				.build();
 		
 		expect(snapshotDao.get(snapshotKey)).andReturn(null);
+		snapshotDao.linkSyncKeyToSnapshot(nextSyncKey, snapshotKey);
+		expectLastCall();
 		control.replay();
 		
 		try {
-			testee.fetch(udr, collectionId, itemIds, syncCollectionOptions, previousItemSyncState);
+			testee.fetch(udr, collectionId, itemIds, syncCollectionOptions, previousItemSyncState, nextSyncKey);
 		} catch (InvalidSyncKeyException e) {
 			control.verify();
 			throw e;

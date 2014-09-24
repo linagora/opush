@@ -444,9 +444,8 @@ public class SyncHandlerTest {
 				syncEmailSyncKey, inbox.getCollectionId(), SyncCommand.FETCH, serverId);
 
 		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId + ":123"));
-		checkMailFolderHasDeleteItems(syncEmailResponse, inbox.getCollectionId(),
-				ItemDeletion.builder().serverId(syncEmailCollectionId + ":122")
-					.build());
+		SyncCollectionResponse collection = getCollectionWithId(syncEmailResponse, inbox.getCollectionId());
+		assertThat(collection.getItemChangesDeletion()).isEmpty();
 	}
 	
 	@Test

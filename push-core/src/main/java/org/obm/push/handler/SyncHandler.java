@@ -258,27 +258,37 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException, ProcessingEmailException, 
 				ConversionException, FilterTypeChangedException, HierarchyChangedException, InvalidServerId, UnsupportedBackendFunctionException {
 
-		SyncClientCommands clientCommands = processClientModification(udr, syncState, request);
-		DataDelta delta = contentsExporter.getChanged(udr, syncState, request, newSyncKey);
+		SyncClientCommands clientCommands = processClientModifications(udr, request, syncState, newSyncKey);
+		DataDelta serverDelta = retreiveServerModifications(udr, request, syncState, newSyncKey, clientCommands);
 		
 		responseBuilder
 			.commands(SyncCollectionCommandsResponse.builder()
-					.changes(identifyNewItems(delta.getChanges(), syncState))
-					.deletions(delta.getDeletions())
+					.changes(identifyNewItems(serverDelta.getChanges(), syncState))
+					.deletions(serverDelta.getDeletions())
 					.build())
 			.responses(SyncCollectionResponsesResponse.from(clientCommands))
-			.moreAvailable(delta.hasMoreAvailable());
+			.moreAvailable(serverDelta.hasMoreAvailable());
 		
-		return delta.getSyncDate();
+		return serverDelta.getSyncDate();
+	}
+
+	private DataDelta retreiveServerModifications(UserDataRequest udr, AnalysedSyncCollection request, ItemSyncState syncState,
+			SyncKey newSyncKey, SyncClientCommands clientCommands) {
+
+		if (clientCommands.getFetches().isEmpty()) {
+			return contentsExporter.getChanged(udr, syncState, request, newSyncKey);
+		}
+		return DataDelta.newEmptyDelta(syncState.getSyncDate(), newSyncKey);
 	}
 
 	private boolean isDataTypeKnown(PIMDataType dataType) {
 		return dataType != PIMDataType.UNKNOWN;
 	}
 
-	@VisibleForTesting SyncClientCommands processClientModification(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection)
-			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
-			ProcessingEmailException, UnsupportedBackendFunctionException, ConversionException, HierarchyChangedException {
+	@VisibleForTesting SyncClientCommands processClientModifications(UserDataRequest udr, AnalysedSyncCollection collection,
+			ItemSyncState syncState, SyncKey newSyncKey)
+				throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
+				ProcessingEmailException, UnsupportedBackendFunctionException, ConversionException, HierarchyChangedException {
 
 		SyncClientCommands.Builder clientCommandsBuilder = SyncClientCommands.builder();
 		SyncCollectionCommandsResponse commands = collection.getCommands();
@@ -287,7 +297,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			try {
 				switch (change.getType()) {
 				case FETCH:
-					clientCommandsBuilder.putFetch(fetchServerItem(udr, collection, change, syncState));
+					clientCommandsBuilder.putFetch(fetchServerItem(udr, collection, change, syncState, newSyncKey));
 					break;
 				case MODIFY:
 				case CHANGE:
@@ -356,13 +366,14 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 	}
 	
-	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change, ItemSyncState syncState)
-			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
+	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change,
+			ItemSyncState syncState, SyncKey newSyncKey)
+					throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
 
 		final String serverId = change.getServerId();
 		try {
 			Optional<ItemChange> optional = contentsExporter.fetch(udr, syncState, collection.getDataType(), 
-					collection.getCollectionId(), collection.getOptions(), serverId);
+					collection.getCollectionId(), collection.getOptions(), serverId, newSyncKey);
 			
 			if (optional.isPresent()) {
 				return new SyncClientCommands.Fetch(serverId, SyncStatus.OK, optional.get().getData());

@@ -75,6 +75,7 @@ import org.obm.push.bean.Resource;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
+import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
@@ -1114,8 +1115,8 @@ public class MailBackendGetChangedTest {
 				.id(newAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate());
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
@@ -1152,18 +1153,20 @@ public class MailBackendGetChangedTest {
 	}
 
 	@Test
-	public void testFetchShouldReturnDeletionOnlyWhenEmailDeleted() throws Exception {
+	public void testFetchShouldReturnFetchErrorOnlyWhenEmailDeleted() throws Exception {
 		String emailId = ":1";
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
-		SyncKey newAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		SyncKey lastAllocatedSyncKey = new SyncKey("be61114c-34a6-4453-8847-944cf54bb4ea");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
-		int newAllocatedStateId = 5;
+		int allocatedStateId3 = 5;
+		int lastAllocatedStateId = 6;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, lastAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1171,28 +1174,36 @@ public class MailBackendGetChangedTest {
 				.syncKey(firstAllocatedSyncKey)
 				.id(allocatedStateId)
 				.build();
-		ItemSyncState currentAllocatedState = ItemSyncState.builder()
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
 				.syncDate(date("2012-10-10T16:22:53"))
 				.syncKey(secondAllocatedSyncKey)
 				.id(allocatedStateId2)
 				.build();
-		ItemSyncState newAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(newAllocatedSyncKey)
-				.id(newAllocatedStateId)
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(secondAllocatedState.getSyncDate())
+				.syncKey(thirdAllocatedSyncKey)
+				.id(allocatedStateId3)
+				.build();
+		ItemSyncState lastAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:22:53"))
+				.syncKey(lastAllocatedSyncKey)
+				.id(lastAllocatedStateId)
 				.build();
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
-		expect(dateService.getCurrentDate()).andReturn(currentAllocatedState.getSyncDate()).times(2);
-		expect(dateService.getCurrentDate()).andReturn(newAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(lastAllocatedState.getSyncDate());
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
-		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
-		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
-
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(thirdAllocatedSyncKey, thirdAllocatedState, lastAllocatedState, inboxCollectionId);
+		
+		String serverId = inboxCollectionId + emailId;
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId + emailId))).andReturn(false);
-		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
-		expectLastCall();
-		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(new ServerId(serverId)));
 		expectLastCall().anyTimes();
+		itemTrackingDao.markAsDeleted(lastAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		expectLastCall().once();
 		
 		sendNEmailsToImapServer(1);
 		mocksControl.replay();
@@ -1204,14 +1215,29 @@ public class MailBackendGetChangedTest {
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		
-		String serverId = inboxCollectionIdAsString + emailId;
 		SyncResponse response = opClient.syncWithCommand(decoder, secondAllocatedSyncKey, inboxCollectionIdAsString, SyncCommand.FETCH, serverId);
+		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();
 		
 		assertThat(response.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse inboxResponse = getCollectionWithId(response, inboxCollectionIdAsString);
-		assertThat(inboxResponse.getItemChangesDeletion()).containsOnly(
+		SyncCollectionResponsesResponse responses = inboxResponse.getResponses();
+		assertThat(inboxResponse.isMoreAvailable()).isFalse();
+		assertThat(responses.adds()).isEmpty();
+		assertThat(responses.updates()).isEmpty();
+		assertThat(responses.deletions()).isEmpty();
+		assertThat(responses.fetches()).hasSize(1);
+		assertThat(responses.getCommandsForType(SyncCommand.FETCH)).containsOnly(SyncCollectionCommand.builder()
+				.status(SyncStatus.OBJECT_NOT_FOUND)
+				.serverId(serverId)
+				.type(SyncCommand.FETCH)
+				.build());
+
+		assertThat(responseContainingDeletion.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse inboxResponseDeletion = getCollectionWithId(responseContainingDeletion, inboxCollectionIdAsString);
+		assertThat(inboxResponseDeletion.isMoreAvailable()).isFalse();
+		assertThat(inboxResponseDeletion.getItemChangesDeletion()).containsOnly(
 				ItemDeletion.builder().serverId(serverId).build());
 	}
 

@@ -707,7 +707,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	@Override
 	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
-				ItemSyncState previousItemSyncState)
+				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
 		return fetch(udr, collectionId, fetchServerIds, syncCollectionOptions);

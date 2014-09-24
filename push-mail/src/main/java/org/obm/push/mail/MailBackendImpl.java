@@ -907,19 +907,27 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 	@Override
 	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions, 
-				ItemSyncState previousItemSyncState) 
+				ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 			throws ProcessingEmailException {
 
+
+		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+				.collectionId(collectionId)
+				.deviceId(udr.getDevId())
+				.syncKey(previousItemSyncState.getSyncKey()).build());
+		
 		Snapshot snapshot = snapshotDao.get(SnapshotKey.builder()
 				.deviceId(udr.getDevId())
 				.syncKey(previousItemSyncState.getSyncKey())
 				.collectionId(collectionId).build());
+		
 		if (snapshot == null) {
 			throw new InvalidSyncKeyException(previousItemSyncState.getSyncKey());
 		}
 		if (!snapshot.containsAllIds(itemIds)) {
 			throw new ItemNotFoundException();
 		}
+		
 		return fetch(udr, collectionId, itemIds, collectionOptions);
 	}
 	

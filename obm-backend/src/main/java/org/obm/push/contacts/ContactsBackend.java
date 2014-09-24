@@ -449,7 +449,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 
 	@Override
 	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
-				ItemSyncState previousItemSyncState)
+				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException {
 	
 		return fetch(udr, collectionId, fetchServerIds, syncCollectionOptions);

@@ -49,7 +49,6 @@ import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoPerformS
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -764,15 +763,13 @@ public class SyncHandlerWithBackendTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(4);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 
 		String serverId = inboxCollectionIdAsString + ":" + 1;
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(serverId))).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(new ServerId(serverId)));
-		expectLastCall().once();
-		itemTrackingDao.markAsDeleted(thirdAllocatedState, ImmutableSet.of(new ServerId(serverId)));
 		expectLastCall().once();
 		
 		mocksControl.replay();
@@ -786,23 +783,19 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.verify();
 
+		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionIdAsString);
+		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), ImmutableList.of(
+				ItemChange.builder().serverId(serverId).isNew(true).build()));
 
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
-				ImmutableList.of(
-					ItemChange.builder()
-						.serverId(serverId)
-						.isNew(true)
-						.build()));
-		
-		assertThat(secondSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse collectionResponse = getCollectionWithId(secondSyncResponse, inboxCollectionIdAsString);
-		SyncCollectionResponsesResponse responses = collectionResponse.getResponses();
-		List<SyncCollectionCommand> fetches = responses.getCommandsForType(SyncCommand.FETCH);
-		assertThat(fetches).containsOnly(SyncCollectionCommand.builder()
+		SyncCollectionResponse inboxResponse = getCollectionWithId(secondSyncResponse, inboxCollectionIdAsString);
+		SyncCollectionResponsesResponse responses = inboxResponse.getResponses();
+		assertThat(inboxResponse.isMoreAvailable()).isFalse();
+		assertThat(responses.getCommands()).hasSize(1);
+		assertThat(responses.getCommandsForType(SyncCommand.FETCH)).containsOnly(
+			SyncCollectionCommand.builder()
 				.status(SyncStatus.OBJECT_NOT_FOUND)
-				.type(SyncCommand.FETCH)
-				.serverId(serverId)
+				.serverId(serverId).type(SyncCommand.FETCH)
 				.build());
 	}
 

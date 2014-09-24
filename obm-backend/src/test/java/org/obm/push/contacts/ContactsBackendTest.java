@@ -483,6 +483,9 @@ public class ContactsBackendTest {
 
 	@Test
 	public void testFetch() throws Exception {
+		SyncCollectionOptions options = null;
+		ItemSyncState state = null;
+		SyncKey newSyncKey = new SyncKey("132");
 		int otherContactCollectionUid = 1;
 		int targetcontactCollectionUid = 2;
 		int itemId = 215;
@@ -505,7 +508,7 @@ public class ContactsBackendTest {
 		expect(mappingService.getServerIdFor(targetcontactCollectionUid, String.valueOf(itemId))).andReturn(serverId);
 	
 		mocks.replay();
-		List<ItemChange> itemChanges = contactsBackend.fetch(userDataRequest, targetcontactCollectionUid, ImmutableList.of(serverId), null, null);
+		List<ItemChange> itemChanges = contactsBackend.fetch(userDataRequest, targetcontactCollectionUid, ImmutableList.of(serverId), options, state, newSyncKey);
 		mocks.verify();
 		
 		ItemChange itemChange = ItemChange.builder()

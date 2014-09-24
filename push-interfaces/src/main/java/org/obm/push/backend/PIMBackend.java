@@ -83,7 +83,7 @@ public interface PIMBackend {
 			DaoException, UnexpectedObmSyncServerException, ConversionException;
 
 	List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds,
-			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState) 
+			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 		throws ProcessingEmailException, CollectionNotFoundException, 
 			DaoException, UnexpectedObmSyncServerException, ConversionException;
 

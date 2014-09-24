@@ -1187,6 +1187,9 @@ public class CalendarBackendTest {
 	
 	@Test
 	public void testFetch() throws Exception {
+		SyncCollectionOptions options = null;
+		ItemSyncState state = null;
+		SyncKey newSyncKey = new SyncKey("132");
 		String serverId1 = "1:1";
 		String serverId2 = "1:2";
 		Integer itemId1 = 1;
@@ -1211,7 +1214,7 @@ public class CalendarBackendTest {
 		
 		List<String> itemIds = ImmutableList.of(serverId1, serverId2);
 
-		List<ItemChange> itemChanges = calendarBackend.fetch(userDataRequest, collectionId, itemIds, null, null);
+		List<ItemChange> itemChanges = calendarBackend.fetch(userDataRequest, collectionId, itemIds, options, state, newSyncKey);
 		
 		mockControl.verify();
 		
@@ -1565,6 +1568,9 @@ public class CalendarBackendTest {
 	
 	@Test 
 	public void testFetchThrowsHierarchyChangedException() throws Exception {
+		SyncCollectionOptions options = null;
+		ItemSyncState state = null;
+		SyncKey newSyncKey = new SyncKey("132");
 		String serverId = "1:1";
 		Integer itemId = 1;
 		int collectionId = 1;
@@ -1586,7 +1592,7 @@ public class CalendarBackendTest {
 		
 		List<String> itemIds = ImmutableList.of(serverId);
 
-		calendarBackend.fetch(userDataRequest, collectionId, itemIds, null, null);
+		calendarBackend.fetch(userDataRequest, collectionId, itemIds, options, state, newSyncKey);
 		mockControl.verify();
 	}
 	

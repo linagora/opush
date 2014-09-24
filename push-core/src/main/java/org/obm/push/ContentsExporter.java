@@ -88,19 +88,20 @@ public class ContentsExporter implements IContentsExporter {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection) throws CollectionNotFoundException, DaoException, 
+	public List<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, SyncKey newSyncKey) throws CollectionNotFoundException, DaoException, 
 			ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
 		
 		PIMBackend backend = backends.getBackend(syncCollection.getDataType());
-		return backend.fetch(udr, syncCollection.getCollectionId(), syncCollection.getFetchIds(), syncCollection.getOptions(), itemSyncState);
+		return backend.fetch(udr, syncCollection.getCollectionId(), syncCollection.getFetchIds(), syncCollection.getOptions(), itemSyncState, newSyncKey);
 	}
 	
 	@Override
-	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, int collectionId, SyncCollectionOptions options, String fetchId) 
-			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
+	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, int collectionId, 
+			SyncCollectionOptions options, String fetchId, SyncKey newSyncKey) 
+					throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
 		
 		PIMBackend backend = backends.getBackend(dataType);
-		return FluentIterable.from(backend.fetch(udr, collectionId, ImmutableList.of(fetchId), options, itemSyncState))
+		return FluentIterable.from(backend.fetch(udr, collectionId, ImmutableList.of(fetchId), options, itemSyncState, newSyncKey))
 				.first();
 	}
 
