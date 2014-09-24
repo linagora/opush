@@ -4,14 +4,14 @@
 	<parent>
 		<groupId>com.linagora.obm.opush.integration-testing</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.0.2-beta1</version>
+		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>opush-integration-testing</artifactId>
 	<packaging>jar</packaging>
 	<name>OBM Opush integration testing</name>
 	<url>http://www.obm.org/</url>
-	<version>3.0.2-beta1</version>
+	<version>3.0.2-SNAPSHOT</version>
 
 	<dependencies>
 		<dependency>
