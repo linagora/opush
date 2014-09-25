@@ -55,7 +55,7 @@ import org.obm.push.mail.bean.Address;
 import org.obm.push.mail.bean.EmailMetadata;
 import org.obm.push.mail.conversation.EmailView;
 import org.obm.push.mail.conversation.EmailView.Builder;
-import org.obm.push.mail.conversation.EmailViewAttachment;
+import org.obm.push.mail.conversation.EmailViewAttachments;
 import org.obm.push.mail.conversation.EmailViewInvitationType;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimeMessage;
@@ -67,11 +67,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
 public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
@@ -212,64 +209,31 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	}
 	
 	@VisibleForTesting void fetchAttachments(Builder emailViewBuilder, FetchInstruction fetchInstruction, long uid) {
-		List<EmailViewAttachment> attachments = Lists.newArrayList();
 		MimePart parentMessage = fetchInstruction.getMimePart().findRootMimePartInTree();
 		Collection<MimePart> children = parentMessage.listLeaves(true, true);
 		if (isCalendarOperation(children)) {
 			return;
 		}
-		int attachmentId = 0;
-		for (MimePart mp : parentMessage.listLeaves(true, true)) {
-			if (mp.isAttachment()) {
-				EmailViewAttachment emailViewAttachment = extractEmailViewAttachment(mp, attachmentId++, uid);
-				if (emailViewAttachment != null) {
-					attachments.add(emailViewAttachment);
-				}
+		
+		EmailViewAttachments.Builder attachments = EmailViewAttachments.builder()
+				.uid(uid)
+				.collectionId(collectionId);
+		for (MimePart mp : children) {
+			if (mp.isAttachment() || mp.isNested()) {
+				attachments.addAttachment(mp);
 			}
 		}
-		emailViewBuilder.attachments(attachments);
+		
+		emailViewBuilder.attachments(attachments.build().getEmailViewAttachments());
 	}
 	
 	private boolean isCalendarOperation(Collection<MimePart> children) {
 		return Iterables.any(children, new Predicate<MimePart>() {
-				@Override
-				public boolean apply(MimePart input) {
-					return input.containsCalendarMethod();
-				}
-			});
-	}
-
-	private EmailViewAttachment extractEmailViewAttachment(MimePart mp, int attachmentId, long uid) {
-		String id = "at_" + uid + "_" + attachmentId;
-		String fileReference = AttachmentHelper.getAttachmentId(String.valueOf(collectionId), String.valueOf(uid), 
-				mp.getAddress().getAddress(), mp.getFullMimeType(), mp.getContentTransfertEncoding());
-		
-		Optional<String> displayName = selectDisplayName(mp, attachmentId);
-		if (displayName.isPresent()) {
-			return EmailViewAttachment.builder()
-					.id(id)
-					.displayName(displayName.get())
-					.fileReference(fileReference)
-					.size(mp.getSize())
-					.contentType(mp.getContentType())
-					.contentId(mp.getContentId())
-					.contentLocation(mp.getContentLocation())
-					.inline(mp.isInline())
-					.build();
-		}
-		return null;
-	}
-
-	@VisibleForTesting Optional<String> selectDisplayName(MimePart attachment, int attachmentId) {
-		String partName = attachment.getName();
-		if (!Strings.isNullOrEmpty(partName)) {
-			return Optional.of(partName);
-		}
-		String contentId = attachment.getContentId();
-		if (Strings.isNullOrEmpty(contentId)) {
-			return Optional.absent();
-		}
-		return Optional.of(String.format("ATT%05d%s", attachmentId, Strings.nullToEmpty(attachment.getAttachmentExtension())));
+			@Override
+			public boolean apply(MimePart input) {
+				return input.containsCalendarMethod();
+			}
+		});
 	}
 	
 	private void fetchInvitation(Builder emailViewBuilder, MimeMessage mimeMessage, long uid, EmailMetadata emailMetadata) 

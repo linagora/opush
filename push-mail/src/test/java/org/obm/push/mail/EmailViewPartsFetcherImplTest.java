@@ -84,7 +84,6 @@ import org.obm.push.mail.transformer.TestIdentityTransformerFactory;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -653,7 +652,7 @@ public class EmailViewPartsFetcherImplTest {
 			.mailTransformation(MailTransformation.NONE)
 			.build();
 		
-		EmailViewPartsFetcherImpl partsFetcher = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, null);
+		EmailViewPartsFetcherImpl partsFetcher = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, 16);
 		
 		control.replay();
 		long messageUid = 1l;
@@ -664,7 +663,7 @@ public class EmailViewPartsFetcherImplTest {
 	
 	@Test
 	public void testEmlAttachmentIsALeaf() {
-		String attachmentName = "attachment.eml";
+		String attachmentName = "ForwardedMessage.eml";
 		long attachmentMailUid = 3;
 		int attachmentCollection = 12;
 		int attachmentSize = 1337;
@@ -718,53 +717,6 @@ public class EmailViewPartsFetcherImplTest {
 		emailViewPartsFetcherImpl.fetchAttachments(emailViewBuilder, fetchInstruction, attachmentMailUid);
 		
 		control.verify();
-	}
-	
-	@Test
-	public void testDisplayNameWhenNoNameNoContentId() {
-		Optional<String> displayName = getDisplayNameOfMimePart(MimePartImpl.builder()
-				.contentType("text/plain")
-				.build());
-		
-		assertThat(displayName.isPresent()).isFalse();
-	}
-	
-	@Test
-	public void testDisplayNameWhenName() {
-		Optional<String> displayName = getDisplayNameOfMimePart(MimePartImpl.builder()
-				.contentType("text/plain")
-				.bodyParams(BodyParams.builder().add(
-						new BodyParam("name", "hello"))
-						.build())
-				.build());
-		
-		assertThat(displayName.isPresent()).isTrue();
-		assertThat(displayName.get()).isEqualTo("hello");
-	}
-	
-	@Test
-	public void testDisplayNameWhenContentId() {
-		Optional<String> displayName = getDisplayNameOfMimePart(MimePartImpl.builder()
-				.contentType("text/plain")
-				.contentId("hello")
-				.build());
-		
-		assertThat(displayName.isPresent()).isTrue();
-		assertThat(displayName.get()).isEqualTo("ATT00000");
-	}
-	
-	@Test
-	public void testDisplayNameGetNameWhenBoth() {
-		Optional<String> displayName = getDisplayNameOfMimePart(MimePartImpl.builder()
-				.contentType("text/plain")
-				.contentId("hello contentId")
-				.bodyParams(BodyParams.builder().add(
-						new BodyParam("name", "hello Name"))
-						.build())
-				.build());
-		
-		assertThat(displayName.isPresent()).isTrue();
-		assertThat(displayName.get()).isEqualTo("hello Name");
 	}
 	
 	@Test
@@ -839,34 +791,6 @@ public class EmailViewPartsFetcherImplTest {
 		expect(mailboxService.findAttachment(udr, messageCollectionName, messageFixture.uid, mimeAddress))
 			.andReturn(messageFixture.attachment).anyTimes();
 		return mailboxService;
-	}
-	
-	@Test
-	public void testDisplayNameWhenExtensionMapped() {
-		Optional<String> displayName = getDisplayNameOfMimePart(MimePartImpl.builder()
-				.contentType("image/jpeg")
-				.contentId("hello contentId")
-				.bodyParams(BodyParams.builder().add(
-						new BodyParam("name", "hello Name"))
-						.build())
-				.build());
-		
-		assertThat(displayName.isPresent()).isTrue();
-		assertThat(displayName.get()).isEqualTo("hello Name");
-	}
-
-	private Optional<String> getDisplayNameOfMimePart(MimePart attachment) {
-		TransformersFactory transformer = control.createMock(TransformersFactory.class);
-		MailboxService mailboxService = control.createMock(MailboxService.class);
-		List<BodyPreference> preferences = control.createMock(List.class);
-		
-		
-		control.replay();
-		Optional<String> displayName = new EmailViewPartsFetcherImpl(transformer, mailboxService, preferences, udr, "name", 15)
-			.selectDisplayName(attachment, 0);
-	
-		control.verify();
-		return displayName;
 	}
 	
 	private MailboxService messageFixtureToMailboxServiceMock(MimeMessage fetchingMimeMessageFromFixture) throws Exception {
@@ -958,6 +882,7 @@ public class EmailViewPartsFetcherImplTest {
 		expect(mimePart.isICSAttachment()).andReturn(messageFixture.isICSAttachment).anyTimes();
 		expect(mimePart.decodeMimeStream(anyObject(InputStream.class)))
 			.andReturn(messageFixture.bodyDataDecoded).anyTimes();
+		expect(mimePart.isNested()).andReturn(false).anyTimes();
 
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
@@ -995,6 +920,7 @@ public class EmailViewPartsFetcherImplTest {
 			.andReturn(messageFixture.bodyDataDecoded);
 		expect(mimePart.decodeMimeStream(anyObject(InputStream.class)))
 			.andReturn(messageFixture.attachmentDecoded);
+		expect(mimePart.isNested()).andReturn(false).anyTimes();
 
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);

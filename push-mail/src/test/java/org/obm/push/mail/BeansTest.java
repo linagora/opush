@@ -33,7 +33,6 @@ package org.obm.push.mail;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.mail.FetchInstruction;
 import org.obm.push.mail.conversation.EmailViewAttachment;
 import org.obm.push.mail.mime.BodyParam;
 import org.obm.push.mail.mime.BodyParams;
