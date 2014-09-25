@@ -81,13 +81,13 @@ public class SyncTestUtils {
 	public static void checkMailFolderHasNoChange(SyncResponse response, String serverId) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).isEmpty();
-		assertThat(collection.getItemChangesDeletion()).isEmpty();
+		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 
 	public static void checkMailFolderHasAddItems(SyncResponse response, String serverId, ItemChange... changes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).containsOnly(changes);
-		assertThat(collection.getItemChangesDeletion()).isEmpty();
+		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 
 	public static void checkMailFolderHasFetchItems(SyncResponse response, String serverId, ServerId... fetches) {
@@ -97,14 +97,14 @@ public class SyncTestUtils {
 
 	public static void checkMailFolderHasDeleteItems(SyncResponse response, String serverId, ItemDeletion... deletes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
-		assertThat(collection.getItemChangesDeletion()).containsOnly(deletes);
+		assertThat(collection.getItemDeletions()).containsOnly(deletes);
 	}
 
 	public static void checkMailFolderHasItems(
 			SyncResponse response, String serverId, Iterable<ItemChange> changes, Iterable<ItemDeletion> deletes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).containsOnly(Iterables.toArray(changes, ItemChange.class));
-		assertThat(collection.getItemChangesDeletion()).containsOnly(Iterables.toArray(deletes, ItemDeletion.class));
+		assertThat(collection.getItemDeletions()).containsOnly(Iterables.toArray(deletes, ItemDeletion.class));
 	}
 
 

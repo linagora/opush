@@ -151,7 +151,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 				}).toList();
 	}
 
-	public List<ItemDeletion> getItemChangesDeletion() {
+	public List<ItemDeletion> getItemDeletions() {
 		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return FluentIterable.from(

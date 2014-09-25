@@ -141,7 +141,7 @@ public class StateMachine implements IStateMachine {
 		}
 		
 		Set<ServerId> listDeletedItems = ImmutableSet.<ServerId> builder()
-				.addAll(itemDeletionsAsServerIdSet(syncCollectionResponse.getItemChangesDeletion()))
+				.addAll(itemDeletionsAsServerIdSet(syncCollectionResponse.getItemDeletions()))
 				.addAll(filterNotOk(syncCollectionResponse.getResponses().getCommandsForType(SyncCommand.DELETE)))
 				.build();
 		if (!listDeletedItems.isEmpty()) {

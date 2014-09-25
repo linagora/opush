@@ -445,7 +445,7 @@ public class SyncHandlerTest {
 
 		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId + ":123"));
 		SyncCollectionResponse collection = getCollectionWithId(syncEmailResponse, inbox.getCollectionId());
-		assertThat(collection.getItemChangesDeletion()).isEmpty();
+		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 	
 	@Test

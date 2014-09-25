@@ -158,7 +158,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		
 		Element commands = DOMUtils.createElement(ce, "Commands");
 		
-		List<ItemDeletion> itemChangesDeletion = collectionResponse.getItemChangesDeletion();
+		List<ItemDeletion> itemChangesDeletion = collectionResponse.getItemDeletions();
 		for (ItemDeletion deletion: itemChangesDeletion) {
 			serializeDeletion(commands, deletion);
 		}

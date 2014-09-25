@@ -435,7 +435,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		SyncCollectionResponse secondInboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
-		assertThat(secondInboxResponse.getItemChangesDeletion()).isEmpty();
+		assertThat(secondInboxResponse.getItemDeletions()).isEmpty();
 		assertEqualsWithoutApplicationData(secondInboxResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -512,7 +512,7 @@ public class MailBackendGetChangedTest {
 
 		SyncCollectionResponse secondInboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
 		assertThat(secondInboxResponse.getItemChanges()).isEmpty();
-		assertThat(secondInboxResponse.getItemChangesDeletion()).containsOnly( 
+		assertThat(secondInboxResponse.getItemDeletions()).containsOnly( 
 				ItemDeletion.builder()
 					.serverId(inboxCollectionIdAsString + emailUid)
 					.build());
@@ -708,7 +708,7 @@ public class MailBackendGetChangedTest {
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 3);
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
-		assertThat(inboxResponse.getItemChangesDeletion()).isEmpty();
+		assertThat(inboxResponse.getItemDeletions()).isEmpty();
 		assertEqualsWithoutApplicationData(inboxResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -848,7 +848,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, trashCollectionIdAsString);
-		assertThat(inboxResponse.getItemChangesDeletion()).isEmpty();
+		assertThat(inboxResponse.getItemDeletions()).isEmpty();
 		assertEqualsWithoutApplicationData(inboxResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -994,7 +994,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
-		assertThat(inboxResponse.getItemChangesDeletion()).containsOnly(
+		assertThat(inboxResponse.getItemDeletions()).containsOnly(
 				ItemDeletion.builder().serverId(serverId).build());
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
@@ -1237,7 +1237,7 @@ public class MailBackendGetChangedTest {
 		assertThat(responseContainingDeletion.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse inboxResponseDeletion = getCollectionWithId(responseContainingDeletion, inboxCollectionIdAsString);
 		assertThat(inboxResponseDeletion.isMoreAvailable()).isFalse();
-		assertThat(inboxResponseDeletion.getItemChangesDeletion()).containsOnly(
+		assertThat(inboxResponseDeletion.getItemDeletions()).containsOnly(
 				ItemDeletion.builder().serverId(serverId).build());
 	}
 
