@@ -1294,6 +1294,7 @@ public class SyncHandlerWithBackendTest {
 			.andReturn(msEventUid);
 		
 		String serverId = calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString();
+		String clientId = null;
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
 				new ServerId(serverId)))
 			.andReturn(false);
@@ -1321,7 +1322,6 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionIdAsString, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		
 		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
-		String clientId = syncResponse.getProcessedClientIds().get(serverId);
 		SyncResponse updatedSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, 
 				calendarCollectionIdAsString, SyncCommand.CHANGE, serverId, clientId, msEvent);
 		

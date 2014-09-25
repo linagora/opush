@@ -32,17 +32,12 @@
 package org.obm.push.protocol.bean;
 
 import java.util.Collection;
-import java.util.Map;
 
-import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
-import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncStatus;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 public class SyncResponse {
 
@@ -70,36 +65,17 @@ public class SyncResponse {
 		}
 		
 		public SyncResponse build() {
-			SyncStatus status = Objects.firstNonNull(this.status, SyncStatus.OK);
-			ImmutableList<SyncCollectionResponse> responses = responsesBuilder.build();
-			return new SyncResponse(responses, 
-					buildProcessedClientIds(responses), status);
-		}
-		
-		private Map<String, String> buildProcessedClientIds(ImmutableList<SyncCollectionResponse> responses) {
-			ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-			for (SyncCollectionResponse response : responses) {
-				SyncCollectionResponsesResponse commands = response.getResponses();
-				if (commands != null) {
-					for (SyncCollectionCommand command : commands.getCommands()) {
-						if (!Strings.isNullOrEmpty(command.getClientId())) {
-							builder.put(command.getServerId(), command.getClientId());
-						}
-					}
-				}
-			}
-			return builder.build();
+			return new SyncResponse(
+					responsesBuilder.build(), 
+					Objects.firstNonNull(status, SyncStatus.OK));
 		}
 	}
 	
 	private final Collection<SyncCollectionResponse> collectionResponses;
-	private final Map<String, String> processedClientIds;
 	private final SyncStatus status;
 	
-	private SyncResponse(Collection<SyncCollectionResponse> collectionResponses, Map<String, String> processedClientIds,
-			SyncStatus status) {
+	private SyncResponse(Collection<SyncCollectionResponse> collectionResponses, SyncStatus status) {
 		this.collectionResponses = collectionResponses;
-		this.processedClientIds = processedClientIds;
 		this.status = status;
 	}
 
@@ -107,10 +83,6 @@ public class SyncResponse {
 		return collectionResponses;
 	}
 	
-	public Map<String, String> getProcessedClientIds() {
-		return processedClientIds;
-	}
-
 	public SyncStatus getStatus() {
 		return status;
 	}

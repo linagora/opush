@@ -438,15 +438,15 @@ public class SyncHandlerOnContactsTest {
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, null))
+		String clientId = null;
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
-		String clientId = syncResponse.getProcessedClientIds().get(serverId);
+		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionIdAsString, SyncCommand.CHANGE, 
 				serverId.toString(), clientId, modifiedMSContact);
@@ -551,15 +551,15 @@ public class SyncHandlerOnContactsTest {
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, null))
+		String clientId = null;
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
-		String clientId = syncResponse.getProcessedClientIds().get(serverId);
+		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionIdAsString, SyncCommand.CHANGE, 
 				serverId.toString(), clientId, modifiedMSContact);
