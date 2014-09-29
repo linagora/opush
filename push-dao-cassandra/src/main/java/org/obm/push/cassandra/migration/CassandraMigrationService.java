@@ -46,7 +46,6 @@ import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.schema.SchemaOperationResult;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
@@ -118,7 +117,7 @@ public class CassandraMigrationService {
 		}
 	}
 
-	public SchemaOperationResult install() {
+	public MigrationResult install() {
 		try {
 			String schema = schemaProducer.schema(latestVersionUpdate);
 			if (Strings.isNullOrEmpty(schema)) {
@@ -128,10 +127,10 @@ public class CassandraMigrationService {
 			executeCQL(schema);
 			
 			schemaDao.updateVersion(latestVersionUpdate);
-			return SchemaOperationResult.success(String.format(
+			return MigrationResult.success(String.format(
 					"Schema version %d has been installed, please restart opush to get the service up", latestVersionUpdate.get()));
 		} catch (Exception e) {
-			return SchemaOperationResult.error(String.format(
+			return MigrationResult.error(String.format(
 					"An error occurred when installing the schema: %s", e.getMessage()));
 		}
 	}
@@ -158,14 +157,14 @@ public class CassandraMigrationService {
 		});
 	}
 	
-	public SchemaOperationResult update() {
+	public MigrationResult update() {
 		try {
 			Version currentVersion = schemaDao.getCurrentVersion().getVersion();
 			if (currentVersion.equals(latestVersionUpdate)) {
-				return SchemaOperationResult.success("Nothing to do, your schema is already at the latest version");
+				return MigrationResult.success("Nothing to do, your schema is already at the latest version");
 			}
 			if (latestVersionUpdate.isLessThan(currentVersion)) {
-				return SchemaOperationResult.error(String.format(
+				return MigrationResult.error(String.format(
 						"Version %s conflicts with latest version %s", currentVersion.get(), latestVersionUpdate.get()));
 			}
 			
@@ -173,14 +172,14 @@ public class CassandraMigrationService {
 			
 			schemaDao.updateVersion(latestVersionUpdate);
 			if (currentVersion.isLessThan(minimalVersionUpdate)) {
-				return SchemaOperationResult.success(String.format(
+				return MigrationResult.success(String.format(
 						"Your schema has been updated from version %d to %d, please restart opush to get the service up",
 						currentVersion.get(), latestVersionUpdate.get()));
 			}
-			return SchemaOperationResult.success(String.format(
+			return MigrationResult.success(String.format(
 					"Your schema has been updated from version %d to %d", currentVersion.get(), latestVersionUpdate.get()));
 		} catch (Exception e) {
-			return SchemaOperationResult.error(String.format(
+			return MigrationResult.error(String.format(
 					"An error occurred when updating the schema: %s", e.getMessage()));
 		}
 	}

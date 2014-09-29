@@ -34,7 +34,7 @@ package org.obm.push;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.cassandra.dao.Table;
-import org.obm.push.cassandra.schema.SchemaOperationResult;
+import org.obm.push.cassandra.migration.MigrationResult;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
@@ -60,7 +60,7 @@ public class BeansTest {
 					.add(VersionUpdate.class) 
 					.add(StatusSummary.class) 
 					.add(Table.class)
-					.add(SchemaOperationResult.class)
+					.add(MigrationResult.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 	}

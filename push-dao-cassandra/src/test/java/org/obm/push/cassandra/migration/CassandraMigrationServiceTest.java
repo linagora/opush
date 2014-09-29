@@ -48,13 +48,10 @@ import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.schema.CQLScriptExecutionStatus;
-import org.obm.push.cassandra.schema.SchemaOperationResult;
 import org.obm.push.cassandra.schema.StatusSummary;
+import org.obm.push.cassandra.schema.StatusSummary.Status;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
-import org.obm.push.cassandra.migration.CassandraMigrationService;
-import org.obm.push.cassandra.schema.StatusSummary.Status;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
@@ -212,10 +209,10 @@ public class CassandraMigrationServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Schema version 1 has been installed, please restart opush to get the service up");
 	}
 	
@@ -227,10 +224,10 @@ public class CassandraMigrationServiceTest {
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo("An error occurred when installing the schema: expected message");
 	}
 	
@@ -242,10 +239,10 @@ public class CassandraMigrationServiceTest {
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo(
 				"An error occurred when installing the schema: All host(s) tried for query failed (no host was tried)");
 	}
@@ -256,10 +253,10 @@ public class CassandraMigrationServiceTest {
 		expect(schemaProducer.schema(version)).andReturn(null);
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).install();
 		mocks.verify();
 
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo(
 				"An error occurred when installing the schema: No install schema found");
 	}
@@ -309,10 +306,10 @@ public class CassandraMigrationServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Your schema has been updated from version 1 to 2");
 	}
 
@@ -330,10 +327,10 @@ public class CassandraMigrationServiceTest {
 		expectLastCall();
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, minVersion, toVersion).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Your schema has been updated from version 1 to 2, please restart opush to get the service up");
 	}
 	
@@ -344,10 +341,10 @@ public class CassandraMigrationServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, version).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.OK);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Nothing to do, your schema is already at the latest version");
 	}
 	
@@ -359,10 +356,10 @@ public class CassandraMigrationServiceTest {
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo("Version 2 conflicts with latest version 1");
 	}
 	
@@ -377,10 +374,10 @@ public class CassandraMigrationServiceTest {
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
 
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo("An error occurred when updating the schema: expected message");
 	}
 	
@@ -395,10 +392,10 @@ public class CassandraMigrationServiceTest {
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
 
 		mocks.replay();
-		SchemaOperationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
+		MigrationResult result = new CassandraMigrationService(schemaDao, schemaProducer, sessionProvider, null, toVersion).update();
 		mocks.verify();
 		
-		assertThat(result.getStatus()).isEqualTo(CQLScriptExecutionStatus.ERROR);
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.ERROR);
 		assertThat(result.getMessage()).isEqualTo(
 				"An error occurred when updating the schema: All host(s) tried for query failed (no host was tried)");
 	}
