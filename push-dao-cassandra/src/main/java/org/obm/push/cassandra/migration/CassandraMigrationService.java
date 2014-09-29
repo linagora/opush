@@ -131,9 +131,7 @@ public class CassandraMigrationService {
 						"Version %s conflicts with latest version %s", currentVersion.get(), latestVersionUpdate.get()));
 			}
 			
-			for (MigrationService migrator : migrationServices) {
-				migrator.migrate(currentVersion, latestVersionUpdate);
-			}
+			migrate(currentVersion);
 			
 			schemaDao.updateVersion(latestVersionUpdate);
 			if (currentVersion.isLessThan(minimalVersionUpdate)) {
@@ -148,10 +146,20 @@ public class CassandraMigrationService {
 					"An error occurred when updating the schema: %s", e.getMessage()));
 		}
 	}
+
+	private void migrate(Version currentVersion) {
+		while (currentVersion.isLessThan(latestVersionUpdate)) {
+			Version migrationVersion = currentVersion.increment();
+			for (MigrationService migrator : migrationServices) {
+				migrator.migrate(currentVersion, migrationVersion);
+			}
+			currentVersion = migrationVersion;
+		}
+	}
 	
 	public static interface MigrationService {
 		
-		void migrate(Version currentVersion, Version latestVersionUpdate);
+		void migrate(Version currentVersion, Version toVersion);
 		
 	}
 }

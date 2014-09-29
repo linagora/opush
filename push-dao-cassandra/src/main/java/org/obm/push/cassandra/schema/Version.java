@@ -36,6 +36,8 @@ import com.google.common.base.Preconditions;
 
 public class Version implements Comparable<Version> {
 	
+	private static final int VERSION_INTERVAL = 1;
+
 	public static Version of(int version) {
 		return new Version(version);
 	}
@@ -49,6 +51,10 @@ public class Version implements Comparable<Version> {
 	
 	public int get() {
 		return version;
+	}
+	
+	public Version increment() {
+		return new Version(version + VERSION_INTERVAL);
 	}
 	
 	@Override

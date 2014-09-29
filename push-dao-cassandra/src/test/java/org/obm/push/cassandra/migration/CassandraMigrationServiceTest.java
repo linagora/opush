@@ -302,6 +302,30 @@ public class CassandraMigrationServiceTest {
 		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Nothing to do, your schema is already at the latest version");
 	}
+
+	@Test
+	public void updateShouldBeSequencialWhenGapBetweenVersion() {
+		Version minVersion = Version.of(4);
+		Version toVersion = Version.of(4);
+		Version currentVersion = Version.of(2);
+		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
+		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
+		
+		migrationService.migrate(currentVersion, Version.of(3));
+		expectLastCall();
+		migrationService.migrate(Version.of(3), toVersion);
+		expectLastCall();
+		
+		schemaDao.updateVersion(toVersion);
+		expectLastCall();
+		
+		mocks.replay();
+		MigrationResult result = testee(minVersion, toVersion).update();
+		mocks.verify();
+		
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
+		assertThat(result.getMessage()).isEqualTo("Your schema has been updated from version 2 to 4, please restart opush to get the service up");
+	}
 	
 	@Test
 	public void updateBadVersioning() {

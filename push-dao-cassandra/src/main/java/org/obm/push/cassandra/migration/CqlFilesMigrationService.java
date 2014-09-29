@@ -47,7 +47,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
+@Singleton
 public class CqlFilesMigrationService implements SchemaInstaller, MigrationService {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(CqlFilesMigrationService.class);
@@ -74,8 +76,8 @@ public class CqlFilesMigrationService implements SchemaInstaller, MigrationServi
 	}
 
 	@Override
-	public void migrate(Version currentVersion, Version latestVersionUpdate) {
-		executeCQL(schemaProducer.schema(currentVersion, latestVersionUpdate));
+	public void migrate(Version currentVersion, Version toVersion) {
+		executeCQL(schemaProducer.schema(currentVersion, toVersion));
 	}
 
 	private void executeCQL(String cql) {
