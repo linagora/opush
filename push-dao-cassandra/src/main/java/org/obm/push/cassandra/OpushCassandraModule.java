@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.Schema;
@@ -48,7 +47,6 @@ import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.cassandra.schema.DaoTables;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
 import org.obm.push.store.MonitoredCollectionDao;
@@ -58,19 +56,12 @@ import org.obm.push.store.WindowingDao;
 import org.obm.sync.LifecycleListener;
 
 import com.datastax.driver.core.Session;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Names;
 
 public class OpushCassandraModule extends AbstractModule {
 
-	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(2);
-	public static final Version LATEST_SCHEMA_VERSION = Version.of(2);
-	public static final String MINIMAL_SCHEMA_VERSION_NAME = "minimalSchemaVersion";
-	public static final String LATEST_SCHEMA_VERSION_NAME = "latestSchemaVersion";
-	
 	public static final DaoTables TABLES_OF_DAO = DaoTables.builder()
 		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE, V1.MonitoredCollection.TABLE)
 		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
@@ -81,8 +72,7 @@ public class OpushCassandraModule extends AbstractModule {
 	
 	@Override
 	protected void configure() {
-		bind(Version.class).annotatedWith(Names.named(MINIMAL_SCHEMA_VERSION_NAME)).toInstance(minimalSchemaVersion());
-		bind(Version.class).annotatedWith(Names.named(LATEST_SCHEMA_VERSION_NAME)).toInstance(latestSchemaVersion());
+		install(new MigrationModule());
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
 		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
@@ -111,19 +101,4 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(Session.class).toProvider(CassandraSessionProvider.class);
 	}
 	
-	@VisibleForTesting Version latestSchemaVersion() {
-		return versionArgumentOrDefault(LATEST_SCHEMA_VERSION_NAME, LATEST_SCHEMA_VERSION);
-	}
-	
-	@VisibleForTesting Version minimalSchemaVersion() {
-		return versionArgumentOrDefault(MINIMAL_SCHEMA_VERSION_NAME, MINIMAL_SCHEMA_VERSION);
-	}
-
-	private Version versionArgumentOrDefault(String argName, Version defaultVersion) {
-		Integer versionArgument = VMArgumentsUtils.integerArgumentValue(argName);
-		if (versionArgument != null) {
-			return Version.of(versionArgument);
-		}
-		return defaultVersion;
-	}
 }

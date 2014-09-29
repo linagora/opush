@@ -36,33 +36,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.obm.push.cassandra.schema.Version;
 
-public class OpushCassandraModuleTest {
+public class MigrationModuleTest {
 	
 	@Test
 	public void testMinimalSchemaVersionFromConstant() {
-		System.setProperty(OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME, "");
-		Version version = new OpushCassandraModule().minimalSchemaVersion();
-		assertThat(version).isEqualTo(OpushCassandraModule.MINIMAL_SCHEMA_VERSION);
+		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "");
+		Version version = new MigrationModule().minimalSchemaVersion();
+		assertThat(version).isEqualTo(MigrationModule.MINIMAL_SCHEMA_VERSION);
 	}
 	
 	@Test
 	public void testMinimalSchemaVersionFromVMArguments() {
-		System.setProperty(OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME, "2014");
-		Version version = new OpushCassandraModule().minimalSchemaVersion();
+		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "2014");
+		Version version = new MigrationModule().minimalSchemaVersion();
 		assertThat(version).isEqualTo(Version.of(2014));
 	}
 
 	@Test
 	public void testLatestSchemaVersionFromConstant() {
-		System.setProperty(OpushCassandraModule.LATEST_SCHEMA_VERSION_NAME, "");
-		Version version = new OpushCassandraModule().latestSchemaVersion();
-		assertThat(version).isEqualTo(OpushCassandraModule.LATEST_SCHEMA_VERSION);
+		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "");
+		Version version = new MigrationModule().latestSchemaVersion();
+		assertThat(version).isEqualTo(MigrationModule.LATEST_SCHEMA_VERSION);
 	}
 
 	@Test
 	public void testLatestSchemaVersionFromVMArguments() {
-		System.setProperty(OpushCassandraModule.LATEST_SCHEMA_VERSION_NAME, "2014");
-		Version version = new OpushCassandraModule().latestSchemaVersion();
+		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "2014");
+		Version version = new MigrationModule().latestSchemaVersion();
 		assertThat(version).isEqualTo(Version.of(2014));
 	}
 }

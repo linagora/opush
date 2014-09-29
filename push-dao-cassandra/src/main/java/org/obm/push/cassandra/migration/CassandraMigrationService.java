@@ -31,35 +31,27 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.migration;
 
-import static org.obm.push.cassandra.OpushCassandraModule.LATEST_SCHEMA_VERSION_NAME;
-import static org.obm.push.cassandra.OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
+import static org.obm.push.cassandra.MigrationModule.LATEST_SCHEMA_VERSION_NAME;
+import static org.obm.push.cassandra.MigrationModule.MINIMAL_SCHEMA_VERSION_NAME;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.EXECUTION_ERROR;
+import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_AVAILABLE;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UP_TO_DATE;
 
+import java.util.Set;
+
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
-import org.obm.push.cassandra.dao.SchemaProducer;
-import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
+import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.cassandra.schema.VersionUpdate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.Session;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.ProvisionException;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -67,26 +59,25 @@ import com.google.inject.name.Named;
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
 public class CassandraMigrationService {
-	
-	private final static Logger LOGGER = LoggerFactory.getLogger(CassandraMigrationService.class);
 
 	private final CassandraSchemaDao schemaDao;
-	private final SchemaProducer schemaProducer;
-	private final Provider<Session> sessionProvider;
+	private final SchemaInstaller schemaInstaller;
+	private final Set<MigrationService> migrationServices;
 	private final Version minimalVersionUpdate;
 	private final Version latestVersionUpdate;
+
 
 	@Inject
 	public CassandraMigrationService(
 			CassandraSchemaDao schemaDao,
-			SchemaProducer schemaProducer,
-			Provider<Session> session,
+			SchemaInstaller schemaInstaller,
+			Set<MigrationService> migrationServices,
 			@Named(MINIMAL_SCHEMA_VERSION_NAME) Version minimalVersionUpdate,
 			@Named(LATEST_SCHEMA_VERSION_NAME) Version latestVersionUpdate) {
 		
 		this.schemaDao = schemaDao;
-		this.schemaProducer = schemaProducer;
-		this.sessionProvider = session;
+		this.schemaInstaller = schemaInstaller;
+		this.migrationServices = migrationServices;
 		this.minimalVersionUpdate = minimalVersionUpdate;
 		this.latestVersionUpdate = latestVersionUpdate;
 	}
@@ -119,13 +110,7 @@ public class CassandraMigrationService {
 
 	public MigrationResult install() {
 		try {
-			String schema = schemaProducer.schema(latestVersionUpdate);
-			if (Strings.isNullOrEmpty(schema)) {
-				throw new InstallSchemaNotFoundException();
-			}
-			
-			executeCQL(schema);
-			
+			schemaInstaller.install(latestVersionUpdate);
 			schemaDao.updateVersion(latestVersionUpdate);
 			return MigrationResult.success(String.format(
 					"Schema version %d has been installed, please restart opush to get the service up", latestVersionUpdate.get()));
@@ -133,28 +118,6 @@ public class CassandraMigrationService {
 			return MigrationResult.error(String.format(
 					"An error occurred when installing the schema: %s", e.getMessage()));
 		}
-	}
-
-	private void executeCQL(String cql) {
-		Session session = this.sessionProvider.get();
-		LOGGER.debug("Execute Cassandra CQL: {}", cql);
-		for (String subQuery : subQueries(cql)) {
-			session.execute(subQuery);
-		}
-	}
-
-	@VisibleForTesting Iterable<String> subQueries(String schema) {
-		Iterable<String> subQueries = Splitter.on(";").trimResults().split(schema);
-		return Iterables.filter(subQueries, new Predicate<String>() {
-
-			@Override
-			public boolean apply(String query) {
-				if (Strings.isNullOrEmpty(query) || System.lineSeparator().equals(query)) {
-					return false;
-				}
-				return true;
-			}
-		});
 	}
 	
 	public MigrationResult update() {
@@ -168,7 +131,9 @@ public class CassandraMigrationService {
 						"Version %s conflicts with latest version %s", currentVersion.get(), latestVersionUpdate.get()));
 			}
 			
-			executeCQL(schemaProducer.schema(currentVersion, latestVersionUpdate));
+			for (MigrationService migrator : migrationServices) {
+				migrator.migrate(currentVersion, latestVersionUpdate);
+			}
 			
 			schemaDao.updateVersion(latestVersionUpdate);
 			if (currentVersion.isLessThan(minimalVersionUpdate)) {
@@ -182,5 +147,11 @@ public class CassandraMigrationService {
 			return MigrationResult.error(String.format(
 					"An error occurred when updating the schema: %s", e.getMessage()));
 		}
+	}
+	
+	public static interface MigrationService {
+		
+		void migrate(Version currentVersion, Version latestVersionUpdate);
+		
 	}
 }
