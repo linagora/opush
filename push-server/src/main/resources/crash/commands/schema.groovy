@@ -35,12 +35,16 @@ import org.obm.push.cassandra.schema.VersionUpdate
 
 @Usage("Cassandra schema management")
 class schema extends CRaSHCommand {
-
+  
+  def getMigrationService() {
+    context.attributes.beans["org.obm.push.cassandra.migration.CassandraMigrationService"]
+  }
+  
   @Usage("Print schema status summary")
   @Command
   public void status() {
-    def schemaService = context.attributes.beans["org.obm.push.cassandra.schema.CassandraSchemaService"]
-    def statusSummary = schemaService.getStatus()
+    def migrationService = getMigrationService()
+    def statusSummary = migrationService.getStatus()
     
     switch (statusSummary.getStatus()) {
     
@@ -87,11 +91,11 @@ class schema extends CRaSHCommand {
   @Usage("Install Cassandra schema")
   @Command
   public void install() {
-    def schemaService = context.attributes.beans["org.obm.push.cassandra.schema.CassandraSchemaService"]
-    def statusSummary = schemaService.getStatus()
+    def migrationService = getMigrationService()
+    def statusSummary = migrationService.getStatus()
     
     if (statusSummary.getStatus() == Status.NOT_INITIALIZED) {
-      out << schemaService.install().getMessage()
+      out << migrationService.install().getMessage()
     } else if (statusSummary.getStatus() == Status.EXECUTION_ERROR) {
       out << """ERROR: ${statusSummary.getMessage()}"""
     } else {
@@ -102,8 +106,8 @@ class schema extends CRaSHCommand {
   @Usage("Update Cassandra schema")
   @Command
   public void update() {
-    def schemaService = context.attributes.beans["org.obm.push.cassandra.schema.CassandraSchemaService"]
-    def statusSummary = schemaService.getStatus()
+    def migrationService = getMigrationService()
+    def statusSummary = migrationService.getStatus()
     
     switch (statusSummary.getStatus()) {
     
@@ -117,7 +121,7 @@ class schema extends CRaSHCommand {
          
       case Status.UPGRADE_AVAILABLE:
       case Status.UPGRADE_REQUIRED:
-         out << schemaService.update().getMessage()
+         out << migrationService.update().getMessage()
          break
          
       case Status.NOT_INITIALIZED:

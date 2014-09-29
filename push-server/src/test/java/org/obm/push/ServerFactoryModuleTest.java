@@ -39,7 +39,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ServerFactoryModule.NoopServer;
-import org.obm.push.cassandra.schema.CassandraSchemaService;
+import org.obm.push.cassandra.migration.CassandraMigrationService;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.StatusSummary.Status;
 import org.obm.push.configuration.LoggerModule;
@@ -54,7 +54,7 @@ public class ServerFactoryModuleTest {
 
 	private IMocksControl mocks;
 	private Injector injector;
-	private CassandraSchemaService cassandraSchemaService;
+	private CassandraMigrationService cassandraSchemaService;
 	private Logger logger;
 	private OpushJettyServerFactory jettyFactory;
 	private OpushServer opushServer;
@@ -67,13 +67,13 @@ public class ServerFactoryModuleTest {
 		
 		mocks = createControl();
 		injector = mocks.createMock(Injector.class);
-		cassandraSchemaService = mocks.createMock(CassandraSchemaService.class);
+		cassandraSchemaService = mocks.createMock(CassandraMigrationService.class);
 		logger = mocks.createMock(Logger.class);
 		jettyFactory = mocks.createMock(OpushJettyServerFactory.class);
 		noopServer = mocks.createMock(NoopServer.class);
 		opushServer = mocks.createMock(OpushServer.class);
 		
-		expect(injector.getInstance(CassandraSchemaService.class)).andReturn(cassandraSchemaService);
+		expect(injector.getInstance(CassandraMigrationService.class)).andReturn(cassandraSchemaService);
 		expect(injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)))).andReturn(logger);
 	}
 	

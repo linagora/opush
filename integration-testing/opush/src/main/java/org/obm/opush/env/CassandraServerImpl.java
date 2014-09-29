@@ -31,7 +31,7 @@ package org.obm.opush.env;
 
 import org.cassandraunit.CassandraCQLUnit;
 import org.obm.push.cassandra.EmptyKeyspaceDataset;
-import org.obm.push.cassandra.schema.CassandraSchemaService;
+import org.obm.push.cassandra.migration.CassandraMigrationService;
 
 import com.datastax.driver.core.Session;
 import com.google.inject.Inject;
@@ -39,10 +39,10 @@ import com.google.inject.Inject;
 public class CassandraServerImpl extends CassandraCQLUnit implements CassandraServer {
 
 	private static final String KEYSPACE = "opush";
-	private CassandraSchemaService cassandraSchemaService;
+	private CassandraMigrationService cassandraSchemaService;
 
 	@Inject
-	private CassandraServerImpl(CassandraSchemaService cassandraSchemaService) {
+	private CassandraServerImpl(CassandraMigrationService cassandraSchemaService) {
 		super(new EmptyKeyspaceDataset(KEYSPACE), "cassandra.yaml", "localhost", 9042);
 		this.cassandraSchemaService = cassandraSchemaService;
 	}

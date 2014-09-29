@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.cassandra.migration;
 
 import static org.obm.push.cassandra.OpushCassandraModule.LATEST_SCHEMA_VERSION_NAME;
 import static org.obm.push.cassandra.OpushCassandraModule.MINIMAL_SCHEMA_VERSION_NAME;
@@ -46,6 +46,10 @@ import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
+import org.obm.push.cassandra.schema.SchemaOperationResult;
+import org.obm.push.cassandra.schema.StatusSummary;
+import org.obm.push.cassandra.schema.Version;
+import org.obm.push.cassandra.schema.VersionUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,9 +67,9 @@ import com.google.inject.name.Named;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
-public class CassandraSchemaService {
+public class CassandraMigrationService {
 	
-	private final static Logger LOGGER = LoggerFactory.getLogger(CassandraSchemaService.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(CassandraMigrationService.class);
 
 	private final CassandraSchemaDao schemaDao;
 	private final SchemaProducer schemaProducer;
@@ -74,7 +78,7 @@ public class CassandraSchemaService {
 	private final Version latestVersionUpdate;
 
 	@Inject
-	public CassandraSchemaService(
+	public CassandraMigrationService(
 			CassandraSchemaDao schemaDao,
 			SchemaProducer schemaProducer,
 			Provider<Session> session,
