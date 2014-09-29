@@ -53,6 +53,7 @@ import org.obm.push.backend.WindowingEvent;
 import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
@@ -61,6 +62,7 @@ import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -125,6 +127,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	private final ClientIdService clientIdService;
 	private final Ical4jHelper ical4jHelper;
 	private final Factory ical4jUserFactory;
+	
 	@Inject
 	@VisibleForTesting CalendarBackend(MappingService mappingService, 
 			CalendarClient.Factory calendarClientFactory, 
@@ -761,5 +764,10 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	private ICalendar getCalendarClient(UserDataRequest udr) {
 		return calendarClientFactory.create(ResourcesUtils.getHttpClient(udr));
+	}
+	
+	@Override
+	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+		// nothing to do
 	}
 }

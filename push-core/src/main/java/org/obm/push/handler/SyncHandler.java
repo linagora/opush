@@ -490,16 +490,19 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private void handleInitialSync(UserDataRequest udr, AnalysedSyncCollection syncCollectionRequest, SyncCollectionResponse.Builder builder) 
 			throws DaoException, InvalidServerId {
 		
-		backend.resetCollection(udr, syncCollectionRequest.getCollectionId());
+		int collectionId = syncCollectionRequest.getCollectionId();
+		backend.resetCollection(udr, collectionId);
 		List<ItemChange> changed = ImmutableList.of();
 		List<ItemDeletion> deleted = ImmutableList.of();
 		SyncKey newSyncKey = syncKeyFactory.randomSyncKey();
 		stMachine.allocateNewSyncState(udr, 
-				syncCollectionRequest.getCollectionId(), 
+				collectionId, 
 				dateService.getEpochPlusOneSecondDate(), 
 				changed,
 				deleted,
 				newSyncKey);
+		contentsExporter.initialize(udr, collectionId, syncCollectionRequest.getDataType(), syncCollectionRequest.getOptions().getFilterType(), newSyncKey);
+		
 		builder.syncKey(newSyncKey)
 			.status(SyncStatus.OK);
 	}

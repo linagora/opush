@@ -36,6 +36,7 @@ import java.util.List;
 import javax.naming.NoPermissionException;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
@@ -98,4 +99,6 @@ public interface PIMBackend {
 
 	HierarchyCollectionChanges getHierarchyChanges(UserDataRequest userDataRequest, FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
 			throws DaoException, InvalidSyncKeyException;
+
+	void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey);
 }

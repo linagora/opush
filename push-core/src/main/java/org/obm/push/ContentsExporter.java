@@ -37,6 +37,7 @@ import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -112,5 +113,11 @@ public class ContentsExporter implements IContentsExporter {
 		PIMBackend backend = backends.getBackend(pimDataType);
 		return backend.getItemEstimateSize(udr, itemSyncState, 
 				syncCollection.getCollectionId(), syncCollection.getOptions());
+	}
+	
+	@Override
+	public void initialize(UserDataRequest udr, int collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey) {
+		backends.getBackend(dataType)
+			.initialize(udr, collectionId, filterType, newSyncKey);
 	}
 }

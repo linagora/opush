@@ -47,6 +47,7 @@ import org.obm.push.backend.PathsToCollections.Builder;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
@@ -54,6 +55,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -504,5 +506,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 						+ collectionPath);
 	}
 	
-	
+	@Override
+	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+		// nothing to do
+	}
 }

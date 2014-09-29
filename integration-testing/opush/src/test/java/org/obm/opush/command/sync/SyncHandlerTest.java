@@ -34,6 +34,7 @@ package org.obm.opush.command.sync;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
@@ -143,6 +144,7 @@ public class SyncHandlerTest {
 	@Inject IMocksControl mocksControl;
 	@Inject SyncDecoder decoder;
 	@Inject Configuration configuration;
+	@Inject IContentsExporter contentsExporter;
 	@Inject IContentsImporter contentsImporter;
 	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
@@ -471,6 +473,8 @@ public class SyncHandlerTest {
 			.anyTimes();
 		collectionDao.resetCollection(users.jaures.device, collectionId);
 		expectLastCall();
+		contentsExporter.initialize(anyObject(UserDataRequest.class), eq(collectionId), eq(PIMDataType.EMAIL), eq(THREE_DAYS_BACK), anyObject(SyncKey.class));
+		expectLastCall();
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -513,6 +517,8 @@ public class SyncHandlerTest {
 				anyObject(SyncClientCommands.class),
 				anyObject(SyncKey.class)))
 			.andReturn(DataDelta.newEmptyDelta(secondRequestSyncState.getSyncDate(), secondRequestSyncState.getSyncKey()));
+		contentsExporter.initialize(anyObject(UserDataRequest.class), eq(collectionId), eq(PIMDataType.EMAIL), eq(THREE_DAYS_BACK), anyObject(SyncKey.class));
+		expectLastCall();
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();

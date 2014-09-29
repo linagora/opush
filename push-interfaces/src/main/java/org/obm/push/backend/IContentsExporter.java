@@ -34,6 +34,7 @@ package org.obm.push.backend;
 import java.util.List;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -70,4 +71,6 @@ public interface IContentsExporter {
 	int getItemEstimateSize(UserDataRequest udr, PIMDataType pimDataType, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState) 
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, 
 			UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
+
+	void initialize(UserDataRequest udr, int collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey);
 }

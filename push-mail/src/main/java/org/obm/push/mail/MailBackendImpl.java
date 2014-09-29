@@ -62,6 +62,7 @@ import org.obm.push.bean.Address;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
@@ -142,6 +143,8 @@ import com.sun.mail.util.QPDecoderStream;
 @Singleton
 @Watch(BreakdownGroups.EMAIL)
 public class MailBackendImpl extends OpushBackend implements MailBackend {
+
+	private static final long INITIAL_UID_NEXT = 1l;
 
 	private static final ImmutableList<String> SPECIAL_FOLDERS = 
 			ImmutableList.of(EmailConfiguration.IMAP_INBOX_NAME,
@@ -322,9 +325,16 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException, ProcessingEmailException, FilterTypeChangedException {
 
 		try {
-			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), syncCollection.getCollectionId(), syncCollection.getSyncKey());
+			int collectionId = syncCollection.getCollectionId();
+			SyncKey syncKey = syncCollection.getSyncKey();
+			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
 			
 			if (windowingDao.hasPendingChanges(windowingKey)) {
+				snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
+						.collectionId(collectionId)
+						.deviceId(udr.getDevId())
+						.syncKey(syncKey).build());
+				
 				return continueWindowing(udr, syncCollection, windowingKey, newSyncKey);
 			} else {
 				return startWindowing(udr, syncState, syncCollection, windowingKey, newSyncKey);
@@ -341,7 +351,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		SyncCollectionOptions options = collection.getOptions();
 		
 		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, collectionId, options);
-		takeSnapshot(udr, collectionId, collection.getOptions(), syncData, collection.getSyncKey());
+		takeSnapshot(udr, collectionId, collection.getOptions(), syncData, newSyncKey);
 		
 		if (syncData.getEmailChanges().hasChanges()) {
 			windowingDao.pushPendingChanges(key, syncData.getEmailChanges(), PIMDataType.EMAIL, collection.getWindowSize());
@@ -353,11 +363,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
 
-		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
-				.collectionId(collection.getCollectionId())
-				.deviceId(udr.getDevId())
-				.syncKey(collection.getSyncKey()).build());
-		
 		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), newSyncKey, EmailChanges.builder()).build();
 		return fetchChanges(udr, collection, key, newSyncKey, pendingChanges);
 	}
@@ -918,5 +923,19 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throw new ItemNotFoundException();
 		}
 		return fetch(udr, collectionId, itemIds, collectionOptions);
+	}
+	
+	@Override
+	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+		snapshotDao.put(
+				SnapshotKey.builder()
+					.collectionId(collectionId)
+					.deviceId(udr.getDevId())
+					.syncKey(newSyncKey).build(),
+				Snapshot.builder()
+					.emails(ImmutableList.<Email> of())
+					.filterType(filterType)
+					.uidNext(INITIAL_UID_NEXT)
+					.build());
 	}
 }
