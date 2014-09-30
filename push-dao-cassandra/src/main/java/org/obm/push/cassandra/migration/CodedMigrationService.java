@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,24 +29,59 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra.migration;
 
-import org.obm.push.cassandra.OpushCassandraModule;
+import java.util.Set;
+
+import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.coded.V2ToV3_TTL;
 import org.obm.push.cassandra.schema.Version;
+import org.obm.push.configuration.LoggerModule;
+import org.slf4j.Logger;
 
-public class DaoTestsSchemaProducer {
+import com.datastax.driver.core.Session;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
-	private final SchemaProducerImpl schemaProducerImpl;
+@Singleton
+public class CodedMigrationService implements MigrationService {
 
-	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
+	private final Logger logger;
+	private final Set<? extends CodedMigration> migrations;
+
+	@Inject
+	@VisibleForTesting CodedMigrationService(
+			@Named(LoggerModule.CASSANDRA) Logger logger,
+			Provider<Session> sessionProvider) {
+		this.logger = logger;
+		this.migrations = ImmutableSet.of(
+			new V2ToV3_TTL(sessionProvider)
+		);
 	}
 	
-	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
-		return schemaProducerImpl.lastSchemaForDAO(clazz);
+	@Override
+	public void migrate(Version currentVersion, Version toVersion) {
+		for (CodedMigration migration: migrations) {
+			if (versionGapNeedsThisMigration(currentVersion, toVersion, migration)) {
+				logger.warn("A scripted migration has been found from version {} to {}", currentVersion.get(), toVersion.get());
+				migration.apply();
+			}
+		}
 	}
-	
-	public String schema(Version version) {
-		return schemaProducerImpl.schema(version);
+
+	@VisibleForTesting boolean versionGapNeedsThisMigration(Version currentVersion, Version toVersion, CodedMigration migration) {
+		return currentVersion.equals(migration.from()) && toVersion.equals(migration.to());
+	}
+
+	public static interface CodedMigration {
+		
+		Version from();
+		Version to();
+		void apply();
+		
 	}
 }
