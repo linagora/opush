@@ -32,8 +32,8 @@
 
 package org.obm.push.protocol.data;
 
-import static org.easymock.EasyMock.createMock;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.createMock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,6 +42,7 @@ import javax.xml.transform.TransformerException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.bean.MSAttachement;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.ms.MSEmail;
@@ -53,6 +54,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSet;
 
 
 public class MSEmailEncoderTest {
@@ -140,5 +142,57 @@ public class MSEmailEncoderTest {
 				"</AirSyncBase:Data>";
 		assertThat(result).contains(expectedData);
 		
+	}
+	
+	@Test
+	public void attachmentsShouldBeBeforeBody() throws IOException, TransformerException {
+		Document reply = DOMUtils.createDoc(null, "Sync");
+		Element root = reply.getDocumentElement();
+		
+		MSAttachement msAttachement = new MSAttachement();
+		msAttachement.setDisplayName("displayName");
+		msAttachement.setFileReference("fileReference");
+		msAttachement.setEstimatedDataSize(123);
+		MSEmail msEmail = MSEmail.builder()
+			.header(MSEmailHeader.builder().build())
+			.body(MSEmailBody.builder()
+					.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+					.bodyType(MSEmailBodyType.PlainText)
+					.estimatedDataSize(10)
+					.charset(Charsets.UTF_8)
+					.truncated(true)
+					.build())
+			.attachements(ImmutableSet.of(msAttachement))
+			.build();
+		
+		msEmailEncoder.encode(root, msEmail);
+		String result = DOMUtils.serialize(reply);
+		
+		String expectedTagsOrder = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + 
+				"<Sync>" +
+					"<Email:From>\"Empty From\" &lt;o-push@linagora.com&gt; </Email:From>" +
+					"<Email:Importance>1</Email:Importance>" +
+					"<Email:Read>0</Email:Read>" +
+					"<AirSyncBase:Attachments>" +
+						"<AirSyncBase:Attachment>" +
+						"<AirSyncBase:DisplayName>displayName</AirSyncBase:DisplayName>" +
+						"<AirSyncBase:FileReference>fileReference</AirSyncBase:FileReference>" +
+						"<AirSyncBase:Method>1</AirSyncBase:Method>" +
+						"<AirSyncBase:EstimatedDataSize>123</AirSyncBase:EstimatedDataSize>" +
+						"<AirSyncBase:IsInline>0</AirSyncBase:IsInline>" +
+						"</AirSyncBase:Attachment>" +
+					"</AirSyncBase:Attachments>" +
+					"<AirSyncBase:Body>" +
+						"<AirSyncBase:Type>1</AirSyncBase:Type>" +
+						"<AirSyncBase:Truncated>1</AirSyncBase:Truncated>" +
+						"<AirSyncBase:EstimatedDataSize>10</AirSyncBase:EstimatedDataSize>" +
+						"<AirSyncBase:Data><![CDATA[text]]></AirSyncBase:Data>" +
+					"</AirSyncBase:Body>" +
+					"<Email:MessageClass>IPM.Note</Email:MessageClass>" +
+					"<Email:ContentClass>urn:content-classes:message</Email:ContentClass>" +
+					"<Email:InternetCPID>65001</Email:InternetCPID>" +
+					"<AirSyncBase:NativeBodyType>1</AirSyncBase:NativeBodyType>" +
+				"</Sync>";
+		assertThat(result).isEqualTo(expectedTagsOrder);
 	}
 }

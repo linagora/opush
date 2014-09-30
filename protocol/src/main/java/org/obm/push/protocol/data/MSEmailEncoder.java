@@ -91,8 +91,8 @@ public class MSEmailEncoder {
 		
 		DOMUtils.createElementAndText(parent, ASEmail.READ.asASValue(), msEmail.isRead());
 
-		serializeBody(parent, msEmail.getBody());
 		serializeAttachments(parent, msEmail.getAttachments());
+		serializeBody(parent, msEmail.getBody());
 
 		MSMessageClass messageClass = msEmail.getMessageClass();
 		DOMUtils.createElementAndText(parent, ASEmail.MESSAGE_CLASS.asASValue(), messageClass.specificationValue());
