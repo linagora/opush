@@ -107,6 +107,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.inject.Inject;
@@ -276,9 +278,31 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			SyncKey newSyncKey, SyncClientCommands clientCommands) {
 
 		if (clientCommands.getFetches().isEmpty()) {
-			return contentsExporter.getChanged(udr, syncState, request, newSyncKey);
+			return filterAddByClient(contentsExporter.getChanged(udr, syncState, request, newSyncKey), clientCommands.getAdds());
 		}
 		return DataDelta.newEmptyDelta(syncState.getSyncDate(), newSyncKey);
+	}
+
+	private DataDelta filterAddByClient(DataDelta dataDelta, final List<Add> adds) {
+		return DataDelta.builder()
+			.syncDate(dataDelta.getSyncDate())
+			.syncKey(dataDelta.getSyncKey())
+			.moreAvailable(dataDelta.hasMoreAvailable())
+			.deletions(dataDelta.getDeletions())
+			.changes(FluentIterable.from(dataDelta.getChanges())
+						.filter(new Predicate<ItemChange>() {
+
+							@Override
+							public boolean apply(ItemChange itemChange) {
+								for (Add add : adds) {
+									if (itemChange.getServerId().equals(add.getServerId())) {
+										return false;
+									}
+								}
+								return true;
+							}
+						}).toList())
+			.build();
 	}
 
 	private boolean isDataTypeKnown(PIMDataType dataType) {

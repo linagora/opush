@@ -451,4 +451,114 @@ public class SyncHandlerOnCalendarsTest {
 		collectionDao.resetCollection(user.device, collectionId);
 		expectLastCall();
 	}
+	
+	@Test
+	public void newEventOnClientShouldBePopulatedToServer() throws Exception {
+		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
+		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("f909aa0f-cc7e-44b7-8395-2d6e69be54a4");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int thirdAllocatedStateId = 5;
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		DateTime secondDateTime = DateTime.parse("2012-10-10T16:22:53.000Z");
+		Date secondDate = secondDateTime.toDate();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(secondDate)
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(secondDate)
+				.syncKey(thirdAllocatedSyncKey)
+				.id(thirdAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
+		
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
+
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate());
+
+		// First Sync
+		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
+			.andReturn(EventChanges.builder()
+					.lastSync(secondDate)
+					.build());
+		
+		// second sync
+		EventObmId eventObmId = new EventObmId(1);
+		EventExtId eventExtId = new EventExtId("1");
+		Event event = new Event();
+		event.setUid(eventObmId);
+		event.setExtId(eventExtId);
+		event.setTitle("event");
+		event.setStartDate(secondDate);
+		event.setOwner(user.user.getEmail());
+		
+		TimeZone timeZone = TimeZone.getTimeZone("GMT");
+		Calendar calendar = DateUtils.getEpochCalendar(timeZone);
+		MSEventUid createdMSEventUid = new MSEventUid("1");
+		String clientId = "123";
+		MSEvent createdMSEvent = new MSEvent();
+		createdMSEvent.setUid(createdMSEventUid);
+		createdMSEvent.setSubject("event");
+		createdMSEvent.setSensitivity(CalendarSensitivity.NORMAL);
+		createdMSEvent.setBusyStatus(CalendarBusyStatus.FREE);
+		createdMSEvent.setAllDayEvent(false);
+		createdMSEvent.setDtStamp(calendar.getTime());
+		createdMSEvent.setTimeZone(timeZone);
+		createdMSEvent.setStartTime(secondDate);
+		createdMSEvent.setEndTime(secondDateTime.plusDays(1).toDate());
+		
+		// client creation
+		expect(calendarDao.getEventExtIdFor(createdMSEventUid, user.device))
+			.andReturn(eventExtId);
+		
+		expect(calendarClient.getUserEmail(user.accessToken))
+			.andReturn(user.user.getLoginAtDomain());
+		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
+			.andReturn(null);
+		String hashedClientId = "e7cf79a18a015f6b4a97d26b1a07ca70ab6c703a";
+		expect(calendarClient.createEvent(eq(user.accessToken), eq(user.user.getEmail()), anyObject(Event.class), eq(true), eq(hashedClientId)))
+			.andReturn(eventObmId);
+		
+		// retrieved in obm-sync
+		expect(calendarClient.getUserEmail(user.accessToken))
+			.andReturn(user.user.getLoginAtDomain());
+		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getEmail()), anyObject(Date.class)))
+			.andReturn(EventChanges.builder().lastSync(secondDate).updates(ImmutableList.of(event)).build());
+		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
+			.andReturn(createdMSEventUid);
+		
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionIdAsString));
+		
+		String serverId = calendarCollectionIdAsString + ":" + createdMSEvent.getUid().serializeToString();
+		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionIdAsString, SyncCommand.ADD, 
+				serverId, clientId, createdMSEvent);
+		mocksControl.verify();
+
+		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionIdAsString);
+		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		
+		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
+	}
 }

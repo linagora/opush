@@ -310,11 +310,6 @@ public class SyncHandlerOnContactsTest {
 		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
 			.andReturn(contactCollectionId).times(2);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
-			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
-					ImmutableSet.<Integer> of(),
-					syncDate));
-		
 		Contact storedContact = new Contact();
 		storedContact.setFirstname("firstname");
 		storedContact.setLastname("lastname");
@@ -326,6 +321,11 @@ public class SyncHandlerOnContactsTest {
 		
 		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(new ServerId(contactCollectionIdAsString + ":" + uid)));
 		expectLastCall().once();
+		
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+			.andReturn(new ContactChanges(ImmutableList.<Contact> of(storedContact),
+					ImmutableSet.<Integer> of(),
+					syncDate));
 
 		mocksControl.replay();
 		opushServer.start();
