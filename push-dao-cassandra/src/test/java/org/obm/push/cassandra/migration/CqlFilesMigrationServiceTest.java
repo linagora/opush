@@ -34,6 +34,7 @@ package org.obm.push.cassandra.migration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.net.InetAddress;
 
@@ -43,6 +44,7 @@ import org.junit.Test;
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.schema.Version;
+import org.slf4j.Logger;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
@@ -57,16 +59,18 @@ public class CqlFilesMigrationServiceTest {
 	private SchemaProducer schemaProducer;
 	private Provider<Session> sessionProvider;
 	private Session session;
+	private Logger logger;
 
 	@Before
 	public void setUp() {
 		mocks = createControl();
+		logger = mocks.createMock(Logger.class);
 		schemaProducer = mocks.createMock(SchemaProducer.class);
 		sessionProvider = mocks.createMock(Provider.class);
 		session = mocks.createMock(Session.class);
 		expect(sessionProvider.get()).andReturn(session).anyTimes();
 		
-		testee = new CqlFilesMigrationService(schemaProducer, sessionProvider);
+		testee = new CqlFilesMigrationService(logger, schemaProducer, sessionProvider);
 	}
 	
 	@Test
@@ -103,6 +107,8 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andReturn(null);
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		testee.install(version);
@@ -115,6 +121,8 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		try {
@@ -131,6 +139,8 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		try {
@@ -162,6 +172,10 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andReturn(null);
+		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		expectLastCall();
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		testee.migrate(fromVersion, toVersion);
@@ -175,6 +189,10 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
+		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		expectLastCall();
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		try {
@@ -192,6 +210,10 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		expectLastCall();
+		logger.info("CQL: {}", schema);
+		expectLastCall();
 		
 		mocks.replay();
 		try {
@@ -200,5 +222,33 @@ public class CqlFilesMigrationServiceTest {
 			mocks.verify();
 			throw e;
 		}
+	}
+
+	@Test
+	public void updateShouldProduceMeaningfulLogsWhenEmptyCQL() {
+		Version fromVersion = Version.of(1);
+		Version toVersion = Version.of(2);
+		String schema = "";
+		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
+		logger.warn("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
+		expectLastCall();
+		
+		mocks.replay();
+		testee.migrate(fromVersion, toVersion);
+		mocks.verify();
+	}
+
+	@Test
+	public void updateShouldProduceMeaningfulLogsWhenNullCQL() {
+		Version fromVersion = Version.of(1);
+		Version toVersion = Version.of(2);
+		String schema = null;
+		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
+		logger.warn("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
+		expectLastCall();
+		
+		mocks.replay();
+		testee.migrate(fromVersion, toVersion);
+		mocks.verify();
 	}
 }

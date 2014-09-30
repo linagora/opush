@@ -36,8 +36,8 @@ import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
 import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.Version;
+import org.obm.push.configuration.LoggerModule;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Session;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,19 +48,21 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class CqlFilesMigrationService implements SchemaInstaller, MigrationService {
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(CqlFilesMigrationService.class);
-	
+	private final Logger logger;
 	private final SchemaProducer schemaProducer;
 	private final Provider<Session> sessionProvider;
 
 	@Inject
 	@VisibleForTesting CqlFilesMigrationService(
+			@Named(LoggerModule.CASSANDRA) Logger logger,
 			SchemaProducer schemaProducer,
 			Provider<Session> sessionProvider) {
+		this.logger = logger;
 		this.schemaProducer = schemaProducer;
 		this.sessionProvider = sessionProvider;
 	}
@@ -77,12 +79,18 @@ public class CqlFilesMigrationService implements SchemaInstaller, MigrationServi
 
 	@Override
 	public void migrate(Version currentVersion, Version toVersion) {
-		executeCQL(schemaProducer.schema(currentVersion, toVersion));
+		String schema = schemaProducer.schema(currentVersion, toVersion);
+		if (Strings.isNullOrEmpty(schema)) {
+			logger.warn("No CQL migration found from version {} to {}", currentVersion.get(), toVersion.get());
+		} else {
+			logger.warn("Executing CQL migration from version {} to {}", currentVersion.get(), toVersion.get());
+			executeCQL(schema);
+		}
 	}
 
 	private void executeCQL(String cql) {
 		Session session = this.sessionProvider.get();
-		LOGGER.debug("Execute Cassandra CQL: {}", cql);
+		logger.info("CQL: {}", cql);
 		for (String subQuery : subQueries(cql)) {
 			session.execute(subQuery);
 		}
