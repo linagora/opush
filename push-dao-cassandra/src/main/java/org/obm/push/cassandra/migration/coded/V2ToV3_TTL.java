@@ -36,6 +36,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
@@ -59,6 +60,7 @@ import com.google.inject.Provider;
 public class V2ToV3_TTL implements CodedMigration {
 
 	public static final int MAX_BATCH_SIZE = 1000;
+	private static final long DEFAULT_TTL = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
 	
 	private final Provider<Session> sessionProvider;
 	private final Set<Table> tables;
@@ -92,6 +94,7 @@ public class V2ToV3_TTL implements CodedMigration {
 	public void apply() {
 		Session session = sessionProvider.get();
 		for (Table table : tables) {
+			session.execute(String.format("ALTER TABLE %s WITH default_time_to_live = %d;", table.name(), DEFAULT_TTL));
 			reinsertAll(session, table);
 		}
 	}
@@ -118,12 +121,18 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 
 	interface Table {
+		String name();
 		Statement selectStatement();
 		Statement insertStatement(Row row);
 	}
 	
 	static class V1MonitoredCollection implements Table {
 
+		@Override
+		public String name() {
+			return V1.MonitoredCollection.TABLE.get();
+		}
+		
 		@Override
 		public Statement selectStatement() {
 			return select(
@@ -143,6 +152,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	static class V2MonitoredCollection implements Table {
+
+		@Override
+		public String name() {
+			return MonitoredCollection.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -163,6 +177,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	static class V1SyncedCollection implements Table {
+
+		@Override
+		public String name() {
+			return V1.SyncedCollection.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -185,6 +204,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	static class V2SyncedCollection implements Table {
+
+		@Override
+		public String name() {
+			return SyncedCollection.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -207,6 +231,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	static class V2Windowing implements Table {
+
+		@Override
+		public String name() {
+			return Windowing.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -229,6 +258,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	static class V2WindowingIndex implements Table {
+
+		@Override
+		public String name() {
+			return WindowingIndex.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -257,6 +291,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 
 	static class V2Snapshot implements Table {
+
+		@Override
+		public String name() {
+			return SnapshotTable.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
@@ -275,6 +314,11 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 
 	static class V2SnapshotIndex implements Table {
+
+		@Override
+		public String name() {
+			return SnapshotIndex.TABLE.get();
+		}
 		
 		@Override
 		public Statement selectStatement() {
