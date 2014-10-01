@@ -48,6 +48,7 @@ import org.obm.push.technicallog.bean.KindToBeLogged;
 import org.obm.push.technicallog.bean.ResourceType;
 import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.obm.sync.auth.AccessToken;
+import org.obm.sync.auth.AuthFault;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.client.login.LoginClient;
 import org.obm.sync.client.user.UserClient;
@@ -91,7 +92,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	@Override
-	public Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws Exception {
+	public Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws AuthFault {
 		HttpClientResource httpClientResource = setHttpClientRequestAttribute(request);
 		
 		AccessTokenResource token = setAccessTokenRequestAttribute(request, 
@@ -99,17 +100,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		return getCredentials(token, userId, password);
 	}
 
-	private Credentials getCredentials(AccessTokenResource token, String userId, String password) throws Exception {
+	private Credentials getCredentials(AccessTokenResource token, String userId, String password) throws AuthFault {
 		User user = createUser(userId, token);
 		if (user != null) {
 			logger.debug("Login success {} ! ", user.getLoginAtDomain());
 			return new Credentials(user, password);
 		} else {
-			throw new Exception("Login {"+ userId + "} failed, bad login or/and password.");
+			throw new AuthFault("Login {"+ userId + "} failed, bad login or/and password.");
 		}
 	}
 
-	private AccessTokenResource setAccessTokenRequestAttribute(HttpServletRequest request, HttpClient httpClient, String userId, String password) throws Exception {
+	private AccessTokenResource setAccessTokenRequestAttribute(HttpServletRequest request, HttpClient httpClient, String userId, String password) throws AuthFault {
 		AccessTokenResource token = login(httpClient, getLoginAtDomain(userId), password);
 		request.setAttribute(ResourceCloseOrder.ACCESS_TOKEN.name(), token);
 		return token;
@@ -122,7 +123,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)
-	private AccessTokenResource login(HttpClient httpClient, String userId, String password) throws Exception {
+	private AccessTokenResource login(HttpClient httpClient, String userId, String password) throws AuthFault {
 		AccessToken accessToken = loginClientFactory.create(httpClient)
 				.authenticate(userFactory.getLoginAtDomain(userId), password);
 		return accessTokenResourceFactory.create(httpClient, accessToken);

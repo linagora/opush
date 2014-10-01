@@ -57,6 +57,10 @@ public class HttpErrorResponder {
 		returnHttpError(httpServletRequest, response, HttpServletResponse.SC_BAD_REQUEST);
 	}
 
+	public void returnHttpServerError(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+		returnHttpError(httpServletRequest, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+	}
+
 	private void returnHttpError(HttpServletRequest httpServletRequest,
 			HttpServletResponse response, int status) {
 		authLogger.info("Invalid authorization format, sending http {} ( uri = {}{}{} )", 

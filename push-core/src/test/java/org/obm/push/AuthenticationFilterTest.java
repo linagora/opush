@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.User;
+import org.obm.push.exception.AuthenticationException;
 import org.obm.push.service.AuthenticationService;
 
 
@@ -84,7 +85,7 @@ public class AuthenticationFilterTest {
 		control.verify();
 	}
 	
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void postCallCloseSessionWhenExceptionByChain() throws Exception {
 		HttpServletRequest request = control.createMock(HttpServletRequest.class);
 		HttpServletResponse response = control.createMock(HttpServletResponse.class);
@@ -94,16 +95,14 @@ public class AuthenticationFilterTest {
 		expect(request.getMethod()).andReturn("POST");
 		chain.doFilter(request, response);
 		expectLastCall().andThrow(new RuntimeException("Might be exception"));
+		errorResponder.returnHttpServerError(request, response);
+		expectLastCall();
 		loggerService.closeSession();
 		expectLastCall();
-		
+
 		control.replay();
-		try {
-			testee.doFilter(request, response, chain);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
+		testee.doFilter(request, response, chain);
+		control.verify();
 	}
 
 	@Test
@@ -118,16 +117,12 @@ public class AuthenticationFilterTest {
 		expect(request.getMethod()).andReturn("POST");
 		loggerService.closeSession();
 		expectLastCall();
-		
+
 		control.replay();
-		try {
-			testee.doFilter(request, response, chain);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
+		testee.doFilter(request, response, chain);
+		control.verify();
 	}
-	
+
 	@Test
 	public void getCallCloseSession() throws Exception {
 		HttpServletRequest request = control.createMock(HttpServletRequest.class);
@@ -155,5 +150,45 @@ public class AuthenticationFilterTest {
 		request.setAttribute("credentials", credentials);
 		expectLastCall();
 	}
-	
+
+	@Test
+	public void postCallReturn500WhenRuntimeExceptionByAuth() throws Exception {
+		HttpServletRequest request = control.createMock(HttpServletRequest.class);
+		HttpServletResponse response = control.createMock(HttpServletResponse.class);
+		FilterChain chain = control.createMock(FilterChain.class);
+
+		expectExceptionByAuth(request, new RuntimeException());
+		errorResponder.returnHttpServerError(request, response);
+		expectLastCall();
+		expect(request.getMethod()).andReturn("POST");
+		loggerService.closeSession();
+		expectLastCall();
+
+		control.replay();
+		testee.doFilter(request, response, chain);
+		control.verify();
+	}
+
+	@Test
+	public void postCallReturn401WhenAuthenticationExceptionByAuth() throws Exception {
+		HttpServletRequest request = control.createMock(HttpServletRequest.class);
+		HttpServletResponse response = control.createMock(HttpServletResponse.class);
+		FilterChain chain = control.createMock(FilterChain.class);
+
+		expectExceptionByAuth(request, new AuthenticationException());
+		errorResponder.returnHttpUnauthorized(request, response);
+		expectLastCall();
+		expect(request.getMethod()).andReturn("POST");
+		loggerService.closeSession();
+		expectLastCall();
+
+		control.replay();
+		testee.doFilter(request, response, chain);
+		control.verify();
+	}
+
+	private void expectExceptionByAuth(HttpServletRequest request, Exception exception) throws Exception {
+		expect(request.getHeader("Authorization")).andReturn("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+		expect(authService.authenticateValidRequest(request, "Aladdin", "open sesame")).andThrow(exception);
+	}
 }

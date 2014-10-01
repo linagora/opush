@@ -47,6 +47,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.obm.push.bean.Credentials;
 import org.obm.push.exception.AuthenticationException;
 import org.obm.push.service.AuthenticationService;
+import org.obm.sync.auth.AuthFault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,12 +95,15 @@ public class AuthenticationFilter implements Filter {
 		} catch (AuthenticationException e) {
 			logger.info(e.getMessage());
 			httpErrorResponder.returnHttpUnauthorized(httpRequest, httpResponse);
+		}  catch (Exception e) {
+			logger.info(e.getMessage());
+			httpErrorResponder.returnHttpServerError(httpRequest, httpResponse);
 		} finally {
 			loggerService.closeSession();
 		}
 	}
 
-	private Credentials authentication(HttpServletRequest request) throws AuthenticationException {
+	private Credentials authentication(HttpServletRequest request) throws Exception {
 		String authHeader = request.getHeader("Authorization");
 		if (authHeader != null) {
 			StringTokenizer st = new StringTokenizer(authHeader);
@@ -120,10 +124,10 @@ public class AuthenticationFilter implements Filter {
 		throw new AuthenticationException("There is not 'Authorization' field in HttpServletRequest.");
 	}
 
-	private Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws AuthenticationException {
+	private Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws Exception {
 		try {
 			return authenticationService.authenticateValidRequest(request, userId, password);
-		} catch (Exception e) {
+		} catch (AuthFault e) {
 			throw new AuthenticationException(e);
 		}
 	}
