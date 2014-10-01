@@ -47,6 +47,7 @@ import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
 import org.obm.push.cassandra.schema.Version;
+import org.slf4j.Logger;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
@@ -62,10 +63,14 @@ public class V2ToV3_TTL implements CodedMigration {
 	public static final int MAX_BATCH_SIZE = 1000;
 	private static final long DEFAULT_TTL = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
 	
+	private final Logger logger;
 	private final Provider<Session> sessionProvider;
 	private final Set<Table> tables;
 	
-	public V2ToV3_TTL(Provider<Session> sessionProvider) {
+	public V2ToV3_TTL(
+			Logger logger,
+			Provider<Session> sessionProvider) {
+		this.logger = logger;
 		this.sessionProvider = sessionProvider;
 		
 		Builder<Table> builder = ImmutableSet.builder();
@@ -92,10 +97,14 @@ public class V2ToV3_TTL implements CodedMigration {
 
 	@Override
 	public void apply() {
+		logger.warn("TTL migration started");
 		Session session = sessionProvider.get();
 		for (Table table : tables) {
+			logger.warn("Setup TTL for {}", table.name());
 			session.execute(String.format("ALTER TABLE %s WITH default_time_to_live = %d;", table.name(), DEFAULT_TTL));
+			logger.warn("Apply TTL for existing rows");
 			reinsertAll(session, table);
+			logger.warn("Done");
 		}
 	}
 	

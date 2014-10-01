@@ -55,6 +55,8 @@ import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
 import org.obm.push.cassandra.dao.SchemaCQLDataSet;
 import org.obm.push.cassandra.dao.SessionProvider;
 import org.obm.push.cassandra.schema.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -76,7 +78,8 @@ public class V2ToV3_TTLTest {
 	public void setUp() {
 		session = cassandraCQLUnit.session;
 		sessionProvider = new SessionProvider(session);
-		testee = new V2ToV3_TTL(sessionProvider);
+		Logger logger = LoggerFactory.getLogger(V2ToV3_TTLTest.class);
+		testee = new V2ToV3_TTL(logger , sessionProvider);
 	}
 
 	@Test

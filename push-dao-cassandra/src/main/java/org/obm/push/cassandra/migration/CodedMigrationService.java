@@ -59,7 +59,7 @@ public class CodedMigrationService implements MigrationService {
 			Provider<Session> sessionProvider) {
 		this.logger = logger;
 		this.migrations = ImmutableSet.of(
-			new V2ToV3_TTL(sessionProvider)
+			new V2ToV3_TTL(logger, sessionProvider)
 		);
 	}
 	
