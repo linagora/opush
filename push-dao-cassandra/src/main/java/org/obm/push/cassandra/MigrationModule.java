@@ -35,6 +35,7 @@ import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.dao.SchemaProducerImpl;
 import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.CodedMigrationService;
 import org.obm.push.cassandra.migration.CqlFilesMigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.Version;
@@ -47,7 +48,7 @@ import com.google.inject.name.Names;
 public class MigrationModule extends AbstractModule {
 
 	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(2);
-	public static final Version LATEST_SCHEMA_VERSION = Version.of(2);
+	public static final Version LATEST_SCHEMA_VERSION = Version.of(3);
 	public static final String MINIMAL_SCHEMA_VERSION_NAME = "minimalSchemaVersion";
 	public static final String LATEST_SCHEMA_VERSION_NAME = "latestSchemaVersion";
 	
@@ -59,6 +60,7 @@ public class MigrationModule extends AbstractModule {
 		bind(SchemaInstaller.class).to(CqlFilesMigrationService.class);
 		
 		Multibinder<MigrationService> lifecycleListeners = Multibinder.newSetBinder(binder(), MigrationService.class);
+		lifecycleListeners.addBinding().to(CodedMigrationService.class);
 		lifecycleListeners.addBinding().to(CqlFilesMigrationService.class);
 	}
 
