@@ -46,6 +46,7 @@ import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
+import org.obm.push.cassandra.migration.MigrationResult.Status;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.Version;
@@ -60,6 +61,8 @@ import com.google.inject.name.Named;
 @Watch(BreakdownGroups.CASSANDRA)
 public class CassandraMigrationService {
 
+	private static final Version FIRST_VERSION = Version.of(1);
+	
 	private final CassandraSchemaDao schemaDao;
 	private final SchemaInstaller schemaInstaller;
 	private final Set<MigrationService> migrationServices;
@@ -110,10 +113,17 @@ public class CassandraMigrationService {
 
 	public MigrationResult install() {
 		try {
-			schemaInstaller.install(latestVersionUpdate);
-			schemaDao.updateVersion(latestVersionUpdate);
-			return MigrationResult.success(String.format(
-					"Schema version %d has been installed, please restart opush to get the service up", latestVersionUpdate.get()));
+			schemaInstaller.install(FIRST_VERSION);
+			schemaDao.updateVersion(FIRST_VERSION);
+			
+			MigrationResult update = update();
+			if (Status.OK == update.getStatus()) {
+				return MigrationResult.success(String.format(
+						"Schema version %d has been installed, please restart opush to get the service up", latestVersionUpdate.get()));
+			} else {
+				return MigrationResult.error(String.format(
+						"An error occurred when installing the schema: %s", update.getMessage()));
+			}
 		} catch (Exception e) {
 			return MigrationResult.error(String.format(
 					"An error occurred when installing the schema: %s", e.getMessage()));

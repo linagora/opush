@@ -205,19 +205,47 @@ public class CassandraMigrationServiceTest {
 	}
 	
 	@Test
-	public void install() {
-		Version version = Version.of(1);
-		schemaInstaller.install(version);
+	public void installFirstVersion() {
+		Version firstVersion = Version.of(1);
+		schemaInstaller.install(firstVersion);
 		expectLastCall();
-		schemaDao.updateVersion(version);
+		schemaDao.updateVersion(firstVersion);
 		expectLastCall();
+		expect(schemaDao.getCurrentVersion()).andReturn(VersionUpdate.version(firstVersion).date(dateUTC("2015-04-07")));
 		
 		mocks.replay();
-		MigrationResult result = testee(null, version).install();
+		MigrationResult result = testee(firstVersion, firstVersion).install();
 		mocks.verify();
 		
 		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
 		assertThat(result.getMessage()).isEqualTo("Schema version 1 has been installed, please restart opush to get the service up");
+	}
+	
+	@Test
+	public void installShouldInstallFirstVersionThenUpdate() {
+		Version firstVersion = Version.of(1);
+		Version stepVersion = Version.of(2);
+		Version toVersion = Version.of(3);
+		
+		schemaInstaller.install(firstVersion);
+		expectLastCall();
+		schemaDao.updateVersion(firstVersion);
+		expectLastCall();
+		expect(schemaDao.getCurrentVersion()).andReturn(VersionUpdate.version(firstVersion).date(dateUTC("2015-04-07")));
+		
+		migrationService.migrate(firstVersion, stepVersion);
+		expectLastCall();
+		migrationService.migrate(stepVersion, toVersion);
+		expectLastCall();
+		schemaDao.updateVersion(toVersion);
+		expectLastCall();
+		
+		mocks.replay();
+		MigrationResult result = testee(firstVersion, toVersion).install();
+		mocks.verify();
+		
+		assertThat(result.getStatus()).isEqualTo(MigrationResult.Status.OK);
+		assertThat(result.getMessage()).isEqualTo("Schema version 3 has been installed, please restart opush to get the service up");
 	}
 	
 	@Test
