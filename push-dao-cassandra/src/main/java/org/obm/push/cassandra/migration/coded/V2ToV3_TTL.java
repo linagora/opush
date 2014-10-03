@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable;
@@ -54,13 +55,15 @@ import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Provider;
 
 public class V2ToV3_TTL implements CodedMigration {
 
-	public static final int MAX_BATCH_SIZE = 1000;
+	public static final int MAX_BATCH_SIZE = Objects.firstNonNull(VMArgumentsUtils.integerArgumentValue("MigrationV3BatchSize"), 100);
+	public static final int SELECT_PAGING_SIZE = Objects.firstNonNull(VMArgumentsUtils.integerArgumentValue("MigrationV3PagingSize"), 100);
 	private static final long DEFAULT_TTL = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
 	
 	private final Logger logger;
@@ -109,7 +112,7 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	private void reinsertAll(Session session, Table table) {
-		Iterator<Row> rows = session.execute(table.selectStatement()).iterator();
+		Iterator<Row> rows = session.execute(table.selectStatement().setFetchSize(SELECT_PAGING_SIZE)).iterator();
 		BatchStatement batch = new BatchStatement(Type.UNLOGGED);
 		int batchSize = 0;
 		
@@ -118,6 +121,7 @@ public class V2ToV3_TTL implements CodedMigration {
 			batchSize++;
 			
 			if (batchSize >= MAX_BATCH_SIZE) {
+				logger.warn("Executing batch, size: {}", MAX_BATCH_SIZE);
 				session.execute(batch);
 				batchSize = 0;
 				batch = new BatchStatement(Type.UNLOGGED);
@@ -125,6 +129,7 @@ public class V2ToV3_TTL implements CodedMigration {
 		}
 		
 		if (batchSize > 0) {
+			logger.warn("Executing batch, size: {}", batchSize);
 			session.execute(batch);
 		}
 	}
