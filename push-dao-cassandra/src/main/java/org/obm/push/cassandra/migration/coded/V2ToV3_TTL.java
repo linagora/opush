@@ -57,7 +57,6 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Provider;
 
 public class V2ToV3_TTL implements CodedMigration {
@@ -75,17 +74,16 @@ public class V2ToV3_TTL implements CodedMigration {
 			Provider<Session> sessionProvider) {
 		this.logger = logger;
 		this.sessionProvider = sessionProvider;
-		
-		Builder<Table> builder = ImmutableSet.builder();
-		builder.add(new V1MonitoredCollection());
-		builder.add(new V2MonitoredCollection());
-		builder.add(new V1SyncedCollection());
-		builder.add(new V2SyncedCollection());
-		builder.add(new V2Snapshot());
-		builder.add(new V2SnapshotIndex());
-		builder.add(new V2WindowingIndex());
-		builder.add(new V2Windowing());
-		this.tables = builder.build();
+		this.tables = ImmutableSet.<Table>builder()
+				.add(new V1MonitoredCollection())
+				.add(new V2MonitoredCollection())
+				.add(new V1SyncedCollection())
+				.add(new V2SyncedCollection())
+				.add(new V2Snapshot())
+				.add(new V2SnapshotIndex())
+				.add(new V2WindowingIndex())
+				.add(new V2Windowing())
+				.build();
 	}
 	
 	@Override

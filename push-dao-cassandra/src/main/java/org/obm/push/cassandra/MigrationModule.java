@@ -59,9 +59,9 @@ public class MigrationModule extends AbstractModule {
 		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
 		bind(SchemaInstaller.class).to(CqlFilesMigrationService.class);
 		
-		Multibinder<MigrationService> lifecycleListeners = Multibinder.newSetBinder(binder(), MigrationService.class);
-		lifecycleListeners.addBinding().to(CodedMigrationService.class);
-		lifecycleListeners.addBinding().to(CqlFilesMigrationService.class);
+		Multibinder<MigrationService> migrationServices = Multibinder.newSetBinder(binder(), MigrationService.class);
+		migrationServices.addBinding().to(CodedMigrationService.class);
+		migrationServices.addBinding().to(CqlFilesMigrationService.class);
 	}
 
 	@VisibleForTesting Version latestSchemaVersion() {

@@ -37,6 +37,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.cassandraunit.CassandraCQLUnit;
 import org.joda.time.DateTime;
@@ -62,10 +63,12 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Ints;
 
 public class V2ToV3_TTLTest {
 
 
+	private static final int MIN_EXPECTED_TTL = Ints.checkedCast(TimeUnit.SECONDS.convert(29, TimeUnit.DAYS));
 	private static final String KEYSPACE = "opush";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schema(Version.of(2));
 	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
@@ -140,7 +143,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getUUID(SnapshotTable.Columns.ID)).isEqualTo(UUID.fromString("a6249e7f-bab9-43f0-8ea7-fbf027cc65fa"));
 		assertThat(row.getString(SnapshotTable.Columns.SNAPSHOT)).isEqualTo("snapshot");
 	}
@@ -174,7 +177,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getString(SnapshotIndex.Columns.DEVICE_ID)).isEqualTo("device id");
 		assertThat(row.getInt(SnapshotIndex.Columns.COLLECTION_ID)).isEqualTo(5);
 		assertThat(row.getUUID(SnapshotIndex.Columns.SNAPSHOT_ID)).isEqualTo(UUID.fromString("61d6ce72-c638-4345-ba2b-4cbafba691eb"));
@@ -210,7 +213,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getUUID(Windowing.Columns.ID)).isEqualTo(UUID.fromString("61d6ce72-c638-4345-ba2b-4cbafba691eb"));
 		assertThat(row.getInt(Windowing.Columns.CHANGE_INDEX)).isEqualTo(5);
 		assertThat(row.getString(Windowing.Columns.CHANGE_VALUE)).isEqualTo("value");
@@ -252,7 +255,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getUUID(WindowingIndex.Columns.SYNC_KEY)).isEqualTo(UUID.fromString("61d6ce72-c638-4345-ba2b-4cbafba691eb"));
 		assertThat(row.getInt(WindowingIndex.Columns.COLLECTION_ID)).isEqualTo(5);
 		assertThat(row.getString(WindowingIndex.Columns.DEVICE_ID)).isEqualTo("device id");
@@ -291,7 +294,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getInt(SyncedCollection.Columns.COLLECTION_ID)).isEqualTo(5);
 		assertThat(row.getString(SyncedCollection.Columns.USER)).isEqualTo("SyncedCollection.Columns.USER");
 		assertThat(row.getString(SyncedCollection.Columns.DEVICE)).isEqualTo("SyncedCollection.Columns.DEVICE");
@@ -327,7 +330,7 @@ public class V2ToV3_TTLTest {
 		
 		Row row = rs.one();
 		assertThat(row.getLong(0)).isGreaterThan(originalWriteTime);
-		assertThat(row.getInt(1)).isGreaterThan(2500000);
+		assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		assertThat(row.getInt(V1.SyncedCollection.Columns.COLLECTION_ID)).isEqualTo(5);
 		assertThat(row.getString(V1.SyncedCollection.Columns.CREDENTIALS)).isEqualTo("V1.SyncedCollection.Columns.CREDENTIALS");
 		assertThat(row.getString(V1.SyncedCollection.Columns.DEVICE)).isEqualTo("V1.SyncedCollection.Columns.DEVICE");
@@ -411,7 +414,7 @@ public class V2ToV3_TTLTest {
 		
 		for (Row row : rs.all()) {
 			assertThat(row.getLong(0)).isGreaterThan(latestOriginalWriteTime);
-			assertThat(row.getInt(1)).isGreaterThan(2500000);
+			assertThat(row.getInt(1)).isGreaterThan(MIN_EXPECTED_TTL);
 		}
 	}
 }
