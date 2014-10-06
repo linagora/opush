@@ -46,6 +46,7 @@ public class LoggerModule extends org.obm.configuration.module.LoggerModule {
 	public static final String CONTAINER = "CONTAINER";
 	public static final String SUMMARY_IN = "SUMMARY.IN";
 	public static final String SUMMARY_OUT = "SUMMARY.OUT";
+	public static final String MIGRATION = "MIGRATION";
 	
 	@Override
 	protected void configure() {
@@ -58,6 +59,7 @@ public class LoggerModule extends org.obm.configuration.module.LoggerModule {
 		bind(Logger.class).annotatedWith(Names.named(CONTAINER)).toInstance(LoggerFactory.getLogger(CONTAINER));
 		bind(Logger.class).annotatedWith(Names.named(SUMMARY_IN)).toInstance(LoggerFactory.getLogger(SUMMARY_IN));
 		bind(Logger.class).annotatedWith(Names.named(SUMMARY_OUT)).toInstance(LoggerFactory.getLogger(SUMMARY_OUT));
+		bind(Logger.class).annotatedWith(Names.named(MIGRATION)).toInstance(LoggerFactory.getLogger(MIGRATION));
 	}
 
 	

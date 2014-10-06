@@ -107,7 +107,7 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andReturn(null);
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -121,7 +121,7 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -139,7 +139,7 @@ public class CqlFilesMigrationServiceTest {
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -172,9 +172,9 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andReturn(null);
-		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		logger.info("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -189,9 +189,9 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new InvalidQueryException("expected message"));
-		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		logger.info("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -210,9 +210,9 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
 		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
-		logger.warn("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
+		logger.info("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
-		logger.info("CQL: {}", schema);
+		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
 		mocks.replay();
@@ -230,7 +230,7 @@ public class CqlFilesMigrationServiceTest {
 		Version toVersion = Version.of(2);
 		String schema = "";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
-		logger.warn("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
+		logger.info("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
 		
 		mocks.replay();
@@ -244,7 +244,7 @@ public class CqlFilesMigrationServiceTest {
 		Version toVersion = Version.of(2);
 		String schema = null;
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
-		logger.warn("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
+		logger.info("No CQL migration found from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
 		
 		mocks.replay();

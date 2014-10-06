@@ -59,7 +59,7 @@ public class CqlFilesMigrationService implements SchemaInstaller, MigrationServi
 
 	@Inject
 	@VisibleForTesting CqlFilesMigrationService(
-			@Named(LoggerModule.CASSANDRA) Logger logger,
+			@Named(LoggerModule.MIGRATION) Logger logger,
 			SchemaProducer schemaProducer,
 			Provider<Session> sessionProvider) {
 		this.logger = logger;
@@ -81,16 +81,16 @@ public class CqlFilesMigrationService implements SchemaInstaller, MigrationServi
 	public void migrate(Version currentVersion, Version toVersion) {
 		String schema = schemaProducer.schema(currentVersion, toVersion);
 		if (Strings.isNullOrEmpty(schema)) {
-			logger.warn("No CQL migration found from version {} to {}", currentVersion.get(), toVersion.get());
+			logger.info("No CQL migration found from version {} to {}", currentVersion.get(), toVersion.get());
 		} else {
-			logger.warn("Executing CQL migration from version {} to {}", currentVersion.get(), toVersion.get());
+			logger.info("Executing CQL migration from version {} to {}", currentVersion.get(), toVersion.get());
 			executeCQL(schema);
 		}
 	}
 
 	private void executeCQL(String cql) {
 		Session session = this.sessionProvider.get();
-		logger.info("CQL: {}", cql);
+		logger.debug("CQL: {}", cql);
 		for (String subQuery : subQueries(cql)) {
 			session.execute(subQuery);
 		}

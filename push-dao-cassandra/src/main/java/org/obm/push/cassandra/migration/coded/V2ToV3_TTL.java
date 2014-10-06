@@ -98,14 +98,14 @@ public class V2ToV3_TTL implements CodedMigration {
 
 	@Override
 	public void apply() {
-		logger.warn("TTL migration started");
+		logger.info("TTL migration started");
 		Session session = sessionProvider.get();
 		for (Table table : tables) {
-			logger.warn("Setup TTL for {}", table.name());
+			logger.info("Setup TTL for {}", table.name());
 			session.execute(String.format("ALTER TABLE %s WITH default_time_to_live = %d;", table.name(), DEFAULT_TTL));
-			logger.warn("Apply TTL for existing rows");
+			logger.info("Apply TTL for existing rows");
 			reinsertAll(session, table);
-			logger.warn("Done");
+			logger.info("Done");
 		}
 	}
 	
@@ -119,7 +119,7 @@ public class V2ToV3_TTL implements CodedMigration {
 			batchSize++;
 			
 			if (batchSize >= MAX_BATCH_SIZE) {
-				logger.warn("Executing batch, size: {}", MAX_BATCH_SIZE);
+				logger.info("Executing batch, size: {}", MAX_BATCH_SIZE);
 				session.execute(batch);
 				batchSize = 0;
 				batch = new BatchStatement(Type.UNLOGGED);
@@ -127,7 +127,7 @@ public class V2ToV3_TTL implements CodedMigration {
 		}
 		
 		if (batchSize > 0) {
-			logger.warn("Executing batch, size: {}", batchSize);
+			logger.info("Executing batch, size: {}", batchSize);
 			session.execute(batch);
 		}
 	}

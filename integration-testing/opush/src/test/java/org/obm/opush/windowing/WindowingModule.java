@@ -74,6 +74,7 @@ public class WindowingModule extends AbstractModule {
 		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
 		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(logger);
 		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CASSANDRA)).toInstance(logger);
+		bind(Logger.class).annotatedWith(Names.named(LoggerModule.MIGRATION)).toInstance(logger);
 	}		
 
 	protected OpushConfigurationFixture configuration() {

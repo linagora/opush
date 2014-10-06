@@ -37,6 +37,9 @@
 		<appender-ref ref="TECHNICAL_LOG" />
 	</logger>
 	
+
+	<logger name="MIGRATION" level="INFO" />
+	
 	<root level="WARN">
 		<appender-ref ref="PROD" />
 	</root>

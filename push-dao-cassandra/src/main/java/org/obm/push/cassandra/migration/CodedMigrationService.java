@@ -55,7 +55,7 @@ public class CodedMigrationService implements MigrationService {
 
 	@Inject
 	@VisibleForTesting CodedMigrationService(
-			@Named(LoggerModule.CASSANDRA) Logger logger,
+			@Named(LoggerModule.MIGRATION) Logger logger,
 			Provider<Session> sessionProvider) {
 		this.logger = logger;
 		this.migrations = ImmutableSet.of(
@@ -67,7 +67,7 @@ public class CodedMigrationService implements MigrationService {
 	public void migrate(Version currentVersion, Version toVersion) {
 		for (CodedMigration migration: migrations) {
 			if (versionGapNeedsThisMigration(currentVersion, toVersion, migration)) {
-				logger.warn("A scripted migration has been found from version {} to {}", currentVersion.get(), toVersion.get());
+				logger.info("A scripted migration has been found from version {} to {}", currentVersion.get(), toVersion.get());
 				migration.apply();
 			}
 		}
