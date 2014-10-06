@@ -38,16 +38,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.spushnik.bean.CheckResult;
 import org.obm.push.spushnik.bean.CheckStatus;
 import org.obm.push.spushnik.bean.Credentials;
 import org.obm.push.spushnik.service.CredentialsService;
-import org.obm.push.wbxml.WBXMLTools;
 import org.obm.sync.push.client.HttpRequestException;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.SSLContextFactory;
@@ -60,11 +58,12 @@ import com.google.inject.Inject;
 
 public abstract class Scenario {
 	
-	private final static DeviceId DEVICE_ID = new DeviceId("spushnik");
-	private final static String DEV_TYPE = "spushnikProbe";
-	private final static String USER_AGENT = "spushnikAgent";
+	public final static DeviceId DEVICE_ID = new DeviceId("spushnik");
+	public final static String DEV_TYPE = "spushnikProbe";
+	public final static String USER_AGENT = "spushnikAgent";
 	
 	@Inject CredentialsService credentialsService;
+	@Inject WBXMLOPClient.Factory opushClientFactory;
 	
 	@POST
 	@Produces("application/json")
@@ -75,17 +74,16 @@ public abstract class Scenario {
 		try {
 			credentialsService.validate(credentials);
 			
-			OPClient client = new WBXMLOPClient(chooseHttpClient(credentials, serviceUrl),
-				credentials.getLoginAtDomain(), credentials.getPassword(),
-				DEVICE_ID, DEV_TYPE, USER_AGENT, serviceUrl, new WBXMLTools(), ProtocolVersion.V121);
-		
-			return scenarii(client);
+			try (OPClient client = opushClientFactory.create(chooseHttpClient(credentials, serviceUrl), 
+					credentials.getLoginAtDomain(), credentials.getPassword(), DEVICE_ID, DEV_TYPE, USER_AGENT, serviceUrl)) {
+				return scenarii(client);
+			}
 		} catch (Exception e) {
 			return handleException(e);
 		}
 	}
 
-	@VisibleForTesting HttpClient chooseHttpClient(Credentials credentials, String serviceUrl) {
+	@VisibleForTesting CloseableHttpClient chooseHttpClient(Credentials credentials, String serviceUrl) {
 		Preconditions.checkNotNull(credentials);
 		Preconditions.checkNotNull(serviceUrl);
 		HttpClientBuilder httpClientBuilder = 

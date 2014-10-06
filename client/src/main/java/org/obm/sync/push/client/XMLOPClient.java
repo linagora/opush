@@ -43,11 +43,11 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Async;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.DeviceId;
@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
 
 public class XMLOPClient extends OPClient {
 
-	public XMLOPClient(HttpClient httpClient, String loginAtDomain, String password, DeviceId devId,
+	public XMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, String password, DeviceId devId,
 			String devType, String userAgent, int port) {
 		
 		super(httpClient, loginAtDomain, password, devId, devType, userAgent, buildServiceUrl(port), ProtocolVersion.V121);

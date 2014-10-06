@@ -31,39 +31,92 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik.resources;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.obm.push.spushnik.resources.Scenario.DEVICE_ID;
+import static org.obm.push.spushnik.resources.Scenario.DEV_TYPE;
+import static org.obm.push.spushnik.resources.Scenario.USER_AGENT;
+
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.push.spushnik.bean.CheckResult;
+import org.obm.push.spushnik.bean.CheckStatus;
 import org.obm.push.spushnik.bean.Credentials;
 import org.obm.sync.push.client.OPClient;
+import org.obm.sync.push.client.WBXMLOPClient;
 
+import com.google.common.collect.Iterables;
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 
+@GuiceModule(ScenarioTest.Env.class)
+@RunWith(GuiceRunner.class)
 public class ScenarioTest {
 
-	private Scenario testee;
-	private Credentials noCertificateCredentials;
-	private String httpServiceUrl;
+	public static class Env extends AbstractModule {
+
+		@Override
+		protected void configure() {
+			IMocksControl mocks = createControl();
+			bind(IMocksControl.class).toInstance(mocks);
+			bind(WBXMLOPClient.Factory.class).toInstance(mocks.createMock(WBXMLOPClient.Factory.class));
+			
+			bind(Scenario.class).annotatedWith(Names.named("regular")).toInstance(new Scenario(){
+				
+				@Override
+				protected CheckResult scenarii(OPClient client) throws Exception {
+					return CheckResult.builder().checkStatus(CheckStatus.OK).build();
+				}
+			});
+			bind(Scenario.class).annotatedWith(Names.named("failing")).toInstance(new Scenario(){
+				
+				@Override
+				protected CheckResult scenarii(OPClient client) throws Exception {
+					throw new IllegalStateException("expected message");
+				}
+			});
+		}
+	}
+	
+	String loginAtDomain;
+	String password;
+	String serverUrl;
+	WBXMLOPClient opushClient;
+	Credentials noCertificateCredentials;
+	
+	@Inject IMocksControl mocks;
+	@Inject WBXMLOPClient.Factory opushClientFactory;
+	@Inject @Named("regular") Scenario testee;
+	@Inject @Named("failing") Scenario testeeThrowingException;
 
 	@Before
 	public void setUp() {
-		testee = new Scenario(){
-			@Override
-			protected CheckResult scenarii(OPClient client) throws Exception {
-				return null;
-			}};
-			
-		noCertificateCredentials = Credentials.builder()
-				.loginAtDomain("user@domain")
-				.password("pwd")
-				.build();
-		
-		httpServiceUrl = "http://localhost";
+		serverUrl = "http://localhost";
+		loginAtDomain = "user@domain";
+		password = "pwd";
+		noCertificateCredentials = Credentials.builder().loginAtDomain(loginAtDomain).password(password).build();
+
+		opushClient = mocks.createMock(WBXMLOPClient.class);
+		expect(opushClientFactory.create(anyObject(CloseableHttpClient.class),
+				eq(loginAtDomain), eq(password), eq(DEVICE_ID), eq(DEV_TYPE), eq(USER_AGENT), eq(serverUrl)))
+			.andReturn(opushClient);
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void testChooseHttpClientWhenNullCredentials() {
 		Credentials credentials = null;
-		testee.chooseHttpClient(credentials, httpServiceUrl);
+		testee.chooseHttpClient(credentials, serverUrl);
 	}
 	
 	@Test(expected=NullPointerException.class)
@@ -71,5 +124,31 @@ public class ScenarioTest {
 		String serviceUrl = null;
 		testee.chooseHttpClient(noCertificateCredentials, serviceUrl);
 	}
-	
+
+	@Test
+	public void runShouldCloseHttpClientAndReturnOKWhenSuccess() {
+		opushClient.close();
+		expectLastCall();
+		
+		mocks.replay();
+		CheckResult result = testee.run(serverUrl, noCertificateCredentials);
+		mocks.verify();
+		
+		assertThat(result).isEqualTo(CheckResult.builder().checkStatus(CheckStatus.OK).build());
+	}
+
+	@Test
+	public void runShouldCloseHttpClientAndReturnERRORWhenException() {
+		opushClient.close();
+		expectLastCall();
+		
+		mocks.replay();
+		CheckResult result = testeeThrowingException.run(serverUrl, noCertificateCredentials);
+		mocks.verify();
+		
+		assertThat(result.getStatus()).isEqualTo(CheckStatus.ERROR.asSpecificationValue());
+		assertThat(result.getMessages()).hasSize(1);
+		assertThat(Iterables.getLast(result.getMessages())).startsWith(IllegalStateException.class.getName() + ": expected message");
+	}
+
 }

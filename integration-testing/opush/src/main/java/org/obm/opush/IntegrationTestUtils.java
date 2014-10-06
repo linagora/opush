@@ -45,7 +45,7 @@ import java.util.Properties;
 
 import javax.mail.Session;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.IContentsExporter;
@@ -70,7 +70,6 @@ import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
-import org.obm.push.wbxml.WBXMLTools;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.client.login.LoginClient;
 import org.obm.sync.push.client.OPClient;
@@ -156,7 +155,7 @@ public class IntegrationTestUtils {
 		expectLastCall().anyTimes();
 	}
 
-	public static OPClient buildOpushClient(OpushUser user, int port, HttpClient httpClient) {
+	public static OPClient buildOpushClient(OpushUser user, int port, CloseableHttpClient httpClient) {
 		return new XMLOPClient(httpClient, 
 				user.user.getLoginAtDomain(), 
 				user.password, 
@@ -166,19 +165,18 @@ public class IntegrationTestUtils {
 			);
 	}
 	
-	public static WBXMLOPClient buildWBXMLOpushClient(OpushUser user, int port, ProtocolVersion protocolVersion, HttpClient httpClient) {
-		return new WBXMLOPClient(
+	public static WBXMLOPClient buildWBXMLOpushClient(OpushUser user, int port, ProtocolVersion protocolVersion, CloseableHttpClient httpClient) {
+		return new WBXMLOPClient.Factory().create(
 				httpClient,
 				user.user.getLoginAtDomain(), 
 				user.password, 
 				user.deviceId, 
 				user.deviceType, 
 				user.userAgent, "localhost", port, "/opush/ActiveSyncServlet/",
-				new WBXMLTools(),
 				protocolVersion);
 	}
 	
-	public static WBXMLOPClient buildWBXMLOpushClient(OpushUser user, int port, HttpClient httpClient) {
+	public static WBXMLOPClient buildWBXMLOpushClient(OpushUser user, int port, CloseableHttpClient httpClient) {
 		return buildWBXMLOpushClient(user, port, ProtocolVersion.V121, httpClient);
 	}
 

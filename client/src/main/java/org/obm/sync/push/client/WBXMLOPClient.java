@@ -44,13 +44,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.fluent.Async;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.obm.push.ProtocolVersion;
@@ -67,15 +67,38 @@ import com.google.common.io.ByteStreams;
 
 public class WBXMLOPClient extends OPClient {
 
-	private final WBXMLTools wbxmlTools;
-	
-	public WBXMLOPClient(HttpClient httpClient, String loginAtDomain, String password,
-			DeviceId devId, String devType, String userAgent, String serverAddress, int port, String webApp, WBXMLTools wbxmlTools, ProtocolVersion protocolVersion) {
+	public static class Factory {
+		
+		private final WBXMLTools wbxmlTools;
 
-		this(httpClient, loginAtDomain, password, devId, devType, userAgent, buildServiceUrl(serverAddress, port, webApp), wbxmlTools, protocolVersion);
+		public Factory() {
+			wbxmlTools = new WBXMLTools();
+		}
+
+		public WBXMLOPClient create(
+				CloseableHttpClient httpClient, String loginAtDomain, String password,
+				DeviceId devId, String devType, String userAgent, String serverUrl) {
+			return new WBXMLOPClient(httpClient, loginAtDomain, password,
+					devId, devType, userAgent, serverUrl, wbxmlTools, ProtocolVersion.V121);
+		}
+
+		public WBXMLOPClient create(
+				CloseableHttpClient httpClient, String loginAtDomain, String password, 
+				DeviceId devId, String devType, String userAgent, String serverAddress, int port,
+				String webApp, ProtocolVersion protocolVersion) {
+			
+			return new WBXMLOPClient(httpClient, loginAtDomain, password,
+					devId, devType, userAgent, buildServiceUrl(serverAddress, port, webApp), wbxmlTools, protocolVersion);
+		}
+		
+		private String buildServiceUrl(String serverAddress, int port, String webApp) {
+			return "http://" + serverAddress + ":" + port + webApp;
+		}
 	}
+	
+	private final WBXMLTools wbxmlTools;
 
-	public WBXMLOPClient(HttpClient httpClient, String loginAtDomain, String password,
+	private WBXMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, String password,
 			DeviceId devId, String devType, String userAgent, String serviceUrl, WBXMLTools wbxmlTools, ProtocolVersion protocolVersion) {
 
 		super(httpClient, loginAtDomain, password, devId, devType, userAgent, serviceUrl, protocolVersion);
@@ -244,10 +267,6 @@ public class WBXMLOPClient extends OPClient {
 		}
 		return (inverse[0] << 24) + ((inverse[1] & 0xFF) << 16)
 				+ ((inverse[2] & 0xFF) << 8) + (inverse[3] & 0xFF);
-	}
-	
-	private static String buildServiceUrl(String serverAddress, int port, String webApp) {
-		return "http://" + serverAddress + ":" + port + webApp;
 	}
 	
 }

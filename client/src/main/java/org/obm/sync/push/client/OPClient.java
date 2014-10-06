@@ -41,9 +41,9 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Async;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
@@ -91,11 +91,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-public abstract class OPClient {
-
+public abstract class OPClient implements AutoCloseable {
+	
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
-	protected HttpClient hc;
+	protected CloseableHttpClient hc;
 	protected ProtocolVersion protocolVersion;
 	protected AccountInfos ai;
 
@@ -105,7 +105,7 @@ public abstract class OPClient {
 	public abstract <T> Future<T> postASyncXml(Async async, String namespace, Document doc, String cmd, String policyKey, boolean multipart, ResponseTransformer<T> documentHandler)
 			throws TransformerException, WBXmlException, IOException, HttpRequestException;
 	
-	protected OPClient(HttpClient httpClient, String loginAtDomain, String password,
+	protected OPClient(CloseableHttpClient httpClient, String loginAtDomain, String password,
 			DeviceId devId, String devType, String userAgent, String url, ProtocolVersion protocolVersion) {
 
 		setProtocolVersion(protocolVersion);
@@ -288,5 +288,13 @@ public abstract class OPClient {
 				+ "?User=" + login
 				+ "&DeviceId=" + deviceId.getDeviceId()
 				+ "&DeviceType=" + devType;
+	}
+	
+	public void close() {
+		try {
+			hc.close();
+		} catch (Exception e) {
+			logger.warn("Cannot close the underlying HTTP client", e);
+		}
 	}
 }
