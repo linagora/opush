@@ -169,7 +169,7 @@ public class CalendarBackendTest {
 	public void setUp() {
 		this.user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		this.device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
-		this.userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		this.userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		this.token = new AccessToken(0, "OBM");
 		this.lastKnownState = buildFolderSyncState(new SyncKey("1234567890a"));
 		this.outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
@@ -293,7 +293,7 @@ public class CalendarBackendTest {
 		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
-		userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
 		expect(accessTokenResource.getAccessToken())
 			.andReturn(token).anyTimes();
@@ -359,7 +359,7 @@ public class CalendarBackendTest {
 		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
-		userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
 		expect(accessTokenResource.getAccessToken())
 			.andReturn(token).anyTimes();
@@ -451,7 +451,7 @@ public class CalendarBackendTest {
 		String calendar2CollectionPath = rootCalendarPath + calendar2BackendName;
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
-		userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
 		expect(accessTokenResource.getAccessToken())
 			.andReturn(token).anyTimes();

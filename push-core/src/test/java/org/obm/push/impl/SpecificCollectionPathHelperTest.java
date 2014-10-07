@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.impl;
 
-import org.easymock.EasyMock;
 import org.assertj.core.api.Assertions;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.configuration.EmailConfiguration;
@@ -58,7 +58,7 @@ public class SpecificCollectionPathHelperTest {
 		EmailConfiguration emailConfiguration = mockEmailConfiguration();
 		collectionPathHelper = new CollectionPathHelper(emailConfiguration);
 		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
-		udr = new UserDataRequest(new Credentials(user, "test"), null, null);
+		udr = new UserDataRequest(new Credentials(user, "test".toCharArray()), null, null);
 	}
 	
 	private EmailConfiguration mockEmailConfiguration() {

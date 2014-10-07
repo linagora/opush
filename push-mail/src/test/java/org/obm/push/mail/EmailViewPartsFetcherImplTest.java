@@ -129,7 +129,7 @@ public class EmailViewPartsFetcherImplTest {
 	private String messageCollectionName;
 	private Integer messageCollectionId;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 	private MimeAddress mimeAddress;
 	private IMocksControl control;
@@ -138,7 +138,7 @@ public class EmailViewPartsFetcherImplTest {
 	@Before
 	public void setUp() throws IOException {
 		mailbox = "to@localhost.com";
-		password = "password";
+		password = "password".toCharArray();
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

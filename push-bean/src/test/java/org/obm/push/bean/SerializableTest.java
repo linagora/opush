@@ -44,7 +44,6 @@ import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.ms.UidMSEmail;
@@ -299,13 +298,6 @@ public class SerializableTest {
 	@Test
 	public void testDevice() throws IOException {
 		Device obj = new Device(1, "toto", new DeviceId("toto"), new Properties(), ProtocolVersion.V121);
-		objectOutputStream.writeObject(obj);
-	}
-
-	@Test
-	public void testCredentials() throws IOException {
-		User user = Factory.create().createUser("login@titi", "email", "displayName");
-		Credentials obj = new Credentials(user, "tata");
 		objectOutputStream.writeObject(obj);
 	}
 	

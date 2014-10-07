@@ -59,6 +59,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 @Singleton
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -92,7 +94,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	@Override
-	public Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws AuthFault {
+	public Credentials authenticateValidRequest(HttpServletRequest request, String userId, char[] password) throws AuthFault {
 		HttpClientResource httpClientResource = setHttpClientRequestAttribute(request);
 		
 		AccessTokenResource token = setAccessTokenRequestAttribute(request, 
@@ -100,7 +102,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		return getCredentials(token, userId, password);
 	}
 
-	private Credentials getCredentials(AccessTokenResource token, String userId, String password) throws AuthFault {
+	private Credentials getCredentials(AccessTokenResource token, String userId, char[] password) throws AuthFault {
 		User user = createUser(userId, token);
 		if (user != null) {
 			logger.debug("Login success {} ! ", user.getLoginAtDomain());
@@ -110,7 +112,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		}
 	}
 
-	private AccessTokenResource setAccessTokenRequestAttribute(HttpServletRequest request, HttpClient httpClient, String userId, String password) throws AuthFault {
+	private AccessTokenResource setAccessTokenRequestAttribute(HttpServletRequest request, HttpClient httpClient, String userId, char[] password) throws AuthFault {
 		AccessTokenResource token = login(httpClient, getLoginAtDomain(userId), password);
 		request.setAttribute(ResourceCloseOrder.ACCESS_TOKEN.name(), token);
 		return token;
@@ -123,9 +125,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)
-	private AccessTokenResource login(HttpClient httpClient, String userId, String password) throws AuthFault {
+	private AccessTokenResource login(HttpClient httpClient, String userId, char[] password) throws AuthFault {
 		AccessToken accessToken = loginClientFactory.create(httpClient)
-				.authenticate(userFactory.getLoginAtDomain(userId), password);
+				.authenticate(userFactory.getLoginAtDomain(userId), UserPassword.valueOf(String.valueOf(password)));
 		return accessTokenResourceFactory.create(httpClient, accessToken);
 	}
 	

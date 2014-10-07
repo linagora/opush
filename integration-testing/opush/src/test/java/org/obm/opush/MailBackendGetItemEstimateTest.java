@@ -123,7 +123,7 @@ public class MailBackendGetItemEstimateTest {
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
 		mailbox = user.user.getLoginAtDomain();
-		greenMailUser = greenMail.setUser(mailbox, user.password);
+		greenMailUser = greenMail.setUser(mailbox, String.valueOf(user.password));
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 		

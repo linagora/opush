@@ -31,6 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.push.client.beans;
 
+import java.util.Arrays;
+
 import org.obm.push.bean.DeviceId;
 
 import com.google.common.base.Charsets;
@@ -39,14 +41,14 @@ import com.google.common.io.BaseEncoding;
 
 public final class AccountInfos {
 	private final String login;
-	private final String password;
+	private final char[] password;
 	private String userId;
 	private final DeviceId devId;
 	private final String devType;
 	private final String url;
 	private final String userAgent;
 
-	public AccountInfos(String login, String password, DeviceId devId,
+	public AccountInfos(String login, char[] password, DeviceId devId,
 			String devType, String url, String userAgent) {
 		this.login = login;
 		int idx = login.indexOf('@');
@@ -66,7 +68,7 @@ public final class AccountInfos {
 		return login;
 	}
 
-	public String getPassword() {
+	public char[] getPassword() {
 		return password;
 	}
 
@@ -91,14 +93,14 @@ public final class AccountInfos {
 	}
 	
 	public String authValue() {
-		String basicCredentials = userId + ":" + password;
+		String basicCredentials = userId + ":" + String.valueOf(password);
 		byte[] basicCredentialsBytes = basicCredentials.getBytes(Charsets.ISO_8859_1);
 		return "Basic " + BaseEncoding.base64().encode(basicCredentialsBytes);
 	}
 
 	@Override
 	public int hashCode(){
-		return Objects.hashCode(login, password, userId, devId, devType, url, userAgent);
+		return Objects.hashCode(login, Arrays.hashCode(password), userId, devId, devType, url, userAgent);
 	}
 	
 	@Override
@@ -106,7 +108,7 @@ public final class AccountInfos {
 		if (object instanceof AccountInfos) {
 			AccountInfos that = (AccountInfos) object;
 			return Objects.equal(this.login, that.login)
-				&& Objects.equal(this.password, that.password)
+				&& Arrays.equals(this.password, that.password)
 				&& Objects.equal(this.userId, that.userId)
 				&& Objects.equal(this.devId, that.devId)
 				&& Objects.equal(this.devType, that.devType)

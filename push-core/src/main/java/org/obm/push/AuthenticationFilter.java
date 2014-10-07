@@ -116,7 +116,7 @@ public class AuthenticationFilter implements Filter {
 					if (p != -1) {
 						return authenticateValidRequest(request, 
 								userPass.substring(0, p), 
-								userPass.substring(p + 1));
+								userPass.substring(p + 1).toCharArray());
 					}
 				}
 			}
@@ -124,7 +124,7 @@ public class AuthenticationFilter implements Filter {
 		throw new AuthenticationException("There is not 'Authorization' field in HttpServletRequest.");
 	}
 
-	private Credentials authenticateValidRequest(HttpServletRequest request, String userId, String password) throws Exception {
+	private Credentials authenticateValidRequest(HttpServletRequest request, String userId, char[] password) throws Exception {
 		try {
 			return authenticationService.authenticateValidRequest(request, userId, password);
 		} catch (AuthFault e) {

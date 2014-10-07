@@ -42,8 +42,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
-import org.easymock.IMocksControl;
 import org.assertj.core.api.Assertions;
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.icalendar.Ical4jHelper;
@@ -100,7 +100,7 @@ public class EventServiceImplTest {
 	public void testOBMFULL3526() throws EventParsingException, ConversionException, IOException, DaoException {
 		
 		UserDataRequest udr = new UserDataRequest(
-				new Credentials(User.Factory.create().createUser("user@domain", "user@domain", null), "password"), null, null);
+				new Credentials(User.Factory.create().createUser("user@domain", "user@domain", null), "password".toCharArray()), null, null);
 		AccessToken accessToken = new AccessToken(1, "origin");
 		AccessTokenResource accessTokenResource = mocksControl.createMock(AccessTokenResource.class);
 		expect(accessTokenResource.getAccessToken())
@@ -134,7 +134,7 @@ public class EventServiceImplTest {
 		Device device = device();
 
 		User user = user();
-		Credentials credentials = new Credentials(user, "password");
+		Credentials credentials = new Credentials(user, "password".toCharArray());
 
 		UserDataRequest udr = mocksControl.createMock(UserDataRequest.class);
 		expect(udr.getDevice()).andReturn(device).once();
@@ -175,7 +175,7 @@ public class EventServiceImplTest {
 		Device device = device();
 
 		User user = user();
-		Credentials credentials = new Credentials(user, "password");
+		Credentials credentials = new Credentials(user, "password".toCharArray());
 
 		UserDataRequest udr = mocksControl.createMock(UserDataRequest.class);
 		expect(udr.getDevice()).andReturn(device).once();

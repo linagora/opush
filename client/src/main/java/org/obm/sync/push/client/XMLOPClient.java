@@ -56,10 +56,9 @@ import org.obm.push.wbxml.WBXmlException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-
 public class XMLOPClient extends OPClient {
 
-	public XMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, String password, DeviceId devId,
+	public XMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, char[] password, DeviceId devId,
 			String devType, String userAgent, int port) {
 		
 		super(httpClient, loginAtDomain, password, devId, devType, userAgent, buildServiceUrl(port), ProtocolVersion.V121);

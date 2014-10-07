@@ -76,14 +76,14 @@ public class WBXMLOPClient extends OPClient {
 		}
 
 		public WBXMLOPClient create(
-				CloseableHttpClient httpClient, String loginAtDomain, String password,
+				CloseableHttpClient httpClient, String loginAtDomain, char[] password,
 				DeviceId devId, String devType, String userAgent, String serverUrl) {
 			return new WBXMLOPClient(httpClient, loginAtDomain, password,
 					devId, devType, userAgent, serverUrl, wbxmlTools, ProtocolVersion.V121);
 		}
 
 		public WBXMLOPClient create(
-				CloseableHttpClient httpClient, String loginAtDomain, String password, 
+				CloseableHttpClient httpClient, String loginAtDomain, char[] password, 
 				DeviceId devId, String devType, String userAgent, String serverAddress, int port,
 				String webApp, ProtocolVersion protocolVersion) {
 			
@@ -98,7 +98,7 @@ public class WBXMLOPClient extends OPClient {
 	
 	private final WBXMLTools wbxmlTools;
 
-	private WBXMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, String password,
+	private WBXMLOPClient(CloseableHttpClient httpClient, String loginAtDomain, char[] password,
 			DeviceId devId, String devType, String userAgent, String serviceUrl, WBXMLTools wbxmlTools, ProtocolVersion protocolVersion) {
 
 		super(httpClient, loginAtDomain, password, devId, devType, userAgent, serviceUrl, protocolVersion);

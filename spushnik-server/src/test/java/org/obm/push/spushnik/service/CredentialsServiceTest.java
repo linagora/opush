@@ -47,7 +47,6 @@ import org.obm.push.spushnik.bean.Credentials;
 
 import com.google.common.io.ByteStreams;
 
-
 public class CredentialsServiceTest {
 
 	@Rule 
@@ -65,7 +64,7 @@ public class CredentialsServiceTest {
 		InputStream certificateInputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("pkcs_pwd_toto.p12");
 		service.validate(Credentials.builder()
 					.loginAtDomain("user@domain")
-					.password("password")
+					.password("password".toCharArray())
 					.pkcs12(ByteStreams.toByteArray(certificateInputStream))
 					.pkcs12Password("toto")
 					.build());
@@ -74,11 +73,10 @@ public class CredentialsServiceTest {
 	@Test
 	public void testCredentialsWithBadCertificate() throws Exception {
 		thrown.expect(InvalidCredentialsException.class);
-		thrown.expectMessage("Invalid certificate");
 		InputStream certificateInputStream = IOUtils.toInputStream("I'm not a pkcs12 file");
 		service.validate(Credentials.builder()
 					.loginAtDomain("user@domain")
-					.password("password")
+					.password("password".toCharArray())
 					.pkcs12(ByteStreams.toByteArray(certificateInputStream))
 					.pkcs12Password("")
 					.build());
@@ -88,16 +86,15 @@ public class CredentialsServiceTest {
 	public void testCredentialsWithoutCertificate() throws InvalidCredentialsException {
 		service.validate(Credentials.builder()
 					.loginAtDomain("user@domain")
-					.password("password")
+					.password("password".toCharArray())
 					.build());
 	}
 	
 	@Test
 	public void testCredentialsWithEmptyLogin() throws Exception {
 		thrown.expect(InvalidCredentialsException.class);
-		thrown.expectMessage("Invalid loginAtDomain");
 		Credentials credentials = createMock(Credentials.class);
-		expect(credentials.getLoginAtDomain()).andReturn("").times(2);
+		expect(credentials.getLoginAtDomain()).andReturn("");
 		
 		replay(credentials);
 		try {
@@ -111,10 +108,9 @@ public class CredentialsServiceTest {
 	@Test
 	public void testCredentialsWithEmptyPassword() throws Exception {
 		thrown.expect(InvalidCredentialsException.class);
-		thrown.expectMessage("Invalid password");
 		Credentials credentials = createMock(Credentials.class);
 		expect(credentials.getLoginAtDomain()).andReturn("login@domain");
-		expect(credentials.getPassword()).andReturn("").times(2);
+		expect(credentials.getPassword()).andReturn("".toCharArray());
 		
 		replay(credentials);
 		try {

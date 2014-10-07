@@ -115,7 +115,7 @@ public class ContactsBackendHierarchyChangesTest {
 	public void setUp() {
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
-		userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		accessToken = new AccessToken(0, "OBM");
 		httpClient = HttpClientBuilder.create().build();
 		

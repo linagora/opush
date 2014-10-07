@@ -48,7 +48,7 @@ public class Credentials {
 	
 	public static class Builder {
 		private String loginAtDomain;
-		private String password;
+		private char[] password;
 		private String pkcs12Password;
 		private byte[] pkcs12;
 		
@@ -61,7 +61,7 @@ public class Credentials {
 			return this;
 		}
 		
-		public Builder password(String password) {
+		public Builder password(char[] password) {
 			this.password = password;
 			return this;
 		}
@@ -84,7 +84,7 @@ public class Credentials {
 	}
 	
 	private final String loginAtDomain;
-	private final String password;
+	private final char[] password;
 	private final String pkcs12Password;
 	private final byte[] pkcs12;
 
@@ -92,7 +92,7 @@ public class Credentials {
 		this(null, null, null, null);
 	}
 	
-	private Credentials(String loginAtDomain, String password, String pkcs12Password, byte[] pkcs12) {
+	private Credentials(String loginAtDomain, char[] password, String pkcs12Password, byte[] pkcs12) {
 		this.loginAtDomain = loginAtDomain;
 		this.password = password;
 		this.pkcs12 = pkcs12;
@@ -103,7 +103,7 @@ public class Credentials {
 		return loginAtDomain;
 	}
 	
-	public String getPassword() {
+	public char[] getPassword() {
 		return password;
 	}
 	
@@ -120,7 +120,7 @@ public class Credentials {
 
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(loginAtDomain, password, Arrays.hashCode(pkcs12), pkcs12Password);
+		return Objects.hashCode(loginAtDomain, Arrays.hashCode(password), Arrays.hashCode(pkcs12), pkcs12Password);
 	}
 	
 	@Override
@@ -128,7 +128,7 @@ public class Credentials {
 		if (object instanceof Credentials) {
 			Credentials that = (Credentials) object;
 			return Objects.equal(this.loginAtDomain, that.loginAtDomain)
-				&& Objects.equal(this.password, that.password)
+				&& Arrays.equals(this.password, that.password)
 				&& Objects.equal(this.pkcs12Password, that.pkcs12Password)
 				&& Arrays.equals(this.pkcs12, that.pkcs12);
 		}

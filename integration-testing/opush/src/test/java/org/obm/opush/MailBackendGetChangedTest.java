@@ -142,7 +142,7 @@ public class MailBackendGetChangedTest {
 		user = users.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
-		greenMailUser = greenMail.setUser(mailbox, user.password);
+		greenMailUser = greenMail.setUser(mailbox, String.valueOf(user.password));
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 

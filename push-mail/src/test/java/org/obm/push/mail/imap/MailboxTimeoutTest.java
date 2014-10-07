@@ -74,14 +74,14 @@ public class MailboxTimeoutTest {
 	
 	private UserDataRequest udr;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	
 	@Before
 	public void setup() {
 		greenMail.start();
 		mailbox = "to@localhost.com";
-		password = "password";
-		greenMail.setUser(mailbox, password);
+		password = "password".toCharArray();
+		greenMail.setUser(mailbox, String.valueOf(password));
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 					.createUser(mailbox, mailbox, null), password), null, null);

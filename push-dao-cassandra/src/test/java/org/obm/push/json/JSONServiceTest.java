@@ -1170,7 +1170,7 @@ public class JSONServiceTest {
 	@Test
 	public void testSerializeCredentials() {
 		User user = Factory.create().createUser("login@titi", "email", "displayName");
-		Credentials credentials = new Credentials(user, "tata");
+		Credentials credentials = new Credentials(user, "tata".toCharArray());
 		
 		String serialized = new JSONService().serialize(credentials);
 		assertThat(serialized).isEqualTo(
@@ -1197,7 +1197,7 @@ public class JSONServiceTest {
 				"}");
 		
 		User user = Factory.create().createUser("login@titi", "email", "displayName");
-		Credentials expectedCredentials = new Credentials(user, "tata");
+		Credentials expectedCredentials = new Credentials(user, "tata".toCharArray());
 		assertThat(credentials).isEqualTo(expectedCredentials);
 	}
 	

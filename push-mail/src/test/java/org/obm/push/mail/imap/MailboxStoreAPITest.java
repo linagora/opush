@@ -72,7 +72,7 @@ public class MailboxStoreAPITest {
 	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject GreenMail greenMail;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 	private String inboxPath;
 
@@ -80,8 +80,8 @@ public class MailboxStoreAPITest {
 	public void setUp() {
 		greenMail.start();
 		mailbox = "to@localhost.com";
-		password = "password";
-		greenMail.setUser(mailbox, password);
+		password = "password".toCharArray();
+		greenMail.setUser(mailbox, String.valueOf(password));
 		udr = new UserDataRequest(
     				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

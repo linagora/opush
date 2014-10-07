@@ -32,6 +32,7 @@
 package org.obm.push.bean;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import com.google.common.base.Objects;
 
@@ -40,15 +41,15 @@ public class Credentials implements Serializable {
 	private static final long serialVersionUID = -5303791394042961175L;
 	
 	private final User user;
-	private final String password;
+	private final char[] password;
 
-	public Credentials(User user, String password) {
+	public Credentials(User user, char[] password) {
 		super();
 		this.user = user;
 		this.password = password;
 	}
 
-	public String getPassword() {
+	public char[] getPassword() {
 		return password;
 	}
 
@@ -58,7 +59,7 @@ public class Credentials implements Serializable {
 
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(user, password);
+		return Objects.hashCode(user, Arrays.hashCode(password));
 	}
 	
 	@Override
@@ -66,7 +67,7 @@ public class Credentials implements Serializable {
 		if (object instanceof Credentials) {
 			Credentials that = (Credentials) object;
 			return Objects.equal(this.user, that.user)
-				&& Objects.equal(this.password, that.password);
+				&& Arrays.equals(this.password, that.password);
 		}
 		return false;
 	}
@@ -75,6 +76,7 @@ public class Credentials implements Serializable {
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("user", user)
+			.add("password", password)
 			.toString();
 	}
 	

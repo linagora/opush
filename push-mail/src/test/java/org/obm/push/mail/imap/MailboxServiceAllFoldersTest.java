@@ -61,7 +61,7 @@ public class MailboxServiceAllFoldersTest {
 
 	@Inject GreenMail greenMail;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private MailboxTestUtils testUtils;
 	private Date beforeTest;
 	private UserDataRequest udr;
@@ -71,8 +71,8 @@ public class MailboxServiceAllFoldersTest {
 		beforeTest = new Date();
 		greenMail.start();
 		mailbox = "to@localhost.com";
-		password = "password";
-		greenMail.setUser(mailbox, password);
+		password = "password".toCharArray();
+		greenMail.setUser(mailbox, String.valueOf(password));
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

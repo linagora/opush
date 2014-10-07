@@ -33,6 +33,7 @@ package org.obm.push.spushnik.resources;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -90,7 +91,7 @@ public class ScenarioTest {
 	}
 	
 	String loginAtDomain;
-	String password;
+	char[] password;
 	String serverUrl;
 	WBXMLOPClient opushClient;
 	Credentials noCertificateCredentials;
@@ -104,12 +105,12 @@ public class ScenarioTest {
 	public void setUp() {
 		serverUrl = "http://localhost";
 		loginAtDomain = "user@domain";
-		password = "pwd";
+		password = "pwd".toCharArray();
 		noCertificateCredentials = Credentials.builder().loginAtDomain(loginAtDomain).password(password).build();
 
 		opushClient = mocks.createMock(WBXMLOPClient.class);
 		expect(opushClientFactory.create(anyObject(CloseableHttpClient.class),
-				eq(loginAtDomain), eq(password), eq(DEVICE_ID), eq(DEV_TYPE), eq(USER_AGENT), eq(serverUrl)))
+				eq(loginAtDomain), aryEq(password), eq(DEVICE_ID), eq(DEV_TYPE), eq(USER_AGENT), eq(serverUrl)))
 			.andReturn(opushClient);
 	}
 

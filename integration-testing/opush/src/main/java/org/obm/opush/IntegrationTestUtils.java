@@ -83,6 +83,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.icegreen.greenmail.user.GreenMailUser;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 public class IntegrationTestUtils {
 
 	public static void expectSyncState(StateMachine stateMachine, SyncKey syncKey, ItemSyncState syncState) throws DaoException {
@@ -96,7 +98,7 @@ public class IntegrationTestUtils {
 	}
 	
 	public static void expectUserLoginFromOpush(LoginClient loginClient, OpushUser user) throws AuthFault {
-		expect(loginClient.authenticate(user.user.getLoginAtDomain(), user.password)).andReturn(user.accessToken).anyTimes();
+		expect(loginClient.authenticate(user.user.getLoginAtDomain(), UserPassword.valueOf(String.valueOf(user.password)))).andReturn(user.accessToken).anyTimes();
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
 	}

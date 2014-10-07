@@ -56,7 +56,7 @@ public class MockBasedImapMailboxServiceTest {
 	@Before
 	public void setUp() {
 		String mailbox = "user@domain";
-		String password = "password";
+		char[] password = "password".toCharArray();
 	    udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

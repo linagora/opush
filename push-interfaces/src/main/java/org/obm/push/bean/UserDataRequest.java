@@ -67,7 +67,7 @@ public class UserDataRequest {
 		return credentials.getUser();
 	}
 
-	public String getPassword() {
+	public char[] getPassword() {
 		return credentials.getPassword();
 	}
 

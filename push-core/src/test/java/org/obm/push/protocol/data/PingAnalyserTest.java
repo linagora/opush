@@ -84,7 +84,7 @@ public class PingAnalyserTest {
 	public void setup() {
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), null);
 		user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
-		credentials = new Credentials(user, "test");
+		credentials = new Credentials(user, "test".toCharArray());
 		udr = new UserDataRequest(credentials, "Sync", device);
 		collectionPath = "INBOX";
 		collectionId = 5;

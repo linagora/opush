@@ -83,7 +83,7 @@ public class StateMachineTest {
 
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		device = new Device.Factory().create(3, "type", "agent", new DeviceId("my phone"), ProtocolVersion.V121);
-		udr = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		udr = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		
 		control = createControl();
 	}

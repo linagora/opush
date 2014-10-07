@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -66,7 +66,7 @@ public class SessionServiceTest {
 	@Before
 	public void setup() {
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
-		credentials = new Credentials(user, "test");
+		credentials = new Credentials(user, "test".toCharArray());
 		deviceId = new DeviceId("devId");
 		command = "autodiscover";
 		protocolVersion = ProtocolVersion.V121;

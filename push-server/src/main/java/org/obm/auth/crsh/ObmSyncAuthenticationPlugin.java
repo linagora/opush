@@ -44,6 +44,8 @@ import org.obm.sync.client.login.LoginClient;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 @SuppressWarnings("rawtypes")
 public class ObmSyncAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugin> 
 	implements AuthenticationPlugin<String> {
@@ -61,7 +63,7 @@ public class ObmSyncAuthenticationPlugin extends CRaSHPlugin<AuthenticationPlugi
 	public boolean authenticate(String username, String password) throws IOException {
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			return loginClientFactory.create(httpClient)
-					.authenticateAdmin(username, password, consoleConfiguration.authoritativeDomain());
+					.authenticateAdmin(username, UserPassword.valueOf(password), consoleConfiguration.authoritativeDomain());
 		} catch (AuthFault e) {
 			return false;
 		}

@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 import java.util.Properties;
@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.obm.push.bean.User.Factory;
 
 import com.google.common.collect.Maps;
-
 
 public class UserDataRequestTest {
 
@@ -57,7 +56,7 @@ public class UserDataRequestTest {
 	@Before
 	public void setUp() {
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
-		credentials = new Credentials(user, "test");
+		credentials = new Credentials(user, "test".toCharArray());
 		command = "command";
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), null);
 	}

@@ -127,7 +127,7 @@ public class MailBackendImplTest {
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		devId = new DeviceId("my phone");
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", devId, null);
-		udr = new UserDataRequest(new Credentials(user, "password"),  null, device);
+		udr = new UserDataRequest(new Credentials(user, "password".toCharArray()),  null, device);
 		
 		control = createControl();
 		

@@ -67,7 +67,7 @@ public abstract class MonitoredCollectionDaoTest {
 	public void setUp() {
 		user = Factory.create().createUser("login@domain", "email@domain", "displayName");
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
-		credentials = new Credentials(user, "password");
+		credentials = new Credentials(user, "password".toCharArray());
 	}
 
 	

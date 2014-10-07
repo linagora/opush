@@ -49,7 +49,7 @@ public class Users {
 	
 	public static class OpushUser {
 		public User user;
-		public String password;
+		public char[] password;
 		public String deviceType;
 		public DeviceId deviceId;
 		public ProtocolVersion deviceProtocolVersion;
@@ -71,11 +71,11 @@ public class Users {
 	public Users(User.Factory userFactory, AccessTokenResource.Factory accessTokenResourceFactory) {
 		this.userFactory = userFactory;
 		this.accessTokenResourceFactory = accessTokenResourceFactory;
-		jaures = buildUser("jaures", "jaur3s", "Jean Jaures");
-		blum = buildUser("blum", "b1um", "Léon Blum");
+		jaures = buildUser("jaures", "jaur3s".toCharArray(), "Jean Jaures");
+		blum = buildUser("blum", "b1um".toCharArray(), "Léon Blum");
 	}
 
-	public OpushUser buildUser(String login, String password, String fullname) {
+	public OpushUser buildUser(String login, char[] password, String fullname) {
 		OpushUser user = new OpushUser();
 		user.user = userFactory.createUser(login + "@sfio.fr", login + "@sfio.fr", fullname);
 		user.password = password;

@@ -105,7 +105,7 @@ public abstract class OPClient implements AutoCloseable {
 	public abstract <T> Future<T> postASyncXml(Async async, String namespace, Document doc, String cmd, String policyKey, boolean multipart, ResponseTransformer<T> documentHandler)
 			throws TransformerException, WBXmlException, IOException, HttpRequestException;
 	
-	protected OPClient(CloseableHttpClient httpClient, String loginAtDomain, String password,
+	protected OPClient(CloseableHttpClient httpClient, String loginAtDomain, char[] password,
 			DeviceId devId, String devType, String userAgent, String url, ProtocolVersion protocolVersion) {
 
 		setProtocolVersion(protocolVersion);

@@ -56,7 +56,7 @@ public class CountingMinigStoreClient extends MinigStoreClientImpl {
 		}
 		
 		@Override
-		public MinigStoreClient create(String hostname, String login, String password) {
+		public MinigStoreClient create(String hostname, String login, char[] password) {
 			StoreClient storeClient = storeClientFactory.create(hostname, login, password);
 			return new CountingMinigStoreClient(storeClient, counter);
 		}

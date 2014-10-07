@@ -31,7 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
@@ -142,9 +144,9 @@ public class AuthenticationFilterTest {
 
 	private void expectAuthentication(HttpServletRequest request) throws Exception {
 		User user = control.createMock(User.class);
-		Credentials credentials = new Credentials(user, "open sesame");
+		Credentials credentials = new Credentials(user, "open sesame".toCharArray());
 		expect(request.getHeader("Authorization")).andReturn("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-		expect(authService.authenticateValidRequest(request, "Aladdin", "open sesame")).andReturn(credentials);
+		expect(authService.authenticateValidRequest(eq(request), eq("Aladdin"), aryEq("open sesame".toCharArray()))).andReturn(credentials);
 		loggerService.defineUser(user);
 		expectLastCall();
 		request.setAttribute("credentials", credentials);
@@ -189,6 +191,6 @@ public class AuthenticationFilterTest {
 
 	private void expectExceptionByAuth(HttpServletRequest request, Exception exception) throws Exception {
 		expect(request.getHeader("Authorization")).andReturn("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-		expect(authService.authenticateValidRequest(request, "Aladdin", "open sesame")).andThrow(exception);
+		expect(authService.authenticateValidRequest(eq(request), eq("Aladdin"), aryEq("open sesame".toCharArray()))).andThrow(exception);
 	}
 }

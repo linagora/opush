@@ -49,7 +49,6 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.wbxml.WBXmlException;
 import org.w3c.dom.Document;
 
-
 public class OPClientTest {
 	
 	private OPClient opClient;
@@ -59,7 +58,7 @@ public class OPClientTest {
 	public void setUp() {
 		httpClient = HttpClientBuilder.create().build();
 		String loginAtDomain = "log@domain";
-		String password = "pwd";
+		char[] password = "pwd".toCharArray();
 		DeviceId devId = new DeviceId("devId");
 		String devType = "devType";
 		String userAgent = "userAgent";

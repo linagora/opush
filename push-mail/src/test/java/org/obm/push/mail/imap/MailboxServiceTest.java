@@ -84,7 +84,7 @@ public class MailboxServiceTest {
 	@Inject GreenMail greenMail;
 	ServerSetup smtpServerSetup;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private MailboxTestUtils testUtils;
 	private Date beforeTest;
 	private UserDataRequest udr;
@@ -95,8 +95,8 @@ public class MailboxServiceTest {
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
 		mailbox = "to@localhost.com";
-		password = "password";
-		greenMail.setUser(mailbox, password);
+		password = "password".toCharArray();
+		greenMail.setUser(mailbox, String.valueOf(password));
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
@@ -364,8 +364,8 @@ public class MailboxServiceTest {
 	public void testAcceptsNotASCIIUserPassword() throws Exception {
 		Date fromDate = DateUtils.getMidnightCalendar().getTime();
 		String user = "weird@localhost.com";
-		String weirdPassword = "password°£";
-		greenMail.setUser(user, weirdPassword);
+		char[] weirdPassword = "password°£".toCharArray();
+		greenMail.setUser(user, String.valueOf(weirdPassword));
 		UserDataRequest udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(user, user, null), weirdPassword), null, null);

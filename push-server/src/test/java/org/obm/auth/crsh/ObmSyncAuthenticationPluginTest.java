@@ -44,6 +44,8 @@ import org.obm.push.configuration.RemoteConsoleConfiguration;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.client.login.LoginClient;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 public class ObmSyncAuthenticationPluginTest {
 
 	IMocksControl mocks;
@@ -68,7 +70,7 @@ public class ObmSyncAuthenticationPluginTest {
 
 	@Test
 	public void authenticateShouldDelegateThenReturnTrueWhenSuccess() throws Exception {
-		expect(loginClient.authenticateAdmin("username", "password", "global.domain"))
+		expect(loginClient.authenticateAdmin("username", UserPassword.valueOf("password"), "global.domain"))
 			.andReturn(true);
 		
 		mocks.replay();
@@ -80,7 +82,7 @@ public class ObmSyncAuthenticationPluginTest {
 
 	@Test
 	public void authenticateShouldDelegateThenReturnFalseWhenFailed() throws Exception {
-		expect(loginClient.authenticateAdmin("username", "password", "global.domain"))
+		expect(loginClient.authenticateAdmin("username", UserPassword.valueOf("password"), "global.domain"))
 			.andThrow(new AuthFault("error"));
 
 		mocks.replay();
@@ -92,7 +94,7 @@ public class ObmSyncAuthenticationPluginTest {
 
 	@Test(expected=IllegalStateException.class)
 	public void authenticateShouldDelegateThenPropagateWhenError() throws Exception {
-		expect(loginClient.authenticateAdmin("username", "password", "global.domain"))
+		expect(loginClient.authenticateAdmin("username", UserPassword.valueOf("password"), "global.domain"))
 			.andThrow(new IllegalStateException());
 
 		mocks.replay();

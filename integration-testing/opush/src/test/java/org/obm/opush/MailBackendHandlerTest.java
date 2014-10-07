@@ -126,7 +126,7 @@ public class MailBackendHandlerTest {
 		greenMail.start();
 		smtpServerSetup = greenMail.getSmtp().getServerSetup();
 		mailbox = users.jaures.user.getLoginAtDomain();
-		greenMailUser = greenMail.setUser(mailbox, users.jaures.password);
+		greenMailUser = greenMail.setUser(mailbox, String.valueOf(users.jaures.password));
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 

@@ -101,6 +101,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 
 public class ContactsBackendTest {
 
@@ -132,7 +134,7 @@ public class ContactsBackendTest {
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
 		token = new AccessToken(0, "OBM");
-		userDataRequest = new UserDataRequest(new Credentials(user, "password"), "noCommand", device);
+		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		httpClient = HttpClientBuilder.create().build();
 		
 		mocks = createControl();
@@ -543,7 +545,7 @@ public class ContactsBackendTest {
 	}
 	
 	private void expectLoginBehavior(AccessToken token) throws AuthFault {
-		expect(loginService.login(userDataRequest.getUser().getLoginAtDomain(), userDataRequest.getPassword()))
+		expect(loginService.login(userDataRequest.getUser().getLoginAtDomain(), UserPassword.valueOf(String.valueOf(userDataRequest.getPassword()))))
 			.andReturn(token).anyTimes();
 		
 		loginService.logout(token);

@@ -42,6 +42,6 @@ public abstract class CredentialsMixIn {
 	@JsonCreator
 	public CredentialsMixIn(
 			@JsonProperty("user") User user, 
-			@JsonProperty("password") String password) {}
+			@JsonProperty("password") char[] password) {}
 
 }

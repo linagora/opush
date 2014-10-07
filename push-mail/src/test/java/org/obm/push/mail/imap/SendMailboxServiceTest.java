@@ -60,7 +60,7 @@ public class SendMailboxServiceTest {
 	@Inject GreenMail greenMail;
 	@Inject ICollectionPathHelper collectionPathHelper;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 
 
@@ -68,8 +68,8 @@ public class SendMailboxServiceTest {
 	public void setUp() {
 	    greenMail.start();
 	    mailbox = "to@localhost.com";
-	    password = "password";
-	    greenMail.setUser(mailbox, password);
+	    password = "password".toCharArray();
+	    greenMail.setUser(mailbox, String.valueOf(password));
 	    udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

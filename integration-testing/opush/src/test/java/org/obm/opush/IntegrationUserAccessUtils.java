@@ -46,6 +46,8 @@ import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.client.login.LoginClient;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 public class IntegrationUserAccessUtils {
 
 	public static void mockUsersAccess(ClassToInstanceAgregateView<Object> classToInstanceMap,
@@ -64,10 +66,11 @@ public class IntegrationUserAccessUtils {
 	}
 
 	public static void expectUserLoginFromOpush(LoginClient loginClient, OpushUser user) throws AuthFault {
-		expect(loginClient.login(user.user.getLoginAtDomain(), user.password)).andReturn(user.accessToken).anyTimes();
+		UserPassword userPassword = UserPassword.valueOf(String.valueOf(user.password));
+		expect(loginClient.login(user.user.getLoginAtDomain(), userPassword)).andReturn(user.accessToken).anyTimes();
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
-		expect(loginClient.authenticate(user.user.getLoginAtDomain(), user.password)).andReturn(user.accessToken).anyTimes();
+		expect(loginClient.authenticate(user.user.getLoginAtDomain(), userPassword)).andReturn(user.accessToken).anyTimes();
 	}
 
 

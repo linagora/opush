@@ -69,7 +69,7 @@ public class ContentsExporterTest {
 	public void setUp() {
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
-		credentials = new Credentials(user, "password");
+		credentials = new Credentials(user, "password".toCharArray());
 		udr = new UserDataRequest(credentials, "noCommand", device);
 		
 		mocks = createControl();

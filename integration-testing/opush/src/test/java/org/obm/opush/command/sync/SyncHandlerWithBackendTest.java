@@ -146,6 +146,8 @@ import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 
+import fr.aliacom.obm.common.user.UserPassword;
+
 @GuiceModule(SyncHandlerWithBackendTestModule.class)
 @RunWith(GuiceRunner.class)
 public class SyncHandlerWithBackendTest {
@@ -200,7 +202,7 @@ public class SyncHandlerWithBackendTest {
 		user = users.jaures;
 		greenMail.start();
 		mailbox = user.user.getLoginAtDomain();
-		greenMailUser = greenMail.setUser(mailbox, user.password);
+		greenMailUser = greenMail.setUser(mailbox, String.valueOf(user.password));
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
@@ -1097,7 +1099,7 @@ public class SyncHandlerWithBackendTest {
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
 		// Login is done in authentication
-		expect(loginClient.authenticate(user.user.getLoginAtDomain(), user.password))
+		expect(loginClient.authenticate(user.user.getLoginAtDomain(), UserPassword.valueOf(String.valueOf(user.password))))
 			.andReturn(user.accessToken).anyTimes();
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, 
@@ -1153,10 +1155,10 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testUserPasswordWithDegreeSentAsISO() throws Exception {
-		String complexPassword = "password°";
+		char[] complexPassword = "password°".toCharArray();
 		OpushUser user = users.buildUser("jaures", complexPassword, "Jean Jaures");
 		String userEmail = user.user.getLoginAtDomain();
-		greenMail.setUser(userEmail, complexPassword);
+		greenMail.setUser(userEmail, String.valueOf(complexPassword));
 		bindCollectionIdToPath();
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("663e5b84-e6ba-472b-a385-18f7f92e99d6");
@@ -1184,7 +1186,7 @@ public class SyncHandlerWithBackendTest {
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
 		// Login is done in authentication
-		expect(loginClient.authenticate(userEmail, complexPassword)).andReturn(user.accessToken).anyTimes();
+		expect(loginClient.authenticate(userEmail, UserPassword.valueOf(String.valueOf(complexPassword)))).andReturn(user.accessToken).anyTimes();
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, user.deviceId, user.userAgent, user.deviceProtocolVersion))
 			.andReturn(user.device).anyTimes();

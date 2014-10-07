@@ -39,7 +39,7 @@ import org.obm.push.bean.UserDataRequest;
 
 public class OpushUser {
 
-	public static OpushUser create(String login, String password) {
+	public static OpushUser create(String login, char[] password) {
 		User user = User.Factory.create().createUser(login, login, null);
 		
 		OpushUser result = new OpushUser();
@@ -55,6 +55,6 @@ public class OpushUser {
 	public Device device;
 	public Credentials credentials;
 	public String login;
-	public String password;
+	public char[] password;
 		
 }

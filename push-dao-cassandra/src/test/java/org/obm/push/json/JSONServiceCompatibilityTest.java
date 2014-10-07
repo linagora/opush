@@ -211,7 +211,7 @@ public class JSONServiceCompatibilityTest {
 		Device device = new Device(1, "devType", new DeviceId("devId"), hints, ProtocolVersion.V121);
 
 		User user = Factory.create().createUser("login@titi", "email", "displayName");
-		Credentials credentials = new Credentials(user, "tata");
+		Credentials credentials = new Credentials(user, "tata".toCharArray());
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
 				.conflict(5)

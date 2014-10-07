@@ -103,7 +103,7 @@ public class SmartReplyHandlerTest {
 		cassandraServer.start();
 		user = users.jaures;
 		greenMail.start();
-		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), user.password);
+		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), String.valueOf(user.password));
 		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		

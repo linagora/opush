@@ -53,14 +53,15 @@ public class CredentialsService {
 	}
 
 	private void verifyNotEmptyPassword(Credentials credentials) throws InvalidCredentialsException {
-		if (Strings.isNullOrEmpty(credentials.getPassword())) {
-			throw new InvalidCredentialsException("Invalid password: " + credentials.getPassword());
+		String password = String.valueOf(credentials.getPassword());
+		if (Strings.isNullOrEmpty(password)) {
+			throw new InvalidCredentialsException();
 		}
 	}
 
 	private void verifyNotEmptyLoginAtDomain(Credentials credentials) throws InvalidCredentialsException {
 		if (Strings.isNullOrEmpty(credentials.getLoginAtDomain())) {
-			throw new InvalidCredentialsException("Invalid loginAtDomain: " + credentials.getLoginAtDomain());
+			throw new InvalidCredentialsException();
 		}
 	}
 

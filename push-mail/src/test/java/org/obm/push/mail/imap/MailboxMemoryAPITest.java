@@ -85,7 +85,7 @@ public class MailboxMemoryAPITest {
 	@Inject ICollectionPathHelper collectionPathHelper;
 	
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 	private long maxHeapSize;
 	private String inboxPath;
@@ -99,10 +99,10 @@ public class MailboxMemoryAPITest {
 	@Before
 	public void setUp() throws ExternalProcessException, InterruptedException {
 		mailbox = "to@localhost.com";
-		password = "password";
+		password = "password".toCharArray();
 		maxHeapSize = getTwiceThisHeapSize();
 		greenMailExternalProcess.setHeapMaxSize(maxHeapSize);
-		greenMailProcess = greenMailExternalProcess.startGreenMail(mailbox, password);
+		greenMailProcess = greenMailExternalProcess.startGreenMail(mailbox, String.valueOf(password));
 		
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()

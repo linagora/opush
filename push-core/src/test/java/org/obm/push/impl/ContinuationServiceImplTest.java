@@ -108,7 +108,7 @@ public class ContinuationServiceImplTest {
 	
 	private UserDataRequest getFakeUserDataRequest() {
 		
-		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test"), "Cmd", device);
+		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test".toCharArray()), "Cmd", device);
 		return udr;
 	}
 	

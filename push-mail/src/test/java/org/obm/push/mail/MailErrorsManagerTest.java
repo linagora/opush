@@ -74,7 +74,7 @@ public class MailErrorsManagerTest {
 	@Test
 	public void testPrepareMessage() throws ParseException, FileNotFoundException, IOException {
 		User user = User.Factory.create().createUser("test@domain", "test@domain", "displayName");
-		UserDataRequest userDataRequest = new UserDataRequest(new Credentials(user, "password"), null, null);
+		UserDataRequest userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), null, null);
 		
 		Mime4jUtils mime4jUtils = new Mime4jUtils();
 		

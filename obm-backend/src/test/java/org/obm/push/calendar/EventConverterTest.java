@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.calendar;
 
-import static org.easymock.EasyMock.createMock;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -174,7 +174,7 @@ public class EventConverterTest {
 		String displayName = "displayName";
 
 		Credentials credentials = new Credentials( 
-				Factory.create().createUser(loginAtDomain, email, displayName), "password");
+				Factory.create().createUser(loginAtDomain, email, displayName), "password".toCharArray());
 		UserDataRequest userDataRequest = buildUserDataRequest(credentials);
 		
 		IApplicationData data = getApplicationData("OBMFULL-2907.xml");
@@ -219,7 +219,7 @@ public class EventConverterTest {
 	
 	private UserDataRequest buildUserDataRequest(String userId) {
 		User user = Factory.create().createUser(userId, "email@domain", "displayName");
-		return buildUserDataRequest(new Credentials(user, "test"));
+		return buildUserDataRequest(new Credentials(user, "test".toCharArray()));
 	}
 	
 	private UserDataRequest buildUserDataRequest(Credentials credentials) {

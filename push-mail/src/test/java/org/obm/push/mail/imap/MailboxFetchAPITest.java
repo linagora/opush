@@ -103,7 +103,7 @@ public class MailboxFetchAPITest {
 	
 	private ServerSetup smtpServerSetup;
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 	private MailboxTestUtils testUtils;
 	private Date beforeTest;
@@ -115,8 +115,8 @@ public class MailboxFetchAPITest {
 		this.greenMail.start();
 		this.smtpServerSetup = greenMail.getSmtp().getServerSetup();
 		this.mailbox = "to@localhost.com";
-	    this.password = "password";
-	    this.greenMailUser = this.greenMail.setUser(mailbox, password);
+	    this.password = "password".toCharArray();
+	    this.greenMailUser = this.greenMail.setUser(mailbox, String.valueOf(password));
 	    this.udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);

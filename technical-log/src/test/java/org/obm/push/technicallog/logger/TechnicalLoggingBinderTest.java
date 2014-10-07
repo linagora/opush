@@ -31,12 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.technicallog.logger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -56,7 +56,6 @@ import org.obm.push.technicallog.bean.ResourceType;
 import org.obm.push.technicallog.bean.jaxb.Request;
 import org.obm.push.technicallog.bean.jaxb.Resource;
 import org.obm.push.technicallog.bean.jaxb.Transaction;
-
 
 public class TechnicalLoggingBinderTest {
 	
@@ -176,7 +175,7 @@ public class TechnicalLoggingBinderTest {
 	
 	private UserDataRequest getFakeUserDataRequest() {
 		User user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
-		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test"),
+		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test".toCharArray()),
 				"Sync", getFakeDevice());
 		return udr;
 	}

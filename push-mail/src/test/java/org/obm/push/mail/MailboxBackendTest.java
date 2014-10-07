@@ -103,7 +103,7 @@ import com.google.common.primitives.Ints;
 public class MailboxBackendTest {
 
 	private String mailbox;
-	private String password;
+	private char[] password;
 	private UserDataRequest udr;
 	private Device device;
 	
@@ -125,7 +125,7 @@ public class MailboxBackendTest {
 	@Before
 	public void setUp() {
 		mailbox = "to@localhost.com";
-		password = "password";
+		password = "password".toCharArray();
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), null);
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()

@@ -57,7 +57,7 @@ public class CollectionPathHelperTest {
 	public void setUp() {
 		collectionPathHelper = new CollectionPathHelper(mockEmailConfiguration());
 		String mailbox = "user@domain";
-		String password = "password";
+		char[] password = "password".toCharArray();
 	    udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
