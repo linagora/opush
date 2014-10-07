@@ -56,6 +56,7 @@ import org.obm.push.mail.bean.UIDEnvelope;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface MailboxService {
 	
@@ -78,7 +79,7 @@ public interface MailboxService {
 	
 	InputStream findAttachment(UserDataRequest udr, String collectionPath, Long mailUid, MimeAddress mimePartAddress) throws MailException;
 
-	MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, Integer collectionId) throws MailException, DaoException;
+	MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, CollectionId collectionId) throws MailException, DaoException;
 
 	/**
 	 * Store the mail's inputstream in INBOX.

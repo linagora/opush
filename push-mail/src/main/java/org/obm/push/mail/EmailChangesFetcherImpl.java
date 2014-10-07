@@ -47,6 +47,7 @@ import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.index.IndexUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -69,7 +70,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	
 	@Override
 	public MSEmailChanges fetch(UserDataRequest udr,
-			int collectionId, String collectionPath,
+			CollectionId collectionId, String collectionPath,
 			List<BodyPreference> bodyPreferences, WindowingChanges<Email> emailChanges) throws EmailViewPartsFetcherException, DaoException {
 		Preconditions.checkNotNull(emailChanges, "emailChanges can not be null");
 		return MSEmailChanges.builder()
@@ -79,7 +80,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 				.build();
 	}
 
-	private Set<ItemDeletion> emailDeletions(final int collectionId, Set<Email> deletions) {
+	private Set<ItemDeletion> emailDeletions(final CollectionId collectionId, Set<Email> deletions) {
 		return FluentIterable
 				.from(deletions)
 				.transform(new Function<Email, ItemDeletion>() {
@@ -95,7 +96,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	}
 
 	private Set<ItemChange> emailAdditions(UserDataRequest udr,
-			final int collectionId, String collectionPath,
+			final CollectionId collectionId, String collectionPath,
 			List<BodyPreference> bodyPreferences, Set<Email> additions)
 					throws EmailViewPartsFetcherException, DaoException {
 		
@@ -108,7 +109,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					public ItemChange apply(Long uid) {
 						
 						return ItemChange.builder()
-								.serverId(ServerId.buildServerIdString(collectionId, uid))
+								.serverId(collectionId.serverId(uid))
 								.data(uidToMSEmailMap.get(uid))
 								.isNew(true)
 								.build();
@@ -117,7 +118,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 				).toSet();
 	}
 
-	private Set<ItemChange> emailChanges(final int collectionId, Set<Email> changes) {
+	private Set<ItemChange> emailChanges(final CollectionId collectionId, Set<Email> changes) {
 		return FluentIterable
 				.from(changes)
 				.transform(new Function<Email, ItemChange>() {
@@ -126,7 +127,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					public ItemChange apply(Email email) {
 						
 						return ItemChange.builder()
-								.serverId(ServerId.buildServerIdString(collectionId, email.getUid()))
+								.serverId(collectionId.serverId(email.getUid()))
 								.data(new MSEmailMetadata(email.isRead()))
 								.isNew(false)
 								.build();
@@ -137,7 +138,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	
 
 	private Map<Long, UidMSEmail> fetchMSEmails(UserDataRequest udr,
-			final int collectionId, String collectionPath,
+			final CollectionId collectionId, String collectionPath,
 			List<BodyPreference> bodyPreferences, Set<Email> changes)
 					throws EmailViewPartsFetcherException, DaoException {
 		

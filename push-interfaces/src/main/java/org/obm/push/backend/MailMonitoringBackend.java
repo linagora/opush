@@ -36,9 +36,10 @@ import java.util.Set;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface MailMonitoringBackend {
 
-	void startMonitoringCollection(UserDataRequest udr, Integer collectionId, Set<ICollectionChangeListener> registeredListeners) throws CollectionNotFoundException, DaoException;
+	void startMonitoringCollection(UserDataRequest udr, CollectionId collectionId, Set<ICollectionChangeListener> registeredListeners) throws CollectionNotFoundException, DaoException;
 	
 }

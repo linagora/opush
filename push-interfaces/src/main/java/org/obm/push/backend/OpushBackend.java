@@ -44,6 +44,7 @@ import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 
 import com.google.common.base.Predicate;
@@ -66,7 +67,7 @@ public abstract class OpushBackend {
 	protected void snapshotHierarchy(UserDataRequest udr, Iterable<CollectionPath> collections,
 			FolderSyncState outgoingSyncState) throws DaoException {
 
-		Set<Integer> collectionIds = Sets.newHashSet();
+		Set<CollectionId> collectionIds = Sets.newHashSet();
 		for (CollectionPath collection: collections) {
 			collectionIds.add(getOrCreateCollectionId(udr.getDevice(), collection));
 		}
@@ -75,7 +76,7 @@ public abstract class OpushBackend {
 		}
 	}
 	
-	private int getOrCreateCollectionId(Device device, CollectionPath collection)
+	private CollectionId getOrCreateCollectionId(Device device, CollectionPath collection)
 			throws DaoException {
 		
 		try {

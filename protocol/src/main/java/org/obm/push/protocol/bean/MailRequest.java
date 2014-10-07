@@ -33,19 +33,19 @@ package org.obm.push.protocol.bean;
 
 public class MailRequest {
 
-	private final String collectionId;
+	private final CollectionId collectionId;
 	private final String serverId;
 	private final boolean saveInSent;
 	private final byte[] mailContent;
 
-	public MailRequest(String collectionId, String serverId, boolean saveInSent, byte[] mailContent) {
+	public MailRequest(CollectionId collectionId, String serverId, boolean saveInSent, byte[] mailContent) {
 		this.collectionId = collectionId;
 		this.serverId = serverId;
 		this.saveInSent = saveInSent;
 		this.mailContent = mailContent;
 	}
 	
-	public String getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 	

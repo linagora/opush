@@ -36,6 +36,7 @@ import java.util.List;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +50,7 @@ public class SyncCollection {
 	public static class Builder {
 		private PIMDataType dataType;
 		private SyncKey syncKey;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private Boolean deletesAsMoves;
 		private Boolean changes;
 		private Integer windowSize;
@@ -69,8 +70,8 @@ public class SyncCollection {
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
-			this.collectionId = collectionId;
+		public Builder collectionId(CollectionId id) {
+			this.collectionId = id;
 			return this;
 		}
 		
@@ -112,10 +113,10 @@ public class SyncCollection {
 	private final SyncCollectionOptions options;
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 	private final List<SyncCollectionCommandDto> commands;
 	
-	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, Integer collectionId,
+	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
 			SyncCollectionOptions options, List<SyncCollectionCommandDto> commands) {
 		this.dataType = dataType;
@@ -139,7 +140,7 @@ public class SyncCollection {
 		return null;
 	}
 
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

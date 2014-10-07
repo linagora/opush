@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.Minutes;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -48,7 +49,7 @@ public class Sync {
 	
 	public static class Builder {
 
-		private final Map<Integer, AnalysedSyncCollection> collections;
+		private final Map<CollectionId, AnalysedSyncCollection> collections;
 		private Integer waitInMinutes;
 		
 		public Builder() {
@@ -74,10 +75,10 @@ public class Sync {
 		}
 	}
 	
-	private final Map<Integer, AnalysedSyncCollection> collections;
+	private final Map<CollectionId, AnalysedSyncCollection> collections;
 	private final int waitInSecond;
 	
-	private Sync(Map<Integer, AnalysedSyncCollection> collections, int waitInSecond) {
+	private Sync(Map<CollectionId, AnalysedSyncCollection> collections, int waitInSecond) {
 		this.collections = collections;
 		this.waitInSecond = waitInSecond;
 	}
@@ -90,7 +91,7 @@ public class Sync {
 		return ImmutableSet.copyOf(collections.values());
 	}
 	
-	public AnalysedSyncCollection getCollection(Integer collectionId) {
+	public AnalysedSyncCollection getCollection(CollectionId collectionId) {
 		return collections.get(collectionId);
 	}
 	

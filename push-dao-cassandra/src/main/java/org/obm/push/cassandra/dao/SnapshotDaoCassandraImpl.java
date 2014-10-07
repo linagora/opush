@@ -117,7 +117,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	private UUID selectSnapshotId(SnapshotKey snapshotKey) {
 		Where statement = select(SNAPSHOT_ID).from(SnapshotIndex.TABLE.get())
 				.where(eq(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId()))
-				.and(eq(COLLECTION_ID, snapshotKey.getCollectionId()))
+				.and(eq(COLLECTION_ID, snapshotKey.getCollectionId().asInt()))
 				.and(eq(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey())));
 		logger.debug("Select snapshot index query: {}", statement.getQueryString());
 
@@ -148,7 +148,7 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	private void insertNewIndex(SnapshotKey snapshotKey, UUID snapshotId) {
 		Insert statement = insertInto(SnapshotIndex.TABLE.get())
 			.value(DEVICE_ID, snapshotKey.getDeviceId().getDeviceId())
-			.value(COLLECTION_ID, snapshotKey.getCollectionId())
+			.value(COLLECTION_ID, snapshotKey.getCollectionId().asInt())
 			.value(SYNC_KEY, UUID.fromString(snapshotKey.getSyncKey().getSyncKey()))
 			.value(SNAPSHOT_ID, snapshotId);
 		logger.debug("Inserting {}", statement.getQueryString());

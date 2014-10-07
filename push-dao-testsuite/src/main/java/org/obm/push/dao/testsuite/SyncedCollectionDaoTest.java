@@ -47,6 +47,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.SyncedCollectionDao;
 
 @RunWith(GuiceRunner.class)
@@ -67,49 +68,49 @@ public abstract class SyncedCollectionDaoTest {
 
 	@Test
 	public void testGetWhenNoPut() {
-		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, 1);
+		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, CollectionId.of(1));
 		assertThat(syncCollection).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPutWithOtherDevice() {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		syncedCollectionDao.put(user, otherDevice, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user, otherDevice, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
 		
-		assertThat(syncedCollectionDao.get(credentials, device, 1)).isNull();
+		assertThat(syncedCollectionDao.get(credentials, device, CollectionId.of(1))).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPutWithOtherCredentials() {
 		User user2 = Factory.create().createUser("login@domain2", "email@domain2", "displayName2");
-		syncedCollectionDao.put(user2, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user2, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
 
-		assertThat(syncedCollectionDao.get(credentials, device, 1)).isNull();
+		assertThat(syncedCollectionDao.get(credentials, device, CollectionId.of(1))).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPut() {
-		syncedCollectionDao.put(user, device, buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY));
-		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, 1);
+		syncedCollectionDao.put(user, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, CollectionId.of(1));
 		assertThat(syncCollection).isNotNull();
-		assertThat(syncCollection.getCollectionId()).isEqualTo(1);
+		assertThat(syncCollection.getCollectionId()).isEqualTo(CollectionId.of(1));
 	}
 	
 	@Test
 	public void testGetWhenOverridingPut() {
 		SyncKey expectedSyncKey = new SyncKey("123");
-		AnalysedSyncCollection col = buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY);
+		AnalysedSyncCollection col = buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY);
 		syncedCollectionDao.put(user, device, col);
-		col = buildCollection(1, expectedSyncKey);
+		col = buildCollection(CollectionId.of(1), expectedSyncKey);
 		syncedCollectionDao.put(user, device, col);
 		
-		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, 1);
+		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, CollectionId.of(1));
 		assertThat(syncCollection).isNotNull();
-		assertThat(syncCollection.getCollectionId()).isEqualTo(1);
+		assertThat(syncCollection.getCollectionId()).isEqualTo(CollectionId.of(1));
 		assertThat(syncCollection.getSyncKey()).isEqualTo(expectedSyncKey);
 	}
 
-	protected AnalysedSyncCollection buildCollection(Integer id, SyncKey syncKey) {
+	protected AnalysedSyncCollection buildCollection(CollectionId id, SyncKey syncKey) {
 		return AnalysedSyncCollection.builder()
 				.collectionId(id)
 				.syncKey(syncKey)

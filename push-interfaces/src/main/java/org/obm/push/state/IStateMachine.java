@@ -42,10 +42,11 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface IStateMachine {
-	
-	ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException;
+
+	ItemSyncState lastKnownState(Device device, CollectionId collectionId) throws DaoException;
 	
 	ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException;
 	
@@ -53,8 +54,8 @@ public interface IStateMachine {
 	
 	FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException;
 	
-	void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
+	void allocateNewSyncState(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
 			throws DaoException, InvalidServerId;
 	
-	void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId;
+	void allocateNewSyncStateWithoutTracking(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId;
 }

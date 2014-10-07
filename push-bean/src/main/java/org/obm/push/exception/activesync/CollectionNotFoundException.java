@@ -31,18 +31,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.exception.activesync;
 
+import org.obm.push.protocol.bean.CollectionId;
+
 
 
 
 public class CollectionNotFoundException extends ActiveSyncException {
 
-	private Integer collectionId;
+	private CollectionId collectionId;
 	
 	public CollectionNotFoundException() {
 		super();
 	}
 	
-	public CollectionNotFoundException(int collectionId) {
+	public CollectionNotFoundException(CollectionId collectionId) {
 		super();
 		this.collectionId = collectionId;
 	}
@@ -59,7 +61,7 @@ public class CollectionNotFoundException extends ActiveSyncException {
 		super(cause);
 	}
 
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 	

@@ -49,6 +49,7 @@ import org.obm.push.impl.ListenerRegistration;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.monitor.CalendarMonitoringThread;
 import org.obm.push.monitor.ContactsMonitoringThread;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.state.IStateMachine;
 import org.obm.push.store.CollectionDao;
@@ -123,7 +124,7 @@ public class OBMBackend implements IBackend {
 	}
 
 	@Override
-	public void startEmailMonitoring(UserDataRequest udr, Integer collectionId) throws CollectionNotFoundException, DaoException {
+	public void startEmailMonitoring(UserDataRequest udr, CollectionId collectionId) throws CollectionNotFoundException, DaoException {
 		if (enablePush) {
 			emailBackend.startMonitoringCollection(udr, collectionId, registeredListeners);
 		}
@@ -147,7 +148,7 @@ public class OBMBackend implements IBackend {
 	}
 
 	@Override
-	public void resetCollection(UserDataRequest udr, Integer collectionId) throws DaoException {
+	public void resetCollection(UserDataRequest udr, CollectionId collectionId) throws DaoException {
 		logger.info("reset Collection {} For Full Sync devId {}", collectionId, udr.getDevId());
 		try {
 			collectionDao.resetCollection(udr.getDevice(), collectionId);

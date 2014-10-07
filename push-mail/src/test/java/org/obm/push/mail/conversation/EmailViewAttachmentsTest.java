@@ -44,6 +44,7 @@ import org.obm.push.mail.mime.ContentType;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimePart;
 import org.obm.push.mail.mime.MimePartImpl;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Optional;
 
@@ -58,7 +59,7 @@ public class EmailViewAttachmentsTest {
 	}
 	
 	private Optional<String> getDisplayNameOfMimePart(MimePart attachment) {
-		return EmailViewAttachments.builder().uid(1l).collectionId(15).selectDisplayName(attachment, 0);
+		return EmailViewAttachments.builder().uid(1l).collectionId(CollectionId.of(15)).selectDisplayName(attachment, 0);
 	}
 	
 	@Test
@@ -136,7 +137,7 @@ public class EmailViewAttachmentsTest {
 	public void builderShouldBuildWhenNoAttachment() {
 		EmailViewAttachments emailViewAttachments = EmailViewAttachments.builder()
 				.uid(789l)
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.build();
 		
 		assertThat(emailViewAttachments.getEmailViewAttachments()).isEmpty();
@@ -154,7 +155,7 @@ public class EmailViewAttachmentsTest {
 		control.replay();
 		EmailViewAttachments emailViewAttachments = EmailViewAttachments.builder()
 				.uid(789l)
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.addAttachment(mimePart)
 				.build();
 		control.verify();
@@ -189,7 +190,7 @@ public class EmailViewAttachmentsTest {
 		control.replay();
 		EmailViewAttachments emailViewAttachments = EmailViewAttachments.builder()
 				.uid(789l)
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.addAttachment(mimePart)
 				.addAttachment(mimePart2)
 				.build();
@@ -225,7 +226,7 @@ public class EmailViewAttachmentsTest {
 		control.replay();
 		EmailViewAttachments emailViewAttachments = EmailViewAttachments.builder()
 				.uid(789l)
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.addAttachment(mimePart)
 				.build();
 		control.verify();
@@ -259,7 +260,7 @@ public class EmailViewAttachmentsTest {
 		control.replay();
 		EmailViewAttachments emailViewAttachments = EmailViewAttachments.builder()
 				.uid(789l)
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.addAttachment(mimePart)
 				.addAttachment(mimePart2)
 				.build();

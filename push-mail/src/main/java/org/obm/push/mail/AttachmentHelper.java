@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Charsets;
 
@@ -46,11 +47,11 @@ public class AttachmentHelper {
 	public final static String CONTENT_TYPE = "contentType";
 	public final static String CONTENT_TRANSFERE_ENCODING = "contentTransferEncoding";
 
-	public static String getAttachmentId(String collectionId, String messageId,
+	public static String getAttachmentId(CollectionId collectionId, String messageId,
 			String mimePartAddress, String contentType,
 			String contentTransferEncoding) {
 		String ct = Base64.encodeBase64String(contentType.getBytes(Charsets.UTF_8));
-		String ret = collectionId + "_" + messageId + "_" + mimePartAddress
+		String ret = collectionId.asString() + "_" + messageId + "_" + mimePartAddress
 				+ "_" + ct;
 		if (contentTransferEncoding != null
 				&& !contentTransferEncoding.isEmpty()) {

@@ -53,6 +53,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.MeetingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
@@ -105,7 +106,7 @@ public class MeetingResponseHandlerTest {
 	
 	@Test
 	public void TestDeleteInvitationEmailGoesToTrash() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String reqId = "1:2";
 		
 		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, collectionId, reqId, true);

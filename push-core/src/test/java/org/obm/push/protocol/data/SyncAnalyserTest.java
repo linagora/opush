@@ -64,6 +64,7 @@ import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ServerErrorException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
@@ -80,7 +81,7 @@ public class SyncAnalyserTest {
 	private User user;
 	private Credentials credentials;
 	private String collectionPath;
-	private int collectionId;
+	private CollectionId collectionId;
 	
 	private IMocksControl mocks;
 	private SyncedCollectionDao syncedCollectionDao;
@@ -97,7 +98,7 @@ public class SyncAnalyserTest {
 		credentials = new Credentials(user, "test".toCharArray());
 		udr = new UserDataRequest(credentials, "Sync", device);
 		collectionPath = "INBOX";
-		collectionId = 5;
+		collectionId = CollectionId.of(5);
 
 		mocks = createControl();
 		syncedCollectionDao = mocks.createMock(SyncedCollectionDao.class);
@@ -386,7 +387,7 @@ public class SyncAnalyserTest {
 							"<Collection>" +
 								"<Class>Email</Class>" +
 								"<SyncKey>1234</SyncKey>" +
-								"<CollectionId>" + collectionId + "</CollectionId>" +
+								"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"</Collection>" +
 						"</Collections>" +
 					"</Sync>");
@@ -411,7 +412,7 @@ public class SyncAnalyserTest {
 							"<Collection>" +
 								"<Class>Calendar</Class>" +
 								"<SyncKey>1234</SyncKey>" +
-								"<CollectionId>" + collectionId + "</CollectionId>" +
+								"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"</Collection>" +
 						"</Collections>" +
 					"</Sync>");
@@ -450,7 +451,7 @@ public class SyncAnalyserTest {
 				"<Collections>" +
 					"<Collection>" +
 						"<SyncKey>" + syncKey +"</SyncKey>" +
-						"<CollectionId>" + collectionId + "</CollectionId>" +
+						"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 						options +
 					"</Collection>" +
 				"</Collections>" +
@@ -480,7 +481,7 @@ public class SyncAnalyserTest {
 					"<Collections>" +
 						"<Collection>" +
 							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
@@ -507,7 +508,7 @@ public class SyncAnalyserTest {
 					"<Collections>" +
 						"<Collection>" +
 							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<WindowSize>75</WindowSize>" +
 						"</Collection>" +
 					"</Collections>" +
@@ -534,7 +535,7 @@ public class SyncAnalyserTest {
 					"<Collections>" +
 						"<Collection>" +
 							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
@@ -559,7 +560,7 @@ public class SyncAnalyserTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
-							"<CollectionId>" +collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");

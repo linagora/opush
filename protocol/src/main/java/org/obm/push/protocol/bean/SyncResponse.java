@@ -81,6 +81,7 @@ public class SyncResponse {
 
 	public Collection<SyncCollectionResponse> getCollectionResponses() {
 		return collectionResponses;
+
 	}
 	
 	public SyncStatus getStatus() {

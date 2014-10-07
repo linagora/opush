@@ -85,6 +85,7 @@ import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.DateService;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -99,7 +100,7 @@ import com.google.common.collect.Sets;
 public class MailBackendImplTest {
 
 	private UserDataRequest udr;
-	private int collectionId;
+	private CollectionId collectionId;
 	private String collectionPath;
 	private DeviceId devId;
 	private Device device;
@@ -122,7 +123,7 @@ public class MailBackendImplTest {
 
 	@Before
 	public void setup() throws Exception {
-		collectionId = 13411;
+		collectionId = CollectionId.of(13411);
 		collectionPath = "mailboxCollectionPath";
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		devId = new DeviceId("my phone");

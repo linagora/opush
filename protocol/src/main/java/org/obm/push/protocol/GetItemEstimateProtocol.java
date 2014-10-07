@@ -43,6 +43,7 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.protocol.bean.GetItemEstimateRequest;
 import org.obm.push.protocol.bean.GetItemEstimateResponse;
@@ -75,7 +76,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 						.dataType(PIMDataType.recognizeDataType(dataClass))
 						.syncKey(syncKey)
 						.options(buildOptions(filterType))
-						.collectionId(Integer.valueOf(collectionId))
+						.collectionId(CollectionId.of(collectionId))
 						.build());
 			} catch (NumberFormatException e) {
 				throw new CollectionNotFoundException(e);
@@ -103,7 +104,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 			Element response = (Element) responses.item(i);
 			
 			Element collection = DOMUtils.getUniqueElement(response, "Collection");
-			Integer collectionId = Integer.valueOf(DOMUtils.getElementText(collection, "CollectionId"));
+			CollectionId collectionId = CollectionId.of(DOMUtils.getElementText(collection, "CollectionId"));
 			SyncCollectionResponse.Builder builder = SyncCollectionResponse.builder()
 				.collectionId(collectionId)
 				.status(SyncStatus.fromSpecificationValue(DOMUtils.getElementText(response, "Status")));
@@ -155,7 +156,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 	}
 	
 	private void createCollectionIdElement(SyncCollectionResponse syncCollection, Element collectionElement) {
-		DOMUtils.createElementAndText(collectionElement, "CollectionId", syncCollection.getCollectionId());
+		DOMUtils.createElementAndText(collectionElement, "CollectionId", syncCollection.getCollectionId().asString());
 	}
 
 	private void createEstimateElement(long estimate, Element collectionElement) {
@@ -180,19 +181,19 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 			}
 			
 			DOMUtils.createElementAndText(collection, "SyncKey", syncCollection.getSyncKey().getSyncKey());
-			DOMUtils.createElementAndText(collection, "CollectionId", syncCollection.getCollectionId());
+			DOMUtils.createElementAndText(collection, "CollectionId", syncCollection.getCollectionId().asString());
 		}
 		
 		return ret;
 	}
 	
-	public Document buildError(GetItemEstimateStatus status, Integer collectionId) {
+	public Document buildError(GetItemEstimateStatus status, CollectionId collectionId) {
 		Document document = createDocument();
 		Element responseNode = createResponseNode(document);
 		DOMUtils.createElementAndText(responseNode, "Status", status.getSpecificationValue());
 		if (collectionId != null) {
 			Element ce = DOMUtils.createElement(responseNode, "Collection");
-			DOMUtils.createElementAndText(ce, "CollectionId", String.valueOf(collectionId));
+			DOMUtils.createElementAndText(ce, "CollectionId", collectionId.asString());
 		}
 		return document;
 	}

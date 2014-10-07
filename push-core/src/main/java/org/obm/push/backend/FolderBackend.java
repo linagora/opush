@@ -34,6 +34,7 @@ package org.obm.push.backend;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 
 import com.google.inject.Inject;
@@ -50,7 +51,7 @@ public class FolderBackend {
 		this.mappingService = mappingService;
 	}
 
-	public int getServerIdFor(UserDataRequest udr) throws DaoException, CollectionNotFoundException {
+	public CollectionId getServerIdFor(UserDataRequest udr) throws DaoException, CollectionNotFoundException {
 		return mappingService.getCollectionIdFor(udr.getDevice(), getColName(udr));
 	}
 	

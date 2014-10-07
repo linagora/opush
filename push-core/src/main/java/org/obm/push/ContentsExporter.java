@@ -52,6 +52,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
@@ -96,7 +97,7 @@ public class ContentsExporter implements IContentsExporter {
 	}
 	
 	@Override
-	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, int collectionId, 
+	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, CollectionId collectionId, 
 			SyncCollectionOptions options, String fetchId, SyncKey newSyncKey) 
 					throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
 		
@@ -126,7 +127,7 @@ public class ContentsExporter implements IContentsExporter {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, int collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(UserDataRequest udr, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey) {
 		backends.getBackend(dataType)
 			.initialize(udr, collectionId, filterType, newSyncKey);
 	}

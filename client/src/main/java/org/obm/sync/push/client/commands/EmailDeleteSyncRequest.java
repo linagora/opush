@@ -34,6 +34,7 @@ package org.obm.sync.push.client.commands;
 import java.io.IOException;
 
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -43,7 +44,7 @@ import org.xml.sax.SAXException;
 
 public class EmailDeleteSyncRequest extends Sync {
 
-	public EmailDeleteSyncRequest(final SyncDecoder decoder, final SyncKey syncKey, final int collectionId, final String serverId)
+	public EmailDeleteSyncRequest(final SyncDecoder decoder, final SyncKey syncKey, final CollectionId collectionId, final String serverId)
 			throws SAXException, IOException {
 		
 		super(decoder, new TemplateDocument("EmailDeleteSyncRequest.xml") {
@@ -53,7 +54,7 @@ public class EmailDeleteSyncRequest extends Sync {
 				Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), "SyncKey");
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
-				collection.setTextContent(String.valueOf(collectionId));
+				collection.setTextContent(collectionId.asString());
 				Element servId = DOMUtils.getUniqueElement(document.getDocumentElement(), "ServerId");
 				servId.setTextContent(serverId);
 			}

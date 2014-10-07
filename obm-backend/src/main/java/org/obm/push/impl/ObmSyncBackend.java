@@ -52,6 +52,7 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -102,7 +103,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 	
 	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey) {
 		
-		final Integer collectionId = collection.getCollectionId();
+		final CollectionId collectionId = collection.getCollectionId();
 		
 		WindowingChangesDelta<WindowingItemType> allChanges = 
 				getAllChanges(udr, syncState, collectionId, collection.getOptions());
@@ -114,9 +115,9 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 		return continueWindowing(collection, key, newSyncKey);
 	}
 
-	protected abstract WindowingChangesDelta<WindowingItemType> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions);
+	protected abstract WindowingChangesDelta<WindowingItemType> getAllChanges(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions);
 
-	@VisibleForTesting DataDelta.Builder builderWithChangesAndDeletions(WindowingChanges<WindowingItemType> changes, final Integer collectionId) {
+	@VisibleForTesting DataDelta.Builder builderWithChangesAndDeletions(WindowingChanges<WindowingItemType> changes, final CollectionId collectionId) {
 		return DataDelta.builder()
 				.changes(FluentIterable.from(Iterables.concat(changes.additions(), changes.changes()))
 						.transform(new Function<WindowingItemType, ItemChange>() {

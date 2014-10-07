@@ -57,10 +57,11 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface PIMBackend {
 
-	String createOrUpdate(UserDataRequest udr, Integer collectionId,
+	String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
 			String serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, 
 			DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
@@ -69,7 +70,7 @@ public interface PIMBackend {
 	String move(UserDataRequest udr, String srcFolder, String dstFolder, String messageId)
 		throws CollectionNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException;
 	
-	void delete(UserDataRequest udr, Integer collectionId, String serverId, Boolean moveToTrash) 
+	void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
 			ProcessingEmailException, UnsupportedBackendFunctionException;
 	
@@ -78,11 +79,11 @@ public interface PIMBackend {
 	
 	PIMDataType getPIMDataType();
 	
-	List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
+	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
 			throws ProcessingEmailException, CollectionNotFoundException, 
 			DaoException, UnexpectedObmSyncServerException, ConversionException;
 
-	List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds,
+	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds,
 			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 		throws ProcessingEmailException, CollectionNotFoundException, 
 			DaoException, UnexpectedObmSyncServerException, ConversionException;
@@ -91,7 +92,7 @@ public interface PIMBackend {
 		throws DaoException, CollectionNotFoundException, 
 			UnexpectedObmSyncServerException, ProcessingEmailException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
 	
-	int getItemEstimateSize(UserDataRequest udr, ItemSyncState syncState, Integer collectionId, 
+	int getItemEstimateSize(UserDataRequest udr, ItemSyncState syncState, CollectionId collectionId, 
 		SyncCollectionOptions collectionOptions) throws CollectionNotFoundException, 
 		ProcessingEmailException, DaoException, UnexpectedObmSyncServerException, ConversionException,
 		FilterTypeChangedException, HierarchyChangedException;
@@ -99,5 +100,5 @@ public interface PIMBackend {
 	HierarchyCollectionChanges getHierarchyChanges(UserDataRequest userDataRequest, FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
 			throws DaoException, InvalidSyncKeyException;
 
-	void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey);
+	void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 }

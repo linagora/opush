@@ -79,6 +79,7 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
@@ -116,7 +117,7 @@ import com.google.inject.Singleton;
 @Watch(BreakdownGroups.EVENT)
 public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements org.obm.push.ICalendarBackend {
 
-	private static final String DEFAULT_CALENDAR_PARENT_ID = "0";
+	private static final CollectionId DEFAULT_CALENDAR_PARENT_ID = CollectionId.ROOT;
 	private static final String DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX = " calendar";
 	
 	private final EventConverter eventConverter;
@@ -222,10 +223,10 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			throws CollectionNotFoundException, DaoException {
 		
 		CollectionPath collectionPath = collection.collectionPath();
-		Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
+		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
 		
 		return CollectionChange.builder()
-				.collectionId(mappingService.collectionIdToString(collectionId))
+				.collectionId(collectionId)
 				.parentCollectionId(DEFAULT_CALENDAR_PARENT_ID)
 				.displayName(collection.displayName())
 				.folderType(getCollectionFolderType(udr, collectionPath))
@@ -245,9 +246,9 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	protected CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
 			throws CollectionNotFoundException, DaoException {
 		
-		Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
+		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
 		return CollectionDeletion.builder()
-				.collectionId(mappingService.collectionIdToString(collectionId))
+				.collectionId(collectionId)
 				.build();
 	}
 	
@@ -268,7 +269,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions) 
+	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 		
 		WindowingChangesDelta<WindowingEvent> allChanges = getAllChanges(udr, state, collectionId, collectionOptions);
@@ -281,7 +282,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	protected WindowingChangesDelta<WindowingEvent> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions) {
+	protected WindowingChangesDelta<WindowingEvent> getAllChanges(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions) {
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
 		AccessToken token = getAccessToken();
 		
@@ -377,7 +378,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return true;
 	}
 	
-	private CollectionPath buildCollectionPath(UserDataRequest udr, int collectionId) {
+	private CollectionPath buildCollectionPath(UserDataRequest udr, CollectionId collectionId) {
 		return collectionPathBuilderProvider
 			.get()
 			.userDataRequest(udr)
@@ -395,12 +396,12 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			.build();
 	}
 
-	private String getServerIdFor(Integer collectionId, EventObmId uid) {
+	private String getServerIdFor(CollectionId collectionId, EventObmId uid) {
 		return ServerId.buildServerIdString(collectionId, uid.getObmId());
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, Integer collectionId,
+	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
 			String serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, 
 			DaoException, UnexpectedObmSyncServerException, ItemNotFoundException, ConversionException, HierarchyChangedException {
@@ -554,7 +555,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, Integer collectionId, String serverId, Boolean moveToTrash) 
+	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException {
 
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
@@ -590,7 +591,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			logger.info("handleMeetingResponse = {}", event.getExtId());
 			Event obmEvent = createOrModifyInvitationEvent(at, event, collectionPath);
 			updateUserStatus(obmEvent, status, at, collectionPath);
-			Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
+			CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
 			return getServerIdFor(collectionId, obmEvent.getObmId());
 		} catch (org.obm.sync.NotAllowedException e) {
 			logger.warn(e.getMessage(), e);
@@ -705,7 +706,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
@@ -713,7 +714,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
@@ -766,7 +767,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }

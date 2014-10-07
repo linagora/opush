@@ -82,6 +82,7 @@ import org.obm.push.mail.mime.MimePart;
 import org.obm.push.mail.mime.MimePartImpl;
 import org.obm.push.mail.transformer.TestIdentityTransformerFactory;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -127,7 +128,7 @@ public class EmailViewPartsFetcherImplTest {
 	
 	private MessageFixture messageFixture;
 	private String messageCollectionName;
-	private Integer messageCollectionId;
+	private CollectionId messageCollectionId;
 	private String mailbox;
 	private char[] password;
 	private UserDataRequest udr;
@@ -147,7 +148,7 @@ public class EmailViewPartsFetcherImplTest {
 		messageFixture.attachment = Resources.getResource("ics/attendee.ics").openStream();
 		messageFixture.attachmentDecoded = Resources.getResource("ics/attendee.ics").openStream();
 		messageCollectionName = IMAP_INBOX_NAME;
-		messageCollectionId = 1;
+		messageCollectionId = CollectionId.of(1);
 		mimeAddress = new MimeAddress("address");
 		control = createControl();
 		mimePart = control.createMock(MimePart.class);
@@ -652,7 +653,7 @@ public class EmailViewPartsFetcherImplTest {
 			.mailTransformation(MailTransformation.NONE)
 			.build();
 		
-		EmailViewPartsFetcherImpl partsFetcher = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, 16);
+		EmailViewPartsFetcherImpl partsFetcher = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, CollectionId.of(16));
 		
 		control.replay();
 		long messageUid = 1l;
@@ -665,7 +666,7 @@ public class EmailViewPartsFetcherImplTest {
 	public void testEmlAttachmentIsALeaf() {
 		String attachmentName = "ForwardedMessage.eml";
 		long attachmentMailUid = 3;
-		int attachmentCollection = 12;
+		CollectionId attachmentCollection = CollectionId.of(12);
 		int attachmentSize = 1337;
 		
 		MimePart textPlain = MimePartImpl.builder().contentType("text/plain").build();
@@ -691,7 +692,7 @@ public class EmailViewPartsFetcherImplTest {
 		String expectedId = "at_" + attachmentMailUid + "_" + "0";
 		String expectedFileReference = AttachmentHelper
 				.getAttachmentId(
-					String.valueOf(attachmentCollection), String.valueOf(attachmentMailUid), 
+					attachmentCollection, String.valueOf(attachmentMailUid), 
 					rfc822EmbeddedAttachment.getAddress().getAddress(),
 					rfc822EmbeddedAttachment.getFullMimeType(),
 					rfc822EmbeddedAttachment.getContentTransfertEncoding());
@@ -1037,7 +1038,7 @@ public class EmailViewPartsFetcherImplTest {
 		TransformersFactory transformer = null;
 		MailboxService mailboxService = null;
 		List<BodyPreference> preferences = null;
-		return new EmailViewPartsFetcherImpl(transformer, mailboxService, preferences, udr, "collectionPath", 15);
+		return new EmailViewPartsFetcherImpl(transformer, mailboxService, preferences, udr, "collectionPath", CollectionId.of(15));
 	}
 	
 	@Test

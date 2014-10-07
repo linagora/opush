@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -45,10 +46,10 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands> i
 	
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
-	private final int collectionId;
+	private final CollectionId collectionId;
 	private final T commands;
 	
-	@VisibleForTesting AbstractSyncCollection(PIMDataType dataType, SyncKey syncKey, int collectionId, T commands) {
+	@VisibleForTesting AbstractSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId, T commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;
@@ -66,7 +67,7 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands> i
 		return null;
 	}
 
-	public int getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

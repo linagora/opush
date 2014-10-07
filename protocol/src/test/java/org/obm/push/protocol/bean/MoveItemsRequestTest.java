@@ -51,16 +51,16 @@ public class MoveItemsRequestTest {
 	public void summaryWhenSome() {
 		MoveItemsRequest request = MoveItemsRequest.builder()
 			.add(MoveItem.builder()
-				.destinationFolderId("dest1")
-				.sourceFolderId("src1")
+				.destinationFolderId(CollectionId.of(11))
+				.sourceFolderId(CollectionId.of(1))
 				.sourceMessageId("1").build())
 			.add(MoveItem.builder()
-				.destinationFolderId("dest2")
-				.sourceFolderId("src2")
+				.destinationFolderId(CollectionId.of(12))
+				.sourceFolderId(CollectionId.of(2))
 				.sourceMessageId("2").build())
 			.add(MoveItem.builder()
-				.destinationFolderId("dest3")
-				.sourceFolderId("src3")
+				.destinationFolderId(CollectionId.of(13))
+				.sourceFolderId(CollectionId.of(3))
 				.sourceMessageId("3").build())
 			.build();
 

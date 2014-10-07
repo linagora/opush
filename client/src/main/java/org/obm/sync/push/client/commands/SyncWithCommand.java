@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.protocol.data.SyncRequestFields;
 import org.obm.push.utils.DOMUtils;
@@ -47,7 +48,7 @@ import com.google.common.base.Strings;
 
 public class SyncWithCommand extends Sync {
 	
-	public SyncWithCommand(SyncDecoder decoder, SyncKey syncKey, String collectionId, SyncCommand command,
+	public SyncWithCommand(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, SyncCommand command,
 			String serverId, String clientId) throws SAXException, IOException {
 		this(decoder, new SyncWithCommandTemplate(syncKey, collectionId, command, serverId, clientId));
 	}
@@ -59,12 +60,12 @@ public class SyncWithCommand extends Sync {
 	public static class SyncWithCommandTemplate extends TemplateDocument {
 
 		protected final SyncKey syncKey;
-		protected final String collectionId;
+		protected final CollectionId collectionId;
 		protected final SyncCommand command;
 		protected final String serverId;
 		protected final String clientId;
 
-		protected SyncWithCommandTemplate(SyncKey syncKey, String collectionId, SyncCommand command,
+		protected SyncWithCommandTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
 				String serverId, String clientId) throws SAXException, IOException {
 			super("SyncWithCommandRequest.xml");
 			this.syncKey = syncKey;
@@ -79,7 +80,7 @@ public class SyncWithCommand extends Sync {
 			Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.SYNC_KEY.getName());
 			sk.setTextContent(syncKey.getSyncKey());
 			Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COLLECTION_ID.getName());
-			collection.setTextContent(collectionId);
+			collection.setTextContent(collectionId.asString());
 			
 			Element commandsEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COMMANDS.getName());
 			Element commandEl = DOMUtils.createElement(commandsEl, command.asSpecificationValue());

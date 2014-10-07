@@ -56,6 +56,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
 import org.obm.push.protocol.bean.PingResponse;
@@ -125,11 +126,11 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new Options());
 	}
 
-	public Boolean emailReply(byte[] emailData, int collectionId, ServerId serverId) throws Exception {
+	public Boolean emailReply(byte[] emailData, CollectionId collectionId, ServerId serverId) throws Exception {
 		return run(new SmartReply(emailData, collectionId, serverId));
 	}
 
-	public Boolean emailForward(byte[] emailData, int collectionId, ServerId serverId) throws Exception {
+	public Boolean emailForward(byte[] emailData, CollectionId collectionId, ServerId serverId) throws Exception {
 		return run(new SmartForward(emailData, collectionId, serverId));
 	}
 
@@ -149,44 +150,41 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new Sync(decoder, syncKey, folders));
 	}
 	
-	public SyncResponse syncEmail(SyncDecoder decoder, SyncKey key, String collectionId, FilterType filterType, int windowSize) throws Exception {
+	public SyncResponse syncEmail(SyncDecoder decoder, SyncKey key, CollectionId collectionId, FilterType filterType, int windowSize) throws Exception {
 		return run(new EmailSyncCommand(decoder, key, collectionId, filterType, windowSize));
 	}
 
-	public SyncResponse syncEmailWithWait(SyncDecoder decoder, SyncKey key, String collectionId, FilterType filterType, int windowSize) throws Exception {
+	public SyncResponse syncEmailWithWait(SyncDecoder decoder, SyncKey key, CollectionId collectionId, FilterType filterType, int windowSize) throws Exception {
 		return run(new EmailSyncCommandWithWait(decoder, key, collectionId, filterType, windowSize));
 	}
 	
-	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, String collectionId, SyncCommand command, String serverId) throws Exception {
+	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, CollectionId collectionId, SyncCommand command, String serverId) throws Exception {
 		return syncWithCommand(decoder, key, collectionId, command, serverId, null);
 	}
 	
-	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, String collectionId, SyncCommand command, String serverId, String clientId) throws Exception {
+	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, CollectionId collectionId, SyncCommand command, String serverId, String clientId) throws Exception {
 		return run(new SyncWithCommand(decoder, key, collectionId, command, serverId, clientId));
 	}
 	
 	public SyncResponse syncWithCommand(SyncWithDataCommand.Factory factory, Device device, SyncKey key,
-			String collectionId, SyncCommand command, String serverId, String clientId, IApplicationData data) throws Exception {
+			CollectionId collectionId, SyncCommand command, String serverId, String clientId, IApplicationData data) throws Exception {
 		return run(factory.create(key, collectionId, command, serverId, clientId, data, device));
 	}
 
-	public SyncResponse syncWithoutOptions(SyncDecoder decoder, SyncKey key, String collectionId) throws Exception {
+	public SyncResponse syncWithoutOptions(SyncDecoder decoder, SyncKey key, CollectionId collectionId) throws Exception {
 		return run(new EmailSyncNoOptionsCommand(decoder, key, collectionId));
 	}
 	
-	public SyncResponse syncEmail(SyncDecoder decoder, SyncKey key, int collectionId, FilterType filterType, int windowSize) throws Exception {
-		return run(new EmailSyncCommand(decoder, key, String.valueOf(collectionId), filterType, windowSize));
-	}
 	
 	public SyncResponse sync(SyncDecoder decoder, DocumentProvider template) throws Exception {
 		return run(new Sync(decoder, template));
 	}
 	
-	public SyncResponse sync(SyncDecoder decoder, SyncKey syncKey, int collectionId, PIMDataType type) throws Exception {
+	public SyncResponse sync(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, PIMDataType type) throws Exception {
 		return run(new SimpleSyncCommand(decoder, syncKey, collectionId, type));
 	}
 
-	public SyncResponse deleteEmail(SyncDecoder decoder, SyncKey key, int collectionId, String uid) throws Exception {
+	public SyncResponse deleteEmail(SyncDecoder decoder, SyncKey key, CollectionId collectionId, String uid) throws Exception {
 		return run(new EmailDeleteSyncRequest(decoder, key, collectionId, uid));
 	}
 	
@@ -198,19 +196,19 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new ProvisionStepTwo(acknowledgingPolicyKey));
 	}
 	
-	public GetItemEstimateSingleFolderResponse getItemEstimateOnMailFolder(SyncKey key, int collectionId) throws Exception {
+	public GetItemEstimateSingleFolderResponse getItemEstimateOnMailFolder(SyncKey key, CollectionId collectionId) throws Exception {
 		return run(new GetItemEstimateEmailFolderCommand(key, collectionId));
 	}
 	
-	public GetItemEstimateSingleFolderResponse getItemEstimateOnMailFolder(SyncKey key, FilterType filterType, int collectionId) throws Exception {
+	public GetItemEstimateSingleFolderResponse getItemEstimateOnMailFolder(SyncKey key, FilterType filterType, CollectionId collectionId) throws Exception {
 		return run(new GetItemEstimateEmailFolderCommand(key, filterType, collectionId));
 	}
 
-	public ItemOperationResponse itemOperationFetch(int collectionId, String...serverId) throws Exception {
+	public ItemOperationResponse itemOperationFetch(CollectionId collectionId, String...serverId) throws Exception {
 		return run(new ItemOperationFetchCommand(collectionId, serverId));
 	}
 
-	public ItemOperationResponse itemOperationFetch(int collectionId, MSEmailBodyType bodyType, String...serverId) throws Exception {
+	public ItemOperationResponse itemOperationFetch(CollectionId collectionId, MSEmailBodyType bodyType, String...serverId) throws Exception {
 		return run(new ItemOperationFetchCommand(collectionId, bodyType, serverId));
 	}
 
@@ -218,16 +216,16 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new MoveItemsCommand(moves));
 	}
 	
-	public MeetingHandlerResponse meetingResponse(String collectionId, String serverId) throws Exception {
+	public MeetingHandlerResponse meetingResponse(CollectionId collectionId, String serverId) throws Exception {
 		return run(new MeetingResponseCommand(collectionId, serverId));
 	}
 
-	public PingResponse ping(PingProtocol pingProtocol, String inboxCollectionIdAsString, long heartbeat) throws Exception {
-		return run(new PingCommand(pingProtocol, inboxCollectionIdAsString, heartbeat));
+	public PingResponse ping(PingProtocol pingProtocol, CollectionId inbox, long heartbeat) throws Exception {
+		return run(new PingCommand(pingProtocol, inbox, heartbeat));
 	}
 
-	public Future<PingResponse> pingASync(Async async, PingProtocol pingProtocol, String inboxCollectionIdAsString, long heartbeat) throws Exception {
-		return runASync(async, new PingCommand(pingProtocol, inboxCollectionIdAsString, heartbeat));
+	public Future<PingResponse> pingASync(Async async, PingProtocol pingProtocol, CollectionId inbox, long heartbeat) throws Exception {
+		return runASync(async, new PingCommand(pingProtocol, inbox, heartbeat));
 	}
 	
 	public Document postXml(String namespace, Document doc, String cmd)

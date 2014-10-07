@@ -44,12 +44,11 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface MappingService {
 
-	String collectionIdToString(Integer collectionId);
-
-	int createCollectionMapping(Device device, String col)
+	CollectionId createCollectionMapping(Device device, String col)
 			throws DaoException;
 	
 	Date getLastBackendMapping(PIMDataType dataType, FolderSyncState folderSyncState)
@@ -58,22 +57,22 @@ public interface MappingService {
 	void createBackendMapping(PIMDataType pimDataType, FolderSyncState outgoingSyncState)
 			throws DaoException;
 	
-	String getCollectionPathFor(Integer collectionId)
+	String getCollectionPathFor(CollectionId collectionId)
 			throws CollectionNotFoundException, DaoException;
 
-	Integer getCollectionIdFor(Device device, String collection) throws CollectionNotFoundException, DaoException;
+	CollectionId getCollectionIdFor(Device device, String collection) throws CollectionNotFoundException, DaoException;
 	
-	List<ItemDeletion> buildItemsToDeleteFromUids(Integer collectionId,
+	List<ItemDeletion> buildItemsToDeleteFromUids(CollectionId collectionId,
 			Collection<Long> uids);
 
-	String getServerIdFor(Integer collectionId, String clientId);
+	String getServerIdFor(CollectionId collectionId, String clientId);
 	
 	Integer getItemIdFromServerId(String serverId);
 
-	Integer getCollectionIdFromServerId(String serverId);
+	CollectionId getCollectionIdFromServerId(String serverId);
 	
 	List<CollectionPath> listCollections(UserDataRequest udr, FolderSyncState folderSyncState) throws DaoException;
 
-	void snapshotCollections(FolderSyncState outgoingSyncState, Set<Integer> collectionIds)
+	void snapshotCollections(FolderSyncState outgoingSyncState, Set<CollectionId> collectionIds)
 			throws DaoException;
 }

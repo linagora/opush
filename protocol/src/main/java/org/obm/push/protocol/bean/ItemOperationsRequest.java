@@ -40,7 +40,7 @@ public class ItemOperationsRequest {
 		
 		private StoreName storeName;
 		private String fileReference;
-		private String collectionId;
+		private CollectionId collectionId;
 		private String serverId;
 		private MSEmailBodyType type;
 		
@@ -63,11 +63,11 @@ public class ItemOperationsRequest {
 			this.fileReference = fileReference;
 		}
 		
-		public String getCollectionId() {
+		public CollectionId getCollectionId() {
 			return collectionId;
 		}
 		
-		public void setCollectionId(String collectionId) {
+		public void setCollectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 		}
 		
@@ -91,14 +91,14 @@ public class ItemOperationsRequest {
 	
 	public static class EmptyFolderContentsRequest {
 
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private boolean deleteSubFolderElem;
 
-		public Integer getCollectionId() {
+		public CollectionId getCollectionId() {
 			return collectionId;
 		}
 		
-		public void setCollectionId(Integer collectionId) {
+		public void setCollectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 		}
 

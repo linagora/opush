@@ -82,19 +82,19 @@ public class FolderSyncProtocolTest {
 				"<Changes>" +
 				"<Count>3</Count>" +
 				"<Add>" +
-				"<ServerId>11:3</ServerId>" +
+				"<ServerId>15</ServerId>" +
 				"<ParentId>11</ParentId>" +
 				"<DisplayName>displayName</DisplayName>" +
 				"<Type>18</Type>" +
 				"</Add>" +
 				"<Update>" +
-				"<ServerId>12:4</ServerId>" +
+				"<ServerId>14</ServerId>" +
 				"<ParentId>12</ParentId>" +
 				"<DisplayName>nameDisplayed</DisplayName>" +
 				"<Type>17</Type>" +
 				"</Update>" +
 				"<Delete>" +
-				"<ServerId>13:5</ServerId>" +
+				"<ServerId>13</ServerId>" +
 				"</Delete>" +
 				"</Changes>" +
 				"</FolderSync>";

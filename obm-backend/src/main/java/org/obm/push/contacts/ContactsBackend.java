@@ -72,6 +72,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.resource.OpushResourcesHolder;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -184,7 +185,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		CollectionPath collectionPath = collection.collectionPath();
 		return CollectionChange.builder()
 				.collectionId(getCollectionIdFromCollectionPath(udr, collectionPath.collectionPath()))
-				.parentCollectionId(contactConfiguration.getDefaultParentId())
+				.parentCollectionId(CollectionId.of(contactConfiguration.getDefaultParentId()))
 				.folderType(getFolderType(udr, collection))
 				.displayName(collection.displayName())
 				.isNew(true)
@@ -258,11 +259,10 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		}
 	}
 	
-	private String getCollectionIdFromCollectionPath(UserDataRequest udr, String collectionPath)
+	private CollectionId getCollectionIdFromCollectionPath(UserDataRequest udr, String collectionPath)
 			throws DaoException, CollectionNotFoundException {
 		
-		Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
-		return mappingService.collectionIdToString(collectionId);
+		return mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
 	}
 	
 	private FolderType getFolderType(UserDataRequest udr, OpushCollection collection) {
@@ -281,7 +281,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, 
+	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 		SyncCollectionOptions syncCollectionOptions) throws CollectionNotFoundException, 
 		DaoException, UnexpectedObmSyncServerException {
 	
@@ -295,7 +295,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	protected WindowingChangesDelta<WindowingContact> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions) {
+	protected WindowingChangesDelta<WindowingContact> getAllChanges(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions) {
 		
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		ContactChanges contactChanges = listContactsChanged(state, addressBookId);
@@ -320,7 +320,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 				.build();
 	}
 	
-	private Integer findAddressBookIdFromCollectionId(UserDataRequest udr, Integer collectionId) 
+	private Integer findAddressBookIdFromCollectionId(UserDataRequest udr, CollectionId collectionId) 
 			throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
 		
 		List<AddressBook> addressBooks = listAddressBooks();
@@ -333,8 +333,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 					.build()
 					.collectionPath();
 			try {
-				Integer addressBookCollectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
-				if (addressBookCollectionId.intValue() == collectionId.intValue()) {
+				CollectionId addressBookCollectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
+				if (addressBookCollectionId.equals(collectionId)) {
 					return addressBook.getUid().getId();
 				}
 			} catch (CollectionNotFoundException e) {
@@ -365,7 +365,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		}
 	}
 	
-	private ItemChange convertContactToItemChange(Integer collectionId, Contact contact) {
+	private ItemChange convertContactToItemChange(CollectionId collectionId, Contact contact) {
 		return ItemChange.builder()
 			.serverId( mappingService.getServerIdFor(collectionId, String.valueOf(contact.getUid())))
 			.data(contactConverter.convert(contact))
@@ -373,7 +373,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, Integer collectionId,
+	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
 			String serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException,
 			DaoException, UnexpectedObmSyncServerException,
@@ -423,7 +423,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, Integer collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException {
 		
@@ -450,7 +450,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException {
 	
@@ -458,7 +458,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		
 		List<ItemChange> ret = new LinkedList<ItemChange>();
@@ -509,7 +509,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }

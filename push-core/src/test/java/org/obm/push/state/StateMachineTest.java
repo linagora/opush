@@ -60,6 +60,7 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
@@ -154,7 +155,7 @@ public class StateMachineTest {
 
 	@Test
 	public void allocateNewSyncStateShouldTrackAllCommandAddsAndDeletions() throws Exception {
-		Integer collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		Date lastSync = DateUtils.getCurrentDate();
 		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
 		ItemSyncState allocatedState = ItemSyncState.builder().syncKey(newSyncKey).syncDate(lastSync).build();
@@ -196,7 +197,7 @@ public class StateMachineTest {
 			.build();
 		
 		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync)).andReturn(allocatedState);
+		expect(collectionDao.updateState(device, CollectionId.of(1), newSyncKey, lastSync)).andReturn(allocatedState);
 		
 		ItemTrackingDao itemTrackingDao = control.createMock(ItemTrackingDao.class);
 		itemTrackingDao.markAsSynced(allocatedState, ImmutableSet.of(new ServerId("12:5"), new ServerId("12:6")));
@@ -212,7 +213,7 @@ public class StateMachineTest {
 
 	@Test
 	public void allocateNewSyncStateShouldTrackOnlyOKResponses() throws Exception {
-		Integer collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		Date lastSync = DateUtils.getCurrentDate();
 		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
 		ItemSyncState allocatedState = ItemSyncState.builder().syncKey(newSyncKey).syncDate(lastSync).build();
@@ -254,7 +255,7 @@ public class StateMachineTest {
 			.build();
 		
 		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync)).andReturn(allocatedState);
+		expect(collectionDao.updateState(device, CollectionId.of(1), newSyncKey, lastSync)).andReturn(allocatedState);
 		
 		ItemTrackingDao itemTrackingDao = control.createMock(ItemTrackingDao.class);
 		itemTrackingDao.markAsSynced(allocatedState, ImmutableSet.of(new ServerId("12:5")));
@@ -270,12 +271,12 @@ public class StateMachineTest {
 
 	@Test
 	public void allocateNewSyncStateWithoutTrackingShouldStoreUpdatedState() throws Exception {
-		Integer collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		Date lastSync = DateUtils.getCurrentDate();
 		SyncKey newSyncKey = new SyncKey("a1fa04d6-ba8b-4a9a-9529-1d0bb7a359b1");
 		
 		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.updateState(device, 1, newSyncKey, lastSync))
+		expect(collectionDao.updateState(device, CollectionId.of(1), newSyncKey, lastSync))
 			.andReturn(ItemSyncState.builder()
 					.syncKey(newSyncKey)
 					.syncDate(lastSync)

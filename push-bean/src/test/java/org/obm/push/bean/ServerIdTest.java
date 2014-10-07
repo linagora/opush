@@ -34,8 +34,8 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-
 import org.obm.push.exception.activesync.InvalidServerId;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 
@@ -99,7 +99,7 @@ public class ServerIdTest {
 	@Test
 	public void testSimpleCollectionIdString() throws InvalidServerId {
 		ServerId serverId = new ServerId("123");
-		assertThat(serverId.getCollectionId()).isEqualTo(123);
+		assertThat(serverId.getCollectionId()).isEqualTo(CollectionId.of(123));
 		assertThat(serverId.getItemId()).isNull();
 		assertThat(serverId.isItem()).isFalse();
 	}
@@ -107,7 +107,7 @@ public class ServerIdTest {
 	@Test
 	public void testSimpleServerIdString() throws InvalidServerId {
 		ServerId serverId = new ServerId("123:345");
-		assertThat(serverId.getCollectionId()).isEqualTo(123);
+		assertThat(serverId.getCollectionId()).isEqualTo(CollectionId.of(123));
 		assertThat(serverId.getItemId()).isEqualTo(Integer.valueOf(345));
 		assertThat(serverId.isItem()).isTrue();
 	}
@@ -141,16 +141,16 @@ public class ServerIdTest {
 	
 	@Test
 	public void testBuildServerIdAsStringZero() {
-		assertThat(ServerId.buildServerIdString(0, 0)).isEqualTo("0:0");
+		assertThat(ServerId.buildServerIdString(CollectionId.of(0), 0)).isEqualTo("0:0");
 	}
 
 	@Test
 	public void testBuildServerIdAsStringNegative() {
-		assertThat(ServerId.buildServerIdString(-10, -5)).isEqualTo("-10:-5");
+		assertThat(ServerId.buildServerIdString(CollectionId.of(10), -5)).isEqualTo("10:-5");
 	}
 
 	@Test
 	public void testBuildServerIdAsString() {
-		assertThat(ServerId.buildServerIdString(10, 5)).isEqualTo("10:5");
+		assertThat(ServerId.buildServerIdString(CollectionId.of(10), 5)).isEqualTo("10:5");
 	}
 }

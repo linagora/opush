@@ -78,6 +78,7 @@ import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
 import org.obm.push.minig.imap.CommandIOException;
 import org.obm.push.minig.imap.StoreClient;
+import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -393,7 +394,7 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, Integer collectionId) 
+	public MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, CollectionId collectionId) 
 			throws DaoException, MailException {
 		
 		long time = System.currentTimeMillis();

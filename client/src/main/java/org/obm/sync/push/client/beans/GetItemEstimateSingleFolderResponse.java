@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.push.client.beans;
 
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.IEasReponse;
 import org.w3c.dom.Element;
-
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.SyncKey;
 
@@ -45,7 +45,11 @@ public final class GetItemEstimateSingleFolderResponse implements IEasReponse {
 
 	public static class XmlParser {
 		public GetItemEstimateSingleFolderResponse parse(Element root) {
-			Integer colId = DOMUtils.getElementInteger(DOMUtils.getUniqueElement(root, "CollectionId"));
+			Integer collectionIdAsInteger = DOMUtils.getElementInteger(DOMUtils.getUniqueElement(root, "CollectionId"));
+			CollectionId colId = null;
+			if (collectionIdAsInteger != null) {
+				 colId = CollectionId.of(collectionIdAsInteger);
+			}
 			Integer estimate = DOMUtils.getElementInteger(DOMUtils.getUniqueElement(root, "Estimate"));
 			Integer statusInteger = DOMUtils.getElementInteger(DOMUtils.getUniqueElement(root, "Status"));
 			GetItemEstimateStatus status = GetItemEstimateStatus.fromSpecificationValue(statusInteger);
@@ -53,11 +57,11 @@ public final class GetItemEstimateSingleFolderResponse implements IEasReponse {
 		}
 	}
 	
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 	private final Integer estimate;
 	private final GetItemEstimateStatus status;
 
-	public GetItemEstimateSingleFolderResponse(Integer collectionId, Integer estimate, GetItemEstimateStatus status) {
+	public GetItemEstimateSingleFolderResponse(CollectionId collectionId, Integer estimate, GetItemEstimateStatus status) {
 		this.collectionId = collectionId;
 		this.estimate = estimate;
 		this.status = status;
@@ -68,7 +72,7 @@ public final class GetItemEstimateSingleFolderResponse implements IEasReponse {
 		throw new IllegalAccessError("GetItemEstimate's response has no SyncKey");
 	}
 
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

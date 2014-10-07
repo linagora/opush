@@ -45,10 +45,11 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSnapshotDao;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
@@ -67,22 +68,22 @@ public abstract class FolderSnapshotDaoTest {
 	@Test(expected=DaoException.class)
 	public void testCreateFolderSnapshotWhenNonExistingFolderState() {
 		int nonExistingFolderStateId = 1337;
-		int colId = collectionDao.addCollectionMapping(device, "collection");
-		folderDao.createFolderSnapshot(nonExistingFolderStateId, ImmutableList.of(colId));
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
+		folderDao.createFolderSnapshot(nonExistingFolderStateId, ImmutableSet.of(colId));
 	}
 
 	@Test(expected=DaoException.class)
 	public void testCreateFolderSnapshotWhenNonExistingCollectionMapping() {
-		int nonExistingCollectionMapping = 1337;
+		CollectionId nonExistingCollectionMapping = CollectionId.of(1337);
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(nonExistingCollectionMapping));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(nonExistingCollectionMapping));
 	}
 
 	@Test
 	public void testCreateAndGetFolderSnapshotWhenEmptyCollectionList() {
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 		
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.<Integer>of());
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.<CollectionId>of());
 		
 		assertThat(folderDao.getFolderSnapshot(folderState.getId())).isEmpty();
 		assertThat(folderDao.getFolderSnapshot(folderState.getSyncKey().getSyncKey())).isEmpty();
@@ -90,12 +91,12 @@ public abstract class FolderSnapshotDaoTest {
 
 	@Test
 	public void testCreateAndGetFolderSnapshot() {
-		int colId1 = collectionDao.addCollectionMapping(device, "collection1");
-		int colId2 = collectionDao.addCollectionMapping(device, "collection2");
-		int colId3 = collectionDao.addCollectionMapping(device, "collection3");
+		CollectionId colId1 = collectionDao.addCollectionMapping(device, "collection1");
+		CollectionId colId2 = collectionDao.addCollectionMapping(device, "collection2");
+		CollectionId colId3 = collectionDao.addCollectionMapping(device, "collection3");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 		
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId1, colId2, colId3));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId1, colId2, colId3));
 		
 		assertThat(folderDao.getFolderSnapshot(folderState.getId())).containsOnly(colId1, colId2, colId3);
 		assertThat(folderDao.getFolderSnapshot(folderState.getSyncKey().getSyncKey())).containsOnly(colId1, colId2, colId3);
@@ -103,10 +104,10 @@ public abstract class FolderSnapshotDaoTest {
 
 	@Test
 	public void testGetFolderSnapshotWrongIdAndSyncKey() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 		
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId));
 		
 		assertThat(folderDao.getFolderSnapshot(1337)).isEmpty();
 		assertThat(folderDao.getFolderSnapshot("456789")).isEmpty();
@@ -114,11 +115,11 @@ public abstract class FolderSnapshotDaoTest {
 	
 	@Test
 	public void testGetFolderSyncStateId() {
-		int colId1 = collectionDao.addCollectionMapping(device, "collection1");
-		int colId2 = collectionDao.addCollectionMapping(device, "collection2");
+		CollectionId colId1 = collectionDao.addCollectionMapping(device, "collection1");
+		CollectionId colId2 = collectionDao.addCollectionMapping(device, "collection2");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId1, colId2));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId1, colId2));
 		
 		assertThat(folderDao.getFolderSyncStateId(colId1, device)).isEqualTo(folderState.getId());
 		assertThat(folderDao.getFolderSyncStateId(colId2, device)).isEqualTo(folderState.getId());
@@ -126,20 +127,20 @@ public abstract class FolderSnapshotDaoTest {
 	
 	@Test
 	public void testGetFolderSyncStateIdWhenWrongCollectionId() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId));
 		
-		assertThat(folderDao.getFolderSyncStateId(1337, device)).isNull();
+		assertThat(folderDao.getFolderSyncStateId(CollectionId.of(1337), device)).isNull();
 	}
 	
 	@Test
 	public void testGetFolderSyncStateWhenWrongDevice() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId));
 
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
 		assertThat(folderDao.getFolderSyncStateId(colId, otherDevice)).isNull();
@@ -147,13 +148,13 @@ public abstract class FolderSnapshotDaoTest {
 	
 	@Test
 	public void testGetFolderSyncKey() {
-		int colId1 = collectionDao.addCollectionMapping(device, "collection1");
-		int colId2 = collectionDao.addCollectionMapping(device, "collection2");
+		CollectionId colId1 = collectionDao.addCollectionMapping(device, "collection1");
+		CollectionId colId2 = collectionDao.addCollectionMapping(device, "collection2");
 		FolderSyncState folderState1 = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 		FolderSyncState folderState2 = collectionDao.allocateNewFolderSyncState(device, new SyncKey("456"));
 
-		folderDao.createFolderSnapshot(folderState1.getId(), ImmutableList.of(colId1));
-		folderDao.createFolderSnapshot(folderState2.getId(), ImmutableList.of(colId2));
+		folderDao.createFolderSnapshot(folderState1.getId(), ImmutableSet.of(colId1));
+		folderDao.createFolderSnapshot(folderState2.getId(), ImmutableSet.of(colId2));
 
 		assertThat(folderDao.getFolderSyncKey(colId1, device)).isEqualTo("132");
 		assertThat(folderDao.getFolderSyncKey("collection1", device)).isEqualTo("132");
@@ -163,10 +164,10 @@ public abstract class FolderSnapshotDaoTest {
 	
 	@Test
 	public void testGetFolderSyncKeyWhenWrongDevice() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId));
 
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
 		assertThat(folderDao.getFolderSyncKey(colId, otherDevice)).isNull();
@@ -175,12 +176,12 @@ public abstract class FolderSnapshotDaoTest {
 	
 	@Test
 	public void testGetFolderSyncKeyWhenWrongIds() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		FolderSyncState folderState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("132"));
 
-		folderDao.createFolderSnapshot(folderState.getId(), ImmutableList.of(colId));
+		folderDao.createFolderSnapshot(folderState.getId(), ImmutableSet.of(colId));
 
-		assertThat(folderDao.getFolderSyncKey(1337, device)).isNull();
+		assertThat(folderDao.getFolderSyncKey(CollectionId.of(1337), device)).isNull();
 		assertThat(folderDao.getFolderSyncKey("wrong collection", device)).isNull();
 	}
 }

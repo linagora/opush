@@ -46,6 +46,7 @@ import org.obm.push.exception.activesync.ASRequestBooleanFieldException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncCollectionCommandDto;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ms.MSEmailDecoder;
@@ -363,7 +364,7 @@ public class SyncDecoderTest {
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
 		assertThat(collection.getSyncKey()).isEqualTo(new SyncKey("ddcf2e35-9834-49de-96ff-09979c7e2aa0"));
-		assertThat(collection.getCollectionId()).isEqualTo(2);
+		assertThat(collection.getCollectionId()).isEqualTo(CollectionId.of(2));
 		assertThat(collection.getDataClass()).isEqualTo("Email");
 		assertThat(collection.getWindowSize()).isEqualTo(150);
 	}

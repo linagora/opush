@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ItemOperationFetchResponse;
 import org.obm.sync.push.client.ItemOperationResponse;
@@ -52,11 +53,11 @@ import com.google.common.collect.Lists;
 
 public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResponse> {
 
-	public ItemOperationFetchCommand(int collectionId, String...serverIds) throws SAXException, IOException {
+	public ItemOperationFetchCommand(CollectionId collectionId, String...serverIds) throws SAXException, IOException {
 		this(collectionId, null, serverIds);
 	}
 	
-	public ItemOperationFetchCommand(final int collectionId, final MSEmailBodyType bodyType, final String...serverIds)
+	public ItemOperationFetchCommand(final CollectionId collectionId, final MSEmailBodyType bodyType, final String...serverIds)
 			throws SAXException, IOException {
 		
 		super(NS.ItemOperations, "ItemOperations", new TemplateDocument("ItemOperationsFetchRequest.xml") {
@@ -68,7 +69,7 @@ public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResp
 				for (String serverId : serverIds) {
 					Element fetchElement = DOMUtils.createElement(documentElement, "Fetch");
 					DOMUtils.createElementAndText(fetchElement, "Store", "Mailbox");
-					DOMUtils.createElementAndText(fetchElement, "AirSync:CollectionId", String.valueOf(collectionId));
+					DOMUtils.createElementAndText(fetchElement, "AirSync:CollectionId", collectionId.asString());
 					DOMUtils.createElementAndText(fetchElement, "AirSync:ServerId", serverId);
 					customizeOptions(fetchElement);
 				}

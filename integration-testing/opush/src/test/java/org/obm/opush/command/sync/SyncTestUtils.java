@@ -32,7 +32,6 @@
 package org.obm.opush.command.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -65,6 +64,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -78,30 +78,30 @@ import com.google.common.collect.Iterables;
 
 public class SyncTestUtils {
 	
-	public static void checkMailFolderHasNoChange(SyncResponse response, String serverId) {
+	public static void checkMailFolderHasNoChange(SyncResponse response, CollectionId serverId) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).isEmpty();
 		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 
-	public static void checkMailFolderHasAddItems(SyncResponse response, String serverId, ItemChange... changes) {
+	public static void checkMailFolderHasAddItems(SyncResponse response, CollectionId serverId, ItemChange... changes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).containsOnly(changes);
 		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 
-	public static void checkMailFolderHasFetchItems(SyncResponse response, String serverId, ServerId... fetches) {
+	public static void checkMailFolderHasFetchItems(SyncResponse response, CollectionId serverId, ServerId... fetches) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getResponses().fetches()).containsOnly(fetches);
 	}
 
-	public static void checkMailFolderHasDeleteItems(SyncResponse response, String serverId, ItemDeletion... deletes) {
+	public static void checkMailFolderHasDeleteItems(SyncResponse response, CollectionId serverId, ItemDeletion... deletes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemDeletions()).containsOnly(deletes);
 	}
 
 	public static void checkMailFolderHasItems(
-			SyncResponse response, String serverId, Iterable<ItemChange> changes, Iterable<ItemDeletion> deletes) {
+			SyncResponse response, CollectionId serverId, Iterable<ItemChange> changes, Iterable<ItemDeletion> deletes) {
 		SyncCollectionResponse collection = getCollectionWithId(response, serverId);
 		assertThat(collection.getItemChanges()).containsOnly(Iterables.toArray(changes, ItemChange.class));
 		assertThat(collection.getItemDeletions()).containsOnly(Iterables.toArray(deletes, ItemDeletion.class));
@@ -120,9 +120,9 @@ public class SyncTestUtils {
 		}
 	}
 	
-	public static SyncCollectionResponse getCollectionWithId(SyncResponse response, String serverId) {
+	public static SyncCollectionResponse getCollectionWithId(SyncResponse response, CollectionId serverId) {
 		for (SyncCollectionResponse collection : response.getCollectionResponses()) {
-			if (serverId.equals(String.valueOf(collection.getCollectionId()))) {
+			if (serverId.equals(collection.getCollectionId())) {
 				return collection;
 			}
 		}
@@ -142,7 +142,7 @@ public class SyncTestUtils {
 	}
 
 	public static void mockEmailSyncClasses(
-			SyncKey syncEmailSyncKey, Collection<Integer> syncEmailCollectionsIds, DataDelta delta, 
+			SyncKey syncEmailSyncKey, Collection<CollectionId> syncEmailCollectionsIds, DataDelta delta, 
 			List<OpushUser> fakeTestUsers, ClassToInstanceAgregateView<Object> classToInstanceMap)
 			throws DaoException, CollectionNotFoundException, ProcessingEmailException, UnexpectedObmSyncServerException, AuthFault,
 			ConversionException, FilterTypeChangedException, HierarchyChangedException {
@@ -151,7 +151,7 @@ public class SyncTestUtils {
 		mockEmailSync(syncEmailSyncKey, syncEmailCollectionsIds, delta, fakeTestUsers, classToInstanceMap);
 	}
 	
-	private static void mockEmailSync(SyncKey syncEmailSyncKey, Collection<Integer> syncEmailCollectionsIds, DataDelta delta,
+	private static void mockEmailSync(SyncKey syncEmailSyncKey, Collection<CollectionId> syncEmailCollectionsIds, DataDelta delta,
 			List<OpushUser> fakeTestUsers, ClassToInstanceAgregateView<Object> classToInstanceMap)
 			throws DaoException, CollectionNotFoundException, ProcessingEmailException, UnexpectedObmSyncServerException,
 			ConversionException, FilterTypeChangedException, HierarchyChangedException {
@@ -178,13 +178,13 @@ public class SyncTestUtils {
 	}
 
 	public static void mockCollectionDaoForEmailSync(CollectionDao collectionDao, SyncKey syncEmailSyncKey,
-			Collection<Integer> syncEmailCollectionsIds) throws DaoException {
+			Collection<CollectionId> syncEmailCollectionsIds) throws DaoException {
 		
-		for (Integer syncEmailCollectionId : syncEmailCollectionsIds) {
+		for (CollectionId syncEmailCollectionId : syncEmailCollectionsIds) {
 			expect(collectionDao.getCollectionMapping(anyObject(Device.class), anyObject(String.class)))
 				.andReturn(syncEmailCollectionId).anyTimes();
 		}
-		expect(collectionDao.updateState(anyObject(Device.class), anyInt(), anyObject(SyncKey.class), anyObject(Date.class)))
+		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class), anyObject(SyncKey.class), anyObject(Date.class)))
 				.andReturn(ItemSyncState.builder()
 						.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 						.syncKey(syncEmailSyncKey)
@@ -218,7 +218,7 @@ public class SyncTestUtils {
 
 
 	public static void mockCollectionDaoPerformSync(CollectionDao collectionDao, Device device, SyncKey requestSyncKey,
-			ItemSyncState requestSyncState, ItemSyncState updateSyncState, int collectionId)
+			ItemSyncState requestSyncState, ItemSyncState updateSyncState, CollectionId collectionId)
 					throws DaoException {
 		
 		expect(collectionDao.findItemStateForKey(requestSyncKey)).andReturn(requestSyncState);

@@ -32,7 +32,6 @@
 package org.obm.opush.command.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -61,8 +60,8 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.TimeZone;
 
 import javax.naming.NoPermissionException;
@@ -116,6 +115,7 @@ import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -172,7 +172,7 @@ public class SyncHandlerTest {
 	public void testSyncDefaultMailFolderUnchange() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		int syncEmailCollectionId = 4;
+		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -197,7 +197,7 @@ public class SyncHandlerTest {
 	public void testSyncWithWaitReturnsServerError() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		int syncEmailCollectionId = 4;
+		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -221,13 +221,13 @@ public class SyncHandlerTest {
 	public void testSyncOneInboxMail() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
 
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						ItemChange.builder().serverId(syncEmailCollectionId + ":0")
+						ItemChange.builder().serverId(syncEmailCollectionId.serverId(0))
 							.data(applicationData))
 					.build())
 			.syncDate(new Date())
@@ -249,7 +249,7 @@ public class SyncHandlerTest {
 
 		checkMailFolderHasAddItems(syncEmailResponse, inbox.getCollectionId(),
 				ItemChange.builder()
-					.serverId(syncEmailCollectionId + ":" + 0)
+					.serverId(syncEmailCollectionId.serverId(0))
 					.isNew(true)
 					.data(applicationData)
 					.build());
@@ -259,7 +259,7 @@ public class SyncHandlerTest {
 	public void testSyncTwoMailButOneDisappearing() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expectUserCollectionsNeverChange(collectionDao, users.jaures, ImmutableList.of(syncEmailCollectionId));
@@ -294,16 +294,16 @@ public class SyncHandlerTest {
 	public void testSyncTwoInboxMails() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						ItemChange.builder().serverId(syncEmailCollectionId + ":0")
+						ItemChange.builder().serverId(syncEmailCollectionId.serverId(0))
 							.data(applicationData))
 					.addItemChange(
-						ItemChange.builder().serverId(syncEmailCollectionId + ":1")
+						ItemChange.builder().serverId(syncEmailCollectionId.serverId(1))
 							.data(applicationData))
 					.build())
 			.syncDate(new Date())
@@ -325,11 +325,11 @@ public class SyncHandlerTest {
 
 		checkMailFolderHasAddItems(syncEmailResponse, inbox.getCollectionId(), 
 				ItemChange.builder()
-					.serverId(syncEmailCollectionId + ":" + 0)
+					.serverId(syncEmailCollectionId.serverId(0))
 					.isNew(true)
 					.data(applicationData)
 					.build(),
-				ItemChange.builder().serverId(syncEmailCollectionId + ":" + 1)
+				ItemChange.builder().serverId(syncEmailCollectionId.serverId(1))
 					.isNew(true)
 					.data(applicationData)
 					.build()); 
@@ -339,11 +339,11 @@ public class SyncHandlerTest {
 	public void testSyncOneInboxDeletedMail() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		
 		DataDelta delta = DataDelta.builder()
 			.deletions(ImmutableList.of(
-					ItemDeletion.builder().serverId(syncEmailCollectionId + ":0").build()))
+					ItemDeletion.builder().serverId(syncEmailCollectionId.serverId(0)).build()))
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
@@ -362,23 +362,23 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inbox.getCollectionId(), THREE_DAYS_BACK, 150);
 
 		checkMailFolderHasDeleteItems(syncEmailResponse, inbox.getCollectionId(),
-				ItemDeletion.builder().serverId(syncEmailCollectionId + ":" + 0).build());
+				ItemDeletion.builder().serverId(syncEmailCollectionId.serverId(0)).build());
 	}
 
 	@Test
 	public void testSyncInboxOneNewOneDeletedMail() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 					.addItemChange(
-						ItemChange.builder().serverId(syncEmailCollectionId + ":123")
+						ItemChange.builder().serverId(syncEmailCollectionId.serverId(123))
 							.data(applicationData))
 					.build())
 			.deletions(ImmutableList.of(
-					ItemDeletion.builder().serverId(syncEmailCollectionId + ":122").build()))
+					ItemDeletion.builder().serverId(syncEmailCollectionId.serverId(122)).build()))
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
@@ -398,19 +398,19 @@ public class SyncHandlerTest {
 
 		checkMailFolderHasItems(syncEmailResponse, inbox.getCollectionId(), 
 				ImmutableSet.of(ItemChange.builder()
-					.serverId(syncEmailCollectionId + ":123")
+					.serverId(syncEmailCollectionId.serverId(123))
 					.isNew(true)
 					.data(applicationData)
 					.build()),
-				ImmutableSet.of(ItemDeletion.builder().serverId(syncEmailCollectionId + ":122").build()));
+				ImmutableSet.of(ItemDeletion.builder().serverId(syncEmailCollectionId.serverId(122)).build()));
 	}
 
 	@Test
 	public void testSyncInboxFetchIdsNotEmpty() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		int syncEmailCollectionId = 432;
-		String serverId = syncEmailCollectionId + ":123";
+		CollectionId syncEmailCollectionId = CollectionId.of(432);
+		String serverId = syncEmailCollectionId.serverId(123);
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		ItemChange itemChange = ItemChange.builder().serverId(serverId)
 			.data(applicationData)
@@ -419,7 +419,7 @@ public class SyncHandlerTest {
 		DataDelta delta = DataDelta.builder()
 			.changes(itemChanges)
 			.deletions(ImmutableList.of(
-					ItemDeletion.builder().serverId(syncEmailCollectionId + ":122").build()))
+					ItemDeletion.builder().serverId(syncEmailCollectionId.serverId(122)).build()))
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
@@ -432,7 +432,7 @@ public class SyncHandlerTest {
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		expectContentExporterFetching(classToInstanceMap.get(IContentsExporter.class), userDataRequest, itemChange);
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
-		mockEmailSyncClasses(syncEmailSyncKey, ImmutableList.<Integer> of(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
+		mockEmailSyncClasses(syncEmailSyncKey, ImmutableList.of(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
 		mocksControl.replay();
 		opushServer.start();
 
@@ -443,15 +443,14 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncWithCommand(decoder, 
 				syncEmailSyncKey, inbox.getCollectionId(), SyncCommand.FETCH, serverId);
 
-		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId + ":123"));
+		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId.serverId(123)));
 		SyncCollectionResponse collection = getCollectionWithId(syncEmailResponse, inbox.getCollectionId());
 		assertThat(collection.getItemDeletions()).isEmpty();
 	}
 	
 	@Test
 	public void testSyncWithUnknownSyncKeyReturnsInvalidSyncKeyStatus() throws Exception {
-		int collectionId= 1;
-		String collectionIdAsString = String.valueOf(collectionId);
+		CollectionId collectionId = CollectionId.of(1);
 		String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(users.jaures); 
 		
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
@@ -464,7 +463,7 @@ public class SyncHandlerTest {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).times(2);
 		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(null);
-		expect(collectionDao.updateState(anyObject(Device.class), anyInt(), anyObject(SyncKey.class), anyObject(Date.class)))
+		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class), anyObject(SyncKey.class), anyObject(Date.class)))
 			.andReturn(firstItemSyncState)
 			.anyTimes();
 		collectionDao.resetCollection(users.jaures.device, collectionId);
@@ -475,18 +474,18 @@ public class SyncHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		opClient.syncEmail(decoder, initialSyncKey, collectionIdAsString, THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondSyncKey, collectionIdAsString, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, collectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondSyncKey, collectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
-		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, collectionIdAsString);
+		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, collectionId);
 		assertThat(inboxResponse.getStatus()).isEqualTo(SyncStatus.INVALID_SYNC_KEY);
 	}
 
 	@Test
 	public void testSyncWithoutOptionsAndNoOptionsInCacheTakeThePreviousOne() throws Exception {
 		OpushUser user = users.jaures;
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("13424");
@@ -518,7 +517,7 @@ public class SyncHandlerTest {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();
 		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(secondRequestSyncState);
-		expect(collectionDao.updateState(anyObject(Device.class), anyInt(),
+		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class),
 				anyObject(SyncKey.class), anyObject(Date.class))).andReturn(secondRequestSyncState).times(2);
 		collectionDao.resetCollection(user.device, collectionId);
 		expectLastCall();
@@ -568,7 +567,7 @@ public class SyncHandlerTest {
 		SyncKey nextFolderSyncKey = new SyncKey("56789");
 
 		SyncKey initialSyncKey = new SyncKey("1234");
-		int syncEmailCollectionId = 12;
+		CollectionId syncEmailCollectionId = CollectionId.of(12);
 		DataDelta emptyDelta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -604,8 +603,8 @@ public class SyncHandlerTest {
 	@Test
 	public void testSyncOnUnexistingCollection() throws Exception {
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		java.util.Collection<Integer> existingCollections = Collections.emptySet();
-		int syncEmailUnexistingCollectionId = 15105;
+		java.util.Collection<CollectionId> existingCollections = Collections.emptySet();
+		CollectionId syncEmailUnexistingCollectionId = CollectionId.of(15105);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -618,15 +617,15 @@ public class SyncHandlerTest {
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, syncEmailUnexistingCollectionId, THREE_DAYS_BACK, 25);
 
-		SyncCollectionResponse mailboxResponse = getCollectionWithId(syncEmailResponse, String.valueOf(syncEmailUnexistingCollectionId));
+		SyncCollectionResponse mailboxResponse = getCollectionWithId(syncEmailResponse, syncEmailUnexistingCollectionId);
 		assertThat(mailboxResponse.getStatus()).isEqualTo(SyncStatus.OBJECT_NOT_FOUND);
 	}
 
 	@Test
 	public void testSyncDataClassAtCalendarButRecognizedAsEmail() throws Exception {
 		SyncKey syncKey = new SyncKey("1");
-		int collectionId = 15105;
-		List<Integer> existingCollections = ImmutableList.of(collectionId);
+		CollectionId collectionId = CollectionId.of(15105);
+		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -646,7 +645,7 @@ public class SyncHandlerTest {
 	public void testSyncOnHierarchyChangedException() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		int syncEmailCollectionId = 4;
+		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockUsersAccess(classToInstanceMap, userAsList);
@@ -668,7 +667,7 @@ public class SyncHandlerTest {
 	public void testSyncOnIllegalArgumentException() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		int syncEmailCollectionId = 4;
+		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockUsersAccess(classToInstanceMap, userAsList);
@@ -686,12 +685,12 @@ public class SyncHandlerTest {
 		assertThat(syncEmailResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
 	}
 
-	private void mockEmailSyncThrowsException(SyncKey syncKey, Set<Integer> syncEmailCollectionsIds, Throwable throwable)
+	private void mockEmailSyncThrowsException(SyncKey syncKey, HashSet<CollectionId> hashSet, Throwable throwable)
 			throws DaoException, ConversionException, FilterTypeChangedException {
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		expectUserCollectionsNeverChange(collectionDao, users.jaures, syncEmailCollectionsIds);
-		mockCollectionDaoForEmailSync(collectionDao, syncKey, syncEmailCollectionsIds);
+		expectUserCollectionsNeverChange(collectionDao, users.jaures, hashSet);
+		mockCollectionDaoForEmailSync(collectionDao, syncKey, hashSet);
 		
 		ItemTrackingDao itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		mockItemTrackingDao(itemTrackingDao);
@@ -717,7 +716,7 @@ public class SyncHandlerTest {
 
 	private void testSyncWithGivenCommandButWithoutApplicationDataGetsProtocolError(SyncCommand command) throws Exception {
 		SyncKey syncKey = new SyncKey("1");
-		List<Integer> existingCollections = ImmutableList.of(15);
+		List<CollectionId> existingCollections = ImmutableList.of(CollectionId.of(15));
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -729,7 +728,7 @@ public class SyncHandlerTest {
 		opushServer.start();
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opClient.syncWithCommand(decoder, syncKey, "15", command, "15:51");
+		SyncResponse syncResponse = opClient.syncWithCommand(decoder, syncKey, CollectionId.of(15), command, "15:51");
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
 	}
@@ -740,8 +739,8 @@ public class SyncHandlerTest {
 		TimeZone.setDefault(DateTimeZone.UTC.toTimeZone());
 		
 		SyncKey syncKey = new SyncKey("13424");
-		int collectionId = 1;
-		List<Integer> existingCollections = ImmutableList.of(collectionId);
+		CollectionId collectionId = CollectionId.of(1);
+		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		String serverId = null;
 		String clientId = "156";
 
@@ -772,10 +771,10 @@ public class SyncHandlerTest {
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, users.jaures.device, 
-				syncKey, String.valueOf(collectionId), SyncCommand.ADD, serverId, clientId, clientData);
+				syncKey, collectionId, SyncCommand.ADD, serverId, clientId, clientData);
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		checkMailFolderHasNoChange(syncResponse, String.valueOf(collectionId));
+		checkMailFolderHasNoChange(syncResponse, collectionId);
 		TimeZone.setDefault(defaultTimeZone);
 	}
 
@@ -785,8 +784,8 @@ public class SyncHandlerTest {
 		TimeZone.setDefault(DateTimeZone.UTC.toTimeZone());
 		
 		SyncKey syncKey = new SyncKey("13424");
-		int collectionId = 1;
-		List<Integer> existingCollections = ImmutableList.of(collectionId);
+		CollectionId collectionId = CollectionId.of(1);
+		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		String serverId = "432:1456";
 		String clientId = null;
 
@@ -817,10 +816,10 @@ public class SyncHandlerTest {
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, users.jaures.device, 
-				syncKey, String.valueOf(collectionId), SyncCommand.ADD, serverId, clientId, clientData);
+				syncKey, collectionId, SyncCommand.ADD, serverId, clientId, clientData);
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		checkMailFolderHasNoChange(syncResponse, String.valueOf(collectionId));
+		checkMailFolderHasNoChange(syncResponse, collectionId);
 		TimeZone.setDefault(defaultTimeZone);
 	}
 }

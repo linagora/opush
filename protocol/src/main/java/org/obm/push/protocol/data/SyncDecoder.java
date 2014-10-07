@@ -52,6 +52,7 @@ import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncCollectionCommandDto;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -110,12 +111,20 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return SyncCollection.builder()
 			.dataType(PIMDataType.fromSpecificationValue(uniqueStringFieldValue(collection, SyncRequestFields.DATA_CLASS)))
 			.syncKey(syncKey(uniqueStringFieldValue(collection, SyncRequestFields.SYNC_KEY)))
-			.collectionId(uniqueIntegerFieldValue(collection, SyncRequestFields.COLLECTION_ID))
+			.collectionId(getCollectionId(collection))
 			.deletesAsMoves(uniqueBooleanFieldValue(collection, SyncRequestFields.DELETES_AS_MOVES))
 			.windowSize(uniqueIntegerFieldValue(collection, SyncRequestFields.WINDOW_SIZE))
 			.options(getOptions(DOMUtils.getUniqueElement(collection, SyncRequestFields.OPTIONS.getName())))
 			.commands(getCommands(DOMUtils.getUniqueElement(collection, SyncRequestFields.COMMANDS.getName())))
 			.build();
+	}
+
+	private CollectionId getCollectionId(Element collection) {
+		Integer collectionIdAsInt = uniqueIntegerFieldValue(collection, SyncRequestFields.COLLECTION_ID);
+		if (collectionIdAsInt != null) {
+			return CollectionId.of(collectionIdAsInt);
+		}
+		return null;
 	}
 
 	private SyncKey syncKey(String syncKey) {
@@ -213,7 +222,7 @@ public class SyncDecoder extends ActiveSyncDecoder {
 				.builder()
 				.dataType(dataType)
 				.syncKey(new SyncKey(uniqueStringFieldValue(collectionEl, SyncResponseFields.SYNC_KEY)))
-				.collectionId(uniqueIntegerFieldValue(collectionEl, SyncResponseFields.COLLECTION_ID))
+				.collectionId(CollectionId.of(uniqueIntegerFieldValue(collectionEl, SyncResponseFields.COLLECTION_ID)))
 				.status(getCollectionStatus(collectionEl))
 				.moreAvailable(getMoreAvailable(collectionEl))
 				.commands(appendCommands(dataType, collectionEl))

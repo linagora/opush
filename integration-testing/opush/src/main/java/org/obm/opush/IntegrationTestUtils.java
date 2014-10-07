@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -66,6 +65,7 @@ import org.obm.push.mail.bean.UIDEnvelope;
 import org.obm.push.mail.imap.LinagoraMailboxService;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimeMessage;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
@@ -121,7 +121,7 @@ public class IntegrationTestUtils {
 	}
 	
 	public static void expectUserCollectionsNeverChange(CollectionDao collectionDao,
-			OpushUser user, Collection<Integer> unchangedCollectionsIds)
+			OpushUser user, Collection<CollectionId> unchangedCollectionsIds)
 			throws DaoException, CollectionNotFoundException {
 		
 		Date lastSync = new Date();
@@ -129,13 +129,13 @@ public class IntegrationTestUtils {
 				.syncDate(lastSync)
 				.syncKey(new SyncKey("sync state"))
 				.build();
-		expect(collectionDao.lastKnownState(anyObject(Device.class), anyInt())).andReturn(syncState).anyTimes();
+		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).anyTimes();
 		ChangedCollections changed = new ChangedCollections(lastSync, ImmutableSet.<String>of());
 		expect(collectionDao.getContactChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
 		expect(collectionDao.getCalendarChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
 
-		int otherCollectionId = anyInt();
-		for (Integer unchangedCollectionId : unchangedCollectionsIds) {
+		CollectionId otherCollectionId = anyObject(CollectionId.class);
+		for (CollectionId unchangedCollectionId : unchangedCollectionsIds) {
 			String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);  
 			expect(collectionDao.getCollectionPath(unchangedCollectionId)).andReturn(collectionPath).anyTimes();
 		}
@@ -147,7 +147,7 @@ public class IntegrationTestUtils {
 			.andReturn(folderSyncState);
 	}
 	
-	public static void expectGetCollectionPath(CollectionDao collectionDao, Integer collectionId, String serverId) throws CollectionNotFoundException, DaoException {
+	public static void expectGetCollectionPath(CollectionDao collectionDao, CollectionId collectionId, String serverId) throws CollectionNotFoundException, DaoException {
 		expect(collectionDao.getCollectionPath(collectionId))
 			.andReturn(serverId);
 	}
@@ -186,8 +186,8 @@ public class IntegrationTestUtils {
 		return buildCollectionPath(opushUser, "calendar", opushUser.user.getLoginAtDomain());
 	}
 
-	public static String buildContactCollectionPath(OpushUser opushUser, String contactCollectionId) {
-		return buildCollectionPath(opushUser, "contacts", contactCollectionId);
+	public static String buildContactCollectionPath(OpushUser opushUser, CollectionId collectionId) {
+		return buildCollectionPath(opushUser, "contacts", collectionId.asString());
 	}
 	
 	public static String buildEmailInboxCollectionPath(OpushUser opushUser) {
@@ -202,8 +202,8 @@ public class IntegrationTestUtils {
 		return buildCollectionPath(opushUser, "email", "Trash");
 	}
 	
-	private static String buildCollectionPath(OpushUser opushUser, String dataType, String relativePath) {
-		return "obm:\\\\" + opushUser.user.getLoginAtDomain() + "\\" + dataType + "\\" + relativePath;
+	private static String buildCollectionPath(OpushUser opushUser, String dataType, String collectionName) {
+		return "obm:\\\\" + opushUser.user.getLoginAtDomain() + "\\" + dataType + "\\" + collectionName;
 	}
 
 	public static void appendToINBOX(GreenMailUser greenMailUser, String emailPath) throws Exception {
@@ -246,7 +246,7 @@ public class IntegrationTestUtils {
 	}
 	
 	public static void expectContentExporterFetching(IContentsExporter iContentsExporter, UserDataRequest userDataRequest, ItemChange itemChange) throws Exception {
-		expect(iContentsExporter.fetch(eq(userDataRequest), anyObject(ItemSyncState.class), anyObject(PIMDataType.class), anyInt(), anyObject(SyncCollectionOptions.class), eq(itemChange.getServerId()), anyObject(SyncKey.class)))
+		expect(iContentsExporter.fetch(eq(userDataRequest), anyObject(ItemSyncState.class), anyObject(PIMDataType.class), anyObject(CollectionId.class), anyObject(SyncCollectionOptions.class), eq(itemChange.getServerId()), anyObject(SyncKey.class)))
 			.andReturn(Optional.of(itemChange));
 	}
 }

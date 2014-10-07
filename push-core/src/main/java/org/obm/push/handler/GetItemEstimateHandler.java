@@ -58,6 +58,7 @@ import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.GetItemEstimateProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.protocol.bean.GetItemEstimateRequest;
 import org.obm.push.protocol.bean.GetItemEstimateResponse;
@@ -147,7 +148,7 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 		GetItemEstimateResponse.Builder getItemEstimateResponseBuilder = GetItemEstimateResponse.builder();
 		for (AnalysedSyncCollection syncCollection: request.getSyncCollections()) {
 			
-			Integer collectionId = syncCollection.getCollectionId();
+			CollectionId collectionId = syncCollection.getCollectionId();
 			String collectionPath = collectionDao.getCollectionPath(collectionId);
 			try {
 				PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
@@ -170,7 +171,7 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 		
 		SyncKey syncKey = request.getSyncKey();
 		ItemSyncState state = stMachine.getItemSyncState(syncKey);
-		int collectionId = request.getCollectionId();
+		CollectionId collectionId = request.getCollectionId();
 		if (state == null) {
 			throw new InvalidSyncKeyException(collectionId, syncKey);
 		}

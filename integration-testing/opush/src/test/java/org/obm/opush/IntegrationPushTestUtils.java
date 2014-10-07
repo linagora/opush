@@ -47,6 +47,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.state.SyncKeyFactory;
 import org.obm.push.task.TaskBackend;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -126,8 +127,8 @@ public class IntegrationPushTestUtils {
 
 	public static CollectionChange buildInboxFolder() {
 		return CollectionChange.builder()
-				.collectionId("1")
-				.parentCollectionId("1")
+				.collectionId(CollectionId.of(1))
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName("INBOX")
 				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 				.isNew(true)

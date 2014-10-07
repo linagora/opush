@@ -42,6 +42,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface IBackend {
 
@@ -58,9 +59,9 @@ public interface IBackend {
 	 */
 	IListenerRegistration addChangeListener(ICollectionChangeListener ccl);
 
-	void startEmailMonitoring(UserDataRequest udr, Integer collectionId) throws CollectionNotFoundException, DaoException;
+	void startEmailMonitoring(UserDataRequest udr, CollectionId collectionId) throws CollectionNotFoundException, DaoException;
 
-	void resetCollection(UserDataRequest udr, Integer collectionId) throws DaoException;
+	void resetCollection(UserDataRequest udr, CollectionId collectionId) throws DaoException;
 
 	Set<SyncCollectionResponse> getChangesSyncCollections(ICollectionChangeListener collectionChangeListener) 
 			throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException, ProcessingEmailException,

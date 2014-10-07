@@ -76,8 +76,8 @@ public class FolderSyncResponseTest {
 	@Test
 	public void getCountWhenOneAddOnly() {
 		CollectionChange add = CollectionChange.builder()
-			.collectionId("1")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(1))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("INBOX")
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.isNew(true)
@@ -99,8 +99,8 @@ public class FolderSyncResponseTest {
 	@Test
 	public void getCountWhenOneChangeOnly() {
 		CollectionChange change = CollectionChange.builder()
-			.collectionId("1")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(1))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("INBOX")
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.isNew(false)
@@ -121,7 +121,7 @@ public class FolderSyncResponseTest {
 	@Test
 	public void getCountWhenOneDeletionOnly() {
 		CollectionDeletion del = CollectionDeletion.builder()
-			.collectionId("1")
+			.collectionId(CollectionId.of(1))
 			.build();
 		
 		FolderSyncResponse response = FolderSyncResponse.builder()
@@ -140,21 +140,21 @@ public class FolderSyncResponseTest {
 	@Test
 	public void getCountWhenOneOfEach() {
 		CollectionChange add = CollectionChange.builder()
-			.collectionId("1")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(1))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("INBOX")
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.isNew(true)
 			.build();
 		CollectionChange change = CollectionChange.builder()
-			.collectionId("3")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(3))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("FOLDER")
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 			.isNew(false)
 			.build();
 		CollectionDeletion del = CollectionDeletion.builder()
-			.collectionId("8")
+			.collectionId(CollectionId.of(8))
 			.build();
 		
 		FolderSyncResponse response = FolderSyncResponse.builder()

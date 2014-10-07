@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 
 public class SnapshotKeyTest {
 	
@@ -42,7 +43,7 @@ public class SnapshotKeyTest {
 	public void testNullSyncKey() {
 		SnapshotKey.builder()
 			.deviceId(new DeviceId("deviceId"))
-			.collectionId(1)
+			.collectionId(CollectionId.of(1))
 			.build();
 	}
 	
@@ -50,7 +51,7 @@ public class SnapshotKeyTest {
 	public void testNullDeviceId() {
 		SnapshotKey.builder()
 			.syncKey(new SyncKey("syncKey"))
-			.collectionId(1)
+			.collectionId(CollectionId.of(1))
 			.build();
 	}
 	
@@ -66,7 +67,7 @@ public class SnapshotKeyTest {
 	public void testBuilder() {
 		SyncKey syncKey = new SyncKey("synckey");
 		DeviceId deviceId = new DeviceId("deviceId");
-		Integer collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(deviceId)

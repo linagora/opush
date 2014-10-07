@@ -40,13 +40,13 @@ public class ItemOperationsResponse {
 	public static class EmptyFolderContentsResult {
 		
 		private ItemOperationsStatus itemOperationsStatus;
-		private int collectionId;
+		private CollectionId collectionId;
 		
-		public int getCollectionId() {
+		public CollectionId getCollectionId() {
 			return collectionId;
 		}
 		
-		public void setCollectionId(int collectionId) {
+		public void setCollectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 		}
 		

@@ -52,6 +52,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestCategory;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestInstanceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
@@ -324,7 +325,7 @@ public class SerializableTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("syncKey"))
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.build();
 		objectOutputStream.writeObject(snapshotKey);
 	}

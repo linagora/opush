@@ -53,6 +53,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.state.StateMachine;
@@ -69,7 +70,7 @@ public class PingAnalyserTest {
 	private User user;
 	private Credentials credentials;
 	private String collectionPath;
-	private int collectionId;
+	private CollectionId collectionId;
 	
 	private IMocksControl mocks;
 	private CollectionDao collectionDao;
@@ -87,7 +88,7 @@ public class PingAnalyserTest {
 		credentials = new Credentials(user, "test".toCharArray());
 		udr = new UserDataRequest(credentials, "Sync", device);
 		collectionPath = "INBOX";
-		collectionId = 5;
+		collectionId = CollectionId.of(5);
 
 
 		mocks = createControl();
@@ -249,7 +250,7 @@ public class PingAnalyserTest {
 	@Test
 	public void testAnalysePingTwoSyncCollections() throws Exception {
 		SyncKey syncKey = new SyncKey("123");
-		Integer collectionId2 = 785;
+		CollectionId collectionId2 = CollectionId.of(785);
 		PingRequest pingRequest = PingRequest.builder()
 				.add(SyncCollection.builder()
 						.collectionId(collectionId)

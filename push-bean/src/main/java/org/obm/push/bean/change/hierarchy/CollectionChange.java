@@ -34,6 +34,7 @@ package org.obm.push.bean.change.hierarchy;
 import java.io.Serializable;
 
 import org.obm.push.bean.FolderType;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -47,8 +48,8 @@ public class CollectionChange implements Serializable {
 	
 	public static class Builder {
 
-		private String collectionId;
-		private String parentCollectionId;
+		private CollectionId collectionId;
+		private CollectionId parentCollectionId;
 		private String displayName;
 		private FolderType folderType;
 		private Boolean isNew;
@@ -57,13 +58,13 @@ public class CollectionChange implements Serializable {
 			super();
 		}
 
-		public Builder collectionId(String collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
 
-		public Builder parentCollectionId(String parentCollectionId) {
-			this.parentCollectionId = parentCollectionId;
+		public Builder parentCollectionId(CollectionId collectionId) {
+			this.parentCollectionId = collectionId;
 			return this;
 		}
 
@@ -83,8 +84,8 @@ public class CollectionChange implements Serializable {
 		}
 		
 		public CollectionChange build() {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(collectionId));
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(parentCollectionId));
+			Preconditions.checkArgument(collectionId != null);
+			Preconditions.checkArgument(parentCollectionId != null);
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			Preconditions.checkNotNull(folderType);
 			Preconditions.checkNotNull(isNew);
@@ -93,14 +94,14 @@ public class CollectionChange implements Serializable {
 		}
 	}
 	
-	private final String collectionId;
-	private final String parentCollectionId;
+	private final CollectionId collectionId;
+	private final CollectionId parentCollectionId;
 	private final String displayName;
 	private final FolderType folderType;
 	private final boolean isNew;
 	
 	public CollectionChange(
-			String collectionId, String parentCollectionId,
+			CollectionId collectionId, CollectionId parentCollectionId,
 			String displayName, FolderType folderType, boolean isNew) {
 		
 		this.collectionId = collectionId;
@@ -110,11 +111,11 @@ public class CollectionChange implements Serializable {
 		this.isNew = isNew;
 	}
 	
-	public String getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 
-	public String getParentCollectionId() {
+	public CollectionId getParentCollectionId() {
 		return parentCollectionId;
 	}
 

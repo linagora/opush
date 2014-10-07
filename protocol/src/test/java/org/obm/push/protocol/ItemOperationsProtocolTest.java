@@ -60,6 +60,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemOperationsRequest;
 import org.obm.push.protocol.bean.ItemOperationsResponse;
 import org.obm.push.protocol.bean.ItemOperationsResponse.EmptyFolderContentsResult;
@@ -107,7 +108,7 @@ public class ItemOperationsProtocolTest {
 		ItemOperationsRequest decodedRequest = itemOperationsProtocol.decodeRequest(document);
 		
 		assertThat(decodedRequest).isNotNull();
-		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo("1400");
+		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
 		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo("1400:350025");
 		assertThat(decodedRequest.getFetch().getType()).isEqualTo(MSEmailBodyType.HTML);
 	}
@@ -127,7 +128,7 @@ public class ItemOperationsProtocolTest {
 		ItemOperationsRequest decodedRequest = itemOperationsProtocol.decodeRequest(document);
 
 		assertThat(decodedRequest).isNotNull();
-		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo("1400");
+		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
 		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo("1400:350025");
 		assertThat(decodedRequest.getFetch().getType()).isNull();
 	}
@@ -139,7 +140,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setServerId(fetchItemResultServerId);
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(null);
@@ -186,7 +187,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setServerId(fetchItemResultServerId);
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(itemChange);
@@ -234,7 +235,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setServerId(fetchItemResultServerId);
 		fetchItemResult.setStatus(ItemOperationsStatus.SERVER_ERROR);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(itemChange);
@@ -270,12 +271,12 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setServerId("1:2");
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build());
 		
 		EmptyFolderContentsResult emptyFolderContentsResult = new EmptyFolderContentsResult();
-		emptyFolderContentsResult.setCollectionId(1);
+		emptyFolderContentsResult.setCollectionId(CollectionId.of(1));
 		emptyFolderContentsResult.setItemOperationsStatus(ItemOperationsStatus.SUCCESS);
 		
 		boolean isMultipart = true;

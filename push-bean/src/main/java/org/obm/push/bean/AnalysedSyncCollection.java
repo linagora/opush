@@ -35,6 +35,7 @@ import java.io.Serializable;
 
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 
@@ -49,7 +50,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 	public static class Builder {
 		private PIMDataType dataType;
 		private SyncKey syncKey;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private String collectionPath;
 		private Boolean deletesAsMoves;
 		private Boolean changes;
@@ -71,7 +72,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
@@ -139,7 +140,7 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 	private final SyncCollectionOptions options;
 	private final SyncStatus status;
 	
-	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, int collectionId,
+	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
 			SyncCollectionOptions options, SyncCollectionCommandsResponse commands, SyncStatus status) {
 		super(dataType, syncKey, collectionId, commands);

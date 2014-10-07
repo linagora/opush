@@ -38,6 +38,7 @@ import org.obm.push.backend.MailMonitoringBackend;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.inject.Singleton;
 
@@ -45,7 +46,7 @@ import com.google.inject.Singleton;
 public class ImapMonitoringImpl implements MailMonitoringBackend {
 
 	@Override
-	public void startMonitoringCollection(UserDataRequest udr, Integer collectionId, Set<ICollectionChangeListener> registeredListeners)
+	public void startMonitoringCollection(UserDataRequest udr, CollectionId collectionId, Set<ICollectionChangeListener> registeredListeners)
 		throws CollectionNotFoundException, DaoException {
 		// TODO reimplement push mode
 	}

@@ -66,6 +66,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.json.mixin.AbstractSyncCollectionMixIn;
 import org.obm.push.json.mixin.AnalysedSyncCollectionMixIn;
 import org.obm.push.json.mixin.BodyPreferenceMixIn;
+import org.obm.push.json.mixin.CollectionIdMixIn;
 import org.obm.push.json.mixin.CredentialsMixIn;
 import org.obm.push.json.mixin.DeviceIdMixIn;
 import org.obm.push.json.mixin.DeviceMixIn;
@@ -99,6 +100,7 @@ import org.obm.push.json.serializer.SerializableInputStreamSerializer;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -194,6 +196,7 @@ public class JSONService {
 			.setMixInAnnotation(IApplicationData.class, IApplicationDataMixIn.class)
 			.setMixInAnnotation(ItemChange.class, ItemChangeMixIn.class)
 			.setMixInAnnotation(ItemDeletion.class, ItemDeletionMixIn.class)
+			.setMixInAnnotation(CollectionId.class, CollectionIdMixIn.class)
 			.setMixInAnnotation(Credentials.class, CredentialsMixIn.class)
 			.setMixInAnnotation(Device.class, DeviceMixIn.class)
 			.setMixInAnnotation(DeviceId.class, DeviceIdMixIn.class)

@@ -46,7 +46,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForNullDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();
 		
@@ -56,7 +56,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForUnknownDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.UNKNOWN)
 				.build();
@@ -67,7 +67,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForEmailDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.EMAIL)
 				.build();
@@ -78,7 +78,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForCalendarDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CALENDAR)
 				.build();
@@ -89,7 +89,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForContactDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CONTACTS)
 				.build();
@@ -100,7 +100,7 @@ public class SyncCollectionTest {
 	@Test
 	public void testDataClassForDefaultDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();
 		
@@ -116,9 +116,9 @@ public class SyncCollectionTest {
 
 	@Test
 	public void testBuilderIdValid() {
-		SyncCollection syncRequestCollection = builderWithRequirement().collectionId(135).build();
+		SyncCollection syncRequestCollection = builderWithRequirement().collectionId(CollectionId.of(135)).build();
 		
-		assertThat(syncRequestCollection.getCollectionId()).isEqualTo(135);
+		assertThat(syncRequestCollection.getCollectionId()).isEqualTo(CollectionId.of(135));
 	}
 	
 	@Test
@@ -218,7 +218,7 @@ public class SyncCollectionTest {
 
 	private SyncCollection.Builder builderWithRequirement() {
 		return SyncCollection.builder()
-			.collectionId(140)
+			.collectionId(CollectionId.of(140))
 			.syncKey(new SyncKey("1234"));
 	}
 }

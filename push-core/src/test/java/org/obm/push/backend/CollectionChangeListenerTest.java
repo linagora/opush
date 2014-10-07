@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -52,12 +53,12 @@ public class CollectionChangeListenerTest {
 		
 		Set<AnalysedSyncCollection> monitored = ImmutableSet.of(
 				AnalysedSyncCollection.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.collectionPath(matchString)
 					.syncKey(new SyncKey("1"))
 					.build(),
 				AnalysedSyncCollection.builder()
-					.collectionId(2)
+					.collectionId(CollectionId.of(2))
 					.collectionPath("another")
 					.syncKey(new SyncKey("2"))
 					.build());
@@ -74,12 +75,12 @@ public class CollectionChangeListenerTest {
 	public void testMonitorOfDontMatch() {
 		Set<AnalysedSyncCollection> monitored = ImmutableSet.of(
 				AnalysedSyncCollection.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.collectionPath("an")
 					.syncKey(new SyncKey("1"))
 					.build(),
 				AnalysedSyncCollection.builder()
-					.collectionId(2)
+					.collectionId(CollectionId.of(2))
 					.collectionPath("other")
 					.syncKey(new SyncKey("2"))
 					.build());

@@ -33,6 +33,7 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -46,7 +47,7 @@ public class SnapshotKey implements Serializable{
 	public static class Builder {
 		private SyncKey syncKey;
 		private DeviceId deviceId;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		
 		private Builder() {}
 		
@@ -59,7 +60,7 @@ public class SnapshotKey implements Serializable{
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
@@ -74,9 +75,9 @@ public class SnapshotKey implements Serializable{
 	
 	private final SyncKey syncKey;
 	private final DeviceId deviceId;
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 
-	private SnapshotKey(SyncKey syncKey, DeviceId deviceId, Integer collectionId) {
+	private SnapshotKey(SyncKey syncKey, DeviceId deviceId, CollectionId collectionId) {
 		this.syncKey = syncKey;
 		this.deviceId = deviceId;
 		this.collectionId = collectionId;
@@ -90,7 +91,7 @@ public class SnapshotKey implements Serializable{
 		return deviceId;
 	}
 
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

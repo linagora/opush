@@ -62,6 +62,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.base.Optional;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class SyncHandlerTest {
@@ -100,7 +101,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -136,7 +137,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -173,7 +174,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -184,7 +185,7 @@ public class SyncHandlerTest {
 				.build();
 
 		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn(serverId);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -205,7 +206,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -217,7 +218,7 @@ public class SyncHandlerTest {
 				.build();
 
 		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn(serverId);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -238,7 +239,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -248,7 +249,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn("15:3");
 		
 		mocks.replay();
 		testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -263,7 +264,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -274,7 +275,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn("15:3");
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -295,7 +296,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -306,7 +307,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, 15, null, "1234", null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn("15:3");
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -328,7 +329,7 @@ public class SyncHandlerTest {
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.dataType(PIMDataType.EMAIL)
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -339,7 +340,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, 15, "15:2", true);
+		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), "15:2", true);
 		expectLastCall();
 		
 		mocks.replay();
@@ -362,7 +363,7 @@ public class SyncHandlerTest {
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.dataType(PIMDataType.EMAIL)
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -373,7 +374,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, 15, "15:2", true);
+		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), "15:2", true);
 		expectLastCall();
 		
 		mocks.replay();
@@ -395,7 +396,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -407,7 +408,7 @@ public class SyncHandlerTest {
 				.build();
 
 		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", null, null)).andReturn(serverId);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -428,7 +429,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -440,7 +441,7 @@ public class SyncHandlerTest {
 				.build();
 
 		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, 15, "15:2", "1234", null)).andReturn(serverId);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -461,7 +462,7 @@ public class SyncHandlerTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-				.collectionId(15)
+				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
@@ -473,7 +474,7 @@ public class SyncHandlerTest {
 				.build();
 
 		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, 15, null, "1234", null)).andReturn(serverId);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);

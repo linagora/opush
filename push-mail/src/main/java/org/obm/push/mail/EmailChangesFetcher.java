@@ -40,11 +40,12 @@ import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface EmailChangesFetcher {
 
 	MSEmailChanges fetch(UserDataRequest udr,
-			int collectionId, String collectionPath,
+			CollectionId collectionId, String collectionPath,
 			List<BodyPreference> bodyPreferences, WindowingChanges<Email> emailChanges)
 					throws EmailViewPartsFetcherException, DaoException;
 	

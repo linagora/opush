@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.change.client.SyncClientCommands;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.collect.ImmutableList;
 
@@ -43,7 +44,7 @@ public class SyncCollectionResponseTest {
 	@Test
 	public void testBuildNoResponseGiveEmptyCommand() {
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
-			.collectionId(5)
+			.collectionId(CollectionId.of(5))
 			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.build();
@@ -55,7 +56,7 @@ public class SyncCollectionResponseTest {
 	@Test
 	public void testBuildNullResponseGiveEmptyCommand() {
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
-			.collectionId(5)
+			.collectionId(CollectionId.of(5))
 			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.responses(null)
@@ -72,7 +73,7 @@ public class SyncCollectionResponseTest {
 				.build();
 		
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
-			.collectionId(5)
+			.collectionId(CollectionId.of(5))
 			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.responses(responses)

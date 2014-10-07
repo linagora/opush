@@ -38,6 +38,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncCollection;
@@ -72,7 +73,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		NodeList folders = pr.getElementsByTagName("Folder");
 		for (int i = 0; i < folders.getLength(); i++) {
 			Element f = (Element) folders.item(i);
-			int id = Integer.valueOf(DOMUtils.getElementText(f, "Id"));
+			CollectionId id = CollectionId.of(DOMUtils.getElementText(f, "Id"));
 			
 			syncCollections.add(SyncCollection.builder()
 				.dataType(PIMDataType.recognizeDataType(DOMUtils.getElementText(f, "Class")))
@@ -102,7 +103,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		for (int i = 0; i < folders.getLength(); i++) {
 			Element folder = (Element) folders.item(i);
 			syncCollections.add(SyncCollectionResponse.builder()
-					.collectionId(Integer.valueOf(folder.getTextContent()))
+					.collectionId(CollectionId.of(folder.getTextContent()))
 					.build());
 		}
 		
@@ -131,7 +132,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 	private void encodeFolders(PingResponse pingResponse, Element root) {
 		Element folders = DOMUtils.createElement(root, "Folders");
 		for (SyncCollectionResponse sc : pingResponse.getSyncCollections()) {
-			DOMUtils.createElementAndText(folders, "Folder", sc.getCollectionId());
+			DOMUtils.createElementAndText(folders, "Folder", sc.getCollectionId().asString());
 		}
 	}
 
@@ -144,7 +145,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		Element folders = DOMUtils.createElement(root, "Folders");
 		for (SyncCollection syncCollection : pingRequest.getSyncCollections()) {
 			Element folder = DOMUtils.createElement(folders, "Folder");
-			DOMUtils.createElementAndText(folder, "Id", String.valueOf(syncCollection.getCollectionId()));
+			DOMUtils.createElementAndText(folder, "Id", syncCollection.getCollectionId().asString());
 			DOMUtils.createElementAndText(folder, "Class", syncCollection.getDataClass());
 		}
 		return document;

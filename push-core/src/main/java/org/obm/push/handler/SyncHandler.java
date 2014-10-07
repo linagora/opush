@@ -89,6 +89,7 @@ import org.obm.push.impl.Responder;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.SyncProtocol;
 import org.obm.push.protocol.bean.AnalysedSyncRequest;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
@@ -527,7 +528,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private void handleInitialSync(UserDataRequest udr, AnalysedSyncCollection syncCollectionRequest, SyncCollectionResponse.Builder builder) 
 			throws DaoException, InvalidServerId {
 		
-		int collectionId = syncCollectionRequest.getCollectionId();
+		CollectionId collectionId = syncCollectionRequest.getCollectionId();
 		backend.resetCollection(udr, collectionId);
 		SyncKey newSyncKey = syncKeyFactory.randomSyncKey();
 		stMachine.allocateNewSyncStateWithoutTracking(udr, collectionId, dateService.getEpochPlusOneSecondDate(), newSyncKey);

@@ -35,6 +35,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.exception.activesync.NoDocumentException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
@@ -65,8 +66,8 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 
 			moveItemsRequestBuilder.add(MoveItem.builder()
 					.sourceMessageId(srcMsgId)
-					.sourceFolderId(srcFldId)
-					.destinationFolderId(dstFldId)
+					.sourceFolderId(CollectionId.of(srcFldId))
+					.destinationFolderId(CollectionId.of(dstFldId))
 					.build());
 		}
 		
@@ -141,8 +142,8 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 			Element move = DOMUtils.createElement(root, "Move");
 			
 			DOMUtils.createElementAndText(move, "SrcMsgId", moveItem.getSourceMessageId());
-			DOMUtils.createElementAndText(move, "SrcFldId",	moveItem.getSourceFolderId());
-			DOMUtils.createElementAndText(move, "DstFldId",	moveItem.getDestinationFolderId());
+			DOMUtils.createElementAndText(move, "SrcFldId",	moveItem.getSourceFolderId().asString());
+			DOMUtils.createElementAndText(move, "DstFldId",	moveItem.getDestinationFolderId().asString());
 		}
 		return reply;
 	}

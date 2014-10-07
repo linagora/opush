@@ -55,6 +55,7 @@ import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.ms.MSEmailMetadata;
 import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
@@ -64,7 +65,7 @@ import com.google.common.collect.ImmutableSet;
 
 public class EmailChangesFetcherImplTest {
 
-	private int collectionId;
+	private CollectionId collectionId;
 	private String collectionPath;
 	private UserDataRequest udr;
 
@@ -74,7 +75,7 @@ public class EmailChangesFetcherImplTest {
 
 	@Before
 	public void setUp() {
-		collectionId = 385;
+		collectionId = CollectionId.of(385);
 		collectionPath = "obm:\\\\login@domain\\email\\INBOX";
 		udr = new UserDataRequest(null,  null, null);
 		bodyPreferences = ImmutableList.<BodyPreference>of();
@@ -143,7 +144,7 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
 				ItemChange.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.isNew(true)
 					.data(emailChangesData)
 					.build());
@@ -210,12 +211,12 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
 				ItemChange.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.isNew(true)
 					.data(email1ChangeData)
 					.build(),
 				ItemChange.builder()
-					.serverId(collectionId + ":156")
+					.serverId(collectionId.serverId(156))
 					.isNew(true)
 					.data(email2ChangeData)
 					.build());
@@ -237,7 +238,7 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
 				ItemChange.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.isNew(false)
 					.data(new MSEmailMetadata(false))
 					.build());
@@ -260,12 +261,12 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemDeletions()).isEmpty();
 		assertThat(result.getItemChanges()).containsOnly(
 				ItemChange.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.data(new MSEmailMetadata(false))
 					.isNew(false)
 					.build(),
 				ItemChange.builder()
-					.serverId(collectionId + ":156")
+					.serverId(collectionId.serverId(156))
 					.data(new MSEmailMetadata(true))
 					.isNew(false)
 					.build());
@@ -287,7 +288,7 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemChanges()).isEmpty();
 		assertThat(result.getItemDeletions()).containsOnly(
 				ItemDeletion.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.build());
 	}
 
@@ -308,10 +309,10 @@ public class EmailChangesFetcherImplTest {
 		assertThat(result.getItemChanges()).isEmpty();
 		assertThat(result.getItemDeletions()).containsOnly(
 				ItemDeletion.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.build(),
 				ItemDeletion.builder()
-					.serverId(collectionId + ":654")
+					.serverId(collectionId.serverId(654))
 					.build());
 	}
 
@@ -356,18 +357,18 @@ public class EmailChangesFetcherImplTest {
 		
 		assertThat(result.getItemChanges()).containsOnly(
 				ItemChange.builder()
-					.serverId(collectionId + ":33")
+					.serverId(collectionId.serverId(33))
 					.data(new MSEmailMetadata(false))
 					.isNew(false)
 					.build(),
 				ItemChange.builder()
-					.serverId(collectionId + ":15")
+					.serverId(collectionId.serverId(15))
 					.isNew(true)
 					.data(emailAddedData)
 					.build());
 		assertThat(result.getItemDeletions()).containsOnly(
 				ItemDeletion.builder()
-					.serverId(collectionId + ":39")
+					.serverId(collectionId.serverId(39))
 					.build());
 	}
 }

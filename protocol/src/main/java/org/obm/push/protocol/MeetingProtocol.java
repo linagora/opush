@@ -37,6 +37,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.bean.MeetingResponseStatus;
 import org.obm.push.exception.activesync.NoDocumentException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemChangeMeetingResponse;
 import org.obm.push.protocol.bean.MeetingHandlerRequest;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
@@ -79,9 +80,9 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 		String reqId = DOMUtils.getElementText(req, "ReqId");
 		String longId = DOMUtils.getElementText(req, "LongId");
 
-		Integer collectionId = null;
+		CollectionId collectionId = null;
 		if (!StringUtils.isEmpty(colId)) {
-			collectionId = Integer.parseInt(colId);
+			collectionId = CollectionId.of(colId);
 		}
 		
 		return MeetingResponse.builder()
@@ -158,7 +159,7 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 			
 			DOMUtils.createElementAndText(request, "UserResponse", serializeAttendeeStatus(meetingResponse.getUserResponse()));
 			if (meetingResponse.getCollectionId() != null) {
-				DOMUtils.createElementAndText(request, "CollectionId", meetingResponse.getCollectionId());
+				DOMUtils.createElementAndText(request, "CollectionId", meetingResponse.getCollectionId().asString());
 			}
 			DOMUtils.createElementAndText(request, "ReqId", meetingResponse.getReqId());
 			if (meetingResponse.getLongId() != null) {

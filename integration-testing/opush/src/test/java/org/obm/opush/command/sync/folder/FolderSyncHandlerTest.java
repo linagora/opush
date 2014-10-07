@@ -67,6 +67,7 @@ import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
@@ -181,8 +182,8 @@ public class FolderSyncHandlerTest {
 		int newSyncStateId = 1156;
 		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
 		
-		String collectionId = "4";
-		String parentId = "23";
+		CollectionId collectionId = CollectionId.of(4);
+		CollectionId parentId = CollectionId.of(23);
 		
 		org.obm.push.bean.FolderType itemChangeType = org.obm.push.bean.FolderType.USER_CREATED_EMAIL_FOLDER;
 		HierarchyCollectionChanges mailboxChanges = HierarchyCollectionChanges.builder()
@@ -231,7 +232,7 @@ public class FolderSyncHandlerTest {
 		int newSyncStateId = 1156;
 		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
 
-		String collectionId = "4";
+		CollectionId collectionId = CollectionId.of(4);
 		
 		HierarchyCollectionChanges mailboxChanges = HierarchyCollectionChanges.builder()
 			.deletions(Lists.newArrayList(

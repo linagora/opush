@@ -59,6 +59,7 @@ import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestCategory;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.sync.bean.EqualsVerifierUtils;
 import org.obm.sync.bean.EqualsVerifierUtils.EqualsVerifierBuilder;
 
@@ -81,6 +82,7 @@ public class BeansTest {
 					.add(Address.class)
 					.add(BodyPreference.class)
 					.add(ChangedCollections.class)
+					.add(CollectionId.class)
 					.add(Credentials.class)
 					.add(Device.class)
 					.add(CollectionChange.class)

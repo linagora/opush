@@ -46,7 +46,7 @@ import com.google.common.collect.Maps;
 public class SendEmailSyncRequest implements ActiveSyncRequest {
 
 	public static class Builder {
-		private Map<String, String> parameters;
+		private Map<String, Object> parameters;
 		private InputStream inputStream;
 		private Map<String, String> headers;
 		private DeviceId deviceId;
@@ -61,9 +61,9 @@ public class SendEmailSyncRequest implements ActiveSyncRequest {
 			this.headers = Maps.newHashMap();
 		}
 		
-		public Builder parameters(Map<String, String> parameters) {
-			if (parameters != null) {
-				this.parameters = parameters;
+		public Builder parameters(Map<String, Object> map) {
+			if (map != null) {
+				this.parameters = map;
 			}
 			return this;
 		}
@@ -123,7 +123,7 @@ public class SendEmailSyncRequest implements ActiveSyncRequest {
 		}
 	}
 	
-	private final Map<String, String> parameters;
+	private final Map<String, Object> parameters;
 	private final InputStream inputStream;
 	private final Map<String, String> headers;
 	private final DeviceId deviceId;
@@ -133,7 +133,7 @@ public class SendEmailSyncRequest implements ActiveSyncRequest {
 	private final String msPolicyKey;
 	private final String mSASProtocolVersion;
 	
-	private SendEmailSyncRequest(Map<String, String> parameters, 
+	private SendEmailSyncRequest(Map<String, Object> parameters, 
 		InputStream inputStream, 
 		Map<String, String> headers, 
 		DeviceId deviceId, 
@@ -155,11 +155,11 @@ public class SendEmailSyncRequest implements ActiveSyncRequest {
 	}
 
 	@Override
-	public String getParameter(String key) {
-		return parameters.get(key);
+	public <T> T getParameter(String key) {
+		return (T) parameters.get(key);
 	}
 
-	public Map<String, String> getParameters() {
+	public Map<String, Object> getParameters() {
 		return parameters;
 	}
 	

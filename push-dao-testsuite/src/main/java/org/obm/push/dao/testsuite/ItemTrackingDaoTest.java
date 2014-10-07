@@ -47,6 +47,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 
@@ -78,7 +79,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSynced() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
@@ -88,7 +89,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithSyncedAndWrongServerId() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
@@ -98,7 +99,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithSyncedAndWrongState() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
@@ -114,7 +115,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedTwice() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
@@ -135,7 +136,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeleted() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
@@ -145,7 +146,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithDeletedAndWrongServerId() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
@@ -155,7 +156,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithDeletedAndWrongState() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
@@ -170,7 +171,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedTwice() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
@@ -181,7 +182,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedThenAsDeletedWithSameStateReturnsSynced() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
@@ -192,7 +193,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedThenAsDeletedWithOtherStateDependsOnLastSyncDate() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
 		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(new ServerId("9:1")));
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));
@@ -207,7 +208,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedThenAsSyncedWithSameStateReturnsDeleted() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
@@ -218,7 +219,7 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedThenAsSyncedWithOtherStateDependsOnLastSyncDate() {
-		int colId = collectionDao.addCollectionMapping(device, "collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
 		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(new ServerId("9:1")));
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));

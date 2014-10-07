@@ -62,6 +62,7 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -99,7 +100,7 @@ public class ItemOperationHandlerTest {
 	private OpushUser user;
 	private String mailbox;
 	private String inboxCollectionPath;
-	private int inboxCollectionId;
+	private CollectionId inboxCollectionId;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -114,7 +115,7 @@ public class ItemOperationHandlerTest {
 		cassandraServer.start();
 
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = 1234;
+		inboxCollectionId = CollectionId.of(1234);
 		
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
 
@@ -138,20 +139,18 @@ public class ItemOperationHandlerTest {
 
 	@Test
 	public void testFetchNoOptions() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
+		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
 		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId + emailId1);
+		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId.serverId(1));
 		Element data = fetchResponse.getData();
 		assertThat(DOMUtils.getUniqueElement(data, "Type").getTextContent()).isEqualTo("1");
 		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent()).contains("email body data");
@@ -165,14 +164,12 @@ public class ItemOperationHandlerTest {
 
 	@Test
 	public void shouldReturnDocumentNotFoundWhenFetchAbsentEmail() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
+		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
@@ -188,7 +185,6 @@ public class ItemOperationHandlerTest {
 	
 	@Test
 	public void testFetchForHtml() throws Exception {
-		String emailId1 = ":1";
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
@@ -197,12 +193,12 @@ public class ItemOperationHandlerTest {
 		sendEmailsToImapServer("email body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(
-				inboxCollectionId, MSEmailBodyType.HTML, inboxCollectionId + emailId1);
+				inboxCollectionId, MSEmailBodyType.HTML, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
 		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId + emailId1);
+		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId.serverId(1));
 		Element data = fetchResponse.getData();
 		assertThat(DOMUtils.getUniqueElement(data, "Type").getTextContent()).isEqualTo("2");
 		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent())
@@ -217,8 +213,6 @@ public class ItemOperationHandlerTest {
 
 	@Test
 	public void testFetchForMime() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
@@ -226,12 +220,12 @@ public class ItemOperationHandlerTest {
 		sendEmailsToImapServer("email body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(
-				inboxCollectionId, MSEmailBodyType.MIME, inboxCollectionId + emailId1);
+				inboxCollectionId, MSEmailBodyType.MIME, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
 		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId + emailId1);
+		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId.serverId(1));
 		Element data = fetchResponse.getData();
 		assertThat(DOMUtils.getUniqueElement(data, "Type").getTextContent()).isEqualTo("4");
 		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent())
@@ -251,8 +245,6 @@ public class ItemOperationHandlerTest {
 
 	@Test
 	public void testTwoFetchInDifferentRequest() throws Exception {
-		String emailId1 = ":1";
-		String emailId2 = ":2";
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
@@ -260,13 +252,13 @@ public class ItemOperationHandlerTest {
 		opushServer.start();
 		sendEmailsToImapServer("email body data", "email 2 body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
-		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId2);
+		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
+		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(2));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
 		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId + emailId2);
+		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId.serverId(2));
 		Element data = fetchResponse.getData();
 		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent())
 			.contains("email 2 body data");
@@ -281,31 +273,28 @@ public class ItemOperationHandlerTest {
 	@Ignore("Opush supports only one fetch in an ItemOperation command")
 	@Test
 	public void testTwoFetchInSameRequest() throws Exception {
-		String emailId1 = ":1";
-		String emailId2 = ":2";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data", "email 2 body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
+		opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
 		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(inboxCollectionId,
-				inboxCollectionId + emailId1,
-				inboxCollectionId + emailId2);
+				inboxCollectionId.serverId(1),
+				inboxCollectionId.serverId(2));
 		mocksControl.verify();
 
 		ItemOperationFetchResponse fetchResponse = Iterables.get(itemOperationFetch.getFetchResponses(), 0);
 		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId + emailId1);
+		assertThat(fetchResponse.getServerId()).isEqualTo(inboxCollectionId.serverId(1));
 		Element data = fetchResponse.getData();
 		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent())
 			.contains("email body data");
 		
 		ItemOperationFetchResponse fetchResponse2 = Iterables.get(itemOperationFetch.getFetchResponses(), 1);
 		assertThat(fetchResponse2.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
-		assertThat(fetchResponse2.getServerId()).isEqualTo(inboxCollectionId + emailId2);
+		assertThat(fetchResponse2.getServerId()).isEqualTo(inboxCollectionId.serverId(2));
 		Element data2 = fetchResponse2.getData();
 		assertThat(DOMUtils.getUniqueElement(data2, "Data").getTextContent())
 			.contains("email 2 body data");

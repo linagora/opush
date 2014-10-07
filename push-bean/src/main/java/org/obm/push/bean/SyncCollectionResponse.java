@@ -38,6 +38,7 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -54,7 +55,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	public static class Builder {
 		private PIMDataType dataType;
 		private SyncKey syncKey;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private SyncStatus status;
 		private boolean moreAvailable;
 		private SyncCollectionCommandsResponse commands;
@@ -74,7 +75,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
@@ -120,7 +121,7 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	private final boolean moreAvailable;
 	private final SyncCollectionResponsesResponse responses;
 	
-	private SyncCollectionResponse(PIMDataType dataType, SyncKey syncKey, int collectionId,
+	private SyncCollectionResponse(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			SyncStatus status, boolean moreAvailable, SyncCollectionCommandsResponse commands, SyncCollectionResponsesResponse responses) {
 		super(dataType, syncKey, collectionId, commands);
 		this.status = status;

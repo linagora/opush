@@ -36,6 +36,7 @@ import java.io.Serializable;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -46,14 +47,14 @@ public class WindowingKey implements Serializable {
 	
 	private final User user;
 	private final DeviceId deviceId;
-	private final int collectionId;
+	private final CollectionId collectionId;
 	private final SyncKey syncKey;
 
 	
-	public WindowingKey(User user, DeviceId deviceId, int collectionId, SyncKey syncKey) {
+	public WindowingKey(User user, DeviceId deviceId, CollectionId collectionId, SyncKey syncKey) {
 		Preconditions.checkArgument(user != null);
 		Preconditions.checkArgument(deviceId != null);
-		Preconditions.checkArgument(collectionId > 0);
+		Preconditions.checkArgument(collectionId != null);
 		Preconditions.checkArgument(syncKey != null);
 		this.user = user;
 		this.deviceId = deviceId;
@@ -69,7 +70,7 @@ public class WindowingKey implements Serializable {
 		return deviceId;
 	}
 
-	public int getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

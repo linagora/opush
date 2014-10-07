@@ -34,6 +34,7 @@ package org.obm.sync.push.client.commands;
 import java.io.IOException;
 
 import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.data.PingRequestFields;
 import org.obm.push.utils.DOMUtils;
@@ -48,13 +49,13 @@ public class PingCommand extends AbstractCommand<PingResponse> {
 	
 	private final PingProtocol pingProtocol;
 
-	public PingCommand(PingProtocol pingProtocol, final String collectionId, final long heartbeat) throws SAXException, IOException {
+	public PingCommand(PingProtocol pingProtocol, final CollectionId inbox, final long heartbeat) throws SAXException, IOException {
 		super(NS.Ping, "Ping", new TemplateDocument("PingRequest.xml") {
 
 			@Override
 			protected void customize(Document document, AccountInfos accountInfos) {
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), PingRequestFields.COLLECTION_ID.getName());
-				collection.setTextContent(collectionId);
+				collection.setTextContent(inbox.asString());
 				Element heartbeatElement = DOMUtils.getUniqueElement(document.getDocumentElement(), PingRequestFields.HEARTBEAT_INTERVAL.getName());
 				heartbeatElement.setTextContent(String.valueOf(heartbeat));
 			}});

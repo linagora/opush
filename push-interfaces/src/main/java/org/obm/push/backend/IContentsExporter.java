@@ -49,6 +49,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Optional;
 
@@ -64,7 +65,7 @@ public interface IContentsExporter {
 	List<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, AnalysedSyncCollection syncCollection, SyncKey newSyncKey) throws CollectionNotFoundException, 
 		DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException;
 
-	Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, int collectionId, SyncCollectionOptions options, String fetchId, SyncKey newSyncKey) 
+	Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, CollectionId collectionId, SyncCollectionOptions options, String fetchId, SyncKey newSyncKey) 
 			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException;
 
 	int getItemEstimateSize(UserDataRequest udr, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState)
@@ -75,5 +76,5 @@ public interface IContentsExporter {
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, 
 			UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
 
-	void initialize(UserDataRequest udr, int collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey);
+	void initialize(UserDataRequest udr, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey);
 }

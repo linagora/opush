@@ -94,7 +94,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		Element collectionEl = DOMUtils.createElement(collections, SyncRequestFields.COLLECTION.getName());
 		appendString(collectionEl, SyncRequestFields.DATA_CLASS, collection.getDataClass());
 		appendString(collectionEl, SyncRequestFields.SYNC_KEY, collection.getSyncKey().getSyncKey());
-		appendInteger(collectionEl, SyncRequestFields.COLLECTION_ID, collection.getCollectionId());
+		appendInteger(collectionEl, SyncRequestFields.COLLECTION_ID, collection.getCollectionId().asInt());
 		appendWindowSize(collectionEl, collection.getWindowSize());
 		appendOptions(collectionEl, collection.getOptions());
 		appendCommands(collectionEl, collection.getCommands());

@@ -42,6 +42,7 @@ import org.obm.push.bean.StoreName;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemOperationsRequest;
 import org.obm.push.protocol.bean.ItemOperationsRequest.EmptyFolderContentsRequest;
 import org.obm.push.protocol.bean.ItemOperationsRequest.Fetch;
@@ -111,7 +112,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 			Fetch fetch = new Fetch();
 			fetch.setStoreName(storeName);
 			fetch.setFileReference(reference);
-			fetch.setCollectionId(collectionId);
+			fetch.setCollectionId(CollectionId.of(collectionId));
 			fetch.setServerId(serverId);
 			fetch.setType(getType(fetchNode));
 			return fetch;
@@ -139,7 +140,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 	private EmptyFolderContentsRequest buildEmptyFolderContents(Element root) {
 		Element emptyFolder = DOMUtils.getUniqueElement(root, "EmptyFolderContents");
 		if (emptyFolder != null) {
-			int collectionId = Integer.valueOf(DOMUtils.getElementText(emptyFolder, "CollectionId"));
+			CollectionId collectionId = CollectionId.of(DOMUtils.getElementText(emptyFolder, "CollectionId"));
 			Element deleteSubFolderElem = DOMUtils.getUniqueElement(emptyFolder, "DeleteSubFolders");
 
 			EmptyFolderContentsRequest emptyFolderContents = new EmptyFolderContentsRequest();
@@ -171,7 +172,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 		Element response = DOMUtils.createElement(root, "Response");
 		Element empty = DOMUtils.createElement(response, "EmptyFolderContents");
 		DOMUtils.createElementAndText(empty, "Status", result.getItemOperationsStatus().asSpecificationValue());
-		DOMUtils.createElementAndText(empty, "AirSync:CollectionId", String.valueOf(result.getCollectionId()));
+		DOMUtils.createElementAndText(empty, "AirSync:CollectionId", result.getCollectionId().asString());
 	}
 
 	private void encodeMailboxFetchResult(MailboxFetchResult mailboxFetchResult, Element root) throws IOException {

@@ -62,6 +62,7 @@ import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
 import org.obm.push.mail.transformer.Transformer;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
+import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,11 +80,11 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	private final MailboxService mailboxService;
 	private final UserDataRequest udr;
 	private final String collectionPath;
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 	private final List<BodyPreference> bodyPreferences;
 
 	public EmailViewPartsFetcherImpl(TransformersFactory transformersFactory, MailboxService mailboxService, 
-			List<BodyPreference> bodyPreferences, UserDataRequest udr, String collectionPath, Integer collectionId) {
+			List<BodyPreference> bodyPreferences, UserDataRequest udr, String collectionPath, CollectionId collectionId) {
 		
 		this.transformersFactory = transformersFactory;
 		this.mailboxService = mailboxService;

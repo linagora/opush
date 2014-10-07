@@ -112,6 +112,7 @@ import org.obm.push.mail.conversation.EmailViewAttachment;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.SmtpSender;
@@ -281,10 +282,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throws DaoException, CollectionNotFoundException {
 		
 		CollectionPath collectionPath = imapFolder.collectionPath();
-		Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
+		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
 		return CollectionChange.builder()
-			.collectionId(mappingService.collectionIdToString(collectionId))
-			.parentCollectionId("0")
+			.collectionId(collectionId)
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName(imapFolder.displayName())
 			.folderType(folderType(imapFolder.displayName()))
 			.isNew(true)
@@ -295,9 +296,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	protected CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath imapFolder)
 			throws CollectionNotFoundException, DaoException {
 
-		Integer collectionId = mappingService.getCollectionIdFor(udr.getDevice(), imapFolder.collectionPath());
+		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), imapFolder.collectionPath());
 		return CollectionDeletion.builder()
-				.collectionId(mappingService.collectionIdToString(collectionId))
+				.collectionId(collectionId)
 				.build();
 	}
 	
@@ -306,7 +307,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, 
+	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 			SyncCollectionOptions options) throws ProcessingEmailException, 
 			CollectionNotFoundException, DaoException, FilterTypeChangedException {
 		
@@ -323,7 +324,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException, ProcessingEmailException, FilterTypeChangedException {
 
 		try {
-			int collectionId = syncCollection.getCollectionId();
+			CollectionId collectionId = syncCollection.getCollectionId();
 			SyncKey syncKey = syncCollection.getSyncKey();
 			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
 			
@@ -345,7 +346,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
 			throws EmailViewPartsFetcherException {
 		
-		Integer collectionId = collection.getCollectionId();
+		CollectionId collectionId = collection.getCollectionId();
 		SyncCollectionOptions options = collection.getOptions();
 		
 		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, collectionId, options);
@@ -369,7 +370,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			SyncKey newSyncKey, WindowingChanges<Email> pendingChanges)
 		throws EmailViewPartsFetcherException {
 		
-		int collectionId = collection.getCollectionId();
+		CollectionId collectionId = collection.getCollectionId();
 		MSEmailChanges serverItemChanges = emailChangesFetcher.fetch(udr, collectionId,
 				mappingService.getCollectionPathFor(collectionId), collection.getOptions().getBodyPreferences(), pendingChanges);
 		
@@ -382,7 +383,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.build();
 	}
 
-	private void takeSnapshot(UserDataRequest udr, Integer collectionId, 
+	private void takeSnapshot(UserDataRequest udr, CollectionId collectionId, 
 			SyncCollectionOptions syncCollectionOptions, MailBackendSyncData syncData, SyncKey newSyncKey) {
 		
 		snapshotDao.put(
@@ -397,10 +398,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.build());
 	}
 
-	private Map<Integer, Collection<Long>> getEmailUidByCollectionId(List<String> fetchIds) {
-		Map<Integer, Collection<Long>> ret = Maps.newHashMap();
+	private Map<CollectionId, Collection<Long>> getEmailUidByCollectionId(List<String> fetchIds) {
+		Map<CollectionId, Collection<Long>> ret = Maps.newHashMap();
 		for (String serverId : fetchIds) {
-			Integer collectionId = mappingService.getCollectionIdFromServerId(serverId);
+			CollectionId collectionId = mappingService.getCollectionIdFromServerId(serverId);
 			Collection<Long> set = ret.get(collectionId);
 			if (set == null) {
 				set = Sets.newHashSet();
@@ -411,7 +412,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return ret;
 	}
 
-	private List<ItemChange> fetchItems(UserDataRequest udr, Integer collectionId, Collection<Long> uids, 
+	private List<ItemChange> fetchItems(UserDataRequest udr, CollectionId collectionId, Collection<Long> uids, 
 			List<BodyPreference> bodyPreferences) throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
@@ -438,7 +439,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public void delete(UserDataRequest udr, Integer collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		try {
@@ -478,7 +479,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public String createOrUpdate(UserDataRequest udr, Integer collectionId, String serverId, String clientId, IApplicationData data)
+	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId, String serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, ItemNotFoundException {
 		
 		org.obm.push.bean.ms.MSEmail msEmail = (org.obm.push.bean.ms.MSEmail)data;
@@ -506,7 +507,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		try {
 			logger.info("move( messageId =  {}, from = {}, to = {} )", messageId, srcFolder, dstFolder);
 			final Long currentMailUid = getEmailUidFromServerId(messageId);
-			final Integer dstFolderId = mappingService.getCollectionIdFor(udr.getDevice(), dstFolder);
+			final CollectionId dstFolderId = mappingService.getCollectionIdFor(udr.getDevice(), dstFolder);
 			MessageSet messages = mailboxService.move(udr, srcFolder, dstFolder, MessageSet.singleton(currentMailUid));
 			if (!messages.isEmpty()) {
 				expunge(udr, srcFolder);
@@ -541,12 +542,12 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, Integer collectionId, String serverId)
+	public void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, String serverId)
 			throws ProcessingEmailException, CollectionNotFoundException, ItemNotFoundException {
 		
 		try {
 			String collectionPath = "";
-			if (collectionId != null && collectionId > 0) {
+			if (collectionId != null) {
 				collectionPath = mappingService.getCollectionPathFor(collectionId);
 			}
 			
@@ -587,15 +588,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public void forwardEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, String collectionId, String serverId) 
+	public void forwardEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, String serverId) 
 			throws ProcessingEmailException, CollectionNotFoundException {
 		
 		try {
-			Integer collectionIdInt = Integer.parseInt(collectionId);
-			String collectionPath = mappingService.getCollectionPathFor(collectionIdInt);
+			String collectionPath = mappingService.getCollectionPathFor(collectionId);
 			Long uid = getEmailUidFromServerId(serverId);
 
-			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionIdInt, collectionPath, uid);
+			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionId, collectionPath, uid);
 			if (emailViews.size() > 0) {
 				Message message = mime4jUtils.parseMessage(mailContent);
 				
@@ -634,7 +634,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		} 
 	}
 	
-	@VisibleForTesting Map<MSEmailBodyType, EmailView> fetchMailInHTMLThenText(UserDataRequest udr, Integer collectionId, 
+	@VisibleForTesting Map<MSEmailBodyType, EmailView> fetchMailInHTMLThenText(UserDataRequest udr, CollectionId collectionId, 
 			String collectionPath, Long uid) throws EmailViewPartsFetcherException {
 		
 		ImmutableMap.Builder<MSEmailBodyType, EmailView> emailViews = ImmutableMap.builder();
@@ -649,7 +649,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return emailViews.build();
 	}
 
-	private EmailView fetchBodyType(UserDataRequest udr, Integer collectionId, String collectionPath, Long uid, MSEmailBodyType bodyType)
+	private EmailView fetchBodyType(UserDataRequest udr, CollectionId collectionId, String collectionPath, Long uid, MSEmailBodyType bodyType)
 			throws EmailViewPartsFetcherException, EmailViewBuildException {
 		
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
@@ -740,7 +740,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public UidMSEmail getEmail(UserDataRequest udr, Integer collectionId, String serverId) throws CollectionNotFoundException, ProcessingEmailException {
+	public UidMSEmail getEmail(UserDataRequest udr, CollectionId collectionId, String serverId) throws CollectionNotFoundException, ProcessingEmailException {
 		try {
 			String collectionName = mappingService.getCollectionPathFor(collectionId);
 			Long uid = getEmailUidFromServerId(serverId);
@@ -763,7 +763,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public org.obm.icalendar.ICalendar getInvitation(UserDataRequest udr, Integer collectionId, String serverId) 
+	public org.obm.icalendar.ICalendar getInvitation(UserDataRequest udr, CollectionId collectionId, String serverId) 
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
@@ -780,7 +780,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		}
 	}
 	
-	private org.obm.icalendar.ICalendar fetchInvitation(UserDataRequest udr, Integer collectionId, Long uid) throws DaoException, EmailViewPartsFetcherException {
+	private org.obm.icalendar.ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, Long uid) throws DaoException, EmailViewPartsFetcherException {
 		
 		final String collectionPath = mappingService.getCollectionPathFor(collectionId);
 		return msEmailFetcher.fetchInvitation(udr, collectionId, collectionPath, uid);
@@ -808,8 +808,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 						+ "] [contentTransferEncoding"
 						+ contentTransferEncoding + "]");
 
-				String collectionName = mappingService.getCollectionPathFor(Integer
-						.parseInt(collectionId));
+				String collectionName = mappingService.getCollectionPathFor(CollectionId.of(collectionId));
 				InputStream is = mailboxService.findAttachment(udr,
 						collectionName, Long.parseLong(messageId),
 						new MimeAddress(mimePartAddress));
@@ -857,7 +856,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 						"Only the Trash folder can be purged.");
 			}
 			final Integer devDbId = udr.getDevice().getDatabaseId();
-			int collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
+			CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
 			mailboxService.purgeFolder(udr, devDbId, collectionPath, collectionId);
 			expunge(udr, collectionPath);
 			if (deleteSubFolder) {
@@ -889,12 +888,12 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions) 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions) 
 			throws ProcessingEmailException {
 		
 		LinkedList<ItemChange> fetchs = new LinkedList<ItemChange>();
-		Map<Integer, Collection<Long>> emailUids = getEmailUidByCollectionId(itemIds);
-		for (Entry<Integer, Collection<Long>> entry : emailUids.entrySet()) {
+		Map<CollectionId, Collection<Long>> emailUids = getEmailUidByCollectionId(itemIds);
+		for (Entry<CollectionId, Collection<Long>> entry : emailUids.entrySet()) {
 			Collection<Long> uids = entry.getValue();
 			try {
 				fetchs.addAll(fetchItems(udr, collectionId, uids, collectionOptions.getBodyPreferences()));
@@ -906,7 +905,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions, 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions, 
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 			throws ProcessingEmailException {
 
@@ -932,7 +931,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		snapshotDao.put(
 				SnapshotKey.builder()
 					.collectionId(collectionId)

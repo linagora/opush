@@ -120,7 +120,7 @@ public class SyncRequestTest implements SyncDefaultValues {
 	public void testBuilderCollectionsNonEmpty() {
 		SyncRequest syncRequest = SyncRequest.builder()
 				.addCollection(SyncCollection.builder()
-						.collectionId(1)
+						.collectionId(CollectionId.of(1))
 						.syncKey(new SyncKey("1234"))
 						.build())
 				.build();

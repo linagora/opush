@@ -47,6 +47,7 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.minig.imap.impl.MessageSetUtils;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -82,7 +83,7 @@ public class MailBackendSyncData {
 			this.emailChangesComputer = emailChangesComputer;
 		}
 		
-		public MailBackendSyncData create(UserDataRequest udr, ItemSyncState state, Integer collectionId, 
+		public MailBackendSyncData create(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 				SyncCollectionOptions options) throws ProcessingEmailException, 
 				CollectionNotFoundException, DaoException, FilterTypeChangedException {
 			
@@ -110,7 +111,7 @@ public class MailBackendSyncData {
 			return ImmutableSet.of(); 
 		}
 
-		@VisibleForTesting Collection<Email> searchEmailsToManage(UserDataRequest udr, Integer collectionId, String collectionPath,
+		@VisibleForTesting Collection<Email> searchEmailsToManage(UserDataRequest udr, CollectionId collectionId, String collectionPath,
 				Snapshot previousStateSnapshot, SyncCollectionOptions actualOptions,
 				Date dataDeltaDate, long currentUIDNext) throws FilterTypeChangedException {
 			
@@ -126,7 +127,7 @@ public class MailBackendSyncData {
 			return Objects.firstNonNull(filterType, FilterType.ALL_ITEMS).getFilteredDate(dataDeltaDate);	
 		}
 
-		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options, Integer collectionId)
+		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options, CollectionId collectionId)
 				throws FilterTypeChangedException {
 			
 			if (!snapshotIsAbsent(snapshot) && filterTypeHasChanged(snapshot, options)) {
@@ -134,7 +135,7 @@ public class MailBackendSyncData {
 			}
 		}
 
-		private void manageFilterTypeChanged(Integer collectionId, FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
+		private void manageFilterTypeChanged(CollectionId collectionId, FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
 			throw new FilterTypeChangedException(collectionId, previousFilterType, currentFilterType);
 		}
 

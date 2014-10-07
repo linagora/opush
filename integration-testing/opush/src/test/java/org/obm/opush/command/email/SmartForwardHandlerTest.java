@@ -63,6 +63,7 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.EventService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -92,7 +93,7 @@ public class SmartForwardHandlerTest {
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
 	private String inboxCollectionPath;
-	private int inboxCollectionId;
+	private CollectionId inboxCollectionId;
 	private MailFolder inboxFolder;
 	private MailFolder sentFolder;
 	private ServerId serverId;
@@ -109,8 +110,8 @@ public class SmartForwardHandlerTest {
 		cassandraServer.start();
 		
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = 1;
-		serverId = new ServerId(ServerId.buildServerIdString(inboxCollectionId, 1l));
+		inboxCollectionId = CollectionId.of(1);
+		serverId = new ServerId(inboxCollectionId.serverId(1l));
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		UserClient userClient = classToInstanceMap.get(UserClient.class);

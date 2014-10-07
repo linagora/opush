@@ -46,6 +46,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncCollection;
@@ -131,12 +132,12 @@ public class PingProtocolTest {
 		assertThat(pingProtocol.decodeRequest(document)).isEqualTo(PingRequest.builder()
 				.syncCollections(ImmutableSet.of(
 					SyncCollection.builder()
-						.collectionId(1)
+						.collectionId(CollectionId.of(1))
 						.dataType(PIMDataType.CALENDAR)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 						.build(),
 						SyncCollection.builder()
-						.collectionId(4)
+						.collectionId(CollectionId.of(4))
 						.dataType(PIMDataType.CONTACTS)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 						.build()))
@@ -149,12 +150,12 @@ public class PingProtocolTest {
 		PingResponse pingResponse = PingResponse.builder()
 				.syncCollections(ImmutableSet.of(
 					SyncCollectionResponse.builder()
-						.collectionId(1)
+						.collectionId(CollectionId.of(1))
 						.dataType(PIMDataType.CALENDAR)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 						.build(),
 					SyncCollectionResponse.builder()
-						.collectionId(4)
+						.collectionId(CollectionId.of(4))
 						.dataType(PIMDataType.CONTACTS)
 						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 						.build()))
@@ -210,17 +211,17 @@ public class PingProtocolTest {
 		
 		assertThat(decoded.getSyncCollections()).containsOnly(
 			SyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.dataType(null)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build(), 
 			SyncCollection.builder()
-				.collectionId(2)
+				.collectionId(CollectionId.of(2))
 				.dataType(PIMDataType.UNKNOWN)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build(), 
 			SyncCollection.builder()
-				.collectionId(3)
+				.collectionId(CollectionId.of(3))
 				.dataType(PIMDataType.CONTACTS)
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build());

@@ -60,6 +60,7 @@ import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 
 import com.google.common.collect.ImmutableList;
@@ -100,28 +101,28 @@ public class HierarchyExporterTest {
 	@Test
 	public void testHierarchyItemsChangesBuilderMergeItems() {
 		CollectionChange item1 = CollectionChange.builder()
-				.collectionId("1-ADD")
-				.parentCollectionId("0")
+				.collectionId(CollectionId.of(1))
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName("1")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
 				.build();
 		CollectionChange item2 = CollectionChange.builder()
-				.collectionId("1.1-ADD")
-				.parentCollectionId("0")
+				.collectionId(CollectionId.of(11))
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName("2")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
 				.build();
 		CollectionChange item3 = CollectionChange.builder()
-				.collectionId("2-ADD")
-				.parentCollectionId("0")
+				.collectionId(CollectionId.of(2))
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName("3")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
 				.build();
 		CollectionDeletion item4 = CollectionDeletion.builder()
-				.collectionId("2-REMOVE")
+				.collectionId(CollectionId.of(22))
 				.build();
 
 		HierarchyCollectionChanges hierarchyItemsChanges1 = HierarchyCollectionChanges.builder()
@@ -178,8 +179,8 @@ public class HierarchyExporterTest {
 	
 	@Test
 	public void testFolderChanges() throws Exception {
-		String contactParentCollectionId = "5";
-		String mailParentCollectionId = "2";
+		CollectionId contactParentCollectionId = CollectionId.of(5);
+		CollectionId mailParentCollectionId = CollectionId.of(2);
 		
 		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234567890a"));
 		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
@@ -193,19 +194,19 @@ public class HierarchyExporterTest {
 		expectGetPIMDataType(contactsBackend, calendarBackend, mailBackend);
 		
 		CollectionChange contact1 = CollectionChange.builder()
-				.collectionId("1")
+				.collectionId(CollectionId.of(1))
 				.parentCollectionId(contactParentCollectionId)
 				.displayName("ONE")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.isNew(true).build();
 		CollectionChange contact2 = CollectionChange.builder()
-				.collectionId("2")
+				.collectionId(CollectionId.of(2))
 				.parentCollectionId(contactParentCollectionId)
 				.displayName("TWO")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.isNew(true).build(); 
 		CollectionDeletion contactDeleted = CollectionDeletion.builder()
-				.collectionId("3")
+				.collectionId(CollectionId.of(3))
 				.build();
 		expectHierarchyChangesForBackend(contactsBackend, incomingSyncState, outgoingSyncState,
 				HierarchyCollectionChanges.builder()
@@ -213,19 +214,19 @@ public class HierarchyExporterTest {
 					.deletions(ImmutableList.of(contactDeleted)).build());
 
 		CollectionChange mail1 = CollectionChange.builder()
-				.collectionId("1")
+				.collectionId(CollectionId.of(1))
 				.parentCollectionId(mailParentCollectionId)
 				.displayName("ONE")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.isNew(true).build();  
 		CollectionChange mail2 = CollectionChange.builder()
-				.collectionId("2")
+				.collectionId(CollectionId.of(2))
 				.parentCollectionId(mailParentCollectionId)
 				.displayName("TWO")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.isNew(true).build();
 		CollectionDeletion mailDeleted = CollectionDeletion.builder()
-				.collectionId("3")
+				.collectionId(CollectionId.of(3))
 				.build();
 		expectHierarchyChangesForBackend(mailBackend, incomingSyncState, outgoingSyncState, 
 				HierarchyCollectionChanges.builder()

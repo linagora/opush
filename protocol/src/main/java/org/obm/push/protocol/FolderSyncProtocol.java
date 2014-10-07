@@ -44,6 +44,7 @@ import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.activesync.NoDocumentException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -116,7 +117,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 			
 			Element se = DOMUtils.getUniqueElement(delete, "ServerId");
 			String serverId = se.getTextContent();
-			collectionDeletions.add(CollectionDeletion.builder().collectionId(serverId).build());
+			collectionDeletions.add(CollectionDeletion.builder().collectionId(CollectionId.of(serverId)).build());
 		}
 		
 		HierarchyCollectionChanges hierarchyItemsChanges = HierarchyCollectionChanges.builder()
@@ -138,8 +139,8 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		Element te = DOMUtils.getUniqueElement(add, "Type");
 		
 		return CollectionChange.builder()
-				.collectionId(se.getTextContent())
-				.parentCollectionId(pe.getTextContent())
+				.collectionId(CollectionId.of(se.getTextContent()))
+				.parentCollectionId(CollectionId.of(pe.getTextContent()))
 				.displayName(dne.getTextContent())
 				.folderType(FolderType.fromSpecificationValue(te.getTextContent()))
 				.isNew(isNew)
@@ -171,15 +172,15 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		
 		for (CollectionDeletion collectionDeleted: folderSyncResponse.getCollectionsDeleted()) {
 			Element deleted = DOMUtils.createElement(changes, "Delete");
-			DOMUtils.createElementAndText(deleted, "ServerId", collectionDeleted.getCollectionId());
+			DOMUtils.createElementAndText(deleted, "ServerId", collectionDeleted.getCollectionId().asString());
 		}
 		
 		return ret;
 	}
 
 	private void addCollectionChange(Element addedOrUpdated, CollectionChange collectionChange) {
-		DOMUtils.createElementAndText(addedOrUpdated, "ServerId", collectionChange.getCollectionId());
-		DOMUtils.createElementAndText(addedOrUpdated, "ParentId", collectionChange.getParentCollectionId());
+		DOMUtils.createElementAndText(addedOrUpdated, "ServerId", collectionChange.getCollectionId().asString());
+		DOMUtils.createElementAndText(addedOrUpdated, "ParentId", collectionChange.getParentCollectionId().asString());
 		DOMUtils.createElementAndText(addedOrUpdated, "DisplayName", collectionChange.getDisplayName());
 		DOMUtils.createElementAndText(addedOrUpdated, "Type", collectionChange.getFolderType()
 				.asSpecificationValue());

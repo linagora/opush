@@ -47,6 +47,7 @@ import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.EmailChanges.Builder;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;
@@ -58,7 +59,7 @@ import com.google.common.collect.Range;
 @RunWith(GuiceRunner.class)
 public abstract class WindowingDaoTest {
 
-	protected int collectionId;
+	protected CollectionId collectionId;
 	protected DeviceId deviceId;
 	protected User user;
 
@@ -66,7 +67,7 @@ public abstract class WindowingDaoTest {
 
 	@Before
 	public void setup() {
-		collectionId = 5;
+		collectionId = CollectionId.of(5);
 		deviceId = new DeviceId("ab123");
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 	}

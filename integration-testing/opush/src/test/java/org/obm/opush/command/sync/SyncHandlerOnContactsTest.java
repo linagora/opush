@@ -70,6 +70,7 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
@@ -113,8 +114,7 @@ public class SyncHandlerOnContactsTest {
 
 	private OpushUser user;
 	private String contactCollectionPath;
-	private int contactCollectionId;
-	private String contactCollectionIdAsString;
+	private CollectionId contactCollectionId;
 
 	private CloseableHttpClient httpClient;
 
@@ -124,9 +124,8 @@ public class SyncHandlerOnContactsTest {
 		cassandraServer.start();
 		user = users.jaures;
 
-		contactCollectionId = 7891;
-		contactCollectionIdAsString = String.valueOf(contactCollectionId);
-		contactCollectionPath = IntegrationTestUtils.buildContactCollectionPath(user, contactCollectionIdAsString);
+		contactCollectionId = CollectionId.of(7891);
+		contactCollectionPath = IntegrationTestUtils.buildContactCollectionPath(user, contactCollectionId);
 		
 		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
@@ -184,7 +183,7 @@ public class SyncHandlerOnContactsTest {
 		expectedMSContact.setEmail1Address("contact@mydomain.org");
 		expectedMSContact.setHomeFaxNumber("1234");
 		
-		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
+		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -194,14 +193,14 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -210,7 +209,7 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		mocksControl.verify();
 		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
@@ -222,7 +221,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
@@ -274,14 +273,14 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -303,11 +302,11 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId).times(2);
 		
 		Contact storedContact = new Contact();
@@ -316,13 +315,13 @@ public class SyncHandlerOnContactsTest {
 		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		int uid = 456;
 		storedContact.setUid(uid);
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId, createdContact, hashedClientId))
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), createdContact, hashedClientId))
 			.andReturn(storedContact);
 		
-		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(new ServerId(contactCollectionIdAsString + ":" + uid)));
+		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(new ServerId(contactCollectionId.serverId(uid))));
 		expectLastCall().once();
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(storedContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -331,15 +330,15 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionIdAsString, SyncCommand.ADD, 
+		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.ADD, 
 				null, clientId, createdMSContact);
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -385,7 +384,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
+		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -396,15 +395,15 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
-			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+			.andReturn(new ContactChanges(ImmutableList.of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
@@ -426,35 +425,35 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId).times(2);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
 		String clientId = null;
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, clientId))
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionIdAsString, SyncCommand.CHANGE, 
+		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
 				serverId.toString(), clientId, modifiedMSContact);
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -500,7 +499,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
+		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -511,14 +510,14 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -539,35 +538,35 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId).times(2);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
 		String clientId = null;
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId, modifiedContact, clientId))
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionIdAsString, SyncCommand.CHANGE, 
+		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
 				serverId.toString(), clientId, modifiedMSContact);
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -613,7 +612,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionIdAsString + ":" + initialContact.getUid());
+		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false)
 			.times(2);
@@ -626,14 +625,14 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook
 					.builder()
-					.name(contactCollectionIdAsString)
-					.uid(AddressBook.Id.valueOf(contactCollectionId))
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + contactCollectionId))
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
 			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -642,8 +641,8 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
-		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionIdAsString));
+		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		mocksControl.verify();
 		
@@ -663,7 +662,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
@@ -679,7 +678,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse sameSyncCollectionResponse = getCollectionWithId(sameSyncResponse, contactCollectionIdAsString);
+		SyncCollectionResponse sameSyncCollectionResponse = getCollectionWithId(sameSyncResponse, contactCollectionId);
 		assertThat(sameSyncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();

@@ -52,6 +52,7 @@ import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
 import org.obm.push.protocol.MoveItemsProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
@@ -185,8 +186,8 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 	private static class StatusForItem {
 		public String srcCollection;
 		public String dstCollection;
-		public Integer srcCollectionId;
-		public Integer dstCollectionId;
+		public CollectionId srcCollectionId;
+		public CollectionId dstCollectionId;
 		public MoveItemsStatus status;
 	}
 	
@@ -194,7 +195,7 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 		StatusForItem status = new StatusForItem();
 		try {
 			try {
-				status.dstCollectionId = Integer.parseInt(item.getDestinationFolderId());
+				status.dstCollectionId = item.getDestinationFolderId();
 				status.dstCollection = collectionDao.getCollectionPath(status.dstCollectionId);
 			} catch (CollectionNotFoundException ex) {
 				status.status = MoveItemsStatus.INVALID_DESTINATION_COLLECTION_ID;
@@ -202,7 +203,7 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 			}
 
 			try {
-				status.srcCollectionId = Integer.parseInt(item.getSourceFolderId());
+				status.srcCollectionId = item.getSourceFolderId();
 				status.srcCollection = collectionDao.getCollectionPath(status.srcCollectionId);
 			} catch (CollectionNotFoundException ex) {
 				status.status = MoveItemsStatus.INVALID_SOURCE_COLLECTION_ID;

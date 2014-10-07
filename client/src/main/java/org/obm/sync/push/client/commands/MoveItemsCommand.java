@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.MoveItemsResponse;
 import org.obm.sync.push.client.MoveItemsResponse.MoveResult;
@@ -54,10 +55,10 @@ public class MoveItemsCommand extends AbstractCommand<MoveItemsResponse> {
 	public static class Move {
 		
 		public final String serverId;
-		public final int sourceCollectionId;
-		public final int destCollectionId;
+		public final CollectionId sourceCollectionId;
+		public final CollectionId destCollectionId;
 		
-		public Move(String serverId, int sourceCollectionId, int destCollectionId) {
+		public Move(String serverId, CollectionId sourceCollectionId, CollectionId destCollectionId) {
 			this.serverId = serverId;
 			this.sourceCollectionId = sourceCollectionId;
 			this.destCollectionId = destCollectionId;
@@ -74,8 +75,8 @@ public class MoveItemsCommand extends AbstractCommand<MoveItemsResponse> {
 				for (Move move : moves) {
 					Element fetchElement = DOMUtils.createElement(documentElement, "Move");
 					DOMUtils.createElementAndText(fetchElement, "SrcMsgId", move.serverId);
-					DOMUtils.createElementAndText(fetchElement, "SrcFldId", String.valueOf(move.sourceCollectionId));
-					DOMUtils.createElementAndText(fetchElement, "DstFldId", String.valueOf(move.destCollectionId));
+					DOMUtils.createElementAndText(fetchElement, "SrcFldId", move.sourceCollectionId.asString());
+					DOMUtils.createElementAndText(fetchElement, "DstFldId", move.destCollectionId.asString());
 				}
 			}});
 	}

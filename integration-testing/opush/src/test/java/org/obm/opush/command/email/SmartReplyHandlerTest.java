@@ -61,6 +61,7 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ServerId;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.client.user.UserClient;
@@ -91,7 +92,7 @@ public class SmartReplyHandlerTest {
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
 	private String inboxCollectionPath;
-	private int inboxCollectionId;
+	private CollectionId inboxCollectionId;
 	private MailFolder inboxFolder;
 	private MailFolder sentFolder;
 	private ServerId serverId;
@@ -108,7 +109,7 @@ public class SmartReplyHandlerTest {
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = 1;
+		inboxCollectionId = CollectionId.of(1);
 		serverId = new ServerId(ServerId.buildServerIdString(inboxCollectionId, 1l));
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);

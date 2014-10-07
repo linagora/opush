@@ -64,6 +64,7 @@ import org.obm.push.bean.ProvisionPolicyStatus;
 import org.obm.push.bean.ProvisionStatus;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
@@ -459,7 +460,7 @@ public class ProvisionHandlerTest {
 		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
 		expectUserLoginFromOpush(loginClient, user);
 		
-		expectUserCollectionsNeverChange(classToInstanceMap.get(CollectionDao.class), user, Sets.<Integer>newHashSet());
+		expectUserCollectionsNeverChange(classToInstanceMap.get(CollectionDao.class), user, Sets.<CollectionId>newHashSet());
 		
 		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, 

@@ -44,6 +44,7 @@ import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.mail.conversation.EmailView;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
+import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,7 @@ public class MSEmailFetcher {
 		this.msEmailConverter = msEmailConverter;
 	}
 
-	public List<UidMSEmail> fetch(UserDataRequest udr, Integer collectionId, String collectionPath,
+	public List<UidMSEmail> fetch(UserDataRequest udr, CollectionId collectionId, String collectionPath,
 			Collection<Long> uids, List<BodyPreference> bodyPreferences) throws EmailViewPartsFetcherException, DaoException {
 		
 		List<UidMSEmail> msEmails  = Lists.newLinkedList();
@@ -89,7 +90,7 @@ public class MSEmailFetcher {
 		return msEmails;
 	}
 
-	public ICalendar fetchInvitation(UserDataRequest udr, Integer collectionId, String collectionPath, Long uid) throws EmailViewPartsFetcherException, DaoException {
+	public ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, String collectionPath, Long uid) throws EmailViewPartsFetcherException, DaoException {
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
 				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, null, udr, collectionPath, collectionId);
 		

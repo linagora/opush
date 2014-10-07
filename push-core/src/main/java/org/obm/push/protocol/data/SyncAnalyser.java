@@ -53,6 +53,7 @@ import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncCollectionCommandDto;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
@@ -104,7 +105,7 @@ public class SyncAnalyser {
 			throws PartialException, ProtocolException, DaoException, CollectionPathException{
 		
 		AnalysedSyncCollection.Builder builder = AnalysedSyncCollection.builder();
-		int collectionId = getCollectionId(collectionRequest);
+		CollectionId collectionId = getCollectionId(collectionRequest);
 		try {
 			builder.collectionId(collectionId)
 				.syncKey(collectionRequest.getSyncKey())
@@ -127,8 +128,8 @@ public class SyncAnalyser {
 
 	}
 
-	private int getCollectionId(SyncCollection collectionRequest) {
-		Integer collectionId = collectionRequest.getCollectionId();
+	private CollectionId getCollectionId(SyncCollection collectionRequest) {
+		CollectionId collectionId = collectionRequest.getCollectionId();
 		if (collectionId == null) {
 			throw new ASRequestIntegerFieldException("Collection id field is required");
 		}
@@ -139,7 +140,7 @@ public class SyncAnalyser {
 		return Objects.firstNonNull(collectionRequest.getWindowSize(), syncRequest.getWindowSize());
 	}
 
-	private AnalysedSyncCollection findLastSyncedCollectionOptions(UserDataRequest udr, boolean isPartial, int collectionId) {
+	private AnalysedSyncCollection findLastSyncedCollectionOptions(UserDataRequest udr, boolean isPartial, CollectionId collectionId) {
 		AnalysedSyncCollection lastSyncCollection = 
 				syncedCollectionStoreService.get(udr.getCredentials(), udr.getDevice(), collectionId);
 		if (isPartial && lastSyncCollection == null) {
@@ -148,7 +149,7 @@ public class SyncAnalyser {
 		return lastSyncCollection;
 	}
 
-	private PIMDataType recognizeCollection(AnalysedSyncCollection.Builder builder, int collectionId, String dataClass) {
+	private PIMDataType recognizeCollection(AnalysedSyncCollection.Builder builder, CollectionId collectionId, String dataClass) {
 		String collectionPath = collectionDao.getCollectionPath(collectionId);
 		PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
 		builder.collectionPath(collectionPath)

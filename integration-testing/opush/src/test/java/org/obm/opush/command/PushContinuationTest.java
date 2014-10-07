@@ -76,6 +76,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -108,8 +109,7 @@ public class PushContinuationTest {
 	private static final int WAIT_TO_BE_STARTED_MAX_TIME = 5;
 	
 	private OpushUser user;
-	private int inboxCollectionId;
-	private String inboxCollectionIdAsString;
+	private CollectionId inboxCollectionId;
 	
 	private final static int TIMEOUT_IN_SECONDS = 15;
 	private ExecutorService threadpool;
@@ -124,8 +124,7 @@ public class PushContinuationTest {
 		cassandraServer.start();
 		
 		user = users.jaures;
-		inboxCollectionId = 1234;
-		inboxCollectionIdAsString = String.valueOf(inboxCollectionId);
+		inboxCollectionId = CollectionId.of(1234);
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
@@ -150,11 +149,11 @@ public class PushContinuationTest {
 		opushServer.start();
 		
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		Future<PingResponse> pingFuture = opClient.pingASync(async, pingProtocol, inboxCollectionIdAsString, HEARTBEAT);
+		Future<PingResponse> pingFuture = opClient.pingASync(async, pingProtocol, inboxCollectionId, HEARTBEAT);
 		
 		// We have to wait for Ping request really arrived in OPush
 		assertThat(pendingQueries.waitingStart(WAIT_TO_BE_STARTED_MAX_TIME, TimeUnit.SECONDS)).isTrue();
-		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, INCOMING_SYNC_KEY, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
+		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, INCOMING_SYNC_KEY, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
 		PingResponse pingResponse = pingFuture.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
 		

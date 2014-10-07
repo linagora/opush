@@ -67,6 +67,7 @@ import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.ItemOperationsProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemOperationsRequest;
 import org.obm.push.protocol.bean.ItemOperationsRequest.EmptyFolderContentsRequest;
 import org.obm.push.protocol.bean.ItemOperationsRequest.Fetch;
@@ -193,7 +194,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 			
 		} else if (fetch.getCollectionId() != null && fetch.getServerId() != null) {
 			try {
-				Integer collectionId = Integer.valueOf(fetch.getCollectionId());
+				CollectionId collectionId = fetch.getCollectionId();
 				mailboxFetchResponse.setFetchItemResult(fetchItem(fetch.getServerId(), collectionId, fetch.getType(), udr));
 			} catch (NumberFormatException e) {
 				throw new CollectionNotFoundException(e);
@@ -231,7 +232,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 		return fetchResult;
 	}
 
-	private FetchItemResult fetchItem(String serverId, Integer collectionId, 
+	private FetchItemResult fetchItem(String serverId, CollectionId collectionId, 
 			MSEmailBodyType type, UserDataRequest udr) {
 		
 		FetchItemResult fetchResult = new FetchItemResult();
@@ -315,6 +316,6 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 
 	@VisibleForTesting static boolean isAcceptMultipart(ActiveSyncRequest request) {
 		return "T".equals(request.getHeader("MS-ASAcceptMultiPart"))
-				|| "T".equalsIgnoreCase(request.getParameter("AcceptMultiPart"));
+				|| "T".equalsIgnoreCase(request.<String>getParameter("AcceptMultiPart"));
 	}
 }

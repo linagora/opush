@@ -34,6 +34,7 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class AbstractSyncCollectionTest {
@@ -41,7 +42,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForNullDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();
 		
@@ -51,7 +52,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForUnknownDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.UNKNOWN)
 				.build();
@@ -62,7 +63,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForEmailDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.EMAIL)
 				.build();
@@ -73,7 +74,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForCalendarDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CALENDAR)
 				.build();
@@ -84,7 +85,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForContactDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.dataType(PIMDataType.CONTACTS)
 				.build();
@@ -95,7 +96,7 @@ public class AbstractSyncCollectionTest {
 	@Test
 	public void testDataClassForDefaultDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.build();
 		

@@ -45,6 +45,7 @@ import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;
@@ -70,7 +71,7 @@ public class WindowingStepdefs {
 	
 	private WindowingKey windowingKey;
 	private SyncKey syncKey;
-	private int collectionId;
+	private CollectionId collectionId;
 	private User user;
 	private DeviceId deviceId;
 
@@ -85,7 +86,7 @@ public class WindowingStepdefs {
 		cassandraServer.start();
 		windowingDao = injector.getInstance(WindowingDao.class);
 		
-		collectionId = 5;
+		collectionId = CollectionId.of(5);
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		deviceId = new DeviceId("ab123");
 	}

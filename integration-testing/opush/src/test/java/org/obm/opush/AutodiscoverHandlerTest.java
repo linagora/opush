@@ -57,6 +57,7 @@ import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.utils.DOMUtils;
@@ -147,7 +148,7 @@ public class AutodiscoverHandlerTest {
 
 	private void mockCollectionDaoNoChange() throws CollectionNotFoundException, DaoException {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, Collections.<Integer>emptySet());
+		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, Collections.<CollectionId>emptySet());
 	}
 	
 	private void mockLoginService() throws AuthFault {

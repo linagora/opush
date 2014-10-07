@@ -55,6 +55,7 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.WindowingDao;
@@ -94,7 +95,7 @@ public class GetItemEstimateHandlerTest {
 	@Test
 	public void testComputeEstimateWithFilterTypeChangedException() throws Exception {
 		SyncKey syncKey = new SyncKey("1234");
-		int collectionId = 2;
+		CollectionId collectionId = CollectionId.of(2);
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(syncKey)
 				.syncDate(DateUtils.getCurrentDate())

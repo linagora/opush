@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class Base64QueryString extends AbstractActiveSyncRequest {
 	private int policyKey;
 	
 	private String attachmentName;
-	private String collectionId;
+	private CollectionId collectionId;
 	private String collectionName;
 	private String itemId;
 	private String longId;
@@ -168,7 +169,7 @@ public class Base64QueryString extends AbstractActiveSyncRequest {
 			this.attachmentName = new String(value, Charsets.UTF_8);
 			break;
 		case CollectionId:
-			this.collectionId = new String(value, Charsets.UTF_8);
+			this.collectionId = CollectionId.of(new String(value, Charsets.UTF_8));
 			break;
 		case CollectionName:
 			this.collectionName = new String(value, Charsets.UTF_8);
@@ -202,47 +203,48 @@ public class Base64QueryString extends AbstractActiveSyncRequest {
 		return i;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	public String getParameter(String key) {
+	public <T> T getParameter(String key) {
 
 		if (key.equalsIgnoreCase("MS-ASProtocolVersion")) {
-			return protocolVersion;
+			return (T) protocolVersion;
 		}
 		if (key.equalsIgnoreCase("DeviceType")) {
-			return deviceType;
+			return (T) deviceType;
 		}
 		if (key.equalsIgnoreCase("Cmd")) {
-			return Base64CommandCodes.getCmd(cmdCode);
+			return (T) Base64CommandCodes.getCmd(cmdCode);
 		}
 		if (key.equalsIgnoreCase("DeviceId")) {
-			return deviceId.getDeviceId();
+			return (T) deviceId.getDeviceId();
 		}
 		if (key.equalsIgnoreCase("AttachmentName")) {
-			return attachmentName;
+			return (T) attachmentName;
 		}
 		if (key.equalsIgnoreCase("CollectionId")) {
-			return collectionId;
+			return (T) collectionId;
 		}
 		if (key.equalsIgnoreCase("CollectionName")) {
-			return collectionName;
+			return (T) collectionName;
 		}
 		if (key.equalsIgnoreCase("ItemId")) {
-			return itemId;
+			return (T) itemId;
 		}
 		if (key.equalsIgnoreCase("LongId")) {
-			return longId;
+			return (T) longId;
 		}
 		if (key.equalsIgnoreCase("ParentId")) {
-			return parentId;
+			return (T) parentId;
 		}
 		if (key.equalsIgnoreCase("Occurrence")) {
-			return occurrence;
+			return (T) occurrence;
 		}
 		if (key.equalsIgnoreCase("SaveInSent")) {
-			return saveInSent;
+			return (T) saveInSent;
 		}
 		if (key.equalsIgnoreCase("AcceptMultiPart")) {
-			return acceptMultiPart;
+			return (T) acceptMultiPart;
 		}
 
 		logger.warn("cannot fetch '" + key + "' in b64 query string");

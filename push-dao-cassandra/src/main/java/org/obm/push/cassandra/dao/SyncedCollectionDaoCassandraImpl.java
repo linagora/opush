@@ -48,6 +48,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.User;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.SyncedCollectionDao;
 import org.slf4j.Logger;
 
@@ -76,14 +77,14 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 		Insert query = insertInto(TABLE.get())
 				.value(USER, user.getLoginAtDomain())
 				.value(DEVICE, jsonService.serialize(device))
-				.value(COLLECTION_ID, collection.getCollectionId())
+				.value(COLLECTION_ID, collection.getCollectionId().asInt())
 				.value(ANALYSED_SYNC_COLLECTION, jsonService.serialize(collection));
 		logger.debug("Inserting {}", query.getQueryString());
 		getSession().execute(query);
 	}
 	
 	@Override
-	public AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId) {
+	public AnalysedSyncCollection get(Credentials credentials, Device device, CollectionId collectionId) {
 		AnalysedSyncCollection result = getV2(credentials.getUser(), device, collectionId);
 		if (result != null) {
 			return result;
@@ -91,11 +92,11 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 		return getV1(credentials, device, collectionId);
 	}
 	
-	private AnalysedSyncCollection getV2(User user, Device device, Integer collectionId) {
+	private AnalysedSyncCollection getV2(User user, Device device, CollectionId collectionId) {
 		Where query = select(ANALYSED_SYNC_COLLECTION).from(TABLE.get())
 				.where(eq(USER, user.getLoginAtDomain()))
 				.and(eq(DEVICE, jsonService.serialize(device)))
-				.and(eq(COLLECTION_ID, collectionId));
+				.and(eq(COLLECTION_ID, collectionId.asInt()));
 		logger.debug("Getting {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {
@@ -107,12 +108,12 @@ public class SyncedCollectionDaoCassandraImpl extends AbstractCassandraDao imple
 		return jsonService.deserialize(AnalysedSyncCollection.class, json);
 	}
 
-	private AnalysedSyncCollection getV1(Credentials credentials, Device device, Integer collectionId) {
+	private AnalysedSyncCollection getV1(Credentials credentials, Device device, CollectionId collectionId) {
 		Where query = select(V1.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION)
 				.from(V1.SyncedCollection.TABLE.get())
 				.where(eq(V1.SyncedCollection.Columns.CREDENTIALS, jsonService.serialize(credentials)))
 				.and(eq(V1.SyncedCollection.Columns.DEVICE, jsonService.serialize(device)))
-				.and(eq(V1.SyncedCollection.Columns.COLLECTION_ID, collectionId));
+				.and(eq(V1.SyncedCollection.Columns.COLLECTION_ID, collectionId.asInt()));
 		logger.debug("Getting {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
 		if (resultSet.isExhausted()) {

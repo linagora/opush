@@ -31,6 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import org.obm.push.protocol.bean.CollectionId;
+
 import com.google.common.base.Objects;
 
 
@@ -42,7 +44,7 @@ public class MeetingResponse {
 	
 	public static class Builder {
 		private AttendeeStatus userResponse;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private String reqId;
 		private String longId;
 
@@ -53,7 +55,7 @@ public class MeetingResponse {
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
@@ -74,11 +76,11 @@ public class MeetingResponse {
 	}
 	
 	private final AttendeeStatus userResponse;
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 	private final String reqId;
 	private final String longId;
 	
-	private MeetingResponse(AttendeeStatus userResponse, Integer collectionId, String reqId, String longId) {
+	private MeetingResponse(AttendeeStatus userResponse, CollectionId collectionId, String reqId, String longId) {
 		this.userResponse = userResponse;
 		this.collectionId = collectionId;
 		this.reqId = reqId;
@@ -89,7 +91,7 @@ public class MeetingResponse {
 		return userResponse;
 	}
 
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

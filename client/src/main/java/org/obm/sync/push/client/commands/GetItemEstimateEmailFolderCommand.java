@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ResponseTransformer;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -47,13 +48,13 @@ import org.xml.sax.SAXException;
 public class GetItemEstimateEmailFolderCommand extends AbstractCommand<GetItemEstimateSingleFolderResponse> {
 
 
-	public GetItemEstimateEmailFolderCommand(SyncKey syncKey, int collectionId)
+	public GetItemEstimateEmailFolderCommand(SyncKey syncKey, CollectionId collectionId)
 			throws SAXException, IOException {
 		this(syncKey, null, collectionId);
 	}
 	
 	public GetItemEstimateEmailFolderCommand(final SyncKey syncKey, final FilterType filterType,
-			final int collectionId) throws SAXException, IOException {
+			final CollectionId collectionId) throws SAXException, IOException {
 		
 		super(NS.GetItemEstimate, "GetItemEstimate", new TemplateDocument("GetItemEstimateRequestEmail.xml") {
 			@Override
@@ -65,7 +66,7 @@ public class GetItemEstimateEmailFolderCommand extends AbstractCommand<GetItemEs
 					ft.setTextContent(filterType.asSpecificationValue());
 				}
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
-				collection.setTextContent(String.valueOf(collectionId));				
+				collection.setTextContent(collectionId.asString());				
 			}
 		});
 	}

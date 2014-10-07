@@ -49,6 +49,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.MonitoredCollectionDao;
 
 import com.google.common.collect.Sets;
@@ -99,7 +100,7 @@ public abstract class MonitoredCollectionDaoTest {
 		Collection<AnalysedSyncCollection> syncCollections = monitoredCollectionDao.list(credentials, device);
 		
 		assertThat(monitoredCollectionDao.list(credentials, device)).hasSize(1);
-		containsCollectionWithId(syncCollections, 1);
+		containsCollectionWithId(syncCollections, CollectionId.of(1));
 	}
 	
 	@Test
@@ -110,14 +111,14 @@ public abstract class MonitoredCollectionDaoTest {
 		Collection<AnalysedSyncCollection> syncCollections = monitoredCollectionDao.list(credentials, device);
 		
 		assertThat(monitoredCollectionDao.list(credentials, device)).hasSize(2);
-		containsCollectionWithId(syncCollections, 2);
-		containsCollectionWithId(syncCollections, 3);
+		containsCollectionWithId(syncCollections, CollectionId.of(2));
+		containsCollectionWithId(syncCollections, CollectionId.of(3));
 	}
 	
-	protected void containsCollectionWithId(Collection<AnalysedSyncCollection> syncCollections, Integer id) {
+	protected void containsCollectionWithId(Collection<AnalysedSyncCollection> syncCollections, CollectionId id) {
 		boolean find = false;
 		for(AnalysedSyncCollection col : syncCollections){
-			if(col.getCollectionId() == id){
+			if (col.getCollectionId().equals(id)) {
 				find = true;
 			}
 		}
@@ -128,7 +129,7 @@ public abstract class MonitoredCollectionDaoTest {
 		Set<AnalysedSyncCollection> cols = Sets.newHashSet();
 		for(Integer id : ids){
 			cols.add(AnalysedSyncCollection.builder()
-					.collectionId(id)
+					.collectionId(CollectionId.of(id))
 					.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
 					.build());
 		}

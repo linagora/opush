@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -44,12 +45,12 @@ import org.xml.sax.SAXException;
 
 public class EmailSyncCommand extends Sync {
 
-	public EmailSyncCommand(final SyncDecoder decoder, final SyncKey syncKey, final String collectionId,
+	public EmailSyncCommand(final SyncDecoder decoder, final SyncKey syncKey, final CollectionId collectionId,
 			final FilterType filterType, final int windowSize) throws SAXException, IOException {
 		this(decoder, "EmailSyncRequest.xml", syncKey, collectionId, filterType, windowSize);
 	}
 	
-	protected EmailSyncCommand(SyncDecoder decoder, String templateName, final SyncKey syncKey, final String collectionId,
+	protected EmailSyncCommand(SyncDecoder decoder, String templateName, final SyncKey syncKey, final CollectionId collectionId,
 			final FilterType filterType, final int windowSize)
 			throws SAXException, IOException {
 
@@ -60,7 +61,7 @@ public class EmailSyncCommand extends Sync {
 				Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), "SyncKey");
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
-				collection.setTextContent(collectionId);
+				collection.setTextContent(collectionId.asString());
 				Element filterTypeE = DOMUtils.getUniqueElement(document.getDocumentElement(), "FilterType");
 				filterTypeE.setTextContent(filterType.asSpecificationValue());
 				Element windowSizeE = DOMUtils.getUniqueElement(document.getDocumentElement(), "WindowSize");

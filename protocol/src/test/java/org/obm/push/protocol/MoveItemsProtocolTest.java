@@ -61,13 +61,13 @@ public class MoveItemsProtocolTest {
 				"<MoveItems>" +
 				"<Move>" +
 				"<SrcMsgId>messageId</SrcMsgId>" +
-				"<SrcFldId>folderId</SrcFldId>" +
-				"<DstFldId>destinationId</DstFldId>" +
+				"<SrcFldId>22</SrcFldId>" +
+				"<DstFldId>33</DstFldId>" +
 				"</Move>" +
 				"<Move>" +
 				"<SrcMsgId>messageId2</SrcMsgId>" +
-				"<SrcFldId>folderId2</SrcFldId>" +
-				"<DstFldId>destinationId2</DstFldId>" +
+				"<SrcFldId>23</SrcFldId>" +
+				"<DstFldId>34</DstFldId>" +
 				"</Move>" +
 				"</MoveItems>";
 		

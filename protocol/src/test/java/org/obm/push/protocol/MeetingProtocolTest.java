@@ -43,6 +43,7 @@ import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.MeetingResponse;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MeetingHandlerRequest;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
 import org.obm.push.utils.DOMUtils;
@@ -106,7 +107,7 @@ public class MeetingProtocolTest {
 	@Test
 	public void testEncodeValues() throws Exception {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.longId("2")
 					.reqId("3")
 					.userResponse(AttendeeStatus.ACCEPT)
@@ -129,7 +130,7 @@ public class MeetingProtocolTest {
 	@Test
 	public void testEncodeLongIdIsNotRequired() throws Exception {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.reqId("3")
 					.userResponse(AttendeeStatus.ACCEPT)
 					.build()).build();
@@ -171,7 +172,7 @@ public class MeetingProtocolTest {
 	@Test
 	public void testEncodeAttendeeStatusIsTentativeByDefault() throws Exception {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.longId("2")
 					.reqId("3")
 					.build()).build();
@@ -193,7 +194,7 @@ public class MeetingProtocolTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testEncodeReqIdIsRequired() {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.longId("2")
 					.userResponse(AttendeeStatus.ACCEPT)
 					.build()).build();

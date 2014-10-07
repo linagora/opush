@@ -40,6 +40,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.protocol.bean.AnalysedSyncRequest;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
@@ -108,13 +109,13 @@ public class BeansTest {
 		.equalsVerifiers(ImmutableList.<Class<?>>of(Estimate.class))
 		.prefabValue(SyncCollectionResponse.class,
 				SyncCollectionResponse.builder()
-					.collectionId(1)
+					.collectionId(CollectionId.of(1))
 					.dataType(PIMDataType.EMAIL)
 					.status(SyncStatus.OK)
 					.syncKey(new SyncKey("123"))
 					.build(),
 				SyncCollectionResponse.builder()
-					.collectionId(2)
+					.collectionId(CollectionId.of(2))
 					.dataType(PIMDataType.EMAIL)
 					.status(SyncStatus.OK)
 					.syncKey(new SyncKey("456"))

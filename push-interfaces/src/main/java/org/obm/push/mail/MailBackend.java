@@ -39,20 +39,21 @@ import org.obm.push.exception.activesync.AttachementNotFoundException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface MailBackend extends PIMBackend {
 
 	void sendEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent)
 			throws ProcessingEmailException;
 
-	void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, Integer collectionId, String serverId)
+	void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, String serverId)
 			throws ProcessingEmailException, CollectionNotFoundException, ItemNotFoundException;
 
 	void forwardEmail(UserDataRequest udr, byte[] mailContent,
-			boolean saveInSent, String collectionId, String serverId)
+			boolean saveInSent, CollectionId collectionId, String serverId)
 			throws ProcessingEmailException, CollectionNotFoundException;
 
-	UidMSEmail getEmail(UserDataRequest udr, Integer collectionId, String serverId)
+	UidMSEmail getEmail(UserDataRequest udr, CollectionId collectionId, String serverId)
 			throws CollectionNotFoundException, ProcessingEmailException;
 
 	MSAttachementData getAttachment(UserDataRequest udr, String attachmentId)
@@ -61,5 +62,5 @@ public interface MailBackend extends PIMBackend {
 
 	Long getEmailUidFromServerId(String serverId);
 
-	Object getInvitation(UserDataRequest udr, Integer collectionId, String serverId) throws CollectionNotFoundException, ProcessingEmailException;
+	Object getInvitation(UserDataRequest udr, CollectionId collectionId, String serverId) throws CollectionNotFoundException, ProcessingEmailException;
 }

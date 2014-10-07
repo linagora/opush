@@ -56,6 +56,7 @@ import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
@@ -87,7 +88,7 @@ public class SummaryLoggerServiceTest {
 	public void syncLoggerInWhenInfoNotEnabled() {
 		Sync sync = Sync.builder()
 			.addCollection(AnalysedSyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.build())
@@ -115,7 +116,7 @@ public class SummaryLoggerServiceTest {
 	public void syncLoggerInWhenMergeOfCollection() {
 		Sync sync = Sync.builder()
 			.addCollection(AnalysedSyncCollection.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.commands(SyncCollectionCommandsResponse.builder()
@@ -123,7 +124,7 @@ public class SummaryLoggerServiceTest {
 					.build())
 				.build())
 			.addCollection(AnalysedSyncCollection.builder()
-				.collectionId(3)
+				.collectionId(CollectionId.of(3))
 				.syncKey(new SyncKey("456"))
 				.dataType(PIMDataType.CALENDAR)
 				.commands(SyncCollectionCommandsResponse.builder()
@@ -145,7 +146,7 @@ public class SummaryLoggerServiceTest {
 		SyncResponse response = SyncResponse.builder()
 			.status(SyncStatus.OK)
 			.addResponse(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.responses(SyncCollectionResponsesResponse.builder()
@@ -179,7 +180,7 @@ public class SummaryLoggerServiceTest {
 		SyncResponse response = SyncResponse.builder()
 			.status(SyncStatus.OK)
 			.addResponse(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.build())
@@ -198,7 +199,7 @@ public class SummaryLoggerServiceTest {
 		SyncResponse response = SyncResponse.builder()
 			.status(SyncStatus.OK)
 			.addResponse(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.responses(SyncCollectionResponsesResponse.empty())
@@ -218,7 +219,7 @@ public class SummaryLoggerServiceTest {
 		SyncResponse response = SyncResponse.builder()
 			.status(SyncStatus.OK)
 			.addResponse(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.commands( SyncCollectionCommandsResponse.builder()
@@ -227,7 +228,7 @@ public class SummaryLoggerServiceTest {
 					.build())
 				.build())
 			.addResponse(SyncCollectionResponse.builder()
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
 				.commands( SyncCollectionCommandsResponse.builder()
@@ -264,21 +265,21 @@ public class SummaryLoggerServiceTest {
 	@Test
 	public void folderSyncloggerOutWhenOneOfEach() {
 		CollectionChange add = CollectionChange.builder()
-			.collectionId("1")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(1))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("INBOX")
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.isNew(true)
 			.build();
 		CollectionChange change = CollectionChange.builder()
-			.collectionId("3")
-			.parentCollectionId("0")
+			.collectionId(CollectionId.of(3))
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName("FOLDER")
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 			.isNew(false)
 			.build();
 		CollectionDeletion del = CollectionDeletion.builder()
-			.collectionId("8")
+			.collectionId(CollectionId.of(8))
 			.build();
 		
 		FolderSyncResponse response = FolderSyncResponse.builder()
@@ -312,16 +313,16 @@ public class SummaryLoggerServiceTest {
 	public void moveItemLoggerInWhenSome() {
 		MoveItemsRequest request = MoveItemsRequest.builder()
 			.add(MoveItem.builder()
-				.destinationFolderId("dest1")
-				.sourceFolderId("src1")
+				.destinationFolderId(CollectionId.of(5))
+				.sourceFolderId(CollectionId.of(1))
 				.sourceMessageId("1").build())
 			.add(MoveItem.builder()
-				.destinationFolderId("dest2")
-				.sourceFolderId("src2")
+				.destinationFolderId(CollectionId.of(6))
+				.sourceFolderId(CollectionId.of(2))
 				.sourceMessageId("2").build())
 			.add(MoveItem.builder()
-				.destinationFolderId("dest3")
-				.sourceFolderId("src3")
+				.destinationFolderId(CollectionId.of(7))
+				.sourceFolderId(CollectionId.of(3))
 				.sourceMessageId("3").build())
 			.build();
 

@@ -32,21 +32,23 @@
 package org.obm.push.store;
 
 import java.util.List;
+import java.util.Set;
 
 import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface FolderSnapshotDao {
 
-	void createFolderSnapshot(Integer folderSyncStateId, Iterable<Integer> collectionIds) throws DaoException;
+	void createFolderSnapshot(Integer folderSyncStateId, Set<CollectionId> collectionIds) throws DaoException;
 	
-	List<Integer> getFolderSnapshot(Integer folderSyncStateId) throws DaoException;
+	List<CollectionId> getFolderSnapshot(Integer folderSyncStateId) throws DaoException;
 	
-	List<Integer> getFolderSnapshot(String folderSyncKey) throws DaoException;
+	List<CollectionId> getFolderSnapshot(String folderSyncKey) throws DaoException;
 	
-	Integer getFolderSyncStateId(Integer collectionId, Device device) throws DaoException;
+	Integer getFolderSyncStateId(CollectionId collectionId, Device device) throws DaoException;
 	
-	String getFolderSyncKey(Integer collectionId, Device device) throws DaoException;
+	String getFolderSyncKey(CollectionId collectionId, Device device) throws DaoException;
 	
 	String getFolderSyncKey(String collection, Device device) throws DaoException;
 }

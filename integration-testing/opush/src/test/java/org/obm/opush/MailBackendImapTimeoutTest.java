@@ -77,6 +77,7 @@ import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
 import org.obm.push.protocol.bean.PingResponse;
@@ -130,10 +131,9 @@ public class MailBackendImapTimeoutTest {
 	private OpushUser user;
 	private String mailbox;
 	private String inboxCollectionPath;
-	private int inboxCollectionId;
-	private String inboxCollectionIdAsString;
+	private CollectionId inboxCollectionId;
 	private String trashCollectionPath;
-	private int trashCollectionId;
+	private CollectionId trashCollectionId;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -148,10 +148,9 @@ public class MailBackendImapTimeoutTest {
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = 1234;
-		inboxCollectionIdAsString = String.valueOf(inboxCollectionId);
+		inboxCollectionId = CollectionId.of(1234);
 		trashCollectionPath = IntegrationTestUtils.buildEmailTrashCollectionPath(user);
-		trashCollectionId = 1645;
+		trashCollectionId = CollectionId.of(1645);
 		
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
 		folderSyncStateBackendMappingDao = classToInstanceMap.get(FolderSyncStateBackendMappingDao.class);
@@ -207,9 +206,9 @@ public class MailBackendImapTimeoutTest {
 		opushServer.start();
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		opClient.syncEmail(syncDecoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
+		opClient.syncEmail(syncDecoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		greenMail.lockGreenmailAndReleaseAfter(20);
-		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 25);
+		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
@@ -300,8 +299,6 @@ public class MailBackendImapTimeoutTest {
 	
 	@Test
 	public void testItemOperationsHandler() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
@@ -309,7 +306,7 @@ public class MailBackendImapTimeoutTest {
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
-		ItemOperationResponse itemOperationResponse = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId + emailId1);
+		ItemOperationResponse itemOperationResponse = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
 		
 		mocksControl.verify();
 		assertThat(itemOperationResponse.getStatus()).isEqualTo(ItemOperationsStatus.SERVER_ERROR);
@@ -317,8 +314,6 @@ public class MailBackendImapTimeoutTest {
 	
 	@Test
 	public void testMeetingResponseHandler() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
@@ -326,7 +321,7 @@ public class MailBackendImapTimeoutTest {
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
-		MeetingHandlerResponse meetingHandlerResponse = opClient.meetingResponse(inboxCollectionIdAsString, inboxCollectionId + emailId1);
+		MeetingHandlerResponse meetingHandlerResponse = opClient.meetingResponse(inboxCollectionId, inboxCollectionId.serverId(1));
 		
 		mocksControl.verify();
 		assertThat(meetingHandlerResponse.getItemChanges().iterator().next().getStatus()).isEqualTo(MeetingResponseStatus.SERVER_ERROR);
@@ -334,14 +329,8 @@ public class MailBackendImapTimeoutTest {
 
 	@Test
 	public void testMoveItemsHandler() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		
-		expect(collectionDao.getCollectionPath(inboxCollectionId))
-			.andReturn(inboxCollectionPath).anyTimes();
-		expect(collectionDao.getCollectionPath(trashCollectionId))
-			.andReturn(trashCollectionPath).anyTimes();
+
 		expect(collectionDao.getCollectionMapping(user.device, trashCollectionPath))
 			.andReturn(trashCollectionId).anyTimes();
 		
@@ -351,7 +340,7 @@ public class MailBackendImapTimeoutTest {
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		MoveItemsResponse moveItemsResponse = opClient.moveItems(
-				new Move(inboxCollectionId + emailId1, inboxCollectionId, trashCollectionId));
+				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId));
 		
 		mocksControl.verify();
 		assertThat(moveItemsResponse.getStatus()).isEqualTo(MoveItemsStatus.SERVER_ERROR);
@@ -384,18 +373,18 @@ public class MailBackendImapTimeoutTest {
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
-		PingResponse pingResponse = opClient.ping(pingProtocol, inboxCollectionIdAsString, heartbeat);
+		PingResponse pingResponse = opClient.ping(pingProtocol, inboxCollectionId, heartbeat);
 		
 		mocksControl.verify();
 		assertThat(pingResponse.getPingStatus()).isEqualTo(PingStatus.SERVER_ERROR);
 	}
 
-	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId)
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, CollectionId collectionId)
 					throws DaoException {
 		
 		expect(collectionDao.updateState(user.device, collectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
-		collectionDao.resetCollection(user.device, collectionId);
+		collectionDao.resetCollection(user.device, inboxCollectionId);
 		expectLastCall();
 	}
 }

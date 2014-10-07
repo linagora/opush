@@ -86,6 +86,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
@@ -130,8 +131,7 @@ public class SyncHandlerOnCalendarsTest {
 
 	private OpushUser user;
 	private String calendarCollectionPath;
-	private int calendarCollectionId;
-	private String calendarCollectionIdAsString;
+	private CollectionId calendarCollectionId;
 
 	private CloseableHttpClient httpClient;
 
@@ -142,8 +142,7 @@ public class SyncHandlerOnCalendarsTest {
 		user = users.jaures;
 
 		calendarCollectionPath = IntegrationTestUtils.buildCalendarCollectionPath(user);
-		calendarCollectionId = 5678;
-		calendarCollectionIdAsString = String.valueOf(calendarCollectionId);
+		calendarCollectionId = CollectionId.of(5678);
 		
 		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
@@ -242,7 +241,7 @@ public class SyncHandlerOnCalendarsTest {
 		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
 			.andReturn(msEventUid);
 		
-		ServerId serverId = new ServerId(calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString());
+		ServerId serverId = new ServerId(calendarCollectionId.serverId(msEvent.getUid().serializeToString()));
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
@@ -256,16 +255,16 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionIdAsString));
-		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionIdAsString));
-		SyncResponse sameSyncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionIdAsString));
+		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionId.asString()));
+		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
+		SyncResponse sameSyncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
 		mocksControl.verify();
 
-		SyncCollectionResponse initialCollectionResponse = getCollectionWithId(initialSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse initialCollectionResponse = getCollectionWithId(initialSyncResponse, calendarCollectionId);
 		assertThat(initialCollectionResponse.getItemChanges()).isEmpty();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionId);
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -273,7 +272,7 @@ public class SyncHandlerOnCalendarsTest {
 					.isNew(true)
 					.build()));
 
-		SyncCollectionResponse sameCollectionResponse = getCollectionWithId(sameSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse sameCollectionResponse = getCollectionWithId(sameSyncResponse, calendarCollectionId);
 		assertEqualsWithoutApplicationData(sameCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -359,7 +358,7 @@ public class SyncHandlerOnCalendarsTest {
 		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
 			.andReturn(msEventUid);
 		
-		String serverId = calendarCollectionIdAsString + ":" + msEvent.getUid().serializeToString();
+		String serverId = calendarCollectionId.serverId(msEvent.getUid().serializeToString());
 		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
 			.andReturn(eventExtId);
 		
@@ -416,17 +415,17 @@ public class SyncHandlerOnCalendarsTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionIdAsString));
-		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionIdAsString));
+		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionId.asString()));
+		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionIdAsString, SyncCommand.CHANGE, 
+		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionId, SyncCommand.CHANGE, 
 				serverId, clientId, msEventUpdated);
 		mocksControl.verify();
 
-		SyncCollectionResponse initialCollectionResponse = getCollectionWithId(initialSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse initialCollectionResponse = getCollectionWithId(initialSyncResponse, calendarCollectionId);
 		assertThat(initialCollectionResponse.getItemChanges()).isEmpty();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionId);
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
@@ -435,7 +434,7 @@ public class SyncHandlerOnCalendarsTest {
 						.build()));
 		
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse updateCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse updateCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionId);
 		SyncCollectionResponsesResponse responses = updateCollectionResponse.getResponses();
 		List<SyncCollectionCommand> changes = responses.getCommandsForType(SyncCommand.CHANGE);
 		assertThat(changes).containsOnly(SyncCollectionCommand.builder()
@@ -445,7 +444,7 @@ public class SyncHandlerOnCalendarsTest {
 				.build());
 	}
 
-	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, int collectionId) throws DaoException {
+	private void expectCollectionDaoPerformInitialSync(ItemSyncState itemSyncState, CollectionId collectionId) throws DaoException {
 		expect(collectionDao.updateState(user.device, collectionId, itemSyncState.getSyncKey(), itemSyncState.getSyncDate()))
 			.andReturn(itemSyncState);
 		collectionDao.resetCollection(user.device, collectionId);
@@ -547,16 +546,16 @@ public class SyncHandlerOnCalendarsTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionIdAsString));
+		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
-		String serverId = calendarCollectionIdAsString + ":" + createdMSEvent.getUid().serializeToString();
-		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionIdAsString, SyncCommand.ADD, 
+		String serverId = calendarCollectionId.serverId(createdMSEvent.getUid().serializeToString());
+		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionId, SyncCommand.ADD, 
 				serverId, clientId, createdMSEvent);
 		mocksControl.verify();
 
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionIdAsString);
+		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, calendarCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);

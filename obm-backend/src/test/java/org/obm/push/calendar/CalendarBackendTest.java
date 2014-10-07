@@ -92,6 +92,7 @@ import org.obm.push.exception.ICalendarConverterException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.impl.ObmSyncBackend.WindowingChangesDelta;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
@@ -231,7 +232,7 @@ public class CalendarBackendTest {
 		String calendarDisplayName = user.getLogin() + " calendar";
 		String defaultCalendarName = rootCalendarPath + user.getLogin();
 		
-		int collectionMappingId = 1;
+		CollectionId collectionMappingId = CollectionId.of(1);
 		List<CollectionPath> knownCollections = ImmutableList.of(); 
 		expectMappingServiceListLastKnowCollection(lastKnownState, knownCollections);
 		expectMappingServiceSearchThenCreateCollection(defaultCalendarName, collectionMappingId);
@@ -247,8 +248,8 @@ public class CalendarBackendTest {
 		mockControl.verify();
 		
 		CollectionChange expectedItemChange = CollectionChange.builder()
-				.collectionId(String.valueOf(collectionMappingId))
-				.parentCollectionId("0")
+				.collectionId(collectionMappingId)
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName(calendarDisplayName)
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
@@ -263,7 +264,7 @@ public class CalendarBackendTest {
 		String calendarDisplayName = user.getLogin();
 		String defaultCalendarName = rootCalendarPath + user.getLogin();
 		
-		int collectionMappingId = 1;
+		CollectionId collectionMappingId = CollectionId.of(1);
 		List<CollectionPath> knownCollections = ImmutableList.<CollectionPath>of(
 				new CollectionPathTest(defaultCalendarName, PIMDataType.CALENDAR, calendarDisplayName));
 		expectMappingServiceListLastKnowCollection(lastKnownState, knownCollections);
@@ -290,11 +291,11 @@ public class CalendarBackendTest {
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		
-		int calendar1MappingId = 1;
+		CollectionId calendar1MappingId = CollectionId.of(1);
 		String calendar1DisplayName = "test calendar";
 		String calendar1BackendName = "test";
 		String calendar1CollectionPath = rootCalendarPath + calendar1BackendName;
-		int calendar2MappingId = 2;
+		CollectionId calendar2MappingId = CollectionId.of(2);
 		String calendar2DisplayName = "alias calendar";
 		String calendar2BackendName = "alias";
 		String calendar2CollectionPath = rootCalendarPath + calendar2BackendName;
@@ -321,15 +322,15 @@ public class CalendarBackendTest {
 		mockControl.verify();
 
 		CollectionChange expectedItemChange1 = CollectionChange.builder()
-				.collectionId(String.valueOf(calendar1MappingId))
-				.parentCollectionId("0")
+				.collectionId(calendar1MappingId)
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName(calendar1DisplayName)
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
 				.build();
 		CollectionChange expectedItemChange2 = CollectionChange.builder()
-				.collectionId(String.valueOf(calendar2MappingId))
-				.parentCollectionId("0")
+				.collectionId(calendar2MappingId)
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName(calendar2DisplayName)
 				.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER)
 				.isNew(true)
@@ -348,10 +349,10 @@ public class CalendarBackendTest {
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		
-		int calendar1MappingId = 1;
+		CollectionId calendar1MappingId = CollectionId.of(1);
 		String calendar1DisplayName = "added calendar";
 		String calendar1CollectionPath = rootCalendarPath + "added";
-		int calendar2MappingId = 2;
+		CollectionId calendar2MappingId = CollectionId.of(2);
 		String calendar2DisplayName = "deleted calendar";
 		String calendar2CollectionPath = rootCalendarPath + "deleted";
 
@@ -374,14 +375,14 @@ public class CalendarBackendTest {
 		mockControl.verify();
 
 		CollectionChange expectedItemChange1 = CollectionChange.builder()
-				.collectionId(String.valueOf(calendar1MappingId))
-				.parentCollectionId("0")
+				.collectionId(calendar1MappingId)
+				.parentCollectionId(CollectionId.ROOT)
 				.displayName(calendar1DisplayName)
 				.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER)
 				.isNew(true)
 				.build();
 		CollectionDeletion expectedItemChange2 = CollectionDeletion.builder()
-				.collectionId(String.valueOf(calendar2MappingId))
+				.collectionId(calendar2MappingId)
 				.build();
 		
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).hasSize(1);
@@ -392,7 +393,7 @@ public class CalendarBackendTest {
 
 	@Test
 	public void collectionDisplayNameForCalendar() throws Exception {
-		int calendarMappingId = 1;
+		CollectionId calendarMappingId = CollectionId.of(1);
 		String calendarBackendName = "test";
 		String calendarDisplayName = calendarBackendName + " calendar";
 		String calendarCollectionPath = rootCalendarPath + calendarBackendName;
@@ -410,8 +411,8 @@ public class CalendarBackendTest {
 
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(CollectionChange.builder()
 				.displayName(calendarDisplayName)
-				.collectionId("1")
-				.parentCollectionId("0")
+				.collectionId(CollectionId.of(1))
+				.parentCollectionId(CollectionId.ROOT)
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.isNew(true)
 				.build());
@@ -419,12 +420,12 @@ public class CalendarBackendTest {
 
 	@Test
 	public void collectionDisplayNameForMultipleCalendar() throws Exception {
-		int calendarMappingId = 1;
+		CollectionId calendarMappingId = CollectionId.of(1);
 		String calendarBackendName = "test";
 		String calendarDisplayName = calendarBackendName + " calendar";
 		String calendarCollectionPath = rootCalendarPath + calendarBackendName;
 
-		int calendar2MappingId = 2;
+		CollectionId calendar2MappingId = CollectionId.of(2);
 		String calendar2BackendName = "test2";
 		String calendar2DisplayName = calendar2BackendName + " calendar";
 		String calendar2CollectionPath = rootCalendarPath + calendar2BackendName;
@@ -454,15 +455,15 @@ public class CalendarBackendTest {
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(
 				CollectionChange.builder()
 					.displayName(calendarDisplayName)
-					.collectionId("1")
-					.parentCollectionId("0")
+					.collectionId(CollectionId.of(1))
+					.parentCollectionId(CollectionId.ROOT)
 					.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 					.isNew(true)
 					.build(),
 				CollectionChange.builder()
 					.displayName(calendar2DisplayName)
-					.collectionId("2")
-					.parentCollectionId("0")
+					.collectionId(CollectionId.of(2))
+					.parentCollectionId(CollectionId.ROOT)
 					.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER)
 					.isNew(true)
 					.build()
@@ -496,10 +497,10 @@ public class CalendarBackendTest {
 		return calendarInfo;
 	}
 
-	private void expectMappingServiceSnapshot(FolderSyncState outgoingSyncState, Set<Integer> collectionIds)
+	private void expectMappingServiceSnapshot(FolderSyncState outgoingSyncState, ImmutableSet<CollectionId> immutableSet)
 			throws DaoException {
 
-		mappingService.snapshotCollections(outgoingSyncState, collectionIds);
+		mappingService.snapshotCollections(outgoingSyncState, immutableSet);
 		expectLastCall();
 	}
 
@@ -510,29 +511,27 @@ public class CalendarBackendTest {
 			.andReturn(collectionPaths).once();
 	}
 
-	private void expectMappingServiceFindCollection(String collectionPath, Integer collectionId)
+	private void expectMappingServiceFindCollection(String collectionPath, CollectionId collectionMappingId)
 		throws CollectionNotFoundException, DaoException {
 		
 		expect(mappingService.getCollectionIdFor(device, collectionPath))
-			.andReturn(collectionId).once();
+			.andReturn(collectionMappingId).once();
 	}
 	
-	private void expectMappingServiceSearchThenCreateCollection(String collectionPath, Integer collectionId)
+	private void expectMappingServiceSearchThenCreateCollection(String collectionPath, CollectionId collectionMappingId)
 		throws CollectionNotFoundException, DaoException {
 		
 		expect(mappingService.getCollectionIdFor(device, collectionPath))
 			.andThrow(new CollectionNotFoundException()).once();
 		
 		expect(mappingService.createCollectionMapping(device, collectionPath))
-			.andReturn(collectionId).once();
+			.andReturn(collectionMappingId).once();
 	}
 	
-	private void expectMappingServiceLookupCollection(String collectionPath, Integer collectionId)
+	private void expectMappingServiceLookupCollection(String collectionPath, CollectionId collectionMappingId)
 		throws CollectionNotFoundException, DaoException {
 		
-		expectMappingServiceFindCollection(collectionPath, collectionId);
-		expect(mappingService.collectionIdToString(collectionId))
-			.andReturn(String.valueOf(collectionId)).once();
+		expectMappingServiceFindCollection(collectionPath, collectionMappingId);
 	}
 
 	@Test
@@ -542,7 +541,7 @@ public class CalendarBackendTest {
 				.syncDate(currentDate)
 				.syncKey(new SyncKey("1234567890a"))
 				.build();
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);
@@ -584,7 +583,7 @@ public class CalendarBackendTest {
 				.syncKey(syncKey)
 				.build();
 
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);
@@ -629,7 +628,7 @@ public class CalendarBackendTest {
 				.syncKey(syncKey)
 				.build();
 
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);
@@ -715,7 +714,7 @@ public class CalendarBackendTest {
 
 	@Test
 	public void testCreateExternalEventIsAccept() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String serverId = null;
 		String clientId = "3";
 		String clientIdHash = "54661110";
@@ -752,12 +751,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, creatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + createdObmId);
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(createdObmId));
 	}
 	
 	@Test
 	public void testCreateInternalEvent() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = "13";
 		String clientIdHash = "135660464";
 		String serverId = null;
@@ -796,12 +795,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, creatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + createdObmId);
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(createdObmId));
 	}
 
 	@Test
 	public void testUpdateOwnInternalEvent() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = null;
 		int itemId = 123;
 		String serverId = "1:123";
@@ -844,12 +843,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, updatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + itemId);
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(itemId));
 	}
 	
 	@Test
 	public void testUpdateNotOwnInternalEventWithServerId() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = null;
 		int itemId = 123;
 		String serverId = "1:123";
@@ -884,12 +883,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, updatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + itemId);
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(itemId));
 	}
 	
 	@Test
 	public void testUpdateNotOwnInternalEventWithClientId() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = "13";
 		String serverId = null;
 
@@ -922,12 +921,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, updatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + oldEvent.getObmId().getObmId());
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(oldEvent.getObmId().getObmId()));
 	}
 	
 	@Test
 	public void testUpdateNotOwnExternalEvent() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = null;
 		int itemId = 123;
 		String serverId = "1:123";
@@ -967,12 +966,12 @@ public class CalendarBackendTest {
 		String serverIdFor = calendarBackend.createOrUpdate(userDataRequest, collectionId, serverId, clientId, updatingMSEvent);
 		mockControl.verify();
 		
-		assertThat(serverIdFor).isEqualTo(collectionId + ":" + itemId);
+		assertThat(serverIdFor).isEqualTo(collectionId.serverId(itemId));
 	}
 
 	@Test
 	public void testDelete() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String serverId = "2";
 		int itemId = 3;
 
@@ -1012,7 +1011,7 @@ public class CalendarBackendTest {
 		String calendar = user.getLogin();
 		String calendarPath = rootCalendarPath + calendar;
 		expectBuildCollectionPath(calendar);
-		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(1);
+		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(CollectionId.of(1));
 
 		boolean isInternal = false;
 		String clientId = null;
@@ -1059,7 +1058,7 @@ public class CalendarBackendTest {
 		String calendar = user.getLogin();
 		String calendarPath = rootCalendarPath + calendar;
 		expectBuildCollectionPath(calendar);
-		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(1);
+		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(CollectionId.of(1));
 
 		boolean isInternal = false;
 		MSEventUid msEventUid = new MSEventUid("1");
@@ -1106,7 +1105,7 @@ public class CalendarBackendTest {
 		String calendar = user.getLogin();
 		String calendarPath = rootCalendarPath + calendar;
 		expectBuildCollectionPath(calendar);
-		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(1);
+		expect(mappingService.getCollectionIdFor(device, calendarPath)).andReturn(CollectionId.of(1));
 		
 		EventExtId eventExtId = new EventExtId("145");
 		Event iCSEvent = new Event();
@@ -1165,7 +1164,7 @@ public class CalendarBackendTest {
 		String serverId2 = "1:2";
 		Integer itemId1 = 1;
 		Integer itemId2 = 2;
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);
@@ -1275,7 +1274,7 @@ public class CalendarBackendTest {
 				.syncKey(syncKey)
 				.build();
 
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);
@@ -1307,7 +1306,7 @@ public class CalendarBackendTest {
 	
 	@Test (expected=ItemNotFoundException.class)
 	public void testCreateOrUpdateThrowsHierarchyChangedException() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String itemId = "2";
 		String serverId = "1:2";
 		String clientId = "3";
@@ -1335,7 +1334,7 @@ public class CalendarBackendTest {
 	
 	@Test (expected=ItemNotFoundException.class)
 	public void testCreateOrUpdateThrowsHierarchyChangedExceptionOnUpdateCalendarEntity() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String itemId = "2";
 		String serverId = "1:2";
 		String clientId = "3";
@@ -1374,7 +1373,7 @@ public class CalendarBackendTest {
 	
 	@Test (expected=ItemNotFoundException.class)
 	public void testCreateOrUpdateThrowsHierarchyChangedExceptionOnCreateCalendarEntity() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = "3";
 		String clientIdHash = "35466464106456405";
 		MSEvent msEvent = new MSEvent();
@@ -1411,7 +1410,7 @@ public class CalendarBackendTest {
 	
 	@Test (expected=ItemNotFoundException.class)
 	public void testCreateOrUpdateThrowsHierarchyChangedExceptionOnEventAlreadyExist() throws Exception {
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		String clientId = "3";
 		String clientIdHash = "35466464106456405";
 		MSEvent msEvent = new MSEvent();
@@ -1493,8 +1492,8 @@ public class CalendarBackendTest {
 		
 		String serverId = "123";
 		expect(mappingService.getCollectionIdFor(device, defaultCalendarName))
-			.andReturn(1).once();
-		expect(mappingService.getServerIdFor(1, eventExtIdString))
+			.andReturn(CollectionId.of(1)).once();
+		expect(mappingService.getServerIdFor(CollectionId.of(1), eventExtIdString))
 			.andReturn(serverId);
 		
 		expectBuildCollectionPath(user.getLogin());
@@ -1544,7 +1543,7 @@ public class CalendarBackendTest {
 		SyncKey newSyncKey = new SyncKey("132");
 		String serverId = "1:1";
 		Integer itemId = 1;
-		int collectionId = 1;
+		CollectionId collectionId = CollectionId.of(1);
 		
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(userCalendarCollectionPath.collectionPath());
 		expect(collectionPathBuilder.userDataRequest(userDataRequest)).andReturn(collectionPathBuilder);

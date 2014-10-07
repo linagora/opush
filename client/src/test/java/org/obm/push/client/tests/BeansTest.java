@@ -40,7 +40,6 @@ import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 
 import com.google.common.collect.ImmutableList;
 
-
 public class BeansTest {
 
 	private EqualsVerifierUtils equalsVerifierUtilsTest;

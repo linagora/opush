@@ -130,7 +130,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 			.from(WindowingIndex.TABLE.get())
 			.where(eq(USER, key.getUser().getLoginAtDomain()))
 			.and(eq(DEVICE_ID, key.getDeviceId().getDeviceId()))
-			.and(eq(COLLECTION_ID, key.getCollectionId()))
+			.and(eq(COLLECTION_ID, key.getCollectionId().asInt()))
 			.and(eq(SYNC_KEY, UUID.fromString(key.getSyncKey().getSyncKey())));
 		logger.debug("Select windowing index query: {}", statement.getQueryString());
 		return getSession().execute(statement);
@@ -228,7 +228,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		Insert statement = insertInto(WindowingIndex.TABLE.get())
 			.value(USER, key.getUser().getLoginAtDomain())
 			.value(DEVICE_ID, key.getDeviceId().getDeviceId())
-			.value(COLLECTION_ID, key.getCollectionId())
+			.value(COLLECTION_ID, key.getCollectionId().asInt())
 			.value(SYNC_KEY, UUID.fromString(newSyncKey.getSyncKey()))
 			.value(WINDOWING_ID, windowingId)
 			.value(WINDOWING_KIND, windowingKind.asXmlValue())

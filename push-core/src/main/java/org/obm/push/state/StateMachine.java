@@ -53,6 +53,7 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.slf4j.Logger;
@@ -87,7 +88,7 @@ public class StateMachine implements IStateMachine {
 	}
 
 	@Override
-	public ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException {
+	public ItemSyncState lastKnownState(Device device, CollectionId collectionId) throws DaoException {
 		return collectionDao.lastKnownState(device, collectionId);
 	}
 	
@@ -127,7 +128,7 @@ public class StateMachine implements IStateMachine {
 	}
 	
 	@Override
-	public void allocateNewSyncState(UserDataRequest udr, Integer collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
+	public void allocateNewSyncState(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
 			throws DaoException, InvalidServerId {
 
 		ItemSyncState newState = collectionDao.updateState(udr.getDevice(), collectionId, newSyncKey, lastSync);
@@ -171,7 +172,7 @@ public class StateMachine implements IStateMachine {
 	}
 
 	@Override
-	public void allocateNewSyncStateWithoutTracking(UserDataRequest udr, Integer collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId {
+	public void allocateNewSyncStateWithoutTracking(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncKey newSyncKey) throws DaoException, InvalidServerId {
 
 		ItemSyncState newState = collectionDao.updateState(udr.getDevice(), collectionId, newSyncKey, lastSync);
 		log(udr, newState);

@@ -46,6 +46,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.dao.testsuite.SyncedCollectionDaoTest;
 import org.obm.push.json.JSONService;
+import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +77,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Test
 	public void getShouldReturnV1WhenPutDoneByV1UsingCredentials() {
-		AnalysedSyncCollection collection = buildCollection(1, SyncKey.INITIAL_FOLDER_SYNC_KEY);
+		AnalysedSyncCollection collection = buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY);
 		syncedCollectionDaoV1.put(credentials, device, collection);
 		
 		assertThat(syncedCollectionDao.get(credentials, device, collection.getCollectionId()))
@@ -85,7 +86,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Test
 	public void getShouldReturnV2WhenPutDoneByV1AndV2() {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		AnalysedSyncCollection collection1 = buildCollection(collectionId, new SyncKey("6146ebbb-e7c4-4731-84b8-f2772cc0efb0"));
 		AnalysedSyncCollection collection2 = buildCollection(collectionId, new SyncKey("797bdfa3-9059-45ef-ade7-98797a14fd33"));
 		
@@ -98,7 +99,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Test
 	public void getShouldReturnV1WhenPutDoneByBothAndReadByV1() {
-		int id = 3;
+		CollectionId id = CollectionId.of(3);
 		AnalysedSyncCollection collection1 = buildCollection(id, new SyncKey("0b7f500e-b6bc-4034-8884-ad5551fbbdbb"));
 		AnalysedSyncCollection collection2 = buildCollection(id, new SyncKey("307e9aa6-58f4-4105-abac-bb8962026aa8"));
 		
@@ -110,7 +111,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Test
 	public void getShouldReturnV1WhenPutDoneByV2AndReadByV1() {
-		int id = 5;
+		CollectionId id = CollectionId.of(5);
 		AnalysedSyncCollection collection = buildCollection(id, new SyncKey("3bacc1d6-ec37-4e6c-8ccd-3518477b8eba"));
 		
 		syncedCollectionDao.put(user, device, collection);
@@ -133,18 +134,18 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 			Insert query = insertInto(CassandraStructure.V1.SyncedCollection.TABLE.get())
 					.value(CassandraStructure.V1.SyncedCollection.Columns.CREDENTIALS, jsonService.serialize(credentials))
 					.value(CassandraStructure.V1.SyncedCollection.Columns.DEVICE, jsonService.serialize(device))
-					.value(CassandraStructure.V1.SyncedCollection.Columns.COLLECTION_ID, collection.getCollectionId())
+					.value(CassandraStructure.V1.SyncedCollection.Columns.COLLECTION_ID, collection.getCollectionId().asInt())
 					.value(CassandraStructure.V1.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION, jsonService.serialize(collection));
 			logger.debug("Inserting {}", query.getQueryString());
 			sessionProvider.get().execute(query);
 		}
 		
-		public AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId) {
+		public AnalysedSyncCollection get(Credentials credentials, Device device, CollectionId collectionId) {
 			Where query = select(CassandraStructure.V1.SyncedCollection.Columns.ANALYSED_SYNC_COLLECTION)
 					.from(CassandraStructure.V1.SyncedCollection.TABLE.get())
 					.where(eq(CassandraStructure.V1.SyncedCollection.Columns.CREDENTIALS, jsonService.serialize(credentials)))
 					.and(eq(CassandraStructure.V1.SyncedCollection.Columns.DEVICE, jsonService.serialize(device)))
-					.and(eq(CassandraStructure.V1.SyncedCollection.Columns.COLLECTION_ID, collectionId));
+					.and(eq(CassandraStructure.V1.SyncedCollection.Columns.COLLECTION_ID, collectionId.asInt()));
 			logger.debug("Getting {}", query.getQueryString());
 			ResultSet resultSet = sessionProvider.get().execute(query);
 			if (resultSet.isExhausted()) {

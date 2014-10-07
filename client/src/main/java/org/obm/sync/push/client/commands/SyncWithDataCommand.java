@@ -37,6 +37,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.protocol.data.SyncRequestFields;
@@ -64,13 +65,13 @@ public class SyncWithDataCommand extends SyncWithCommand {
 			this.decoder = decoder;
 		}
 		
-		public SyncWithDataCommand create(SyncKey syncKey, String collectionId, SyncCommand command,
+		public SyncWithDataCommand create(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
 				String serverId, String clientId, IApplicationData data, Device device) throws SAXException, IOException {
 			return new SyncWithDataCommand(decoder, syncKey, collectionId, command, serverId, clientId, data, encoderFactory, device);
 		}
 	}
 	
-	private SyncWithDataCommand(SyncDecoder decoder, SyncKey syncKey, String collectionId, SyncCommand command,
+	private SyncWithDataCommand(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, SyncCommand command,
 			String serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
 					throws SAXException, IOException {
 		super(decoder, new SyncWithCommandDataTemplate(syncKey, collectionId, command, serverId, clientId, data, encoders, device));
@@ -82,7 +83,7 @@ public class SyncWithDataCommand extends SyncWithCommand {
 		private final EncoderFactory encoders;
 		private final Device device;
 
-		protected SyncWithCommandDataTemplate(SyncKey syncKey, String collectionId, SyncCommand command,
+		protected SyncWithCommandDataTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
 				String serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
 				throws SAXException, IOException {
 			super(syncKey, collectionId, command, serverId, clientId);

@@ -76,6 +76,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -145,7 +146,7 @@ public class MailBackendHandlerTest {
 	@Test
 	public void testDeleteMail() throws Exception {
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		int serverId = 1234;
+		CollectionId serverId = CollectionId.of(1234);
 		String syncEmailId = ":2";
 		SyncKey syncKey = new SyncKey("sync state");
 		ItemSyncState syncState = ItemSyncState.builder()
@@ -196,12 +197,12 @@ public class MailBackendHandlerTest {
 			.andReturn(delta).once();
 	}
 
-	private void mockDao(int serverId, ItemSyncState syncState) throws Exception {
+	private void mockDao(CollectionId serverId, ItemSyncState syncState) throws Exception {
 		mockCollectionDao(serverId, syncState);
 		mockItemTrackingDao();
 	}
 	
-	private void mockCollectionDao(int serverId, ItemSyncState syncState) throws Exception {
+	private void mockCollectionDao(CollectionId serverId, ItemSyncState syncState) throws Exception {
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(serverId))
 			.andReturn(IntegrationTestUtils.buildEmailInboxCollectionPath(users.jaures)).anyTimes();

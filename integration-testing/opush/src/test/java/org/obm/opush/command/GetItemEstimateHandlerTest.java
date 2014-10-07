@@ -75,6 +75,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -119,8 +120,8 @@ public class GetItemEstimateHandlerTest {
 	public void testGetItemEstimateWithValidCollectionAndSyncKey() throws Exception {
 		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
-		int collectionId = 15105;
-		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
+		CollectionId collectionId = CollectionId.of(15105);
+		Set<CollectionId> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
@@ -137,8 +138,8 @@ public class GetItemEstimateHandlerTest {
 	public void testGetItemEstimateWithUnexistingCollection() throws Exception {
 		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
-		int unexistingCollectionId = 15105;
-		Set<Integer> existingCollections = Collections.<Integer>emptySet();
+		CollectionId unexistingCollectionId = CollectionId.of(15105);
+		Set<CollectionId> existingCollections = Collections.<CollectionId>emptySet();
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
@@ -155,8 +156,8 @@ public class GetItemEstimateHandlerTest {
 	public void testGetItemEstimateWithInvalidSyncKey() throws Exception {
 		SyncKey invalidSyncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState expectedSyncState = null;
-		int collectionId = 15105;
-		Set<Integer> existingCollections = Sets.newHashSet(collectionId);
+		CollectionId collectionId = CollectionId.of(15105);
+		Set<CollectionId> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, invalidSyncKey, expectedSyncState);
 		
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
@@ -169,7 +170,7 @@ public class GetItemEstimateHandlerTest {
 		assertThat(response.getEstimate()).isNull();
 	}
 
-	private void mockAccessAndStateThenStart(Set<Integer> existingCollections, SyncKey syncKey, ItemSyncState syncState)
+	private void mockAccessAndStateThenStart(Set<CollectionId> existingCollections, SyncKey syncKey, ItemSyncState syncState)
 			throws Exception {
 		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
 
@@ -183,8 +184,8 @@ public class GetItemEstimateHandlerTest {
 	public void testGetItemEstimateWithHierarchyChangedException() throws Exception {
 		SyncKey syncKey = new SyncKey("0dca9f9b-d9af-4840-bf28-d30476dfbe12");
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(DateUtils.getCurrentDate()).syncKey(syncKey).build();
-		int collectionId = 15105;
-		Set<Integer> syncEmailCollectionsIds = Sets.newHashSet(collectionId);
+		CollectionId collectionId = CollectionId.of(15105);
+		Set<CollectionId> syncEmailCollectionsIds = Sets.newHashSet(collectionId);
 		
 		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
 
@@ -205,7 +206,7 @@ public class GetItemEstimateHandlerTest {
 		assertThat(response.getEstimate()).isNull();
 	}
 
-	private void mockEmailSyncWithHierarchyChangedException(SyncKey syncKey, Set<Integer> syncEmailCollectionsIds)
+	private void mockEmailSyncWithHierarchyChangedException(SyncKey syncKey, Set<CollectionId> syncEmailCollectionsIds)
 			throws DaoException, ConversionException, FilterTypeChangedException {
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);

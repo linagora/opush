@@ -33,7 +33,6 @@ package org.obm.opush.command.meeting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
@@ -87,6 +86,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.MeetingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemChangeMeetingResponse;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
 import org.obm.push.store.CollectionDao;
@@ -349,14 +349,14 @@ public class MeetingResponseHandlerTest {
 	
 	private void expectMailbackendDeleteInvitationProcessCorrectly(MailBackend mailBackend) throws Exception {
 		
-		mailBackend.delete(anyObject(UserDataRequest.class), anyInt(), anyObject(String.class), anyBoolean());
+		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class), anyBoolean());
 		EasyMock.expectLastCall().once();
 	}
 	
 	private void expectMailbackendDeleteInvitationTriggersException(MailBackend mailBackend, Exception triggeredException)
 			throws Exception {
 		
-		mailBackend.delete(anyObject(UserDataRequest.class), anyInt(), anyObject(String.class), anyBoolean());
+		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class), anyBoolean());
 		EasyMock.expectLastCall().andThrow(triggeredException);
 	}
 
@@ -383,7 +383,7 @@ public class MeetingResponseHandlerTest {
 	private void expectMailbackendGiveEmailForAnyIds(MailBackend mailBackend)
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
-		expect(mailBackend.getEmail(anyObject(UserDataRequest.class), anyInt(), anyObject(String.class)))
+		expect(mailBackend.getEmail(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class)))
 			.andReturn(UidMSEmail.uidBuilder()
 					.uid(1)
 					.email(msEmail())
@@ -406,7 +406,7 @@ public class MeetingResponseHandlerTest {
 	private void expectMailbackendGettingInvitation(MailBackend mailBackend)
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
-		expect(mailBackend.getInvitation(anyObject(UserDataRequest.class), anyInt(), anyObject(String.class)))
+		expect(mailBackend.getInvitation(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class)))
 			.andReturn(null);
 	}
 
@@ -417,7 +417,7 @@ public class MeetingResponseHandlerTest {
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(new SyncKey("sync state"))
 				.build();
-		expect(collectionDao.lastKnownState(anyObject(Device.class), anyInt())).andReturn(syncState).anyTimes();
+		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).anyTimes();
 		
 		ChangedCollections noChangeCollections = new ChangedCollections(dateFirstSyncFromASSpecs, ImmutableSet.<String>of());
 		expect(collectionDao.getContactChangedCollections(dateFirstSyncFromASSpecs)).andReturn(noChangeCollections).anyTimes();

@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.obm.push.mail.AttachmentHelper;
 import org.obm.push.mail.mime.MimePart;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -53,7 +54,7 @@ public class EmailViewAttachments {
 	public static class Builder {
 		private static final String NESTED_DISPLAY_NAME = "ForwardedMessage.eml";
 		private Long uid;
-		private Integer collectionId;
+		private CollectionId collectionId;
 		private int attachmentId;
 		private ImmutableList.Builder<MimePart> attachments;
 		
@@ -67,7 +68,7 @@ public class EmailViewAttachments {
 			return this;
 		}
 		
-		public Builder collectionId(Integer collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
@@ -127,7 +128,7 @@ public class EmailViewAttachments {
 		}
 
 		private String fileReference(MimePart mimePart) {
-			return AttachmentHelper.getAttachmentId(String.valueOf(collectionId), String.valueOf(uid), 
+			return AttachmentHelper.getAttachmentId(collectionId, String.valueOf(uid), 
 					mimePart.getAddress().getAddress(), mimePart.getFullMimeType(), mimePart.getContentTransfertEncoding());
 		}
 	}

@@ -50,6 +50,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.DateService;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 
@@ -78,7 +79,7 @@ public class ObmSyncBackendTest {
 	@Test
 	public void convertToDataDeltaWhenEmpty() {
 		WindowingContactChanges changes = WindowingContactChanges.empty();
-		int collectionId = 12;
+		CollectionId collectionId = CollectionId.of(12);
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 		
@@ -101,7 +102,7 @@ public class ObmSyncBackendTest {
 				.addition(WindowingContact.builder().uid(14).applicationData(contact1).build())
 				.addition(WindowingContact.builder().uid(16).applicationData(contact2).build())
 				.build();
-		int collectionId = 12;
+		CollectionId collectionId = CollectionId.of(12);
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 		
@@ -129,7 +130,7 @@ public class ObmSyncBackendTest {
 				.change(WindowingContact.builder().uid(14).applicationData(contact1).build())
 				.change(WindowingContact.builder().uid(16).applicationData(contact2).build())
 				.build();
-		int collectionId = 12;
+		CollectionId collectionId = CollectionId.of(12);
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 
@@ -157,7 +158,7 @@ public class ObmSyncBackendTest {
 				.deletion(WindowingContact.builder().uid(14).applicationData(contact1).build())
 				.deletion(WindowingContact.builder().uid(16).applicationData(contact2).build())
 				.build();
-		int collectionId = 12;
+		CollectionId collectionId = CollectionId.of(12);
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 
@@ -187,7 +188,7 @@ public class ObmSyncBackendTest {
 				.change(WindowingContact.builder().uid(15).applicationData(contact2).build())
 				.deletion(WindowingContact.builder().uid(16).applicationData(contact3).build())
 				.build();
-		int collectionId = 12;
+		CollectionId collectionId = CollectionId.of(12);
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 

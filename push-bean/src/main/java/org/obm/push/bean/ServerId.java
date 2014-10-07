@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.obm.push.exception.activesync.InvalidServerId;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -44,7 +45,7 @@ public class ServerId {
 
 	private static final String SERVER_ID_SEPRATOR = ":";
 	
-	private final int collectionId;
+	private final CollectionId collectionId;
 	private final Integer itemId;
 
 	public ServerId(String serverId) throws InvalidServerId {
@@ -62,9 +63,9 @@ public class ServerId {
 		return iterator;
 	}
 
-	private int getCollectionId(Iterator<String> iterator, String serverId) throws InvalidServerId {
+	private CollectionId getCollectionId(Iterator<String> iterator, String serverId) throws InvalidServerId {
 		 try {
-			 return Integer.valueOf(iterator.next());
+			 return CollectionId.of(iterator.next());
 		 } catch (NoSuchElementException e) {
 			 throw new InvalidServerId("serverId is invalid : " + serverId);
 		 } catch (NumberFormatException e) {
@@ -84,7 +85,7 @@ public class ServerId {
 		}
 	}
 	
-	public int getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 	
@@ -120,8 +121,12 @@ public class ServerId {
 		return false;
 	}
 
-	public static String buildServerIdString(long collectionId, long itemId) {
-		return String.valueOf(collectionId) + SERVER_ID_SEPRATOR + String.valueOf(itemId);
+	public static String buildServerIdString(CollectionId collectionId, long itemId) {
+		return collectionId.asString() + SERVER_ID_SEPRATOR + String.valueOf(itemId);
+	}
+
+	public static String buildServerIdString(CollectionId collectionId, String itemId) {
+		return collectionId.asString() + SERVER_ID_SEPRATOR + itemId;
 	}
 	
 }

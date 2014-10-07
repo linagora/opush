@@ -35,10 +35,11 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.User;
+import org.obm.push.protocol.bean.CollectionId;
 
 public interface SyncedCollectionDao {
 	
-	AnalysedSyncCollection get(Credentials credentials, Device device, Integer collectionId);
+	AnalysedSyncCollection get(Credentials credentials, Device device, CollectionId collectionId);
 	
 	void put(User user, Device device, AnalysedSyncCollection collection);
 }

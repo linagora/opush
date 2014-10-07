@@ -85,6 +85,7 @@ import org.obm.push.mail.mime.MimePartImpl;
 import org.obm.push.mail.transformer.Transformer;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.service.DateService;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.EventService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
@@ -154,8 +155,8 @@ public class MailboxBackendTest {
 	@Test
 	public void fetchShouldQuietlyIgnoreMissingEmail() throws Exception {
 		long itemId = 2;
-		int collectionId = 1;
-		String serverId = collectionId + ":" + itemId;
+		CollectionId collectionId = CollectionId.of(1);
+		String serverId = collectionId.asString() + ":" + itemId;
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
@@ -175,8 +176,8 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchMimeSinglePartBase64Email() throws Exception {
 		long itemId = 2;
-		int collectionId = 1;
-		String serverId = collectionId + ":" + itemId;
+		CollectionId collectionId = CollectionId.of(1);
+		String serverId = collectionId.asString() + ":" + itemId;
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
@@ -223,8 +224,8 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchTextPlainSinglePartBase64Email() throws Exception {
 		int itemId = 2;
-		int collectionId = 1;
-		String serverId = collectionId + ":" + itemId;
+		CollectionId collectionId = CollectionId.of(1);
+		String serverId = collectionId.asString() + ":" + itemId;
 		String collectionPath = "INBOX";
 
 		InputStream mailStream = loadEmail("SinglePartBase64.eml");
@@ -286,8 +287,8 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchWithoutCorrespondingBodyPreference() throws Exception {
 		int itemId = 2;
-		int collectionId = 1;
-		String serverId = collectionId + ":" + itemId;
+		CollectionId collectionId = CollectionId.of(1);
+		String serverId = collectionId.asString() + ":" + itemId;
 		String collectionPath = "INBOX";
 
 		final Capture<InputStream> capturedStream = new Capture<InputStream>();

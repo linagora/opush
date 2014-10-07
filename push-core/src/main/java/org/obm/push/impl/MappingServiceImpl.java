@@ -46,6 +46,7 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSnapshotDao;
@@ -90,11 +91,11 @@ public class MappingServiceImpl implements MappingService {
 	}
 
 	@Override
-	public Integer getCollectionIdFromServerId(String serverId) {
+	public CollectionId getCollectionIdFromServerId(String serverId) {
 		if (serverId != null) {
 			String[] idx = serverId.split(":");
 			if (idx.length == 2) {
-				return Integer.parseInt(idx[0]);
+				return CollectionId.of(idx[0]);
 			}
 		}
 		return null;
@@ -103,12 +104,7 @@ public class MappingServiceImpl implements MappingService {
 
 	
 	@Override
-	public String collectionIdToString(Integer collectionId) {
-		return String.valueOf(collectionId);
-	}
-
-	@Override
-	public int createCollectionMapping(Device device, String col) throws DaoException {
+	public CollectionId createCollectionMapping(Device device, String col) throws DaoException {
 		return collectionDao.addCollectionMapping(device, col);
 	}
 
@@ -123,12 +119,12 @@ public class MappingServiceImpl implements MappingService {
 	}
 	
 	@Override
-	public String getCollectionPathFor(Integer collectionId) throws CollectionNotFoundException, DaoException {
+	public String getCollectionPathFor(CollectionId collectionId) throws CollectionNotFoundException, DaoException {
 		return collectionDao.getCollectionPath(collectionId);
 	}
 	
 	@Override
-	public List<ItemDeletion> buildItemsToDeleteFromUids(Integer collectionId, Collection<Long> uids) {
+	public List<ItemDeletion> buildItemsToDeleteFromUids(CollectionId collectionId, Collection<Long> uids) {
 		List<ItemDeletion> deletions = Lists.newLinkedList();
 		for (Long uid: uids) {
 			deletions.add(ItemDeletion.builder()
@@ -139,20 +135,16 @@ public class MappingServiceImpl implements MappingService {
 	}
 
 	@Override
-	public String getServerIdFor(Integer collectionId, String clientId) {
+	public String getServerIdFor(CollectionId collectionId, String clientId) {
 		if (collectionId == null || Strings.isNullOrEmpty(clientId)) {
 			return null;
 		}
-		StringBuilder sb = new StringBuilder(10);
-		sb.append(collectionId);
-		sb.append(':');
-		sb.append(clientId);
-		return sb.toString();
+		return collectionId.serverId(clientId);
 	}
 	
 	@Override
-	public Integer getCollectionIdFor(Device device, String collection) throws CollectionNotFoundException, DaoException {
-		Integer collectionId = collectionDao.getCollectionMapping(device, collection);
+	public CollectionId getCollectionIdFor(Device device, String collection) throws CollectionNotFoundException, DaoException {
+		CollectionId collectionId = collectionDao.getCollectionMapping(device, collection);
 		if (collectionId == null) {
 			throw new CollectionNotFoundException("Collection {" + collection + "} not found.");
 		}
@@ -182,7 +174,7 @@ public class MappingServiceImpl implements MappingService {
 	}
 
 	@Override
-	public void snapshotCollections(FolderSyncState outgoingSyncState, Set<Integer> collectionIds)
+	public void snapshotCollections(FolderSyncState outgoingSyncState, Set<CollectionId> collectionIds)
 			throws DaoException {
 
 		folderSnapshotDao.createFolderSnapshot(outgoingSyncState.getId(), collectionIds);

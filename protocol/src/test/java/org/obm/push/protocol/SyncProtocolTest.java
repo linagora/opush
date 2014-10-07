@@ -65,6 +65,7 @@ import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncCollectionCommandDto;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ContactDecoder;
@@ -100,7 +101,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void testEncodeValidResponseRespectWindowsMobileOrderingExpectation() throws TransformerException {
-		int collectionId = 515;
+		CollectionId collectionId = CollectionId.of(515);
 		SyncCollectionResponse collectionResponse = newSyncCollectionResponse(collectionId, SyncStatus.OK);
 
 		String endcodedResponse = encodeResponse(collectionResponse);
@@ -110,7 +111,7 @@ public class SyncProtocolTest {
 	
 	@Test
 	public void testEncodeResponseCollectionIdError() throws TransformerException {
-		int collectionId = 515;
+		CollectionId collectionId = CollectionId.of(515);
 		SyncCollectionResponse collectionResponse = newSyncCollectionResponse(collectionId, SyncStatus.OBJECT_NOT_FOUND);
 
 		String endcodedResponse = encodeResponse(collectionResponse);
@@ -120,7 +121,7 @@ public class SyncProtocolTest {
 	
 	@Test
 	public void testEncodeResponseSyncKeyError() throws TransformerException {
-		int collectionId = 515;
+		CollectionId collectionId = CollectionId.of(515);
 		SyncCollectionResponse collectionResponse = newSyncCollectionResponse(collectionId, SyncStatus.INVALID_SYNC_KEY);
 
 		String endcodedResponse = encodeResponse(collectionResponse);
@@ -128,40 +129,40 @@ public class SyncProtocolTest {
 		assertThat(endcodedResponse).isEqualTo(newSyncKeyErrorResponse(collectionId));
 	}
 	
-	private String newCollectionNoChangeResponse(int collectionId) {
+	private String newCollectionNoChangeResponse(CollectionId collectionId) {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
 							"<Class>Email</Class>" +
 							"<SyncKey>123456789</SyncKey>" +
-							"<CollectionId>" + String.valueOf(collectionId) + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>";
 	}
 
-	private String newCollectionNotFoundResponse(int collectionId) {
+	private String newCollectionNotFoundResponse(CollectionId collectionId) {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
 							"<Class>Email</Class>" +
-							"<CollectionId>" + String.valueOf(collectionId) + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>8</Status>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>";
 	}
 
-	private String newSyncKeyErrorResponse(int collectionId) {
+	private String newSyncKeyErrorResponse(CollectionId collectionId) {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
 							"<Class>Email</Class>" +
-							"<CollectionId>" + String.valueOf(collectionId) + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>3</Status>" +
 							"<SyncKey>0</SyncKey>" +
 						"</Collection>" +
@@ -181,7 +182,7 @@ public class SyncProtocolTest {
 				.build();
 	}
 
-	private SyncCollectionResponse newSyncCollectionResponse(int collectionId, SyncStatus status) {
+	private SyncCollectionResponse newSyncCollectionResponse(CollectionId collectionId, SyncStatus status) {
 		return SyncCollectionResponse.builder()
 				.collectionId(collectionId)
 				.syncKey(new SyncKey("123456789"))
@@ -277,17 +278,17 @@ public class SyncProtocolTest {
 	public void testSyncCollectionNoValues() throws Exception {
 		Document request = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-				"<Sync>" +
-					"<Collections>" +
+						"<Sync>" +
+						"<Collections>" +
 						"<Collection>" +
 						"</Collection>" +
-					"</Collections>" +
+						"</Collections>" +
 				"</Sync>");
 
 		SyncRequest syncRequest = testee.decodeRequest(request);
 
 		assertThat(syncRequest.getCollections()).containsOnly(
-			SyncCollection.builder()
+				SyncCollection.builder()
 				.collectionId(null)
 				.dataType(null)
 				.syncKey(null)
@@ -300,7 +301,7 @@ public class SyncProtocolTest {
 	@Test
 	public void testSyncCollectionWithValues() throws Exception {
 		int windowSize = 55;
-		int syncingCollectionId = 3;
+		CollectionId syncingCollectionId = CollectionId.of(3);
 		String syncingCollectionSyncKey = "1234-5678";
 		Document request = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -309,7 +310,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Email</Class>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<CollectionId>" + syncingCollectionId.asString() + "</CollectionId>" +
 							"<WindowSize>" + windowSize + "</WindowSize>" +
 							"<DeletesAsMoves />" +
 						"</Collection>" +
@@ -1246,7 +1247,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeAddCommand() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		MSContact contact = new MSContact();
@@ -1279,7 +1280,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Add>" +
@@ -1305,7 +1306,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeDeleteCommand() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		MSContact contact = new MSContact();
@@ -1337,7 +1338,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Delete>" +
@@ -1354,7 +1355,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeChangeCommand() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		String clientId = "123";
@@ -1389,7 +1390,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Change>" +
@@ -1415,7 +1416,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeAddResponse() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		String clientId = "123";
@@ -1441,7 +1442,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Add>" +
@@ -1460,7 +1461,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeDeleteResponse() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		
@@ -1485,7 +1486,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Delete>" +
@@ -1503,7 +1504,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeChangeResponse() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		
@@ -1528,7 +1529,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Change>" +
@@ -1546,7 +1547,7 @@ public class SyncProtocolTest {
 
 	@Test
 	public void encodeFetchResponse() throws Exception {
-		int collectionId = 3;
+		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
 		String serverId = "3:6";
 		MSContact contact = new MSContact();
@@ -1575,7 +1576,7 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
-							"<CollectionId>" + collectionId + "</CollectionId>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Fetch>" +

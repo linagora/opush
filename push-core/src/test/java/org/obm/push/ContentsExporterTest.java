@@ -51,6 +51,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class ContentsExporterTest {
@@ -80,7 +81,7 @@ public class ContentsExporterTest {
 
 	@Test
 	public void testGetChangedOnBackend() throws Exception {
-		int collectionId = 15;
+		CollectionId collectionId = CollectionId.of(15);
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 				.collectionId(collectionId)
 				.dataType(PIMDataType.EMAIL)

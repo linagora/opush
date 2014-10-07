@@ -40,6 +40,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ByteArrayEntity;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.ServerId;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.sync.push.client.IEasCommand;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -47,10 +48,10 @@ import org.obm.sync.push.client.beans.AccountInfos;
 public abstract class SmartEmailCommand implements IEasCommand<Boolean> {
 
 	private final byte[] emailData;
-	private final int collectionId;
+	private final CollectionId collectionId;
 	private final ServerId serverId;
 	
-	public SmartEmailCommand(byte[] emailData, int collectionId, ServerId serverId) {
+	public SmartEmailCommand(byte[] emailData, CollectionId collectionId, ServerId serverId) {
 		this.emailData = emailData;
 		this.collectionId = collectionId;
 		this.serverId = serverId;
@@ -83,7 +84,7 @@ public abstract class SmartEmailCommand implements IEasCommand<Boolean> {
 	private String commandParams() {
 		return new StringBuilder()
 			.append("&CollectionId=")
-			.append(collectionId)
+			.append(collectionId.asString())
 			.append("&ItemId=")
 			.append(serverId.toString())
 			.append("&SaveInSent=T")
@@ -92,7 +93,7 @@ public abstract class SmartEmailCommand implements IEasCommand<Boolean> {
 	
 	public static class SmartReply extends SmartEmailCommand {
 
-		public SmartReply(byte[] emailData, int collectionId, ServerId serverId) {
+		public SmartReply(byte[] emailData, CollectionId collectionId, ServerId serverId) {
 			super(emailData, collectionId, serverId);
 		}
 
@@ -104,7 +105,7 @@ public abstract class SmartEmailCommand implements IEasCommand<Boolean> {
 	
 	public static class SmartForward extends SmartEmailCommand {
 		
-		public SmartForward(byte[] emailData, int collectionId, ServerId serverId) {
+		public SmartForward(byte[] emailData, CollectionId collectionId, ServerId serverId) {
 			super(emailData, collectionId, serverId);
 		}
 		

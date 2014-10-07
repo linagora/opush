@@ -40,6 +40,7 @@ import java.util.Map;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.MailRequestStatus;
 import org.obm.push.exception.QuotaExceededException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MailRequest;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.protocol.request.SendEmailSyncRequest;
@@ -64,15 +65,15 @@ public class MailProtocol {
 	}
 
 	public MailRequest getRequest(ActiveSyncRequest request) throws IOException, QuotaExceededException {
-		String collectionId = request.getParameter("CollectionId");
-		String serverId = request.getParameter("ItemId");
+		CollectionId collectionId = request.<CollectionId>getParameter("CollectionId");
+		String serverId = request.<String>getParameter("ItemId");
 		byte[] mailContent = streamBytes(request.getInputStream());
 		return new MailRequest(collectionId, serverId, getSaveInSentParameter(request) , mailContent);
 	}
 
 	private boolean getSaveInSentParameter(ActiveSyncRequest request) {
 		boolean saveInSent = false;
-		String sis = request.getParameter("SaveInSent");
+		String sis = request.<String>getParameter("SaveInSent");
 		if (sis != null) {
 			saveInSent = sis.equalsIgnoreCase("T");
 		}
@@ -106,8 +107,8 @@ public class MailProtocol {
 			.build();
 	}
 
-	private Map<String, String> buildParametersMap(MailRequest request) {
-		Map<String, String> parameters = Maps.newHashMap();
+	private Map<String, Object> buildParametersMap(MailRequest request) {
+		Map<String, Object> parameters = Maps.newHashMap();
 		parameters.put("CollectionId", request.getCollectionId());
 		parameters.put("ItemId", request.getServerId());
 		if (request.isSaveInSent()) {

@@ -33,9 +33,10 @@ package org.obm.push.bean.change.hierarchy;
 
 import java.io.Serializable;
 
+import org.obm.push.protocol.bean.CollectionId;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 public class CollectionDeletion implements Serializable {
 	
@@ -45,30 +46,30 @@ public class CollectionDeletion implements Serializable {
 	
 	public static class Builder {
 		
-		private String collectionId;
+		private CollectionId collectionId;
 		
 		private Builder() {
 			super();
 		}
 		
-		public Builder collectionId(String collectionId) {
+		public Builder collectionId(CollectionId collectionId) {
 			this.collectionId = collectionId;
 			return this;
 		}
 		
 		public CollectionDeletion build() {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(collectionId));
+			Preconditions.checkArgument(collectionId != null);
 			return new CollectionDeletion(collectionId);
 		}
 	}
 	
-	private final String collectionId;
+	private final CollectionId collectionId;
 
-	private CollectionDeletion(String collectionId) {
+	private CollectionDeletion(CollectionId collectionId) {
 		this.collectionId = collectionId;
 	}
 	
-	public String getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

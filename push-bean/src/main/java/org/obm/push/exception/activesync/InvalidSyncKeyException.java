@@ -32,17 +32,18 @@
 package org.obm.push.exception.activesync;
 
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 
 public class InvalidSyncKeyException extends RuntimeException {
 
-	private final Integer collectionId;
+	private final CollectionId collectionId;
 	private final SyncKey syncKey;
 
 	public InvalidSyncKeyException(SyncKey syncKey) {
 		this(null, syncKey);
 	}
 	
-	public InvalidSyncKeyException(Integer collectionId, SyncKey syncKey) {
+	public InvalidSyncKeyException(CollectionId collectionId, SyncKey syncKey) {
 		super(String.format(
 				"A client provided an unknown SyncKey (%s), may be expected after database migration", 
 				syncKey));
@@ -50,7 +51,7 @@ public class InvalidSyncKeyException extends RuntimeException {
 		this.syncKey = syncKey;
 	}
 	
-	public Integer getCollectionId() {
+	public CollectionId getCollectionId() {
 		return collectionId;
 	}
 

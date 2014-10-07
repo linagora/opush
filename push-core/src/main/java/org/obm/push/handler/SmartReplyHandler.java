@@ -64,7 +64,7 @@ public class SmartReplyHandler extends MailRequestHandler {
 			throws ProcessingEmailException, CollectionNotFoundException, ItemNotFoundException {
 		
 		mailBackend.replyEmail(udr, mailRequest.getMailContent(), mailRequest.isSaveInSent(),
-				Integer.valueOf(mailRequest.getCollectionId()), mailRequest.getServerId());
+				mailRequest.getCollectionId(), mailRequest.getServerId());
 	}
 
 }

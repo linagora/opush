@@ -96,6 +96,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
 import org.obm.push.mail.EmailChanges;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
@@ -238,7 +239,7 @@ public class JSONServiceCompatibilityTest {
 				.syncKey(new SyncKey("123"))
 				.deletesAsMoves(true)
 				.changes(true)
-				.collectionId(1)
+				.collectionId(CollectionId.of(1))
 				.collectionPath("path")
 				.windowSize(2)
 				.options(syncCollectionOptions)

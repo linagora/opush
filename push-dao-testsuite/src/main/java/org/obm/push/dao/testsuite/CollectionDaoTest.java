@@ -49,10 +49,11 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSnapshotDao;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
@@ -92,12 +93,12 @@ public abstract class CollectionDaoTest {
 	public void testGetUserCollectionsForAnotherSyncKey() throws Exception {
 		SyncKey otherSk = new SyncKey("123");
 		FolderSyncState newFolderSyncState = collectionDao.allocateNewFolderSyncState(device, otherSk);
-		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableList.of(
+		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The collection")));
 
 		SyncKey sk = new SyncKey("456");
 		FolderSyncState otherFolderSyncState = collectionDao.allocateNewFolderSyncState(device, sk);
-		folderSnapshotDao.createFolderSnapshot(otherFolderSyncState.getId(), ImmutableList.of(
+		folderSnapshotDao.createFolderSnapshot(otherFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The right collection")));
 		
 		List<String> result = collectionDao.getUserCollections(FolderSyncState.builder().syncKey(sk).build());
@@ -108,7 +109,7 @@ public abstract class CollectionDaoTest {
 	public void testGetUserCollectionsWhenMany() throws Exception {
 		SyncKey sk = new SyncKey("123");
 		FolderSyncState newFolderSyncState = collectionDao.allocateNewFolderSyncState(device, sk);
-		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableList.of(
+		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The collection"),
 				collectionDao.addCollectionMapping(device, "The right collection"),
 				collectionDao.addCollectionMapping(device, "The new collection")));
@@ -119,9 +120,9 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testGetCollectionPath() throws Exception {
-		int col1 = collectionDao.addCollectionMapping(device, "The collection");
-		int col2 = collectionDao.addCollectionMapping(device, "The right collection");
-		int col3 = collectionDao.addCollectionMapping(device, "The new collection");
+		CollectionId col1 = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId col2 = collectionDao.addCollectionMapping(device, "The right collection");
+		CollectionId col3 = collectionDao.addCollectionMapping(device, "The new collection");
 		
 		assertThat(collectionDao.getCollectionPath(col1)).isEqualTo("The collection");
 		assertThat(collectionDao.getCollectionPath(col2)).isEqualTo("The right collection");
@@ -130,14 +131,14 @@ public abstract class CollectionDaoTest {
 	
 	@Test(expected=CollectionNotFoundException.class)
 	public void testGetCollectionPathWhichDoesNotExist() throws Exception {
-		collectionDao.getCollectionPath(1337);
+		collectionDao.getCollectionPath(CollectionId.of(1337));
 	}
 	
 	@Test
 	public void testGetCollectionMapping() throws Exception {
-		int col1 = collectionDao.addCollectionMapping(device, "The collection");
-		int col2 = collectionDao.addCollectionMapping(device, "The right collection");
-		int col3 = collectionDao.addCollectionMapping(device, "The new collection");
+		CollectionId col1 = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId col2 = collectionDao.addCollectionMapping(device, "The right collection");
+		CollectionId col3 = collectionDao.addCollectionMapping(device, "The new collection");
 		
 		assertThat(collectionDao.getCollectionMapping(device, "The collection")).isEqualTo(col1);
 		assertThat(collectionDao.getCollectionMapping(device, "The right collection")).isEqualTo(col2);
@@ -159,14 +160,14 @@ public abstract class CollectionDaoTest {
 	
 	@Test(expected=DaoException.class)
 	public void testUpdateStateOnNonExistingCollection() throws Exception {
-		collectionDao.updateState(device, 1337, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
+		collectionDao.updateState(device, CollectionId.of(1337), new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 	}
 	
 	@Test(expected=DaoException.class)
 	public void testUpdateStateOnDifferentDeviceButSameSyncKey() throws Exception {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		int col1 = collectionDao.addCollectionMapping(device, "The collection");
-		int col2 = collectionDao.addCollectionMapping(otherDevice, "The collection 2");
+		CollectionId col1 = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId col2 = collectionDao.addCollectionMapping(otherDevice, "The collection 2");
 		
 		collectionDao.updateState(device, col1, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		collectionDao.updateState(otherDevice, col2, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
@@ -174,7 +175,7 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testUpdateState() throws Exception {
-		int colId = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "The collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		
 		assertThat(state.getId()).isNotZero().isPositive();
@@ -184,14 +185,14 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testResetCollectionOnNotExistingCollectionProducesNoException() throws Exception {
-		collectionDao.resetCollection(device, 1337);
+		collectionDao.resetCollection(device, CollectionId.of(1337));
 	}
 	
 	@Test
 	public void testResetCollection() throws Exception {
-		int col1 = collectionDao.addCollectionMapping(device, "The collection");
-		int col2 = collectionDao.addCollectionMapping(device, "The right collection");
-		int col3 = collectionDao.addCollectionMapping(device, "The new collection");
+		CollectionId col1 = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId col2 = collectionDao.addCollectionMapping(device, "The right collection");
+		CollectionId col3 = collectionDao.addCollectionMapping(device, "The new collection");
 		ItemSyncState st1 = collectionDao.updateState(device, col1, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		ItemSyncState st2 = collectionDao.updateState(device, col2, new SyncKey("456"), dateUTC("2012-05-05T11:39:37"));
 		collectionDao.updateState(device, col3, new SyncKey("789"), dateUTC("2012-05-06T11:39:37"));
@@ -210,7 +211,7 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testFindItemStateForKey() throws Exception {
-		int col = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId col = collectionDao.addCollectionMapping(device, "The collection");
 		ItemSyncState st = collectionDao.updateState(device, col, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 
 		assertThat(collectionDao.findItemStateForKey(new SyncKey("123"))).isEqualTo(st);
@@ -230,7 +231,7 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testLastKnownState() throws Exception {
-		int colId = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "The collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		
 		assertThat(collectionDao.lastKnownState(device, colId)).isEqualTo(state);
@@ -238,7 +239,7 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testLastKnownStateWithOtherDevice() throws Exception {
-		int colId = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "The collection");
 		collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
@@ -247,15 +248,15 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testLastKnownStateWithOtherCollectionId() throws Exception {
-		int colId = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "The collection");
 		collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		
-		assertThat(collectionDao.lastKnownState(device, 1337)).isNull();
+		assertThat(collectionDao.lastKnownState(device, CollectionId.of(1337))).isNull();
 	}
 	
 	@Test
 	public void testLastKnownStateAfterManyUpdate() throws Exception {
-		int colId = collectionDao.addCollectionMapping(device, "The collection");
+		CollectionId colId = collectionDao.addCollectionMapping(device, "The collection");
 		ItemSyncState st1 = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2012-05-04T11:39:37"));
 		ItemSyncState st2 = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2012-05-05T11:39:37"));
 		ItemSyncState st3 = collectionDao.updateState(device, colId, new SyncKey("789"), dateUTC("2012-05-06T11:39:37"));

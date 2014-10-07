@@ -32,7 +32,6 @@
 package org.obm.opush;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
@@ -71,9 +70,9 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
+import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
-import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.ChangedCollections;
@@ -92,6 +91,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.protocol.PingProtocol;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
@@ -274,7 +274,7 @@ public class PingHandlerTest {
 	@Test
 	public void testPingAfterPingTimeout() throws Exception {
 		int heartbeat = 5;
-		String collectionId = String.valueOf(users.jaures.hashCode());
+		CollectionId collectionId = CollectionId.of(users.jaures.hashCode());
 		
 		prepareMockHasChanges(1, Arrays.asList(users.jaures));
 
@@ -303,10 +303,10 @@ public class PingHandlerTest {
 		OPClient opClientBlum = buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
 		
 		queriesLock.expectedQueriesCountToBeStarted(1);
-		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, Integer.valueOf(users.jaures.hashCode()).toString(), 1000);
+		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, CollectionId.of(users.jaures.hashCode()), 1000);
 		queriesLock.waitingStart(3, TimeUnit.SECONDS);
 		queriesLock.waitingClose(3, TimeUnit.SECONDS);
-		opClientBlum.pingASync(async, pingProtocol, Integer.valueOf(users.blum.hashCode()).toString(), heartbeat);
+		opClientBlum.pingASync(async, pingProtocol, CollectionId.of(users.blum.hashCode()), heartbeat);
 		response1.get(1, TimeUnit.SECONDS);
 	}
 	
@@ -394,7 +394,7 @@ public class PingHandlerTest {
 
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		for (OpushUser user: users) {
-			expectUserCollectionsNeverChange(collectionDao, user, Arrays.asList(user.hashCode()));
+			expectUserCollectionsNeverChange(collectionDao, user, Arrays.asList(CollectionId.of(user.hashCode())));
 		}
 	}
 
@@ -427,7 +427,7 @@ public class PingHandlerTest {
 		expectCollectionDaoUnchangeForXIteration(collectionDao, dateFirstSyncFromASSpecs, collectionNoChangeIterationCount);
 
 		for (OpushUser user : users) {
-			int collectionId = user.hashCode();
+			CollectionId collectionId = CollectionId.of(user.hashCode());
 			String collectionPathWhereChangesAppear = buildCalendarCollectionPath(user);
 			
 			ItemSyncState syncState = ItemSyncState.builder()
@@ -450,7 +450,7 @@ public class PingHandlerTest {
 				.syncKey(new SyncKey("sync state"))
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
-		expect(collectionDao.lastKnownState(anyObject(Device.class), anyInt())).andReturn(syncState).times(noChangeIterationCount);
+		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).times(noChangeIterationCount);
 		ChangedCollections noChangeCollections = new ChangedCollections(activeSyncSpecFirstSyncDate, ImmutableSet.<String>of());
 		expect(collectionDao.getContactChangedCollections(activeSyncSpecFirstSyncDate)).andReturn(noChangeCollections).anyTimes();
 		expect(collectionDao.getCalendarChangedCollections(activeSyncSpecFirstSyncDate)).andReturn(noChangeCollections).times(noChangeIterationCount);
@@ -464,7 +464,7 @@ public class PingHandlerTest {
 		expect(calendarBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
-				anyObject(Integer.class),
+				anyObject(CollectionId.class),
 				anyObject(SyncCollectionOptions.class)))
 			.andReturn(1).times(2);
 	}
@@ -477,7 +477,7 @@ public class PingHandlerTest {
 		expect(calendarBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
-				anyObject(Integer.class),
+				anyObject(CollectionId.class),
 				anyObject(SyncCollectionOptions.class)))
 			.andThrow(new HierarchyChangedException(new NotAllowedException("Not allowed")));
 	}
@@ -489,7 +489,7 @@ public class PingHandlerTest {
 		expect(calendarBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
-				anyObject(Integer.class),
+				anyObject(CollectionId.class),
 				anyObject(SyncCollectionOptions.class)))
 			.andReturn(0).anyTimes();
 	}

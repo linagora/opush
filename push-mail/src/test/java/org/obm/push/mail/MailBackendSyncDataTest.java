@@ -58,6 +58,7 @@ import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.exception.FilterTypeChangedException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -71,7 +72,7 @@ import com.google.common.collect.Range;
 public class MailBackendSyncDataTest {
 
 	private UserDataRequest udr;
-	private int collectionId;
+	private CollectionId collectionId;
 	private String collectionPath;
 	private Device device;
 
@@ -85,7 +86,7 @@ public class MailBackendSyncDataTest {
 
 	@Before
 	public void setup() throws Exception {
-		collectionId = 13411;
+		collectionId = CollectionId.of(13411);
 		collectionPath = "mailboxCollectionPath";
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		udr = new UserDataRequest(null,  null, device);

@@ -39,6 +39,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.change.WindowingKey;
+import org.obm.push.protocol.bean.CollectionId;
 
 public class WindowingKeyTest {
 
@@ -47,7 +48,7 @@ public class WindowingKeyTest {
 	public void testPreconditionUserNull() {
 		User user = null;
 		DeviceId deviceId = new DeviceId("132");
-		int collectionId = 5;
+		CollectionId collectionId = CollectionId.of(5);
 		SyncKey syncKey = new SyncKey("123");
 		new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
@@ -58,27 +59,7 @@ public class WindowingKeyTest {
 		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		DeviceId deviceId = null;
 		SyncKey syncKey = new SyncKey("123");
-		int collectionId = 5;
-		new WindowingKey(user, deviceId, collectionId, syncKey);
-	}
-
-	@SuppressWarnings("unused")
-	@Test(expected=IllegalArgumentException.class)
-	public void testPreconditionCollectionIdZero() {
-		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
-		DeviceId deviceId = new DeviceId("132");
-		int collectionId = 0;
-		SyncKey syncKey = new SyncKey("123");
-		new WindowingKey(user, deviceId, collectionId, syncKey);
-	}
-
-	@SuppressWarnings("unused")
-	@Test(expected=IllegalArgumentException.class)
-	public void testPreconditionCollectionIdNegative() {
-		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
-		DeviceId deviceId = new DeviceId("132");
-		int collectionId = -1;
-		SyncKey syncKey = new SyncKey("123");
+		CollectionId collectionId = CollectionId.of(5);
 		new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
 
@@ -88,7 +69,7 @@ public class WindowingKeyTest {
 		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		DeviceId deviceId = new DeviceId("132");
 		SyncKey syncKey = null;
-		int collectionId = 5;
+		CollectionId collectionId = CollectionId.of(5);
 		new WindowingKey(user, deviceId, collectionId, syncKey);
 	}
 
@@ -97,7 +78,7 @@ public class WindowingKeyTest {
 		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		DeviceId deviceId = new DeviceId("132");
 		SyncKey syncKey = new SyncKey("123");
-		int collectionId = 5;
+		CollectionId collectionId = CollectionId.of(5);
 		WindowingKey windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 		
 		assertThat(windowingKey.getUser()).isEqualTo(user);

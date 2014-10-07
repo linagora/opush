@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -44,7 +45,7 @@ import org.xml.sax.SAXException;
 
 public class SimpleSyncCommand extends Sync {
 
-	public SimpleSyncCommand(final SyncDecoder decoder, final SyncKey syncKey, final int collectionId, final PIMDataType type)
+	public SimpleSyncCommand(final SyncDecoder decoder, final SyncKey syncKey, final CollectionId collectionId, final PIMDataType type)
 			throws SAXException, IOException {
 
 		super(decoder, new TemplateDocument("SimpleSyncRequest.xml") {
@@ -56,7 +57,7 @@ public class SimpleSyncCommand extends Sync {
 				Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), "SyncKey");
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
-				collection.setTextContent(String.valueOf(collectionId));
+				collection.setTextContent(collectionId.asString());
 			}
 		});
 	}

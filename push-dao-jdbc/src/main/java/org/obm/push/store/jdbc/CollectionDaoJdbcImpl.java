@@ -53,6 +53,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.JDBCUtils;
 import org.obm.sync.calendar.EventType;
@@ -103,26 +104,26 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
  	@Override
-	public int addCollectionMapping(Device device, String collection) throws DaoException {
+	public CollectionId addCollectionMapping(Device device, String collection) throws DaoException {
  		String statement = "INSERT INTO opush_folder_mapping (device_id, collection) VALUES (?, ?)";
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setInt(1, device.getDatabaseId());
 			ps.setString(2, collection);
 			ps.executeUpdate();
-			return dbcp.lastInsertId(con);
+			return CollectionId.of(dbcp.lastInsertId(con));
 		} catch (SQLException e) {
 			throw new DaoException(e);
 		}
 	}
 	
 	@Override
-	public void resetCollection(Device device, Integer collectionId) throws DaoException {
+	public void resetCollection(Device device, CollectionId collectionId) throws DaoException {
 		String statement = "DELETE FROM opush_sync_state WHERE device_id=? AND collection_id=?";
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			ps.setInt(1, device.getDatabaseId());
-			ps.setInt(2, collectionId);
+			ps.setInt(2, collectionId.asInt());
 			Stopwatch stopwatch = Stopwatch.createStarted();
 			ps.executeUpdate();
 
@@ -135,13 +136,13 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 	
 	@Override
-	public String getCollectionPath(Integer collectionId)
+	public String getCollectionPath(CollectionId collectionId)
 			throws CollectionNotFoundException, DaoException {
 		String statement = "SELECT collection FROM opush_folder_mapping WHERE id=?";
 
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
-			ps.setInt(1, collectionId);
+			ps.setInt(1, collectionId.asInt());
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					return rs.getString(1);
@@ -154,7 +155,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
 	@Override
-	public ItemSyncState updateState(Device device, Integer collectionId, SyncKey syncKey, Date syncDate) throws DaoException {
+	public ItemSyncState updateState(Device device, CollectionId collectionId, SyncKey syncKey, Date syncDate) throws DaoException {
 		String statement = "INSERT INTO opush_sync_state (sync_key, device_id, last_sync, collection_id) VALUES (?, ?, ?, ?)";
 		
 		try (Connection con = dbcp.getConnection();
@@ -163,7 +164,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 			ps.setString(1, syncKey.getSyncKey());
 			ps.setInt(2, device.getDatabaseId());
 			ps.setTimestamp(3, new Timestamp(syncDate.getTime()));
-			ps.setInt(4, collectionId);
+			ps.setInt(4, collectionId.asInt());
 			
 			if (ps.executeUpdate() == 0) {
 				throw new DaoException("No SyncState inserted");
@@ -244,7 +245,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
 	@Override
-	public ItemSyncState lastKnownState(Device device, Integer collectionId) throws DaoException {
+	public ItemSyncState lastKnownState(Device device, CollectionId collectionId) throws DaoException {
 		String statement = "SELECT " + SYNC_STATE_FIELDS + " FROM opush_sync_state " +
 				"WHERE device_id=? AND collection_id=? ORDER BY last_sync DESC LIMIT 1";
 		
@@ -252,7 +253,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			
 			ps.setInt(1, device.getDatabaseId());
-			ps.setInt(2, collectionId);
+			ps.setInt(2, collectionId.asInt());
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
@@ -277,7 +278,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
 	@Override
-	public Integer getCollectionMapping(Device device, String collection) throws DaoException {
+	public CollectionId getCollectionMapping(Device device, String collection) throws DaoException {
 		String statement = "SELECT opush_folder_mapping.id FROM opush_folder_mapping " +
 				"WHERE device_id = ? AND collection = ?";
 
@@ -289,7 +290,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					return rs.getInt(1);
+					return CollectionId.of(rs.getInt(1));
 				}
 			}
 		} catch (SQLException e) {

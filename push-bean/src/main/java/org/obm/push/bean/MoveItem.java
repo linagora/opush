@@ -31,6 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import org.obm.push.protocol.bean.CollectionId;
+
 import com.google.common.base.Objects;
 
 public class MoveItem {
@@ -41,8 +43,8 @@ public class MoveItem {
 	
 	public static class Builder {
 		private String sourceMessageId;
-		private String sourceFolderId;
-		private String destinationFolderId;
+		private CollectionId sourceFolderId;
+		private CollectionId destinationFolderId;
 
 		private Builder() {}
 		
@@ -51,13 +53,13 @@ public class MoveItem {
 			return this;
 		}
 		
-		public Builder sourceFolderId(String sourceFolderId) {
-			this.sourceFolderId = sourceFolderId;
+		public Builder sourceFolderId(CollectionId collectionId) {
+			this.sourceFolderId = collectionId;
 			return this;
 		}
 		
-		public Builder destinationFolderId(String destinationFolderId) {
-			this.destinationFolderId = destinationFolderId;
+		public Builder destinationFolderId(CollectionId collectionId) {
+			this.destinationFolderId = collectionId;
 			return this;
 		}
 		
@@ -67,10 +69,10 @@ public class MoveItem {
 	}
 	
 	private final String sourceMessageId;
-	private final String sourceFolderId;
-	private final String destinationFolderId;
+	private final CollectionId sourceFolderId;
+	private final CollectionId destinationFolderId;
 
-	private MoveItem(String sourceMessageId, String sourceFolderId, String destinationFolderId) {
+	private MoveItem(String sourceMessageId, CollectionId sourceFolderId, CollectionId destinationFolderId) {
 		this.sourceMessageId = sourceMessageId;
 		this.sourceFolderId = sourceFolderId;
 		this.destinationFolderId = destinationFolderId;
@@ -80,11 +82,11 @@ public class MoveItem {
 		return sourceMessageId;
 	}
 
-	public String getSourceFolderId() {
+	public CollectionId getSourceFolderId() {
 		return sourceFolderId;
 	}
 
-	public String getDestinationFolderId() {
+	public CollectionId getDestinationFolderId() {
 		return destinationFolderId;
 	}
 

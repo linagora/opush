@@ -35,12 +35,13 @@ import java.io.IOException;
 
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.xml.sax.SAXException;
 
 public class EmailSyncCommandWithWait extends EmailSyncCommand {
 
-	public EmailSyncCommandWithWait(final SyncDecoder decoder, final SyncKey syncKey, final String collectionId,
+	public EmailSyncCommandWithWait(final SyncDecoder decoder, final SyncKey syncKey, final CollectionId collectionId,
 			final FilterType filterType, final int windowSize) throws SAXException, IOException {
 		super(decoder, "EmailSyncRequestWithWait.xml", syncKey, collectionId, filterType, windowSize);
 	}

@@ -43,6 +43,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.utils.DateUtils;
 
@@ -57,7 +58,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("8b7d5982-cbb3-4cd0-8151-0d20f9118fe7"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -80,7 +81,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("b2704aef-26a7-49eb-baf8-e1a3efbccf8b"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -91,7 +92,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey otherSnapshotKey = SnapshotKey.builder()
 				.deviceId(snapshotKey.getDeviceId())
 				.syncKey(snapshotKey.getSyncKey())
-				.collectionId(15).build();
+				.collectionId(CollectionId.of(15)).build();
 		Snapshot snapshot = snapshotDao.get(otherSnapshotKey);
 		
 		assertThat(snapshot).isNull();
@@ -103,7 +104,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("2ae02b70-3de8-4da0-8241-3cb7e948ab24"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -126,7 +127,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("8b5dd1d5-9fd7-423f-81c7-89ffe4e5cfb6"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot expectedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(5)
@@ -145,7 +146,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("079962a8-ffa5-48ca-9de5-de0949a55b32"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -167,7 +168,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("d4c03a3e-2c08-4a4e-aea5-646189c8b1ab"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -178,7 +179,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey otherSnapshotKey = SnapshotKey.builder()
 				.deviceId(snapshotKey.getDeviceId())
 				.syncKey(snapshotKey.getSyncKey())
-				.collectionId(546).build();
+				.collectionId(CollectionId.of(546)).build();
 		SyncKey linkingSyncKey = new SyncKey("cb32c35b-0b8a-4ccd-b36b-130f3c96777e");
 		snapshotDao.linkSyncKeyToSnapshot(linkingSyncKey, otherSnapshotKey);
 	}
@@ -189,7 +190,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("5e1a2713-ee71-44af-87ae-0e46e428ca8d"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot storedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(2)
@@ -211,7 +212,7 @@ public abstract class SnapshotDaoTest {
 		SnapshotKey snapshotKey = SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("8b5dd1d5-9fd7-423f-81c7-89ffe4e5cfb6"))
-				.collectionId(1).build();
+				.collectionId(CollectionId.of(1)).build();
 		Snapshot expectedSnapshot = Snapshot.builder()
 				.filterType(FilterType.THREE_DAYS_BACK)
 				.uidNext(5)
@@ -247,7 +248,7 @@ public abstract class SnapshotDaoTest {
 			SnapshotKey.builder()
 				.deviceId(new DeviceId("deviceId"))
 				.syncKey(new SyncKey("f4ed6b42-979e-4343-8c9b-a6fcc9ae37aa"))
-				.collectionId(1).build(),
+				.collectionId(CollectionId.of(1)).build(),
 			null);
 	}
 }

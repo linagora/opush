@@ -37,6 +37,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.obm.push.bean.DeviceId;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class SimpleQueryString extends AbstractActiveSyncRequest {
@@ -46,8 +47,11 @@ public class SimpleQueryString extends AbstractActiveSyncRequest {
 	}
 
 	@Override
-	public String getParameter(String key) {
-		return request.getParameter(key);
+	public <T> T getParameter(String key) {
+		if (key.equalsIgnoreCase("CollectionId")) {
+			return (T) CollectionId.of(request.getParameter(key));
+		}
+		return (T) request.getParameter(key);
 	}
 
 	@Override

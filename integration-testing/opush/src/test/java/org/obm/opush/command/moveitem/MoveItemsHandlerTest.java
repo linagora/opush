@@ -61,6 +61,7 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.MoveItemsResponse;
@@ -97,9 +98,9 @@ public class MoveItemsHandlerTest {
 	private OpushUser user;
 	private String mailbox;
 	private String inboxCollectionPath;
-	private int inboxCollectionId;
+	private CollectionId inboxCollectionId;
 	private String trashCollectionPath;
-	private int trashCollectionId;
+	private CollectionId trashCollectionId;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -114,9 +115,9 @@ public class MoveItemsHandlerTest {
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = 1234;
+		inboxCollectionId = CollectionId.of(1234);
 		trashCollectionPath = IntegrationTestUtils.buildEmailTrashCollectionPath(user);
-		trashCollectionId = 1645;
+		trashCollectionId = CollectionId.of(1645);
 		
 		collectionDao = classToInstanceMap.get(CollectionDao.class);
 
@@ -142,8 +143,6 @@ public class MoveItemsHandlerTest {
 
 	@Test
 	public void testMoveInboxToTrash() throws Exception {
-		String emailId1 = ":1";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
@@ -151,13 +150,13 @@ public class MoveItemsHandlerTest {
 		sendEmailsToImapServer("email body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
-				new Move(inboxCollectionId + emailId1, inboxCollectionId, trashCollectionId));
+				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId));
 		mocksControl.verify();
 
 		MoveResult moveResult = Iterables.getOnlyElement(response.getMoveResults());
 		assertThat(moveResult.status).isEqualTo(MoveItemsStatus.SUCCESS);
-		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId + emailId1);
-		assertThat(moveResult.dstMsgId).startsWith(trashCollectionId + ":");
+		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId.serverId(1));
+		assertThat(moveResult.dstMsgId).startsWith(trashCollectionId.asString() + ":");
 
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
@@ -168,9 +167,6 @@ public class MoveItemsHandlerTest {
 
 	@Test
 	public void testTwoMoveInboxToTrash() throws Exception {
-		String emailId1 = ":1";
-		String emailId2 = ":2";
-		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
 		mocksControl.replay();
@@ -178,19 +174,19 @@ public class MoveItemsHandlerTest {
 		sendEmailsToImapServer("email one", "email two");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
-				new Move(inboxCollectionId + emailId1, inboxCollectionId, trashCollectionId),
-				new Move(inboxCollectionId + emailId2, inboxCollectionId, trashCollectionId));
+				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId),
+				new Move(inboxCollectionId.serverId(2), inboxCollectionId, trashCollectionId));
 		mocksControl.verify();
 
 		MoveResult moveResult = Iterables.get(response.getMoveResults(), 0);
 		assertThat(moveResult.status).isEqualTo(MoveItemsStatus.SUCCESS);
-		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId + emailId1);
-		assertThat(moveResult.dstMsgId).isEqualTo(trashCollectionId + emailId1);
+		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId.serverId(1));
+		assertThat(moveResult.dstMsgId).isEqualTo(trashCollectionId.serverId(1));
 		
 		MoveResult moveResult2 = Iterables.get(response.getMoveResults(), 1);
 		assertThat(moveResult2.status).isEqualTo(MoveItemsStatus.SUCCESS);
-		assertThat(moveResult2.srcMsgId).isEqualTo(inboxCollectionId + emailId2);
-		assertThat(moveResult2.dstMsgId).isEqualTo(trashCollectionId + emailId2);
+		assertThat(moveResult2.srcMsgId).isEqualTo(inboxCollectionId.serverId(2));
+		assertThat(moveResult2.dstMsgId).isEqualTo(trashCollectionId.serverId(2));
 		
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
@@ -202,7 +198,7 @@ public class MoveItemsHandlerTest {
 	@Ignore("Greenmail has replied that the command succeed")
 	@Test
 	public void testMoveUnexistingEmailFromInboxToTrash() throws Exception {
-		String unexistingEmailId1 = ":1561";
+		int unexistingEmailId1 = 1561;
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
 		
@@ -211,12 +207,12 @@ public class MoveItemsHandlerTest {
 		sendEmailsToImapServer("email body data");
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
-				new Move(inboxCollectionId + unexistingEmailId1, inboxCollectionId, trashCollectionId));
+				new Move(inboxCollectionId.serverId(unexistingEmailId1), inboxCollectionId, trashCollectionId));
 		mocksControl.verify();
 
 		MoveResult moveResult = Iterables.getOnlyElement(response.getMoveResults());
 		assertThat(moveResult.status).isEqualTo(MoveItemsStatus.INVALID_SOURCE_COLLECTION_ID);
-		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId + unexistingEmailId1);
+		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId.serverId(unexistingEmailId1));
 		assertThat(moveResult.dstMsgId).isNull();
 	}
 	

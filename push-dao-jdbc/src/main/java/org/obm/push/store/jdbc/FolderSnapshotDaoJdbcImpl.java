@@ -36,12 +36,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.FolderSnapshotDao;
 
 import com.google.common.collect.Lists;
@@ -58,7 +60,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 	
 	@Override
-	public void createFolderSnapshot(Integer folderSyncStateId, Iterable<Integer> collectionIds) 
+	public void createFolderSnapshot(Integer folderSyncStateId, Set<CollectionId> collectionIds) 
 			throws DaoException {
 		String statement = "INSERT INTO opush_folder_snapshot " +
 				"(folder_sync_state_id, collection_id) VALUES (?, ?)";
@@ -67,8 +69,8 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 				PreparedStatement ps = con.prepareStatement(statement)) {
 
 			ps.setInt(1, folderSyncStateId);
-			for (Integer collectionId : collectionIds) {
-				ps.setInt(2, collectionId);
+			for (CollectionId collectionId : collectionIds) {
+				ps.setInt(2, collectionId.asInt());
 				ps.executeUpdate();
 			}
 		} catch (SQLException e) {
@@ -77,7 +79,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 
 	@Override
-	public List<Integer> getFolderSnapshot(Integer folderSyncStateId) throws DaoException {
+	public List<CollectionId> getFolderSnapshot(Integer folderSyncStateId) throws DaoException {
 		String statement = "SELECT collection_id FROM opush_folder_snapshot " +
 				"WHERE folder_sync_state_id = ?";
 
@@ -87,9 +89,9 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 			ps.setInt(1, folderSyncStateId);
 
 			try (ResultSet rs = ps.executeQuery()) {
-				List<Integer> collectionIds = Lists.newArrayList();
+				List<CollectionId> collectionIds = Lists.newArrayList();
 				while (rs.next()) {
-					collectionIds.add(rs.getInt("collection_id"));
+					collectionIds.add(CollectionId.of(rs.getInt("collection_id")));
 				}
 				return collectionIds;
 			}
@@ -99,7 +101,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 
 	@Override
-	public List<Integer> getFolderSnapshot(String folderSyncKey) throws DaoException {
+	public List<CollectionId> getFolderSnapshot(String folderSyncKey) throws DaoException {
 		String statement = "SELECT collection_id FROM opush_folder_snapshot " +
 				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
 				"WHERE sync_key = ?";
@@ -110,9 +112,9 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 			ps.setString(1, folderSyncKey);
 
 			try (ResultSet rs = ps.executeQuery()) {
-				List<Integer> collectionIds = Lists.newArrayList();
+				List<CollectionId> collectionIds = Lists.newArrayList();
 				while (rs.next()) {
-					collectionIds.add(rs.getInt("collection_id"));
+					collectionIds.add(CollectionId.of(rs.getInt("collection_id")));
 				}
 				return collectionIds;
 			}
@@ -122,7 +124,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 
 	@Override
-	public Integer getFolderSyncStateId(Integer collectionId, Device device) throws DaoException {
+	public Integer getFolderSyncStateId(CollectionId collectionId, Device device) throws DaoException {
 		String statement = "SELECT folder_sync_state_id FROM opush_folder_snapshot " +
 				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
 				"WHERE collection_id = ? " +
@@ -131,7 +133,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			
-			ps.setInt(1, collectionId);
+			ps.setInt(1, collectionId.asInt());
 			ps.setInt(2, device.getDatabaseId());
 
 			try (ResultSet rs = ps.executeQuery()) {
@@ -146,7 +148,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 
 	@Override
-	public String getFolderSyncKey(Integer collectionId, Device device) throws DaoException {
+	public String getFolderSyncKey(CollectionId collectionId, Device device) throws DaoException {
 		String statement = "SELECT sync_key FROM opush_folder_sync_state " +
 				"INNER JOIN opush_folder_snapshot ON opush_folder_snapshot.folder_sync_state_id = opush_folder_sync_state.id " +
 				"WHERE collection_id = ? " +
@@ -155,7 +157,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) { 
 		
-			ps.setInt(1, collectionId);
+			ps.setInt(1, collectionId.asInt());
 			ps.setInt(2, device.getDatabaseId());
 
 			try (ResultSet rs = ps.executeQuery()) {

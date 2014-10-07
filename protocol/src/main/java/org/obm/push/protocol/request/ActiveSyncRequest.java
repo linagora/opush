@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.obm.push.bean.DeviceId;
 
 public interface ActiveSyncRequest {
-	String getParameter(String key);
+	<T> T getParameter(String key);
 
 	InputStream getInputStream() throws IOException;
 

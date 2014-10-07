@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.FolderType;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class CollectionChangeTest {
@@ -42,7 +43,7 @@ public class CollectionChangeTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void builderNeedsCollectionId() {
 		CollectionChange.builder()
-			.parentCollectionId("parent")
+			.parentCollectionId(CollectionId.of(3))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
@@ -53,11 +54,10 @@ public class CollectionChangeTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void builderNeedsCollectionIdEmpty() {
 		CollectionChange.builder()
-			.parentCollectionId("parent")
+			.parentCollectionId(CollectionId.of(3))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
-			.collectionId("")
 			.build();
 	}
 
@@ -67,7 +67,7 @@ public class CollectionChangeTest {
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
-			.collectionId("id")
+			.collectionId(CollectionId.of(23))
 			.parentCollectionId(null)
 			.build();
 	}
@@ -78,16 +78,15 @@ public class CollectionChangeTest {
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
-			.collectionId("id")
-			.parentCollectionId("")
+			.collectionId(CollectionId.of(23))
 			.build();
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void builderNeedsDisplayName() {
 		CollectionChange.builder()
-			.collectionId("id")
-			.parentCollectionId("parent")
+			.collectionId(CollectionId.of(23))
+			.parentCollectionId(CollectionId.of(3))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
 			.displayName(null)
@@ -97,8 +96,8 @@ public class CollectionChangeTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void builderNeedsDisplayNameEmpty() {
 		CollectionChange.builder()
-			.collectionId("id")
-			.parentCollectionId("parent")
+			.collectionId(CollectionId.of(23))
+			.parentCollectionId(CollectionId.of(3))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
 			.displayName("")
@@ -108,8 +107,8 @@ public class CollectionChangeTest {
 	@Test(expected=NullPointerException.class)
 	public void builderNeedsFolderType() {
 		CollectionChange.builder()
-			.collectionId("id")
-			.parentCollectionId("parent")
+			.collectionId(CollectionId.of(23))
+			.parentCollectionId(CollectionId.of(3))
 			.isNew(true)
 			.displayName("name")
 			.folderType(null)
@@ -119,8 +118,8 @@ public class CollectionChangeTest {
 	@Test(expected=NullPointerException.class)
 	public void builderNeedsIsNew() {
 		CollectionChange.builder()
-			.collectionId("id")
-			.parentCollectionId("parent")
+			.collectionId(CollectionId.of(23))
+			.parentCollectionId(CollectionId.of(3))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.displayName("name")
 			.build();
@@ -129,15 +128,15 @@ public class CollectionChangeTest {
 	@Test
 	public void builderNeeds() {
 		CollectionChange collectionChange = CollectionChange.builder()
-			.collectionId("id")
-			.parentCollectionId("parent")
+			.collectionId(CollectionId.of(23))
+			.parentCollectionId(CollectionId.of(3))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.isNew(true)
 			.displayName("name")
 			.build();
 		
-		assertThat(collectionChange.getCollectionId()).isEqualTo("id");
-		assertThat(collectionChange.getParentCollectionId()).isEqualTo("parent");
+		assertThat(collectionChange.getCollectionId()).isEqualTo(CollectionId.of(23));
+		assertThat(collectionChange.getParentCollectionId()).isEqualTo(CollectionId.of(3));
 		assertThat(collectionChange.getDisplayName()).isEqualTo("name");
 		assertThat(collectionChange.getFolderType()).isEqualTo(FolderType.DEFAULT_CALENDAR_FOLDER);
 		assertThat(collectionChange.isNew()).isEqualTo(true);

@@ -55,12 +55,13 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
+import org.obm.push.protocol.bean.CollectionId;
 
 @Watch(BreakdownGroups.TASKS)
 public class TaskBackend implements PIMBackend {
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, int collectionId, List<String> fetchServerIds, 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, 
 				SyncCollectionOptions syncCollectionOptions)
 			throws ProcessingEmailException, CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		
@@ -68,14 +69,9 @@ public class TaskBackend implements PIMBackend {
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, 
-				int collectionId, 
-				List<String> fetchServerIds, 
-				SyncCollectionOptions syncCollectionOptions,
-				ItemSyncState previousItemSyncState,
-				SyncKey newSyncKey)
-			throws ProcessingEmailException, CollectionNotFoundException,
-			DaoException, UnexpectedObmSyncServerException {
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds,
+			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState, SyncKey newSyncKey)
+		throws ProcessingEmailException, CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		throw new CollectionNotFoundException();
 	}
 	
@@ -86,7 +82,7 @@ public class TaskBackend implements PIMBackend {
 	}
 	
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, Integer collectionId, 
+	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 			SyncCollectionOptions collectionOptions) 
 		throws CollectionNotFoundException, ProcessingEmailException, 
 			DaoException, UnexpectedObmSyncServerException {
@@ -99,7 +95,7 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, Integer collectionId,
+	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
 			String serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException,
 			DaoException, UnexpectedObmSyncServerException,
@@ -115,7 +111,7 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, Integer collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException {
 		
@@ -134,7 +130,7 @@ public class TaskBackend implements PIMBackend {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, int collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }
