@@ -46,7 +46,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EventNotFoundException;
-import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.EventParsingException;
 import org.obm.push.store.CalendarDao;
@@ -69,15 +69,17 @@ public class EventServiceImpl implements EventService {
 	private final EventConverter eventConverter;
 	private final Ical4jHelper ical4jHelper;
 	private final Ical4jUser.Factory ical4jUserFactory;
+	private final OpushResourcesHolder opushResourcesHolder;
 
 	@Inject
 	@VisibleForTesting EventServiceImpl(CalendarDao calendarDao, EventConverter eventConverter, 
-			Ical4jHelper ical4jHelper, Ical4jUser.Factory ical4jUserFactory) {
+			Ical4jHelper ical4jHelper, Ical4jUser.Factory ical4jUserFactory, OpushResourcesHolder opushResourcesHolder) {
 		super();
 		this.calendarDao = calendarDao;
 		this.eventConverter = eventConverter;
 		this.ical4jHelper = ical4jHelper;
 		this.ical4jUserFactory = ical4jUserFactory;
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 
 	@Override
@@ -143,7 +145,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public MSEvent parseEventFromICalendar(UserDataRequest udr, String ics) throws EventParsingException, ConversionException {
 		try {
-			AccessToken accessToken = ResourcesUtils.getAccessToken(udr);
+			AccessToken accessToken = opushResourcesHolder.getAccessToken();
 			Ical4jUser ical4jUser = ical4jUserFactory.createIcal4jUser(udr.getUser().getEmail(), accessToken.getDomain());
 			List<Event> obmEvents = ical4jHelper.parseICSEvent(ics, ical4jUser, accessToken.getObmId());
 			

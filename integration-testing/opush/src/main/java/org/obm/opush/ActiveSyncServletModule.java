@@ -57,8 +57,8 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 		OverriddenModuleBuilder override = Modules.override(
 				new ServerFactoryModule(
 					ServerConfiguration.builder().jettySelectorPort().threadPoolSize(4).selectorCount(1).build()),
-				new OpushModule(opushConfiguration(), noDatabase()),
-				new PendingQueryFilterModule());
+				new PendingQueryFilterModule(),
+				new OpushModule(opushConfiguration(), noDatabase()));
 		try {
 			install(override.with(overrideModule()));
 			onModuleInstalled();

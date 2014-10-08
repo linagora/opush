@@ -53,6 +53,7 @@ import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.MessageSet;
+import org.obm.push.resource.ResourcesHolder;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -71,6 +72,7 @@ public class ImapDeleteAPITest {
 	
 	@Inject MailboxService mailboxService;
 	@Inject ICollectionPathHelper collectionPathHelper;
+	@Inject ResourcesHolder resourcesHolder;
 	
 	@Inject GreenMail greenMail;
 	private ServerSetup smtpServerSetup;
@@ -99,6 +101,7 @@ public class ImapDeleteAPITest {
 	
 	@After
 	public void tearDown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 	

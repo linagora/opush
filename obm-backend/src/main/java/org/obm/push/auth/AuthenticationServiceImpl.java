@@ -31,18 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.auth;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.HttpClientResource;
-import org.obm.push.resource.ResourceCloseOrder;
-import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.technicallog.bean.KindToBeLogged;
 import org.obm.push.technicallog.bean.ResourceType;
@@ -70,35 +65,37 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	private final User.Factory userFactory;
 	private final UserClient.Factory userClientFactory;
 	private final AccessTokenResource.Factory accessTokenResourceFactory;
+	private final OpushResourcesHolder opushResourcesHolder;
 
 	@Inject
 	@VisibleForTesting AuthenticationServiceImpl(LoginClient.Factory loginClientFactory, 
 			User.Factory userFactory,
 			UserClient.Factory userClientFactory,
-			AccessTokenResource.Factory accessTokenResourceFactory) {
+			AccessTokenResource.Factory accessTokenResourceFactory,
+			OpushResourcesHolder opushResourcesHolder) {
 		
 		this.loginClientFactory = loginClientFactory;
 		this.userFactory = userFactory;
 		this.userClientFactory = userClientFactory;
 		this.accessTokenResourceFactory = accessTokenResourceFactory;
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 	
 	@Override
 	public String getUserEmail(UserDataRequest udr) {
 		try {
-			return userClientFactory.create(ResourcesUtils.getHttpClient(udr))
-					.getUserEmail(ResourcesUtils.getAccessToken(udr));
+			return userClientFactory.create(opushResourcesHolder.getHttpClient())
+					.getUserEmail(opushResourcesHolder.getAccessToken());
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
 	}
 
 	@Override
-	public Credentials authenticateValidRequest(HttpServletRequest request, String userId, char[] password) throws AuthFault {
-		HttpClientResource httpClientResource = setHttpClientRequestAttribute(request);
+	public Credentials authenticateValidRequest(String userId, char[] password) throws AuthFault {
+		AccessTokenResource token = login(opushResourcesHolder.getHttpClient(), getLoginAtDomain(userId), password);
+		opushResourcesHolder.put(AccessTokenResource.class, token);
 		
-		AccessTokenResource token = setAccessTokenRequestAttribute(request, 
-				httpClientResource.getHttpClient(), userId, password);
 		return getCredentials(token, userId, password);
 	}
 
@@ -110,18 +107,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		} else {
 			throw new AuthFault("Login {"+ userId + "} failed, bad login or/and password.");
 		}
-	}
-
-	private AccessTokenResource setAccessTokenRequestAttribute(HttpServletRequest request, HttpClient httpClient, String userId, char[] password) throws AuthFault {
-		AccessTokenResource token = login(httpClient, getLoginAtDomain(userId), password);
-		request.setAttribute(ResourceCloseOrder.ACCESS_TOKEN.name(), token);
-		return token;
-	}
-	
-	private HttpClientResource setHttpClientRequestAttribute(HttpServletRequest request) {
-		HttpClientResource httpClientResource = new HttpClientResource(HttpClientBuilder.create().build());
-		request.setAttribute(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
-		return httpClientResource;
 	}
 
 	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)

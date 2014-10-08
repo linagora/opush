@@ -52,7 +52,7 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
@@ -73,15 +73,17 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 	protected String obmSyncHost;
 	private final WindowingDao windowingDao;
 	private final DateService dateService;
+	protected final OpushResourcesHolder opushResourcesHolder;
 
-	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, WindowingDao windowingDao, DateService dateService) {
+	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, WindowingDao windowingDao, DateService dateService, OpushResourcesHolder opushResourcesHolder) {
 		super(mappingService, collectionPathBuilderProvider);
 		this.windowingDao = windowingDao;
 		this.dateService = dateService;
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 	
-	protected AccessToken getAccessToken(UserDataRequest udr) {
-		return ResourcesUtils.getAccessToken(udr);
+	protected AccessToken getAccessToken() {
+		return opushResourcesHolder.getAccessToken();
 	}
 	
 	@Override

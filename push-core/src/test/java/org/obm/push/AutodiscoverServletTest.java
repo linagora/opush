@@ -55,9 +55,6 @@ import org.obm.push.handler.AutodiscoverHandler;
 import org.obm.push.impl.Responder;
 import org.obm.push.impl.ResponderImpl;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.resource.ResourcesService;
-
-import com.google.common.collect.Sets;
 
 
 public class AutodiscoverServletTest {
@@ -66,7 +63,6 @@ public class AutodiscoverServletTest {
 	private HttpServletResponse response;
 	private AutodiscoverHandler autodiscoverHandler;
 	private Responder responder;
-	private ResourcesService resourcesService;
 	private UserDataRequest userDataRequest;
 	private Credentials credentials;
 	private MocksControl mocksControl;
@@ -83,13 +79,11 @@ public class AutodiscoverServletTest {
 		
 		response = mocksControl.createMock(HttpServletResponse.class);
 		autodiscoverHandler = mocksControl.createMock(AutodiscoverHandler.class);
-		resourcesService = mocksControl.createMock(ResourcesService.class);
 	}
 	
 	@Test
 	public void testClosingUserDataRequestResources() throws ServletException, IOException {
 		userDataRequest = mocksControl.createMock(UserDataRequest.class);
-		resourcesService.closeResources(userDataRequest);
 		
 		AutodiscoverServlet autodiscoverServlet = createAutodiscoverServlet(autodiscoverHandler);
 		mocksControl.replay();
@@ -135,7 +129,6 @@ public class AutodiscoverServletTest {
 					autodiscoverHandler, 
 					responderFactory, 
 					userDataRequestFactory,
-					loggerService,
-					Sets.newHashSet(resourcesService));
+					loggerService);
 	}
 }

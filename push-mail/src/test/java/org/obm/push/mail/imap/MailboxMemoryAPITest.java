@@ -70,6 +70,7 @@ import org.obm.push.mail.greenmail.ExternalProcessException;
 import org.obm.push.mail.greenmail.GreenMailExternalProcess;
 import org.obm.push.mail.greenmail.GreenMailServerUtil;
 import org.obm.push.mail.mime.MimeAddress;
+import org.obm.push.resource.ResourcesHolder;
 import org.obm.push.service.OpushLocatorService;
 
 import com.google.common.io.ByteStreams;
@@ -83,6 +84,7 @@ public class MailboxMemoryAPITest {
 	@Inject EmailConfiguration emailConfiguration;
 	@Inject OpushLocatorService locatorService;
 	@Inject ICollectionPathHelper collectionPathHelper;
+	@Inject ResourcesHolder resourcesHolder;
 	
 	private String mailbox;
 	private char[] password;
@@ -115,6 +117,7 @@ public class MailboxMemoryAPITest {
 
 	@After
 	public void tearDown() throws InterruptedException {
+		resourcesHolder.close();
 		greenMailProcess.closeProcess();
 	}
 	

@@ -80,6 +80,7 @@ import org.obm.push.mail.bean.UIDEnvelope;
 import org.obm.push.mail.mime.BodyParam;
 import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
+import org.obm.push.resource.ResourcesHolder;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -100,6 +101,7 @@ public class MailboxFetchAPITest {
 	@Inject EmailConfiguration emailConfig;
 	@Inject GreenMail greenMail;
 	@Inject ICollectionPathHelper collectionPathHelper;
+	@Inject ResourcesHolder resourcesHolder;
 	
 	private ServerSetup smtpServerSetup;
 	private String mailbox;
@@ -125,6 +127,7 @@ public class MailboxFetchAPITest {
 	
 	@After
 	public void tearDown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 

@@ -71,7 +71,6 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
-import org.obm.push.bean.Resource;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -83,7 +82,6 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.MailboxService;
-import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
@@ -426,10 +424,7 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
-		mailboxService.setDeletedFlag(user.userDataRequest, inboxCollectionPath, MessageSet.singleton(1l));
-		for (Resource resource : user.userDataRequest.getResources().values()) {
-			resource.close();
-		}
+		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		mocksControl.verify();
@@ -445,9 +440,9 @@ public class MailBackendGetChangedTest {
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
-		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
-		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(2);
+		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
+		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(1);
+		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(1);
 		assertThat(imapConnectionCounter.listMailboxesCounter.get()).isEqualTo(0);
 	}
 
@@ -502,10 +497,7 @@ public class MailBackendGetChangedTest {
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
-		mailboxService.setDeletedFlag(user.userDataRequest, inboxCollectionPath, MessageSet.singleton(1l));
-		for (Resource resource : user.userDataRequest.getResources().values()) {
-			resource.close();
-		}
+		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		
 		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionIdAsString, FilterType.THREE_DAYS_BACK, 100);
 		mocksControl.verify();
@@ -519,9 +511,9 @@ public class MailBackendGetChangedTest {
 		
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(3);
-		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(3);
-		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(3);
+		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
+		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
+		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.listMailboxesCounter.get()).isEqualTo(0);
 	}
 

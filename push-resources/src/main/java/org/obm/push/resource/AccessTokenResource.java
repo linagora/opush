@@ -31,37 +31,66 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import java.util.SortedSet;
+import org.apache.http.client.HttpClient;
+import org.obm.push.technicallog.bean.KindToBeLogged;
+import org.obm.push.technicallog.bean.ResourceType;
+import org.obm.push.technicallog.bean.TechnicalLogging;
+import org.obm.sync.auth.AccessToken;
+import org.obm.sync.client.login.LoginClient;
 
-import org.obm.push.bean.Resource;
-import org.obm.push.bean.UserDataRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Ordering;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-@Singleton
-public class ResourceCloserImpl implements ResourceCloser {
+public class AccessTokenResource extends BackendResource {
 
-	private final Logger logger = LoggerFactory.getLogger(ResourceCloserImpl.class);
+	@Singleton
+	public static class Factory {
+
+		private final LoginClient.Factory loginClientFactory;
+
+		@Inject 
+		@VisibleForTesting Factory(LoginClient.Factory loginClientFactory) {
+			this.loginClientFactory = loginClientFactory;
+		}
+
+		public AccessTokenResource create(HttpClient httpClient, AccessToken accessToken) {
+			return new AccessTokenResource(loginClientFactory, httpClient, accessToken);
+		}
+	}
+	
+	private final LoginClient.Factory loginClientFactory;
+	private final AccessToken accessToken;
+	private final HttpClient httpClient;
+	
+	private AccessTokenResource(LoginClient.Factory loginClientFactory, HttpClient httpClient, AccessToken accessToken) {
+		this.loginClientFactory = loginClientFactory;
+		this.httpClient = httpClient;
+		this.accessToken = accessToken;
+	}
 	
 	@Override
-	public void closeResources(UserDataRequest userDataRequest, Class<? extends Resource> type) {
-		SortedSet<Resource> sortedResources =
-			FluentIterable.from(userDataRequest.getResources().values())
-			.filter(Predicates.instanceOf(type))
-			.toSortedSet(Ordering.natural());
-		
-		for (Resource resource: sortedResources) {
-			try {
-				resource.close();
-			} catch (RuntimeException exception) {
-				logger.error("fail to close resource {}, exception occured {}", resource, exception);
-			}
-		}
+	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onEndOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)
+	public void close() {
+		loginClientFactory.create(httpClient)
+			.logout(getAccessToken());
+	}
+
+	public AccessToken getAccessToken() {
+		return accessToken;
+	}
+
+	public String getUserEmail() {
+		return getAccessToken().getUserEmail();
+	}
+
+	public String getUserDisplayName() {
+		return getAccessToken().getUserDisplayName();
+	}
+
+	@Override
+	protected ResourceCloseOrder getCloseOrder() {
+		return ResourceCloseOrder.ACCESS_TOKEN;
 	}
 	
 }

@@ -175,9 +175,8 @@ public class TechnicalLoggingBinderTest {
 	
 	private UserDataRequest getFakeUserDataRequest() {
 		User user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
-		UserDataRequest udr = new UserDataRequest(new Credentials(user, "test".toCharArray()),
+		return new UserDataRequest(new Credentials(user, "test".toCharArray()),
 				"Sync", getFakeDevice());
-		return udr;
 	}
 
 	private Device getFakeDevice() {

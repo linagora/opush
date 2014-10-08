@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,37 +31,48 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import java.io.IOException;
-
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.obm.push.bean.Resource;
+import org.obm.sync.auth.AccessToken;
 
-import com.google.common.base.Throwables;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
-public class HttpClientResource extends ObmBackendResource {
+@Singleton
+public class OpushResourcesHolder {
 
-	private final CloseableHttpClient httpClient;
+	private final Provider<ResourcesHolder> resourcesHolderProvider;
+	
+	@Inject OpushResourcesHolder(Provider<ResourcesHolder> resourcesHolderProvider) {
+		this.resourcesHolderProvider = resourcesHolderProvider;
+	}
 
-	public HttpClientResource(CloseableHttpClient httpClient) {
-		this.httpClient = httpClient;
+	public <T extends Resource> T get(Class<T> clazz) {
+		return getResourcesHolder().get(clazz);
 	}
 	
-	@Override
-	public void close() {
-		try {
-			httpClient.close();
-		} catch (IOException e) {
-			Throwables.propagate(e);
-		}
+	public AccessToken getAccessToken() {
+		return getResourcesHolder().get(AccessTokenResource.class).getAccessToken();
 	}
-
+	
 	public HttpClient getHttpClient() {
-		return httpClient;
+		return getResourcesHolder().get(HttpClientResource.class).getHttpClient();
 	}
 	
-	@Override
-	protected ResourceCloseOrder getCloseOrder() {
-		return ResourceCloseOrder.HTTP_CLIENT;
+	public <T extends Resource> void put(Class<T> clazz, T resource) {
+		getResourcesHolder().put(clazz, resource);
 	}
 	
+	public void close() {
+		getResourcesHolder().close();
+	}
+	
+	public void remove(Class<? extends Resource> clazz) {
+		getResourcesHolder().remove(clazz);
+	}
+
+	private ResourcesHolder getResourcesHolder() {
+		return resourcesHolderProvider.get();
+	}
 }

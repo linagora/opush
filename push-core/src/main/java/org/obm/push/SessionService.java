@@ -73,13 +73,13 @@ public class SessionService {
 		
 		Device device = deviceService.getDevice(credentials.getUser(), devId, userAgent, getProtocolVersion(r));
 		
-		UserDataRequest udr = userDataRequestFactory.createUserDataRequest(credentials, 
-				r.getCommand(), device);
+		UserDataRequest udr = userDataRequestFactory.createUserDataRequest(
+				credentials, r.getCommand(), device);
 		
 		logger.debug("New session = {}", sessionId);
 		return udr;
 	}
-
+	
 	private ProtocolVersion getProtocolVersion(ActiveSyncRequest request) {
 		final String proto = request.getMSASProtocolVersion();
 		if (proto != null) {

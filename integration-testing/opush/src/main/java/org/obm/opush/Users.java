@@ -38,8 +38,6 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.ResourceCloseOrder;
 import org.obm.sync.auth.AccessToken;
 
 import com.google.inject.Inject;
@@ -62,15 +60,12 @@ public class Users {
 	}
 	
 	private final Factory userFactory;
-	private final AccessTokenResource.Factory accessTokenResourceFactory;
-
 	public final OpushUser jaures;
 	public final OpushUser blum;
 	
 	@Inject
-	public Users(User.Factory userFactory, AccessTokenResource.Factory accessTokenResourceFactory) {
+	public Users(User.Factory userFactory) {
 		this.userFactory = userFactory;
-		this.accessTokenResourceFactory = accessTokenResourceFactory;
 		jaures = buildUser("jaures", "jaur3s".toCharArray(), "Jean Jaures");
 		blum = buildUser("blum", "b1um".toCharArray(), "Léon Blum");
 	}
@@ -89,8 +84,6 @@ public class Users {
 		user.credentials = new Credentials(user.user, user.password);
 		user.device = new Device.Factory().create(1, user.deviceType, user.userAgent, user.deviceId, user.deviceProtocolVersion);
 		user.userDataRequest = new UserDataRequest(user.credentials, null, user.device);
-		user.userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), 
-				accessTokenResourceFactory.create(null, user.accessToken));
 		user.rootCollectionPath = "obm:\\\\" + user.user.getLoginAtDomain();
 		return user;
 	}

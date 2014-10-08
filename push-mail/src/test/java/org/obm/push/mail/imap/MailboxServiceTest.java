@@ -66,6 +66,7 @@ import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.mime.MimeAddress;
+import org.obm.push.resource.ResourcesHolder;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.collect.Iterables;
@@ -82,6 +83,8 @@ public class MailboxServiceTest {
 	@Inject ICollectionPathHelper collectionPathHelper;
 
 	@Inject GreenMail greenMail;
+	@Inject ResourcesHolder resourcesHolder;
+
 	ServerSetup smtpServerSetup;
 	private String mailbox;
 	private char[] password;
@@ -105,6 +108,7 @@ public class MailboxServiceTest {
 	
 	@After
 	public void tearDown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 

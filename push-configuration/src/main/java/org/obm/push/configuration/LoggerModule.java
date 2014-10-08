@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
+import org.obm.push.resource.ResourcesHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ public class LoggerModule extends org.obm.configuration.module.LoggerModule {
 	public static final String SUMMARY_IN = "SUMMARY.IN";
 	public static final String SUMMARY_OUT = "SUMMARY.OUT";
 	public static final String MIGRATION = "MIGRATION";
+	public static final String RESOURCES = ResourcesHolder.RESOURCES;
 	
 	@Override
 	protected void configure() {
@@ -60,6 +62,7 @@ public class LoggerModule extends org.obm.configuration.module.LoggerModule {
 		bind(Logger.class).annotatedWith(Names.named(SUMMARY_IN)).toInstance(LoggerFactory.getLogger(SUMMARY_IN));
 		bind(Logger.class).annotatedWith(Names.named(SUMMARY_OUT)).toInstance(LoggerFactory.getLogger(SUMMARY_OUT));
 		bind(Logger.class).annotatedWith(Names.named(MIGRATION)).toInstance(LoggerFactory.getLogger(MIGRATION));
+		bind(Logger.class).annotatedWith(Names.named(RESOURCES)).toInstance(LoggerFactory.getLogger(RESOURCES));
 	}
 
 	

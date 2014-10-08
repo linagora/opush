@@ -114,7 +114,7 @@ public class AuthenticationFilter implements Filter {
 					String userPass = new String( Base64.decodeBase64(credentials), Charsets.ISO_8859_1 );
 					int p = userPass.indexOf(":");
 					if (p != -1) {
-						return authenticateValidRequest(request, 
+						return authenticateValidRequest(
 								userPass.substring(0, p), 
 								userPass.substring(p + 1).toCharArray());
 					}
@@ -124,9 +124,9 @@ public class AuthenticationFilter implements Filter {
 		throw new AuthenticationException("There is not 'Authorization' field in HttpServletRequest.");
 	}
 
-	private Credentials authenticateValidRequest(HttpServletRequest request, String userId, char[] password) throws Exception {
+	private Credentials authenticateValidRequest(String userId, char[] password) throws Exception {
 		try {
-			return authenticationService.authenticateValidRequest(request, userId, password);
+			return authenticationService.authenticateValidRequest(userId, password);
 		} catch (AuthFault e) {
 			throw new AuthenticationException(e);
 		}

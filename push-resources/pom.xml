@@ -8,20 +8,22 @@
 		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>push-interfaces</artifactId>
+	<artifactId>push-resources</artifactId>
 	<packaging>jar</packaging>
-	<name>OPush Services Interfaces</name>
+	<name>OPush Resources</name>
 	<url>http://www.obm.org/</url>
 
+	<licenses>
+		<license>
+			<name>GNU AFFERO GENERAL PUBLIC LICENSE Version 3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
-			<artifactId>breakdown-duration</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.linagora.obm</groupId>
-			<artifactId>common-test</artifactId>
-			<scope>test</scope>
+			<artifactId>client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
@@ -29,15 +31,15 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>push-resources</artifactId>
+			<artifactId>technical-log-bean</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>

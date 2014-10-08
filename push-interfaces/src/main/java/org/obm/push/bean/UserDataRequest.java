@@ -31,10 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
-import java.util.Map;
-
 import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
 
 public class UserDataRequest {
@@ -49,14 +46,12 @@ public class UserDataRequest {
 	private final Credentials credentials;
 	private final Device device;
 	private final String command;
-	private final Map<String, Resource> resources;
 
 	public UserDataRequest(Credentials credentials, String command, Device device) {
 		super();
 		this.credentials = credentials;
 		this.command = command;
 		this.device = device;
-		this.resources = Maps.newHashMap();
 	}
 	
 	public boolean checkHint(String key, boolean defaultValue) {
@@ -91,29 +86,6 @@ public class UserDataRequest {
 		return device;
 	}
 
-	public void putResource(String key, Resource resource) {
-		if (key != null && resource != null) {
-			this.resources.put(key, resource);
-		}
-	}
-	
-	public void putAllResources(Map<String, Resource> resources) {
-		if (resources != null) {
-			this.resources.putAll(resources);
-		}
-	}
-	
-	public Resource getResource(String key) {
-		if (null != key) {
-			return resources.get(key);
-		}
-		return null;
-	}
-	
-	public Map<String, Resource> getResources() {
-		return resources;
-	}
-
 	@Override
 	public final int hashCode(){
 		return Objects.hashCode(credentials, device, command);
@@ -136,7 +108,6 @@ public class UserDataRequest {
 			.add("credentials", credentials)
 			.add("device", device)
 			.add("command", command)
-			.add("resources", resources)
 			.toString();
 	}
 }

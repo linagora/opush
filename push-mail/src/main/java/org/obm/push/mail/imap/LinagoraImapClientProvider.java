@@ -37,6 +37,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.OpushLocatorException;
 import org.obm.push.mail.imap.idle.IdleClient;
 import org.obm.push.minig.imap.StoreClient;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.OpushLocatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,17 +57,19 @@ public class LinagoraImapClientProvider {
 	private final boolean loginWithDomain;
 	private final boolean activateTLS;
 	private final IdleClient.Factory idleClientFactory;
+	private final OpushResourcesHolder opushResourcesHolder;
 
 	@Inject
 	@VisibleForTesting LinagoraImapClientProvider(MinigStoreClient.Factory minigStoreClientFactory,
 			EmailConfiguration emailConfiguration, OpushLocatorService locatorService,
-			IdleClient.Factory idleClientFactory) {
+			IdleClient.Factory idleClientFactory, OpushResourcesHolder opushResourcesHolder) {
 		
 		this.minigStoreClientFactory = minigStoreClientFactory;
 		this.locatorService = locatorService;
 		this.loginWithDomain = emailConfiguration.loginWithDomain();
 		this.activateTLS = emailConfiguration.activateTls();
 		this.idleClientFactory = idleClientFactory;
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 	
 	private String locateImap(UserDataRequest udr) throws OpushLocatorException {
@@ -77,7 +80,7 @@ public class LinagoraImapClientProvider {
 	}
 
 	public StoreClient getImapClient(UserDataRequest udr) throws OpushLocatorException, IMAPException {
-		StoreClient storeClient = retrieveWorkingStoreClient(udr);
+		StoreClient storeClient = retrieveWorkingStoreClient();
 		if (storeClient != null) {
 			return storeClient;
 		}
@@ -87,15 +90,16 @@ public class LinagoraImapClientProvider {
 
 		MinigStoreClient newMinigStoreClient = minigStoreClientFactory.create(imapHost, login, udr.getPassword());
 		newMinigStoreClient.login(activateTLS);
-		udr.putResource(IMAP_STORE, newMinigStoreClient);
+		opushResourcesHolder.remove(MinigStoreClient.class);
+		opushResourcesHolder.put(MinigStoreClient.class, newMinigStoreClient);
 		
 		logger.debug("Creating storeClient with login {} : loginWithDomain = {}", login, loginWithDomain);
 		
 		return newMinigStoreClient.getStoreClient(); 
 	}
 
-	private StoreClient retrieveWorkingStoreClient(UserDataRequest udr) {
-		MinigStoreClient minigStoreClient = (MinigStoreClient) udr.getResource(IMAP_STORE);
+	private StoreClient retrieveWorkingStoreClient() {
+		MinigStoreClient minigStoreClient = opushResourcesHolder.get(MinigStoreClient.class);
 		if (minigStoreClient != null) {
 			try {
 				StoreClient storeClient = minigStoreClient.getStoreClient();

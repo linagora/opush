@@ -47,6 +47,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.bean.MailboxFolder;
+import org.obm.push.resource.ResourcesHolder;
 
 import com.google.inject.Inject;
 import com.icegreen.greenmail.util.GreenMail;
@@ -59,6 +60,8 @@ public class SendMailboxServiceTest {
 
 	@Inject GreenMail greenMail;
 	@Inject ICollectionPathHelper collectionPathHelper;
+	@Inject ResourcesHolder resourcesHolder;
+
 	private String mailbox;
 	private char[] password;
 	private UserDataRequest udr;
@@ -77,6 +80,7 @@ public class SendMailboxServiceTest {
 	
 	@After
 	public void tearDown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 

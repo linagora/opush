@@ -31,13 +31,19 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import javax.servlet.http.HttpServletRequest;
+import org.obm.push.bean.Resource;
 
-import org.obm.push.bean.UserDataRequest;
+public abstract class BackendResource implements Resource {
 
-public interface ResourcesService {
-
-	void initRequest(UserDataRequest userDataRequest, HttpServletRequest request);
-
-	void closeResources(UserDataRequest userDataRequest);
+	protected abstract ResourceCloseOrder getCloseOrder();
+	
+	@Override
+	public int compareTo(Resource o) {
+		if (o instanceof BackendResource) {
+			BackendResource otherResource = (BackendResource) o;
+			return getCloseOrder().compareTo(otherResource.getCloseOrder());
+		}
+		return 0;
+	}
+	
 }

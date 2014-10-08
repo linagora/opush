@@ -39,7 +39,6 @@ import org.obm.push.technicallog.bean.KindToBeLogged;
 import org.obm.push.technicallog.bean.ResourceType;
 import org.obm.push.technicallog.bean.TechnicalLogging;
 
-import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -96,7 +95,6 @@ public class MinigStoreClientImpl implements MinigStoreClient {
 	
 	@Override
 	public int compareTo(Resource o) {
-		Preconditions.checkArgument(o instanceof MinigStoreClient);
 		return 0;
 	}
 }

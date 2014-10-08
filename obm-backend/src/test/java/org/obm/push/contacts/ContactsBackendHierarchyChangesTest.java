@@ -68,9 +68,7 @@ import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.HttpClientResource;
-import org.obm.push.resource.ResourceCloseOrder;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -110,6 +108,7 @@ public class ContactsBackendHierarchyChangesTest {
 	private CloseableHttpClient httpClient;
 	private ContactConverter contactConverter;
 	private DateService dateService;
+	private OpushResourcesHolder opushResourcesHolder;
 
 	@Before
 	public void setUp() {
@@ -120,13 +119,9 @@ public class ContactsBackendHierarchyChangesTest {
 		httpClient = HttpClientBuilder.create().build();
 		
 		mocks = createControl();
-		AccessTokenResource accessTokenResource = mocks.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(accessToken).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mocks.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient()).andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
+		opushResourcesHolder = mocks.createMock(OpushResourcesHolder.class);
+		expect(opushResourcesHolder.getAccessToken()).andReturn(accessToken).anyTimes();
+		expect(opushResourcesHolder.getHttpClient()).andReturn(httpClient).anyTimes();
 		contactParentId = 0;
 		contactParentIdAsString = String.valueOf(contactParentId);
 		contactParentName = "contacts";
@@ -150,7 +145,8 @@ public class ContactsBackendHierarchyChangesTest {
 				windowingDao,
 				clientIdService,
 				contactConverter,
-				dateService);
+				dateService,
+				opushResourcesHolder);
 	}
 
 	@After

@@ -44,8 +44,6 @@ import org.obm.push.calendar.EventServiceImpl;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.impl.OpushLocatorServiceImpl;
 import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.ObmBackendResourcesService;
-import org.obm.push.resource.ResourcesService;
 import org.obm.push.search.ISearchSource;
 import org.obm.push.search.ObmSearchContact;
 import org.obm.push.service.AuthenticationService;
@@ -80,8 +78,5 @@ public class ObmBackendModule extends AbstractModule {
 		pimBackends.addBinding().to(TaskBackend.class);
 		Multibinder<ISearchSource> searchSources = Multibinder.newSetBinder(binder(), ISearchSource.class);
 		searchSources.addBinding().to(ObmSearchContact.class);
-		
-		Multibinder<ResourcesService> resources = Multibinder.newSetBinder(binder(), ResourcesService.class);
-		resources.addBinding().to(ObmBackendResourcesService.class);
     }
 }

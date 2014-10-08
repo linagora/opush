@@ -45,13 +45,18 @@ import org.obm.push.mail.smtp.SmtpProvider;
 import org.obm.push.mail.transformer.Identity;
 import org.obm.push.mail.transformer.Transformer;
 import org.obm.push.minig.imap.IdleClientImpl;
+import org.obm.push.resource.ResourcesHolder;
 import org.obm.push.service.EventService;
 import org.obm.push.service.OpushLocatorService;
 import org.obm.sync.client.login.LoginService;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.Scope;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import com.google.inject.servlet.RequestScoped;
 
 public class MailEnvModule extends AbstractModule {
 
@@ -71,6 +76,24 @@ public class MailEnvModule extends AbstractModule {
 		bind(SmtpProvider.class).to(GreenMailSmtpProvider.class);
 
 		install(new LinagoraImapClientModule());
+		final ResourcesHolder resourcesHolder = new ResourcesHolder();
+		bindScope(RequestScoped.class, new Scope() {
+			
+			@Override
+			public <T> Provider<T> scope(final Key<T> key, Provider<T> unscoped) {
+				return new Provider<T>() {
+
+					@SuppressWarnings("unchecked")
+					@Override
+					public T get() {
+						if (key.getTypeLiteral().getRawType().equals(ResourcesHolder.class)) {
+							return (T) resourcesHolder;
+						}
+						return null;
+					}
+				};
+			}
+		});
 		bind(MailboxService.class).to(LinagoraMailboxService.class);
 		bind(MinigStoreClient.Factory.class).to(MinigStoreClientImpl.Factory.class);
 		bind(IdleClient.Factory.class).to(IdleClientImpl.Factory.class);

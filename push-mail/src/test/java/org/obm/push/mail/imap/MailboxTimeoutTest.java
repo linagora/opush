@@ -50,6 +50,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
+import org.obm.push.resource.ResourcesHolder;
 
 import com.google.common.base.Stopwatch;
 import com.google.inject.AbstractModule;
@@ -71,6 +72,7 @@ public class MailboxTimeoutTest {
 	@Inject MailboxService mailboxService;
 	@Inject GreenMail greenMail;
 	@Inject ICollectionPathHelper collectionPathHelper;
+	@Inject ResourcesHolder resourcesHolder;
 	
 	private UserDataRequest udr;
 	private String mailbox;
@@ -89,6 +91,7 @@ public class MailboxTimeoutTest {
 	
 	@After
 	public void teardown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 	

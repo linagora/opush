@@ -60,8 +60,7 @@ import org.obm.push.protocol.data.TimeZoneConverterImpl;
 import org.obm.push.protocol.data.TimeZoneEncoder;
 import org.obm.push.protocol.data.TimeZoneEncoderImpl;
 import org.obm.push.qos.OpushQoSKeyProvider;
-import org.obm.push.resource.ResourceCloser;
-import org.obm.push.resource.ResourceCloserImpl;
+import org.obm.push.resource.ResourceManagementModule;
 import org.obm.push.search.ISearchSource;
 import org.obm.push.search.ldap.BookSource;
 import org.obm.push.service.ClientIdService;
@@ -112,6 +111,7 @@ public class OpushImplModule extends AbstractModule {
 		install(qosModule());
 		install(new OpushServletModule());
 		install(new OpushConfigurationModule());
+		install(new ResourceManagementModule());
 		bind(IHierarchyExporter.class).to(HierarchyExporter.class);
 		bind(IContentsExporter.class).to(ContentsExporter.class);
 		bind(IStateMachine.class).to(StateMachine.class);
@@ -134,8 +134,6 @@ public class OpushImplModule extends AbstractModule {
 		
 		Multibinder<ISearchSource> searchSources = Multibinder.newSetBinder(binder(), ISearchSource.class);
 		searchSources.addBinding().to(BookSource.class);
-		
-		bind(ResourceCloser.class).to(ResourceCloserImpl.class);
 	}
 	
 	private Module qosModule() {

@@ -31,11 +31,37 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import org.obm.push.bean.Resource;
-import org.obm.push.bean.UserDataRequest;
+import java.io.IOException;
 
-public interface ResourceCloser {
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 
-	void closeResources(UserDataRequest userDataRequest, Class<? extends Resource> type);
+import com.google.common.base.Throwables;
 
+public class HttpClientResource extends BackendResource {
+
+	private final CloseableHttpClient httpClient;
+
+	public HttpClientResource(CloseableHttpClient httpClient) {
+		this.httpClient = httpClient;
+	}
+	
+	@Override
+	public void close() {
+		try {
+			httpClient.close();
+		} catch (IOException e) {
+			Throwables.propagate(e);
+		}
+	}
+
+	public HttpClient getHttpClient() {
+		return httpClient;
+	}
+	
+	@Override
+	protected ResourceCloseOrder getCloseOrder() {
+		return ResourceCloseOrder.HTTP_CLIENT;
+	}
+	
 }

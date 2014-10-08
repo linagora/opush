@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,19 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import org.apache.http.client.HttpClient;
-import org.obm.push.bean.UserDataRequest;
-import org.obm.sync.auth.AccessToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.servlet.RequestScoped;
 
-public class ResourcesUtils {
+public class ResourceManagementModule extends AbstractModule {
 
-	public static HttpClient getHttpClient(UserDataRequest udr) {
-		return ((HttpClientResource) udr.getResource(ResourceCloseOrder.HTTP_CLIENT.name()))
-				.getHttpClient();
+	@Override
+	protected void configure() {
 	}
-
-	public static AccessToken getAccessToken(UserDataRequest udr) {
-		return ((AccessTokenResource) udr.getResource(ResourceCloseOrder.ACCESS_TOKEN.name()))
-				.getAccessToken();
+	
+	@Provides @RequestScoped ResourcesHolder provideResourceHolder() {
+		return new ResourcesHolder();
 	}
+	
 }

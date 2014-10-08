@@ -36,5 +36,4 @@ public class RequestProperties {
 	public static final String CREDENTIALS = "credentials";
 	public static final String CONTINUATION = "requestId";
 	public static final String ACTIVE_SYNC_REQUEST = "activeSyncRequest";
-	
 }

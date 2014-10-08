@@ -78,9 +78,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.impl.ObmSyncBackend.WindowingChangesDelta;
-import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.HttpClientResource;
-import org.obm.push.resource.ResourceCloseOrder;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -128,6 +126,7 @@ public class ContactsBackendTest {
 	private CloseableHttpClient httpClient;
 	private ContactConverter contactConverter;
 	private DateService dateService;
+	private OpushResourcesHolder opushResourcesHolder;
 	
 	@Before
 	public void setUp() {
@@ -138,13 +137,9 @@ public class ContactsBackendTest {
 		httpClient = HttpClientBuilder.create().build();
 		
 		mocks = createControl();
-		AccessTokenResource accessTokenResource = mocks.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(token).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mocks.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient()).andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
+		opushResourcesHolder = mocks.createMock(OpushResourcesHolder.class);
+		expect(opushResourcesHolder.getAccessToken()).andReturn(token).anyTimes();
+		expect(opushResourcesHolder.getHttpClient()).andReturn(httpClient).anyTimes();
 		
 		mappingService = mocks.createMock(MappingService.class);
 		bookClient = mocks.createMock(BookClient.class);
@@ -160,7 +155,7 @@ public class ContactsBackendTest {
 		dateService = mocks.createMock(DateService.class);
 		
 		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService);
+				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService, opushResourcesHolder);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -190,7 +185,7 @@ public class ContactsBackendTest {
 	
 	@Test
 	public void testGetPIMDataType() {
-		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null);
+		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null, null);
 		assertThat(contactsBackend.getPIMDataType()).isEqualTo(PIMDataType.CONTACTS);
 	}
 

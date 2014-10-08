@@ -58,8 +58,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
-import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.ResourceCloseOrder;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.EventParsingException;
 import org.obm.push.store.CalendarDao;
@@ -82,6 +81,7 @@ public class EventServiceImplTest {
 	private Date now;
 	private IMocksControl mocksControl;
 	private EventExtId.Factory eventExtIdFactory;
+	private OpushResourcesHolder opushResourcesHolder;
 
 	@Before
 	public void setUp() {
@@ -92,6 +92,7 @@ public class EventServiceImplTest {
 		attendeeService = new SimpleAttendeeService();
 		eventExtIdFactory = mocksControl.createMock(EventExtId.Factory.class);
 		ical4jHelper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		opushResourcesHolder = mocksControl.createMock(OpushResourcesHolder.class);
 		
 		expect(dateProvider.getDate()).andReturn(now).anyTimes();		
 	}
@@ -102,10 +103,7 @@ public class EventServiceImplTest {
 		UserDataRequest udr = new UserDataRequest(
 				new Credentials(User.Factory.create().createUser("user@domain", "user@domain", null), "password".toCharArray()), null, null);
 		AccessToken accessToken = new AccessToken(1, "origin");
-		AccessTokenResource accessTokenResource = mocksControl.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(accessToken).anyTimes();
-		udr.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
+		expect(opushResourcesHolder.getAccessToken()).andReturn(accessToken);
 		
 		CalendarDao calendarDao = mocksControl.createMock(CalendarDao.class);
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), anyObject(Device.class))).andReturn(new MSEventUid("uid"));
@@ -118,7 +116,7 @@ public class EventServiceImplTest {
 		EventConverterImpl eventConverter = new EventConverterImpl(new MSEventToObmEventConverterImpl(), new ObmEventToMSEventConverterImpl());
 		
 		InputStream icsStream = ClassLoader.getSystemResourceAsStream("icalendar/OBMFULL-3526.ics");
-		EventService eventService = new EventServiceImpl(calendarDao, eventConverter, ical4jHelper, factory);
+		EventService eventService = new EventServiceImpl(calendarDao, eventConverter, ical4jHelper, factory, opushResourcesHolder);
 		eventService.parseEventFromICalendar(udr, new String(ByteStreams.toByteArray(icsStream)));
 		
 		mocksControl.verify();
@@ -157,7 +155,7 @@ public class EventServiceImplTest {
 
 		mocksControl.replay();
 
-		EventService eventService = new EventServiceImpl(calendarDao, converter, null, null);
+		EventService eventService = new EventServiceImpl(calendarDao, converter, null, null, opushResourcesHolder);
 
 		MSEvent msEvent = eventService.convertEventToMSEvent(udr, event);
 		Assertions.assertThat(msEvent).isEqualTo(expectedMsEvent);
@@ -202,7 +200,7 @@ public class EventServiceImplTest {
 
 		mocksControl.replay();
 
-		EventService eventService = new EventServiceImpl(calendarDao, converter, null, null);
+		EventService eventService = new EventServiceImpl(calendarDao, converter, null, null, opushResourcesHolder);
 
 		MSEvent msEvent = eventService.convertEventToMSEvent(udr, event);
 		Assertions.assertThat(msEvent).isEqualTo(expectedMsEvent);
@@ -225,7 +223,7 @@ public class EventServiceImplTest {
 
 		mocksControl.replay();
 
-		EventService eventService = new EventServiceImpl(calendarDao, null, null, null);
+		EventService eventService = new EventServiceImpl(calendarDao, null, null, null, opushResourcesHolder);
 		eventService.trackEventExtIdMSEventUidTranslation(eventExtId.getExtId(), msEventUid, device);
 		mocksControl.verify();
 	}

@@ -146,7 +146,7 @@ public class AuthenticationFilterTest {
 		User user = control.createMock(User.class);
 		Credentials credentials = new Credentials(user, "open sesame".toCharArray());
 		expect(request.getHeader("Authorization")).andReturn("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-		expect(authService.authenticateValidRequest(eq(request), eq("Aladdin"), aryEq("open sesame".toCharArray()))).andReturn(credentials);
+		expect(authService.authenticateValidRequest(eq("Aladdin"), aryEq("open sesame".toCharArray()))).andReturn(credentials);
 		loggerService.defineUser(user);
 		expectLastCall();
 		request.setAttribute("credentials", credentials);
@@ -191,6 +191,6 @@ public class AuthenticationFilterTest {
 
 	private void expectExceptionByAuth(HttpServletRequest request, Exception exception) throws Exception {
 		expect(request.getHeader("Authorization")).andReturn("Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-		expect(authService.authenticateValidRequest(eq(request), eq("Aladdin"), aryEq("open sesame".toCharArray()))).andThrow(exception);
+		expect(authService.authenticateValidRequest(eq("Aladdin"), aryEq("open sesame".toCharArray()))).andThrow(exception);
 	}
 }

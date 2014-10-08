@@ -71,7 +71,7 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
-import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -105,6 +105,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	private final BookClient.Factory bookClientFactory;
 	private final ClientIdService clientIdService;
 	private final ContactConverter contactConverter;
+	
 	@Inject
 	@VisibleForTesting ContactsBackend(MappingService mappingService, 
 			BookClient.Factory bookClientFactory, 
@@ -113,9 +114,10 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			ContactConverter contactConverter,
-			DateService dateService) {
+			DateService dateService,
+			OpushResourcesHolder opushResourcesHolder) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;
@@ -133,7 +135,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			throws DaoException, InvalidSyncKeyException {
 
 		try {
-			FolderChanges folderChanges = listAddressBooksChanged(udr, lastKnownState);
+			FolderChanges folderChanges = listAddressBooksChanged(lastKnownState);
 			Set<CollectionPath> lastKnownCollections = lastKnownCollectionPath(udr, lastKnownState, getPIMDataType());
 			
 			PathsToCollections changedCollections = changedCollections(udr, folderChanges);
@@ -244,13 +246,13 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 				.build();
 	}
 
-	private FolderChanges listAddressBooksChanged(UserDataRequest udr, FolderSyncState lastKnownState)
+	private FolderChanges listAddressBooksChanged(FolderSyncState lastKnownState)
 			throws UnexpectedObmSyncServerException, DaoException, InvalidSyncKeyException {
 		
-		AccessToken token = getAccessToken(udr);
+		AccessToken token = getAccessToken();
 		Date lastSyncDate = backendLastSyncDate(lastKnownState);
 		try {
-			return getBookClient(udr).listAddressBooksChanged(token, lastSyncDate);
+			return getBookClient().listAddressBooksChanged(token, lastSyncDate);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -296,7 +298,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	protected WindowingChangesDelta<WindowingContact> getAllChanges(UserDataRequest udr, ItemSyncState state, Integer collectionId, SyncCollectionOptions collectionOptions) {
 		
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
-		ContactChanges contactChanges = listContactsChanged(udr, state, addressBookId);
+		ContactChanges contactChanges = listContactsChanged(state, addressBookId);
 		
 		WindowingContactChanges.Builder builder  = WindowingContactChanges.builder();
 		for (Contact contact : contactChanges.getUpdated()) {
@@ -321,7 +323,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	private Integer findAddressBookIdFromCollectionId(UserDataRequest udr, Integer collectionId) 
 			throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
 		
-		List<AddressBook> addressBooks = listAddressBooks(udr);
+		List<AddressBook> addressBooks = listAddressBooks();
 		for (AddressBook addressBook: addressBooks) {
 			String backendName = ContactCollectionPath.backendName(addressBook);
 			String collectionPath = collectionPathBuilderProvider.get()
@@ -342,22 +344,22 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		throw new CollectionNotFoundException(collectionId);
 	}
 	
-	private List<AddressBook> listAddressBooks(UserDataRequest udr) throws UnexpectedObmSyncServerException {
-		AccessToken token = getAccessToken(udr);
+	private List<AddressBook> listAddressBooks() throws UnexpectedObmSyncServerException {
+		AccessToken token = getAccessToken();
 		try {
-			return getBookClient(udr).listAllBooks(token);
+			return getBookClient().listAllBooks(token);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
 	}
 
-	private ContactChanges listContactsChanged(UserDataRequest udr, ItemSyncState state, Integer addressBookId) throws UnexpectedObmSyncServerException {
-		AccessToken token = getAccessToken(udr);
+	private ContactChanges listContactsChanged(ItemSyncState state, Integer addressBookId) throws UnexpectedObmSyncServerException {
+		AccessToken token = getAccessToken();
 		try {
 			if (state.isInitial()) {
-				return getBookClient(udr).firstListContactsChanged(token, state.getSyncDate(), addressBookId);
+				return getBookClient().firstListContactsChanged(token, state.getSyncDate(), addressBookId);
 			}
-			return getBookClient(udr).listContactsChanged(token, state.getSyncDate(), addressBookId);
+			return getBookClient().listContactsChanged(token, state.getSyncDate(), addressBookId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -381,7 +383,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		try {
 
-			Contact storedContact = storeContact(udr, addressBookId, 
+			Contact storedContact = storeContact(addressBookId, 
 					convertContact(serverId, contact), 
 					hashClientId(udr, clientId));
 			
@@ -409,12 +411,12 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return clientIdService.hash(udr, clientId);
 	}
 
-	private Contact storeContact(UserDataRequest udr, Integer addressBookId, Contact contact, String clientId) 
+	private Contact storeContact(Integer addressBookId, Contact contact, String clientId) 
 			throws UnexpectedObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
-		AccessToken token = getAccessToken(udr);
+		AccessToken token = getAccessToken();
 		try {
-			return getBookClient(udr).storeContact(token, addressBookId, contact, clientId);
+			return getBookClient().storeContact(token, addressBookId, contact, clientId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -428,7 +430,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		Integer contactId = mappingService.getItemIdFromServerId(serverId);
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		try {
-			removeContact(udr, addressBookId, contactId);
+			removeContact(addressBookId, contactId);
 		} catch (NoPermissionException e) {
 			logger.warn(e.getMessage());
 		} catch (ContactNotFoundException e) {
@@ -436,12 +438,12 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		}
 	}
 
-	private Contact removeContact(UserDataRequest udr, Integer addressBookId, Integer contactId) 
+	private Contact removeContact(Integer addressBookId, Integer contactId) 
 			throws UnexpectedObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
-		AccessToken token = getAccessToken(udr);
+		AccessToken token = getAccessToken();
 		try {
-			return getBookClient(udr).removeContact(token, addressBookId, contactId);
+			return getBookClient().removeContact(token, addressBookId, contactId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -466,7 +468,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 				Integer contactId = mappingService.getItemIdFromServerId(serverId);
 				Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 				
-				Contact contact = getContactFromId(udr, addressBookId, contactId);
+				Contact contact = getContactFromId(addressBookId, contactId);
 				ret.add( convertContactToItemChange(collectionId, contact) );
 				
 			} catch (ContactNotFoundException e) {
@@ -476,19 +478,19 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return ret;
 	}
 
-	private Contact getContactFromId(UserDataRequest udr, Integer addressBookId, Integer contactId) 
+	private Contact getContactFromId(Integer addressBookId, Integer contactId) 
 			throws UnexpectedObmSyncServerException, ContactNotFoundException {
 		
-		AccessToken token = getAccessToken(udr);
+		AccessToken token = getAccessToken();
 		try {
-			return getBookClient(udr).getContactFromId(token, addressBookId, contactId);
+			return getBookClient().getContactFromId(token, addressBookId, contactId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
 	}
 
-	private IAddressBook getBookClient(UserDataRequest udr) {
-		return bookClientFactory.create(ResourcesUtils.getHttpClient(udr));
+	private IAddressBook getBookClient() {
+		return bookClientFactory.create(opushResourcesHolder.getHttpClient());
 	}
 	
 	@Override

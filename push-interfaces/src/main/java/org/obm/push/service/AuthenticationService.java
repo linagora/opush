@@ -31,14 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.service;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.UserDataRequest;
 
 public interface AuthenticationService {
 
-	Credentials authenticateValidRequest(HttpServletRequest request, String userId, char[] password) throws Exception;
+	Credentials authenticateValidRequest(String userId, char[] password) throws Exception;
 	
 	String getUserEmail(UserDataRequest udr);
 }

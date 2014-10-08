@@ -58,6 +58,7 @@ import org.obm.push.mail.RandomGeneratedInputStream;
 import org.obm.push.mail.ThrowingInputStream;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
+import org.obm.push.resource.ResourcesHolder;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -71,6 +72,8 @@ public class MailboxStoreAPITest {
 
 	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject GreenMail greenMail;
+	@Inject ResourcesHolder resourcesHolder;
+
 	private String mailbox;
 	private char[] password;
 	private UserDataRequest udr;
@@ -90,6 +93,7 @@ public class MailboxStoreAPITest {
 	
 	@After
 	public void tearDown() {
+		resourcesHolder.close();
 		greenMail.stop();
 	}
 	@Test

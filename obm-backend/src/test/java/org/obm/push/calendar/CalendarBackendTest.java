@@ -92,9 +92,7 @@ import org.obm.push.exception.ICalendarConverterException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.impl.ObmSyncBackend.WindowingChangesDelta;
-import org.obm.push.resource.AccessTokenResource;
-import org.obm.push.resource.HttpClientResource;
-import org.obm.push.resource.ResourceCloseOrder;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
@@ -151,6 +149,7 @@ public class CalendarBackendTest {
 	private Ical4jHelper ical4jHelper;
 	private Ical4jUser.Factory ical4jUserFactory;
 	private DateService dateService;
+	private OpushResourcesHolder opushResourcesHolder;
 	
 	private CalendarBackend calendarBackend;
 	private IMocksControl mockControl;
@@ -178,14 +177,6 @@ public class CalendarBackendTest {
 		this.httpClient = HttpClientBuilder.create().build();
 
 		mockControl = createControl();
-		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(token).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mockControl.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient())
-			.andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
 		
 		this.mappingService = mockControl.createMock(MappingService.class);
 		this.calendarClient = mockControl.createMock(CalendarClient.class);
@@ -202,6 +193,9 @@ public class CalendarBackendTest {
 		this.ical4jHelper = mockControl.createMock(Ical4jHelper.class);
 		this.ical4jUserFactory = mockControl.createMock(Ical4jUser.Factory.class);
 		this.dateService = mockControl.createMock(DateService.class);
+		this.opushResourcesHolder = mockControl.createMock(OpushResourcesHolder.class);
+		expect(opushResourcesHolder.getAccessToken()).andReturn(token).anyTimes();
+		expect(opushResourcesHolder.getHttpClient()).andReturn(httpClient).anyTimes();
 		
 		consistencyLogger.log(anyObject(Logger.class), anyObject(EventChanges.class));
 		expectLastCall().anyTimes();
@@ -218,7 +212,8 @@ public class CalendarBackendTest {
 				clientIdService,
 				ical4jHelper,
 				ical4jUserFactory,
-				dateService);
+				dateService,
+				opushResourcesHolder);
 	}
 	
 	@After
@@ -294,14 +289,6 @@ public class CalendarBackendTest {
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
-		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(token).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mockControl.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient())
-			.andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
 		
 		int calendar1MappingId = 1;
 		String calendar1DisplayName = "test calendar";
@@ -360,14 +347,6 @@ public class CalendarBackendTest {
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
-		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(token).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mockControl.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient())
-			.andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
 		
 		int calendar1MappingId = 1;
 		String calendar1DisplayName = "added calendar";
@@ -452,14 +431,6 @@ public class CalendarBackendTest {
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
-		AccessTokenResource accessTokenResource = mockControl.createMock(AccessTokenResource.class);
-		expect(accessTokenResource.getAccessToken())
-			.andReturn(token).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.ACCESS_TOKEN.name(), accessTokenResource);
-		HttpClientResource httpClientResource = mockControl.createMock(HttpClientResource.class);
-		expect(httpClientResource.getHttpClient())
-			.andReturn(httpClient).anyTimes();
-		userDataRequest.putResource(ResourceCloseOrder.HTTP_CLIENT.name(), httpClientResource);
 		
 		expectObmSyncCalendarChanges(
 				newCalendarInfo("test", calendarBackendName),

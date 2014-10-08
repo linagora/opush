@@ -29,34 +29,58 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.resource;
+package org.obm.push;
 
-import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
-import org.obm.push.bean.UserDataRequest;
-import org.obm.push.mail.imap.MinigStoreClient;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import org.apache.http.impl.client.HttpClients;
+import org.obm.push.resource.HttpClientResource;
+import org.obm.push.resource.OpushResourcesHolder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class LinagoraMailResourcesService implements ResourcesService {
-	
-	private final ResourceCloser resourceCloser;
+public class ResourcesFilter implements Filter {
 
+	private final OpushResourcesHolder opushResourcesHolder;
+	
 	@Inject
-	@VisibleForTesting LinagoraMailResourcesService(ResourceCloser resourceCloser) {
-		this.resourceCloser = resourceCloser;
+	@VisibleForTesting ResourcesFilter(OpushResourcesHolder opushResourcesHolder) {
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 	
 	@Override
-	public void initRequest(UserDataRequest userDataRequest, HttpServletRequest request) {
+	public void init(FilterConfig filterConfig) throws ServletException {
+	}
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		
+		try {
+			openHttpClient();
+			chain.doFilter(request, response);
+		} finally {
+			opushResourcesHolder.close();
+		}
+	}
+
+
+	private void openHttpClient() {
+		opushResourcesHolder.put(HttpClientResource.class, new HttpClientResource(HttpClients.createDefault()));
 	}
 		
 	@Override
-	public void closeResources(UserDataRequest userDataRequest) {
-		resourceCloser.closeResources(userDataRequest, MinigStoreClient.class);
+	public void destroy() {
 	}
-	
+
 }

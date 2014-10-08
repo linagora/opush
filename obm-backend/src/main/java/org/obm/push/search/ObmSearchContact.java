@@ -38,7 +38,7 @@ import org.obm.push.bean.SearchResult;
 import org.obm.push.bean.StoreName;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.contacts.ContactConverter;
-import org.obm.push.resource.ResourcesUtils;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.Contact;
@@ -57,12 +57,14 @@ public class ObmSearchContact implements ISearchSource {
 	
 	private final BookClient.Factory bookClientFactory;
 	private final ContactConverter contactConverter;
+	private final OpushResourcesHolder opushResourcesHolder;
 	
 	@Inject
-	private ObmSearchContact(BookClient.Factory bookClientFactory, ContactConverter contactConverter) {
+	private ObmSearchContact(BookClient.Factory bookClientFactory, ContactConverter contactConverter, OpushResourcesHolder opushResourcesHolder) {
 		super();
 		this.bookClientFactory = bookClientFactory;
 		this.contactConverter = contactConverter;
+		this.opushResourcesHolder = opushResourcesHolder;
 	}
 	
 	@Override
@@ -73,10 +75,10 @@ public class ObmSearchContact implements ISearchSource {
 	@Override
 	public List<SearchResult> search(UserDataRequest udr, String query, Integer limit) {
 		List<SearchResult> ret = new LinkedList<SearchResult>();
-		AccessToken token = ResourcesUtils.getAccessToken(udr);
+		AccessToken token = opushResourcesHolder.getAccessToken();
 		try {
 			Integer offset = null;
-			List<Contact> contacts = getBookClient(udr)
+			List<Contact> contacts = getBookClient()
 					.searchContactsInSynchronizedAddressBooks(token, query, limit, offset);
 			for (Contact contact: contacts) {
 				ret.add(contactConverter.convertToSearchResult(contact));
@@ -87,8 +89,8 @@ public class ObmSearchContact implements ISearchSource {
 		return ret;
 	}
 	
-	private IAddressBook getBookClient(UserDataRequest udr) {
-		return bookClientFactory.create(ResourcesUtils.getHttpClient(udr));
+	private IAddressBook getBookClient() {
+		return bookClientFactory.create(opushResourcesHolder.getHttpClient());
 	}
 	
 }
