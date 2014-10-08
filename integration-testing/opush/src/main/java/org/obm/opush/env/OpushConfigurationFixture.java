@@ -33,6 +33,8 @@ package org.obm.opush.env;
 
 import org.obm.Configuration;
 
+import com.datastax.driver.core.SocketOptions;
+
 public class OpushConfigurationFixture extends Configuration {
 
 	public static class Cassandra {
@@ -40,6 +42,7 @@ public class OpushConfigurationFixture extends Configuration {
 		public String keyspace = "opush";
 		public String user = "cassandra";
 		public String password = "cassandra";
+		public int readTimeoutMs = SocketOptions.DEFAULT_READ_TIMEOUT_MILLIS;
 	}
 	
 	public static class Mail {

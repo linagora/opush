@@ -193,6 +193,11 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		public String password() {
 			return configuration.password;
 		}
+
+		@Override
+		public int readTimeoutMs() {
+			return configuration.readTimeoutMs;
+		}
 	}
 	
 	@Override

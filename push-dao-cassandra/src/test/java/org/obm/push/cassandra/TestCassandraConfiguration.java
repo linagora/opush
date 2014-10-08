@@ -35,6 +35,7 @@ import java.util.Collection;
 
 import org.obm.push.configuration.CassandraConfiguration;
 
+import com.datastax.driver.core.SocketOptions;
 import com.google.common.collect.ImmutableSet;
 
 public class TestCassandraConfiguration implements CassandraConfiguration {
@@ -63,5 +64,10 @@ public class TestCassandraConfiguration implements CassandraConfiguration {
 	@Override
 	public String password() {
 		return "password";
+	}
+
+	@Override
+	public int readTimeoutMs() {
+		return SocketOptions.DEFAULT_READ_TIMEOUT_MILLIS;
 	}
 }

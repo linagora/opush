@@ -39,6 +39,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
@@ -61,6 +62,7 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 		configurationLogger.info("CASSANDRA SEEDS are {}", cassandraConfiguration.seeds());
 		configurationLogger.info("CASSANDRA USER is {}", cassandraConfiguration.user());
 		configurationLogger.info("CASSANDRA KEYSPACE is {}", cassandraConfiguration.keyspace());
+		configurationLogger.debug("CASSANDRA CLIENT READ TIMEOUT is {}", cassandraConfiguration.readTimeoutMs());
 		sessionSupplier = Suppliers.memoize(new Supplier<Session>() {
 
 			@Override
@@ -72,6 +74,8 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 							.withCredentials(cassandraConfiguration.user(), cassandraConfiguration.password())
 							.withQueryOptions(new QueryOptions()
 								.setConsistencyLevel(ConsistencyLevel.QUORUM))
+							.withSocketOptions(new SocketOptions()
+								.setReadTimeoutMillis(cassandraConfiguration.readTimeoutMs()))
 							.build()
 							.connect(cassandraConfiguration.keyspace());
 				} catch (NoHostAvailableException e) {

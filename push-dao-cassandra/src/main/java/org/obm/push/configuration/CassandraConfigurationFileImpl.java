@@ -35,6 +35,7 @@ import java.util.Collection;
 
 import org.obm.configuration.utils.IniFile;
 
+import com.datastax.driver.core.SocketOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -51,6 +52,7 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	@VisibleForTesting static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
 	@VisibleForTesting static final String CASSANDRA_USER = "cassandra.user";
 	@VisibleForTesting static final String CASSANDRA_PASSWORD = "cassandra.password";
+	@VisibleForTesting static final String CASSANDRA_READ_TIMEOUT_MS = "cassandra.read-timeout-ms";
 	
 	public static class Factory {
 		
@@ -91,6 +93,13 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	@Override
 	public String password() {
 		return getMandatoryStringValue(CASSANDRA_PASSWORD);
+	}
+	
+	@Override
+	public int readTimeoutMs() {
+		int value = iniFile.getIntValue(CASSANDRA_READ_TIMEOUT_MS, SocketOptions.DEFAULT_READ_TIMEOUT_MILLIS);
+		Preconditions.checkState(value >= 0, "Negative read timeout value in " + CONFIG_FILE_PATH + " configuration file");
+		return value;
 	}
 
 	private String getMandatoryStringValue(String key) {

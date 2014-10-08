@@ -36,11 +36,14 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.configuration.utils.IniFile;
+
+import com.google.common.primitives.Ints;
 
 public class CassandraConfigurationFileImplTest {
 
@@ -209,5 +212,62 @@ public class CassandraConfigurationFileImplTest {
 		control.verify();
 		
 		assertThat(password).isEqualTo(expectedPassword);
+	}
+
+	@Test
+	public void testReadTimeoutNotDefined() {
+		int _12seconds = Ints.checkedCast(TimeUnit.SECONDS.toMillis(12));
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_READ_TIMEOUT_MS, _12seconds))
+			.andReturn(_12seconds);
+
+		control.replay();
+		int readTimeoutMs = new CassandraConfigurationFileImpl(iniFile).readTimeoutMs();
+		control.verify();
+		
+		assertThat(readTimeoutMs).isEqualTo(_12seconds);
+	}
+
+	@Test
+	public void testReadTimeoutZero() {
+		int _12seconds = Ints.checkedCast(TimeUnit.SECONDS.toMillis(12));
+		int _0seconds = 0;
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_READ_TIMEOUT_MS, _12seconds))
+			.andReturn(_0seconds);
+
+		control.replay();
+		int readTimeoutMs = new CassandraConfigurationFileImpl(iniFile).readTimeoutMs();
+		control.verify();
+		
+		assertThat(readTimeoutMs).isEqualTo(_0seconds);
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testReadTimeoutNegative() {
+		int _12seconds = Ints.checkedCast(TimeUnit.SECONDS.toMillis(12));
+		int lessThanZeroSeconds = -1;
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_READ_TIMEOUT_MS, _12seconds))
+			.andReturn(lessThanZeroSeconds);
+
+		control.replay();
+		try {
+			new CassandraConfigurationFileImpl(iniFile).readTimeoutMs();
+		} catch (NullPointerException e) {
+			control.verify();
+			throw e;
+		}
+	}
+
+	@Test
+	public void testReadTimeout() {
+		int _12seconds = Ints.checkedCast(TimeUnit.SECONDS.toMillis(12));
+		int _20seconds = Ints.checkedCast(TimeUnit.SECONDS.toMillis(20));
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_READ_TIMEOUT_MS, _12seconds))
+			.andReturn(_20seconds);
+
+		control.replay();
+		int readTimeoutMs = new CassandraConfigurationFileImpl(iniFile).readTimeoutMs();
+		control.verify();
+		
+		assertThat(readTimeoutMs).isEqualTo(_20seconds);
 	}
 }

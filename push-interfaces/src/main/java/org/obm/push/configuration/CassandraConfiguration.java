@@ -43,4 +43,6 @@ public interface CassandraConfiguration {
 	String user();
 	
 	String password();
+
+	int readTimeoutMs();
 }
