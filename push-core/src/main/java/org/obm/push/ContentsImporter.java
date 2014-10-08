@@ -38,6 +38,7 @@ import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
@@ -67,7 +68,7 @@ public class ContentsImporter implements IContentsImporter {
 	}
 
 	@Override
-	public String importMessageChange(UserDataRequest udr, CollectionId collectionId, String serverId, String clientId, IApplicationData data) 
+	public ServerId importMessageChange(UserDataRequest udr, CollectionId collectionId, ServerId serverId, String clientId, IApplicationData data) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException, ItemNotFoundException,
 			ConversionException, HierarchyChangedException, NoPermissionException {
 		
@@ -76,7 +77,7 @@ public class ContentsImporter implements IContentsImporter {
 	}
 
 	@Override
-	public void importMessageDeletion(UserDataRequest udr, PIMDataType type, CollectionId collectionId, String serverId, Boolean moveToTrash) 
+	public void importMessageDeletion(UserDataRequest udr, PIMDataType type, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 					throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException,
 					ItemNotFoundException, UnsupportedBackendFunctionException {
 
@@ -84,11 +85,11 @@ public class ContentsImporter implements IContentsImporter {
 		backend.delete(udr, collectionId, serverId, moveToTrash);
 	}
 
-	public String importMoveItem(UserDataRequest udr, PIMDataType type,
-			String srcFolder, String dstFolder, String messageId)
+	public ServerId importMoveItem(UserDataRequest udr, PIMDataType type,
+			String srcFolder, String dstFolder, ServerId serverId)
 					throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		PIMBackend backend = backends.getBackend(type);
-		return backend.move(udr, srcFolder, dstFolder, messageId);
+		return backend.move(udr, srcFolder, dstFolder, serverId);
 	}
 
 	@Override

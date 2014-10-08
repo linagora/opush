@@ -69,7 +69,7 @@ public class SyncCollectionResponseTest {
 	@Test
 	public void testBuildResponseGiveNotEmptyCommands() {
 		SyncCollectionResponsesResponse responses = SyncCollectionResponsesResponse.builder()
-				.deletions(ImmutableList.of(new SyncClientCommands.Deletion("156", SyncStatus.OK)))
+				.deletions(ImmutableList.of(new SyncClientCommands.Deletion(CollectionId.of(1).serverId(2), SyncStatus.OK)))
 				.build();
 		
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()

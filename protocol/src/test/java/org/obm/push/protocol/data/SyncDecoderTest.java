@@ -669,20 +669,20 @@ public class SyncDecoderTest {
 					"<CollectionId>2</CollectionId>" +
 					"<Commands>" +
 						"<Add>" +
-							"<ServerId>12</ServerId>" +
+							"<ServerId>2:12</ServerId>" +
 							"<ClientId>120</ClientId>" +
 							contactApplicationData +
 						"</Add>" +
 						"<Change>" +
-							"<ServerId>35</ServerId>" +
+							"<ServerId>2:35</ServerId>" +
 							"<ClientId>350</ClientId>" +
 							contactApplicationData +
 						"</Change>" +
 						"<Fetch>" +
-							"<ServerId>56</ServerId>" +
+							"<ServerId>2:56</ServerId>" +
 						"</Fetch>" +
 						"<Delete>" +
-							"<ServerId>79</ServerId>" +
+							"<ServerId>2:79</ServerId>" +
 						"</Delete>" +
 					"</Commands>" +
 				"</Collection>").getDocumentElement();
@@ -696,11 +696,11 @@ public class SyncDecoderTest {
 
 		assertThat( collection.getCommands()).containsOnly(
 				SyncCollectionCommandDto.builder()
-					.name("Add").serverId("12").clientId("120").applicationData(addDataElement).build(),
+					.name("Add").serverId("2:12").clientId("120").applicationData(addDataElement).build(),
 				SyncCollectionCommandDto.builder()
-					.name("Change").serverId("35").clientId("350").applicationData(changeDataElement).build(),
-				SyncCollectionCommandDto.builder().name("Fetch").serverId("56").build(),
-				SyncCollectionCommandDto.builder().name("Delete").serverId("79").build());
+					.name("Change").serverId("2:35").clientId("350").applicationData(changeDataElement).build(),
+				SyncCollectionCommandDto.builder().name("Fetch").serverId("2:56").build(),
+				SyncCollectionCommandDto.builder().name("Delete").serverId("2:79").build());
 	}
 
 	@Test

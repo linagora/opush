@@ -35,8 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.FilterType;
-import org.obm.push.exception.activesync.InvalidServerId;
+import org.obm.push.bean.ServerId;
 import org.obm.push.mail.bean.Snapshot.Builder;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -94,7 +95,7 @@ public class SnapshotTest {
 						.date(DateUtils.getCurrentDate())
 						.build())
 				.build();
-		assertThat(snapshot.containsAllIds(ImmutableList.<String>of())).isTrue();
+		assertThat(snapshot.containsAllIds(ImmutableList.<ServerId>of())).isTrue();
 	}
 
 	@Test(expected=NullPointerException.class)
@@ -109,20 +110,7 @@ public class SnapshotTest {
 				.build();
 		assertThat(snapshot.containsAllIds(null)).isTrue();
 	}
-	
-	@Test(expected=InvalidServerId.class)
-	public void testContainsAllInvalidArgument() {
 		
-		Snapshot snapshot = defaultSnapshotBuilder()
-				.addEmail(Email.builder()
-						.uid(1)
-						.read(true)
-						.date(DateUtils.getCurrentDate())
-						.build())
-				.build();
-		snapshot.containsAllIds(ImmutableList.<String>of("evil value"));
-	}
-	
 	@Test
 	public void testContainsAllMatchElement() {
 		
@@ -133,7 +121,7 @@ public class SnapshotTest {
 						.date(DateUtils.getCurrentDate())
 						.build())
 				.build();
-		assertThat(snapshot.containsAllIds(ImmutableList.of("1:1"))).isTrue();
+		assertThat(snapshot.containsAllIds(ImmutableList.of(CollectionId.of(1).serverId(1)))).isTrue();
 	}
 	
 	@Test
@@ -165,7 +153,10 @@ public class SnapshotTest {
 						.date(DateUtils.getCurrentDate())
 						.build())
 				.build();
-		assertThat(snapshot.containsAllIds(ImmutableList.of("1:1", "1:2", "1:3", "1:4", "1:223"))).isTrue();
+		CollectionId collectionId = CollectionId.of(1);
+		assertThat(snapshot.containsAllIds(
+				ImmutableList.of(collectionId.serverId(1), collectionId.serverId(2),
+						collectionId.serverId(3), collectionId.serverId(4), collectionId.serverId(223)))).isTrue();
 	}
 	
 	@Test
@@ -178,7 +169,7 @@ public class SnapshotTest {
 						.date(DateUtils.getCurrentDate())
 						.build())
 				.build();
-		assertThat(snapshot.containsAllIds(ImmutableList.of("1:2"))).isFalse();
+		assertThat(snapshot.containsAllIds(ImmutableList.of(CollectionId.of(1).serverId(2)))).isFalse();
 	}
 	
 	@Test
@@ -205,7 +196,10 @@ public class SnapshotTest {
 						.date(DateUtils.getCurrentDate())
 						.build())
 				.build();
-		assertThat(snapshot.containsAllIds(ImmutableList.of("1:1", "1:2", "1:3", "1:4", "1:5"))).isFalse();
+		CollectionId collectionId = CollectionId.of(1);
+		assertThat(snapshot.containsAllIds(
+				ImmutableList.of(collectionId.serverId(1), collectionId.serverId(2),
+						collectionId.serverId(3), collectionId.serverId(4), collectionId.serverId(5)))).isFalse();
 	}
 	
 	private Builder defaultSnapshotBuilder() {

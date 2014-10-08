@@ -110,7 +110,7 @@ public class SmartReplyHandlerTest {
 		
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1);
-		serverId = new ServerId(ServerId.buildServerIdString(inboxCollectionId, 1l));
+		serverId = inboxCollectionId.serverId(1);
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		UserClient userClient = classToInstanceMap.get(UserClient.class);

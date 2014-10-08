@@ -33,9 +33,10 @@ package org.obm.push.bean.change.item;
 
 import java.io.Serializable;
 
+import org.obm.push.bean.ServerId;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 public class ItemDeletion implements ASItem, Serializable {
 	
@@ -45,33 +46,33 @@ public class ItemDeletion implements ASItem, Serializable {
 	
 	public static class Builder {
 		
-		private String serverId;
+		private ServerId serverId;
 		
 		private Builder() {
 			super();
 		}
 		
-		public Builder serverId(String serverId) {
+		public Builder serverId(ServerId serverId) {
 			this.serverId = serverId;
 			return this;
 		}
 		
 		public ItemDeletion build() {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(serverId));
+			Preconditions.checkState(serverId != null);
 			return new ItemDeletion(serverId);
 		}
 	}
 	
 	private static final long serialVersionUID = 3648319968154246612L;
 	
-	private final String serverId;
+	private final ServerId serverId;
 
-	private ItemDeletion(String serverId) {
+	private ItemDeletion(ServerId serverId) {
 		this.serverId = serverId;
 	}
 	
 	@Override
-	public String getServerId() {
+	public ServerId getServerId() {
 		return serverId;
 	}
 

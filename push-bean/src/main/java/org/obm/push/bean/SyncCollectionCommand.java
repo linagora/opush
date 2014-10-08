@@ -49,7 +49,7 @@ public class SyncCollectionCommand implements Serializable {
 		
 		private SyncStatus status;
 		private SyncCommand type;
-		private String serverId;
+		private ServerId serverId;
 		private String clientId;
 		private IApplicationData applicationData;
 
@@ -60,7 +60,7 @@ public class SyncCollectionCommand implements Serializable {
 			return this;
 		}
 		
-		public Builder serverId(String serverId) {
+		public Builder serverId(ServerId serverId) {
 			this.serverId = serverId;
 			return this;
 		}
@@ -87,11 +87,11 @@ public class SyncCollectionCommand implements Serializable {
 	
 	private final SyncStatus status;
 	private final SyncCommand type;
-	private final String serverId;
+	private final ServerId serverId;
 	private final String clientId;
 	private final IApplicationData applicationData;
 	
-	protected SyncCollectionCommand(SyncStatus status, SyncCommand type, String serverId, String clientId, IApplicationData applicationData) {
+	protected SyncCollectionCommand(SyncStatus status, SyncCommand type, ServerId serverId, String clientId, IApplicationData applicationData) {
 		this.type = type;
 		this.serverId = serverId;
 		this.clientId = clientId;
@@ -103,7 +103,7 @@ public class SyncCollectionCommand implements Serializable {
 		return type;
 	}
 
-	public String getServerId() {
+	public ServerId getServerId() {
 		return serverId;
 	}
 

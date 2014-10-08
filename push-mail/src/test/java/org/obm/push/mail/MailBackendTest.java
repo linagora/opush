@@ -62,6 +62,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
@@ -448,11 +449,9 @@ public class MailBackendTest {
 	public void testDeleteItemInTrash() throws Exception {
 		CollectionId collectionId = CollectionId.of(1);
 		int itemId = 2;
-		String serverId = collectionId.asString() + ":" + itemId;
+		ServerId serverId = collectionId.serverId(itemId);
 		
 		MailCollectionPath trashCollectionPath = new MailCollectionPath(EmailConfiguration.IMAP_TRASH_NAME);
-		expect(mappingService.getItemIdFromServerId(serverId))
-			.andReturn(itemId).once();
 		expect(mappingService.getCollectionPathFor(collectionId))
 			.andReturn(trashCollectionPath.collectionPath()).once();
 		

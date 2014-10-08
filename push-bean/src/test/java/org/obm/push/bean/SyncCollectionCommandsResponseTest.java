@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.collect.ImmutableList;
 
@@ -50,7 +51,7 @@ public class SyncCollectionCommandsResponseTest {
 	
 	@Test
 	public void testResponseSummaryOneChange() {
-		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").build());
+		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(23)).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)
 				.build();
@@ -59,7 +60,7 @@ public class SyncCollectionCommandsResponseTest {
 
 	@Test
 	public void testResponseSummaryOneAddition() {
-		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").isNew(true).build());
+		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(23)).isNew(true).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)
 				.build();
@@ -68,7 +69,7 @@ public class SyncCollectionCommandsResponseTest {
 
 	@Test
 	public void testResponseSummaryOneAdditionFromClient() {
-		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId("123").isNew(true).build());
+		ImmutableList<ItemChange> changes = ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(23)).isNew(true).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)
 				.build();
@@ -77,7 +78,7 @@ public class SyncCollectionCommandsResponseTest {
 	
 	@Test
 	public void testResponseSummaryOneFetch() {
-		ImmutableList<ItemChange> fetchs = ImmutableList.of(ItemChange.builder().serverId("123").build());
+		ImmutableList<ItemChange> fetchs = ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(23)).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.fetchs(fetchs)
 				.build();
@@ -86,7 +87,7 @@ public class SyncCollectionCommandsResponseTest {
 	
 	@Test
 	public void testResponseSummaryOneDeletion() {
-		ImmutableList<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId("234").build());
+		ImmutableList<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(2).serverId(34)).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.deletions(deletions)
 				.build();
@@ -96,19 +97,19 @@ public class SyncCollectionCommandsResponseTest {
 	@Test
 	public void testResponseSummaryManyEntries() {
 		ImmutableList<ItemChange> changes = ImmutableList.of(
-				ItemChange.builder().serverId("123").build(),
-				ItemChange.builder().serverId("543").isNew(true).build(),
-				ItemChange.builder().serverId("2343").build(),
-				ItemChange.builder().serverId("4566").isNew(true).build(),
-				ItemChange.builder().serverId("1322").isNew(true).build(),
-				ItemChange.builder().serverId("54123").build(),
-				ItemChange.builder().serverId("54653").isNew(true).build(),
-				ItemChange.builder().serverId("12883").build(),
-				ItemChange.builder().serverId("797").build(),
-				ItemChange.builder().serverId("543243").isNew(true).build());
-		ImmutableList<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId("234").build());
-		ImmutableList<ItemChange> fetchs = ImmutableList.of(ItemChange.builder().serverId("14523").build(),
-				ItemChange.builder().serverId("56756").build());
+				ItemChange.builder().serverId(CollectionId.of(1).serverId(23)).build(),
+				ItemChange.builder().serverId(CollectionId.of(5).serverId(43)).isNew(true).build(),
+				ItemChange.builder().serverId(CollectionId.of(23).serverId(43)).build(),
+				ItemChange.builder().serverId(CollectionId.of(45).serverId(66)).isNew(true).build(),
+				ItemChange.builder().serverId(CollectionId.of(13).serverId(22)).isNew(true).build(),
+				ItemChange.builder().serverId(CollectionId.of(541).serverId(23)).build(),
+				ItemChange.builder().serverId(CollectionId.of(546).serverId(53)).isNew(true).build(),
+				ItemChange.builder().serverId(CollectionId.of(128).serverId(83)).build(),
+				ItemChange.builder().serverId(CollectionId.of(7).serverId(97)).build(),
+				ItemChange.builder().serverId(CollectionId.of(5432).serverId(43)).isNew(true).build());
+		ImmutableList<ItemDeletion> deletions = ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(2).serverId(34)).build());
+		ImmutableList<ItemChange> fetchs = ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(14).serverId(523)).build(),
+				ItemChange.builder().serverId(CollectionId.of(567).serverId(56)).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)
 				.fetchs(fetchs)

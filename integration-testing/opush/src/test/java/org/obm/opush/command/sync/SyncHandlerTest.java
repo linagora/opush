@@ -410,7 +410,7 @@ public class SyncHandlerTest {
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
-		String serverId = syncEmailCollectionId.serverId(123);
+		ServerId serverId = syncEmailCollectionId.serverId(123);
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		ItemChange itemChange = ItemChange.builder().serverId(serverId)
 			.data(applicationData)
@@ -443,7 +443,7 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.syncWithCommand(decoder, 
 				syncEmailSyncKey, inbox.getCollectionId(), SyncCommand.FETCH, serverId);
 
-		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), new ServerId(syncEmailCollectionId.serverId(123)));
+		checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), syncEmailCollectionId.serverId(123));
 		SyncCollectionResponse collection = getCollectionWithId(syncEmailResponse, inbox.getCollectionId());
 		assertThat(collection.getItemDeletions()).isEmpty();
 	}
@@ -728,7 +728,7 @@ public class SyncHandlerTest {
 		opushServer.start();
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opClient.syncWithCommand(decoder, syncKey, CollectionId.of(15), command, "15:51");
+		SyncResponse syncResponse = opClient.syncWithCommand(decoder, syncKey, CollectionId.of(15), command, CollectionId.of(15).serverId(51));
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
 	}
@@ -741,7 +741,7 @@ public class SyncHandlerTest {
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
 		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
-		String serverId = null;
+		ServerId serverId = collectionId.serverId(1);
 		String clientId = "156";
 
 		DataDelta serverDataDelta = DataDelta.newEmptyDelta(date("2012-10-10T16:22:53"), syncKey);
@@ -786,7 +786,7 @@ public class SyncHandlerTest {
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
 		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
-		String serverId = "432:1456";
+		ServerId serverId = CollectionId.of(432).serverId(1456);
 		String clientId = null;
 
 		DataDelta serverDataDelta = DataDelta.newEmptyDelta(date("2012-10-10T16:22:53"), syncKey);

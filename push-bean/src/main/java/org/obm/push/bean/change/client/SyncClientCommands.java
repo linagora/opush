@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.SyncStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.base.Objects;
@@ -96,11 +97,11 @@ public class SyncClientCommands {
 
 	public static abstract class ClientCommand {
 		
-		protected final String serverId;
+		protected final ServerId serverId;
 		protected final SyncStatus syncStatus;
 
-		protected ClientCommand(String serverId, SyncStatus syncStatus) {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(serverId), "serverId is required");
+		protected ClientCommand(ServerId serverId, SyncStatus syncStatus) {
+			Preconditions.checkArgument(serverId != null, "serverId is required");
 			Preconditions.checkArgument(syncStatus != null, "syncStatus is required");
 			this.serverId = serverId;
 			this.syncStatus = syncStatus;
@@ -108,7 +109,7 @@ public class SyncClientCommands {
 
 		public abstract SyncCommand syncCommand();
 
-		public String getServerId() {
+		public ServerId getServerId() {
 			return serverId;
 		}
 		
@@ -127,7 +128,7 @@ public class SyncClientCommands {
 	
 	public static class Update extends ClientCommand {
 
-		public Update(String serverId, SyncStatus syncStatus) {
+		public Update(ServerId serverId, SyncStatus syncStatus) {
 			super(serverId, syncStatus);
 		}
 
@@ -154,7 +155,7 @@ public class SyncClientCommands {
 	
 	public static class Deletion extends ClientCommand {
 
-		public Deletion(String serverId, SyncStatus syncStatus) {
+		public Deletion(ServerId serverId, SyncStatus syncStatus) {
 			super(serverId, syncStatus);
 		}
 
@@ -183,7 +184,7 @@ public class SyncClientCommands {
 
 		private final IApplicationData applicationData;
 
-		public Fetch(String serverId, SyncStatus syncStatus, IApplicationData applicationData) {
+		public Fetch(ServerId serverId, SyncStatus syncStatus, IApplicationData applicationData) {
 			super(serverId, syncStatus);
 			this.applicationData = applicationData;
 		}
@@ -227,7 +228,7 @@ public class SyncClientCommands {
 		
 		public final String clientId;
 
-		public Add(String clientId, String serverId, SyncStatus syncStatus) {
+		public Add(String clientId, ServerId serverId, SyncStatus syncStatus) {
 			super(serverId, syncStatus);
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(clientId), "clientId is required");
 			this.clientId = clientId;
@@ -308,11 +309,11 @@ public class SyncClientCommands {
 		return adds.size() + updates.size() + deletions.size() + fetches.size();
 	}
 
-	public boolean hasAddWithServerId(final String serverId) {
+	public boolean hasAddWithServerId(final ServerId serverId) {
 		return getAddWithServerId(serverId).isPresent();
 	}
 
-	public Optional<Add> getAddWithServerId(final String serverId) {
+	public Optional<Add> getAddWithServerId(final ServerId serverId) {
 		return FluentIterable.from(adds).firstMatch(new Predicate<Add>() {
 			
 				@Override

@@ -276,7 +276,7 @@ public class JSONServiceTest {
 						.applicationData(null)
 						.clientId("1")
 						.type(SyncCommand.ADD)
-						.serverId("2")
+						.serverId(CollectionId.of(1).serverId(2))
 						.build())
 				.build();
 		
@@ -1390,7 +1390,7 @@ public class JSONServiceTest {
 				.build();
 		SyncCollectionCommandsResponse syncCollectionCommands = SyncCollectionCommandsResponse.builder()
 				.addCommand(SyncCollectionCommand.builder()
-						.serverId("serverId")
+						.serverId(CollectionId.of(1).serverId(3))
 						.clientId("clientId")
 						.type(SyncCommand.ADD)
 						.applicationData(msEmail)
@@ -1951,20 +1951,20 @@ public class JSONServiceTest {
 	@Test
 	public void testSerializeItemDeletion() {
 		ItemDeletion itemDeletion = ItemDeletion.builder()
-				.serverId("123")
+				.serverId(CollectionId.of(12).serverId(3))
 				.build();
 		
 		String serialized = new JSONService().serialize(itemDeletion);
-		assertThat(serialized).isEqualTo("{\"serverId\":\"123\"}");
+		assertThat(serialized).isEqualTo("{\"serverId\":\"12:3\"}");
 	}
 	
 	@Test
 	public void testDeserializeItemDeletion() {
-		ItemDeletion itemDeletion = new JSONService().deserialize(ItemDeletion.class, "{\"serverId\":\"123\"}");
+		ItemDeletion itemDeletion = new JSONService().deserialize(ItemDeletion.class, "{\"serverId\":\"1:123\"}");
 		
 		assertThat(itemDeletion).isEqualTo(
 			ItemDeletion.builder()
-				.serverId("123")
+				.serverId(CollectionId.of(1).serverId(123))
 				.build());
 	}
 	
@@ -2000,7 +2000,7 @@ public class JSONServiceTest {
 		msTask.setUtcStartDate(date("2012-02-04T11:22:33"));
 		
 		ItemChange itemChange = ItemChange.builder()
-			.serverId(":33")
+			.serverId(CollectionId.of(12).serverId(3))
 			.isNew(true)
 			.data(msTask)
 			.build();
@@ -2037,7 +2037,7 @@ public class JSONServiceTest {
 					"\"utcStartDate\":1328350953000" + 
 				"}," + 
 				"\"isNew\":true," + 
-				"\"serverId\":\":33\"" + 
+				"\"serverId\":\"12:3\"" + 
 			"}");
 	}
 	
@@ -2075,7 +2075,7 @@ public class JSONServiceTest {
 					"\"utcStartDate\":1328350953000" + 
 				"}," + 
 				"\"isNew\":true," + 
-				"\"serverId\":\":33\"" + 
+				"\"serverId\":\"12:3\"" + 
 			"}");
 		
 		MSRecurrence msRecurrence = new MSRecurrence();
@@ -2108,7 +2108,7 @@ public class JSONServiceTest {
 		msTask.setUtcStartDate(date("2012-02-04T11:22:33"));
 		
 		ItemChange expectedItemChange = ItemChange.builder()
-			.serverId(":33")
+			.serverId(CollectionId.of(12).serverId(3))
 			.isNew(true)
 			.data(msTask)
 			.build();

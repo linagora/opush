@@ -44,6 +44,7 @@ import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSAttachementData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.StoreName;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -232,7 +233,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 		return fetchResult;
 	}
 
-	private FetchItemResult fetchItem(String serverId, CollectionId collectionId, 
+	private FetchItemResult fetchItem(ServerId serverId, CollectionId collectionId, 
 			MSEmailBodyType type, UserDataRequest udr) {
 		
 		FetchItemResult fetchResult = new FetchItemResult();

@@ -110,10 +110,10 @@ public class Snapshot implements Serializable {
 		return builder.build();
 	}
 
-	public boolean containsAllIds(List<String> serverIds) throws InvalidServerId {
+	public boolean containsAllIds(List<ServerId> serverIds) throws InvalidServerId {
 		Preconditions.checkNotNull(serverIds);
-		for (String serverId: serverIds) {
-			Integer mailUid = new ServerId(serverId).getItemId();
+		for (ServerId serverId: serverIds) {
+			Integer mailUid = serverId.getItemId();
 			if (mailUid == null) {
 				throw new ProtocolException(String.format("ServerId '%s' must reference an Item", serverId));
 			}

@@ -183,7 +183,7 @@ public class SyncHandlerOnContactsTest {
 		expectedMSContact.setEmail1Address("contact@mydomain.org");
 		expectedMSContact.setHomeFaxNumber("1234");
 		
-		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
+		ServerId serverId = contactCollectionId.serverId(initialContact.getUid());
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -214,7 +214,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.verify();
 		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
 				.type(SyncCommand.ADD)
-				.serverId(serverId.toString())
+				.serverId(serverId)
 				.clientId(null)
 				.applicationData(expectedMSContact)
 				.build();
@@ -244,6 +244,8 @@ public class SyncHandlerOnContactsTest {
 		int firstAllocatedStateId = 3;
 		int secondAllocatedStateId = 4;
 		int thirdAllocatedStateId = 5;
+		int uid = 456;
+		ServerId serverId = contactCollectionId.serverId(uid);
 		
 		Date syncDate = date("2012-10-09T16:22:53");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -294,6 +296,11 @@ public class SyncHandlerOnContactsTest {
 		createdMSContact.setEmail1Address("contact@mydomain.org");
 		createdMSContact.setFileAs("lastname, firstname");
 		
+		Contact convertedContact = new Contact();
+		convertedContact.setFirstname("firstname");
+		convertedContact.setLastname("lastname");
+		convertedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+		
 		Contact createdContact = new Contact();
 		createdContact.setFirstname("firstname");
 		createdContact.setLastname("lastname");
@@ -313,26 +320,25 @@ public class SyncHandlerOnContactsTest {
 		storedContact.setFirstname("firstname");
 		storedContact.setLastname("lastname");
 		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
-		int uid = 456;
 		storedContact.setUid(uid);
 		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), createdContact, hashedClientId))
 			.andReturn(storedContact);
 		
-		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(new ServerId(contactCollectionId.serverId(uid))));
+		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
 		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(storedContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
-
 		mocksControl.replay();
 		opushServer.start();
 
 		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.ADD, 
+		SyncResponse updateSyncResponse = 
+				opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.ADD, 
 				null, clientId, createdMSContact);
 		
 		mocksControl.verify();
@@ -384,7 +390,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
+		ServerId serverId = contactCollectionId.serverId(initialContact.getUid());
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -448,7 +454,7 @@ public class SyncHandlerOnContactsTest {
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
-				serverId.toString(), clientId, modifiedMSContact);
+				serverId, clientId, modifiedMSContact);
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -499,7 +505,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
+		ServerId serverId = contactCollectionId.serverId(initialContact.getUid());
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false);
 		
@@ -561,7 +567,7 @@ public class SyncHandlerOnContactsTest {
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
-				serverId.toString(), clientId, modifiedMSContact);
+				serverId, clientId, modifiedMSContact);
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -612,7 +618,7 @@ public class SyncHandlerOnContactsTest {
 		initialContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		initialContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("1234")));
 		
-		ServerId serverId = new ServerId(contactCollectionId.serverId(initialContact.getUid()));
+		ServerId serverId = contactCollectionId.serverId(initialContact.getUid());
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId))
 			.andReturn(false)
 			.times(2);
@@ -655,7 +661,7 @@ public class SyncHandlerOnContactsTest {
 		
 		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
 				.type(SyncCommand.ADD)
-				.serverId(serverId.toString())
+				.serverId(serverId)
 				.clientId(null)
 				.applicationData(newMSContact)
 				.build();

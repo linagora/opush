@@ -109,7 +109,7 @@ public class ItemOperationsProtocolTest {
 		
 		assertThat(decodedRequest).isNotNull();
 		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
-		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo("1400:350025");
+		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo(CollectionId.of(1400).serverId(350025));
 		assertThat(decodedRequest.getFetch().getType()).isEqualTo(MSEmailBodyType.HTML);
 	}
 
@@ -129,15 +129,14 @@ public class ItemOperationsProtocolTest {
 
 		assertThat(decodedRequest).isNotNull();
 		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
-		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo("1400:350025");
+		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo(CollectionId.of(1400).serverId(350025));
 		assertThat(decodedRequest.getFetch().getType()).isNull();
 	}
 
 	@Test
 	public void testNoApplicationDataEncodingResponse() throws Exception {
-		String fetchItemResultServerId = "1:2";
 		FetchItemResult fetchItemResult = new FetchItemResult();
-		fetchItemResult.setServerId(fetchItemResultServerId);
+		fetchItemResult.setServerId(CollectionId.of(1).serverId(2));
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
@@ -177,14 +176,13 @@ public class ItemOperationsProtocolTest {
 	@Test
 	public void testMailboxEncodingResponse() throws Exception {
 		ItemChange itemChange = ItemChange.builder()
-				.serverId("2")
+				.serverId(CollectionId.of(1).serverId(2))
 				.isNew(true)
 				.data(msEmail("my message"))
 				.build();
 
-		String fetchItemResultServerId = "1:2";
 		FetchItemResult fetchItemResult = new FetchItemResult();
-		fetchItemResult.setServerId(fetchItemResultServerId);
+		fetchItemResult.setServerId(CollectionId.of(1).serverId(2));
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
@@ -225,14 +223,13 @@ public class ItemOperationsProtocolTest {
 	@Test
 	public void testMailboxServerErrorEncodingResponse() throws Exception {
 		ItemChange itemChange = ItemChange.builder()
-				.serverId("2")
+				.serverId(CollectionId.of(1).serverId(2))
 				.isNew(true)
 				.data(msEmail("my message"))
 				.build();
 
-		String fetchItemResultServerId = "1:2";
 		FetchItemResult fetchItemResult = new FetchItemResult();
-		fetchItemResult.setServerId(fetchItemResultServerId);
+		fetchItemResult.setServerId(CollectionId.of(1).serverId(2));
 		fetchItemResult.setStatus(ItemOperationsStatus.SERVER_ERROR);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
@@ -268,7 +265,7 @@ public class ItemOperationsProtocolTest {
 	@Test
 	public void testEmptyFolderEncodingResponse() throws Exception {
 		FetchItemResult fetchItemResult = new FetchItemResult();
-		fetchItemResult.setServerId("1:2");
+		fetchItemResult.setServerId(CollectionId.of(1).serverId(2));
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))

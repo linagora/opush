@@ -106,8 +106,8 @@ public class ObmSyncBackendTest {
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 		
-		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
-		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn(collectionId.serverId(14));
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn(collectionId.serverId(16));
 		
 		mocks.replay();
 		DataDelta result = testee.builderWithChangesAndDeletions(changes, collectionId)
@@ -117,8 +117,8 @@ public class ObmSyncBackendTest {
 		mocks.verify();
 		
 		assertThat(result.getChanges()).containsOnly(
-				ItemChange.builder().serverId("12:14").data(contact1).build(),
-				ItemChange.builder().serverId("12:16").data(contact2).build());
+				ItemChange.builder().serverId(collectionId.serverId(14)).data(contact1).build(),
+				ItemChange.builder().serverId(collectionId.serverId(16)).data(contact2).build());
 		assertThat(result.getDeletions()).isEmpty();
 	}
 
@@ -134,8 +134,8 @@ public class ObmSyncBackendTest {
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 
-		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
-		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn(collectionId.serverId(14));
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn(collectionId.serverId(16));
 		
 		mocks.replay();
 		DataDelta result = testee.builderWithChangesAndDeletions(changes, collectionId)
@@ -145,8 +145,8 @@ public class ObmSyncBackendTest {
 		mocks.verify();
 		
 		assertThat(result.getChanges()).containsOnly(
-				ItemChange.builder().serverId("12:14").data(contact1).build(),
-				ItemChange.builder().serverId("12:16").data(contact2).build());
+				ItemChange.builder().serverId(collectionId.serverId(14)).data(contact1).build(),
+				ItemChange.builder().serverId(collectionId.serverId(16)).data(contact2).build());
 		assertThat(result.getDeletions()).isEmpty();
 	}
 	
@@ -162,8 +162,8 @@ public class ObmSyncBackendTest {
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 
-		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
-		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn(collectionId.serverId(14));
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn(collectionId.serverId(16));
 		
 		mocks.replay();
 		DataDelta result = testee.builderWithChangesAndDeletions(changes, collectionId)
@@ -173,8 +173,8 @@ public class ObmSyncBackendTest {
 		mocks.verify();
 		
 		assertThat(result.getDeletions()).containsOnly(
-				ItemDeletion.builder().serverId("12:14").build(),
-				ItemDeletion.builder().serverId("12:16").build());
+				ItemDeletion.builder().serverId(collectionId.serverId(14)).build(),
+				ItemDeletion.builder().serverId(collectionId.serverId(16)).build());
 		assertThat(result.getChanges()).isEmpty();
 	}
 	
@@ -192,9 +192,9 @@ public class ObmSyncBackendTest {
 		Date syncDate = dateUTC("2013-04-07T12:09:37");
 		SyncKey syncKey = new SyncKey("88dd7c4d-8b9a-4917-8e9d-8b8d3440932e");
 
-		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn("12:14");
-		expect(mappingService.getServerIdFor(collectionId, "15")).andReturn("12:15");
-		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn("12:16");
+		expect(mappingService.getServerIdFor(collectionId, "14")).andReturn(collectionId.serverId(14));
+		expect(mappingService.getServerIdFor(collectionId, "15")).andReturn(collectionId.serverId(15));
+		expect(mappingService.getServerIdFor(collectionId, "16")).andReturn(collectionId.serverId(16));
 		
 		mocks.replay();
 		DataDelta result = testee.builderWithChangesAndDeletions(changes, collectionId)
@@ -203,9 +203,9 @@ public class ObmSyncBackendTest {
 				.build();
 		mocks.verify();
 		
-		assertThat(result.getDeletions()).containsOnly(ItemDeletion.builder().serverId("12:16").build());
+		assertThat(result.getDeletions()).containsOnly(ItemDeletion.builder().serverId(collectionId.serverId(16)).build());
 		assertThat(result.getChanges()).containsOnly(
-				ItemChange.builder().serverId("12:14").data(contact1).build(),
-				ItemChange.builder().serverId("12:15").data(contact2).build());
+				ItemChange.builder().serverId(collectionId.serverId(14)).data(contact1).build(),
+				ItemChange.builder().serverId(collectionId.serverId(15)).data(contact2).build());
 	}
 }

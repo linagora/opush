@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.MoveItemsResponse;
@@ -54,11 +55,11 @@ public class MoveItemsCommand extends AbstractCommand<MoveItemsResponse> {
 
 	public static class Move {
 		
-		public final String serverId;
+		public final ServerId serverId;
 		public final CollectionId sourceCollectionId;
 		public final CollectionId destCollectionId;
 		
-		public Move(String serverId, CollectionId sourceCollectionId, CollectionId destCollectionId) {
+		public Move(ServerId serverId, CollectionId sourceCollectionId, CollectionId destCollectionId) {
 			this.serverId = serverId;
 			this.sourceCollectionId = sourceCollectionId;
 			this.destCollectionId = destCollectionId;
@@ -74,7 +75,7 @@ public class MoveItemsCommand extends AbstractCommand<MoveItemsResponse> {
 				
 				for (Move move : moves) {
 					Element fetchElement = DOMUtils.createElement(documentElement, "Move");
-					DOMUtils.createElementAndText(fetchElement, "SrcMsgId", move.serverId);
+					DOMUtils.createElementAndText(fetchElement, "SrcMsgId", move.serverId.asString());
 					DOMUtils.createElementAndText(fetchElement, "SrcFldId", move.sourceCollectionId.asString());
 					DOMUtils.createElementAndText(fetchElement, "DstFldId", move.destCollectionId.asString());
 				}
@@ -94,7 +95,7 @@ public class MoveItemsCommand extends AbstractCommand<MoveItemsResponse> {
 			String dstMsgId = DOMUtils.getElementText(moveResult, "DstMsgId");
 			
 			MoveItemsStatus status = MoveItemsStatus.fromSpecificationValue(statusAsString);
-			moveResults.add(new MoveResult(srcMsgId, dstMsgId, status));
+			moveResults.add(new MoveResult(ServerId.of(srcMsgId), ServerId.of(dstMsgId), status));
 		}
 		
 		String status = DOMUtils.getElementText(documentElement, "Status");

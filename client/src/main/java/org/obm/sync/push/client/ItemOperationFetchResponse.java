@@ -32,6 +32,7 @@
 package org.obm.sync.push.client;
 
 import org.obm.push.bean.ItemOperationsStatus;
+import org.obm.push.bean.ServerId;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Objects;
@@ -39,10 +40,10 @@ import com.google.common.base.Objects;
 public final class ItemOperationFetchResponse {
 
 	private final ItemOperationsStatus status;
-	private final String serverId;
+	private final ServerId serverId;
 	private final Element data;
 
-	public ItemOperationFetchResponse(ItemOperationsStatus status, String serverId, Element data) {
+	public ItemOperationFetchResponse(ItemOperationsStatus status, ServerId serverId, Element data) {
 		this.status = status;
 		this.serverId = serverId;
 		this.data = data;
@@ -52,7 +53,7 @@ public final class ItemOperationFetchResponse {
 		return status;
 	}
 
-	public String getServerId() {
+	public ServerId getServerId() {
 		return serverId;
 	}
 

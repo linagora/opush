@@ -378,7 +378,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ProcessingEmailException, UnsupportedBackendFunctionException {
 
-		String serverId = change.getServerId();
+		ServerId serverId = change.getServerId();
 		try {
 			contentsImporter.importMessageDeletion(udr, collection.getDataType(), collection.getCollectionId(), serverId,
 					collection.getOptions().isDeletesAsMoves());
@@ -395,7 +395,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			ItemSyncState syncState, SyncKey newSyncKey)
 					throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
 
-		final String serverId = change.getServerId();
+		final ServerId serverId = change.getServerId();
 		try {
 			Optional<ItemChange> optional = contentsExporter.fetch(udr, syncState, collection.getDataType(), 
 					collection.getCollectionId(), collection.getOptions(), serverId, newSyncKey);
@@ -544,7 +544,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		Builder<ItemChange> builder = ImmutableList.builder();
 		for (ItemChange change: itemChanges) {
 			boolean isItemAddition = st.getSyncKey().equals(SyncKey.INITIAL_FOLDER_SYNC_KEY) || 
-					!itemTrackingDao.isServerIdSynced(st, new ServerId(change.getServerId()));
+					!itemTrackingDao.isServerIdSynced(st, change.getServerId());
 			builder.add(ItemChange.builder()
 					.serverId(change.getServerId())
 					.isNew(isItemAddition)

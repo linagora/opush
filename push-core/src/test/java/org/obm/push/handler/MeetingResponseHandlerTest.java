@@ -47,6 +47,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -107,7 +108,7 @@ public class MeetingResponseHandlerTest {
 	@Test
 	public void TestDeleteInvitationEmailGoesToTrash() throws Exception {
 		CollectionId collectionId = CollectionId.of(1);
-		String reqId = "1:2";
+		ServerId reqId = CollectionId.of(1).serverId(2);
 		
 		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, collectionId, reqId, true);
 		expectLastCall();

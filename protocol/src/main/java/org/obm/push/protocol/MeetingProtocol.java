@@ -36,6 +36,7 @@ import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.bean.MeetingResponseStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.ItemChangeMeetingResponse;
@@ -77,7 +78,7 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 	private MeetingResponse parseElementAsMeetingResponse(Element req) {
 		String userResponse = DOMUtils.getElementText(req, "UserResponse");
 		String colId = DOMUtils.getElementText(req, "CollectionId");
-		String reqId = DOMUtils.getElementText(req, "ReqId");
+		ServerId reqId = ServerId.of(DOMUtils.getElementText(req, "ReqId"));
 		String longId = DOMUtils.getElementText(req, "LongId");
 
 		CollectionId collectionId = null;
@@ -119,18 +120,26 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 			Element result = (Element) results.item(i);
 
 			MeetingResponseStatus status = MeetingResponseStatus.fromSpecificationValue(DOMUtils.getElementText(result, "Status"));
-			String calId = DOMUtils.getElementText(result, "CalId");
+			ServerId calId = getCalendarId(result);
 			String reqId = DOMUtils.getElementText(result, "ReqId");
 			
 			meetingHandlerResponseBuilder.add(ItemChangeMeetingResponse.builder()
 					.status(status)
 					.calId(calId)
-					.reqId(reqId)
+					.reqId(ServerId.of(reqId))
 					.build());
 		}
 		
 		return meetingHandlerResponseBuilder
 				.build();
+	}
+
+	private ServerId getCalendarId(Element result) {
+		String stringValue = DOMUtils.getElementText(result, "CalId");
+		if (!Strings.isNullOrEmpty(stringValue)) {
+			return ServerId.of(stringValue);
+		}
+		return null;
 	}
 
 	@Override
@@ -141,9 +150,9 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 			Element response = DOMUtils.createElement(root, "Result");
 			DOMUtils.createElementAndText(response, "Status", item.getStatus().asSpecificationValue());
 			if (item.getCalId() != null) {
-				DOMUtils.createElementAndText(response, "CalId", item.getCalId());
+				DOMUtils.createElementAndText(response, "CalId", item.getCalId().asString());
 			}
-			DOMUtils.createElementAndText(response, "ReqId", item.getReqId());
+			DOMUtils.createElementAndText(response, "ReqId", item.getReqId().asString());
 		}
 		return reply;
 	}
@@ -154,14 +163,14 @@ public class MeetingProtocol implements ActiveSyncProtocol<MeetingHandlerRequest
 		Element root = reply.getDocumentElement();
 		
 		for (MeetingResponse meetingResponse : meetingRequest.getMeetingResponses()) {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(meetingResponse.getReqId()));
+			Preconditions.checkArgument(meetingResponse.getReqId() != null);
 			Element request = DOMUtils.createElement(root, "Request");
 			
 			DOMUtils.createElementAndText(request, "UserResponse", serializeAttendeeStatus(meetingResponse.getUserResponse()));
 			if (meetingResponse.getCollectionId() != null) {
 				DOMUtils.createElementAndText(request, "CollectionId", meetingResponse.getCollectionId().asString());
 			}
-			DOMUtils.createElementAndText(request, "ReqId", meetingResponse.getReqId());
+			DOMUtils.createElementAndText(request, "ReqId", meetingResponse.getReqId().asString());
 			if (meetingResponse.getLongId() != null) {
 				DOMUtils.createElementAndText(request, "LongId", meetingResponse.getLongId());
 			}

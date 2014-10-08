@@ -298,10 +298,8 @@ public class SyncHandlerWithBackendTest {
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
-		String serverId = inboxCollectionId.serverId(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
+		ServerId serverId = inboxCollectionId.serverId(2);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(4);
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, inboxCollectionId);
@@ -309,13 +307,9 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
-		String serverId2 = inboxCollectionId.serverId(1);
-		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, 
-				new ServerId(serverId2)))
-			.andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, serverId)).andReturn(false);
+		ServerId serverId2 = inboxCollectionId.serverId(1);
+		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, serverId2)).andReturn(false);
 		
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
@@ -473,10 +467,8 @@ public class SyncHandlerWithBackendTest {
 		expect(calendarDao.getMSEventUidFor(eventExtId2, user.device))
 			.andReturn(msEventUid2).times(2);
 		
-		String serverId = calendarCollectionId.serverId(msEvent.getUid().serializeToString());
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(msEvent.getUid().serializeToString()));
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, calendarCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, calendarCollectionId);
@@ -487,11 +479,10 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(newFourthAllocatedState.getSyncDate()).once();
 		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, 
-				new ServerId(serverId)))
+				serverId))
 			.andReturn(false);
-		String serverId2 = calendarCollectionId.serverId(msEvent2.getUid().serializeToString());
-		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, 
-				new ServerId(serverId2)))
+		ServerId serverId2 = calendarCollectionId.serverId(Integer.valueOf(msEvent2.getUid().serializeToString()));
+		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, serverId2))
 			.andReturn(false);
 		
 		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
@@ -634,10 +625,8 @@ public class SyncHandlerWithBackendTest {
 					ImmutableSet.<Integer> of(),
 					secondDate));
 		
-		String serverId = contactCollectionId.serverId(contact.getUid());
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
+		ServerId serverId = contactCollectionId.serverId(contact.getUid());
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, contactCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, contactCollectionId);
@@ -647,13 +636,9 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(newFourthAllocatedState.getSyncDate()).once();
-		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
-		String serverId2 = contactCollectionId.serverId(contact2.getUid());
-		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, 
-				new ServerId(serverId2)))
-			.andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, serverId)).andReturn(false);
+		ServerId serverId2 = contactCollectionId.serverId(contact2.getUid());
+		expect(itemTrackingDao.isServerIdSynced(newSecondAllocatedState, serverId2)).andReturn(false);
 		
 		expect(bookClient.firstListContactsChanged(user.accessToken, initialDate, contactCollectionId.asInt()))
 		.andReturn(new ContactChanges(ImmutableList.of(contact, contact2),
@@ -764,9 +749,9 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 
-		String serverId = inboxCollectionId.serverId(1);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(serverId))).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		ServerId serverId = inboxCollectionId.serverId(1);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
 		mocksControl.replay();
@@ -826,7 +811,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -874,7 +859,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -917,7 +902,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -965,7 +950,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -1007,7 +992,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -1049,7 +1034,7 @@ public class SyncHandlerWithBackendTest {
 				.id(4)
 				.build();
 		
-		ServerId emailServerId = new ServerId(inboxCollectionId.serverId(1));
+		ServerId emailServerId = inboxCollectionId.serverId(1);
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
@@ -1289,11 +1274,9 @@ public class SyncHandlerWithBackendTest {
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
 			.andReturn(msEventUid);
 		
-		String serverId = calendarCollectionId.serverId(msEvent.getUid().serializeToString());
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(msEvent.getUid().serializeToString()));
 		String clientId = null;
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 
@@ -1395,10 +1378,8 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
-		String serverId = inboxCollectionId.serverId(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false).times(2);
+		ServerId serverId = inboxCollectionId.serverId(2);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false).times(2);
 		
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
@@ -1469,13 +1450,10 @@ public class SyncHandlerWithBackendTest {
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
-		String serverId = inboxCollectionId.serverId(1);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false).times(2);
-		String serverId2 = inboxCollectionId.serverId(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId2)))
+		ServerId serverId = inboxCollectionId.serverId(1);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false).times(2);
+		ServerId serverId2 = inboxCollectionId.serverId(2);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId2))
 			.andReturn(false).times(2);
 		
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));

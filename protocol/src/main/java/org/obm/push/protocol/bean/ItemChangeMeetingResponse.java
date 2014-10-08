@@ -32,6 +32,7 @@
 package org.obm.push.protocol.bean;
 
 import org.obm.push.bean.MeetingResponseStatus;
+import org.obm.push.bean.ServerId;
 
 import com.google.common.base.Objects;
 
@@ -42,19 +43,19 @@ public class ItemChangeMeetingResponse {
 	}
 	
 	public static class Builder {
-		private String calId;
-		private String reqId;
+		private ServerId calId;
+		private ServerId reqId;
 		private MeetingResponseStatus status;
 		
 		private Builder() {}
 		
-		public Builder calId(String calId) {
-			this.calId = calId;
+		public Builder calId(ServerId serverId) {
+			this.calId = serverId;
 			return this;
 		}
 		
-		public Builder reqId(String reqId) {
-			this.reqId = reqId;
+		public Builder reqId(ServerId serverId) {
+			this.reqId = serverId;
 			return this;
 		}
 		
@@ -68,21 +69,21 @@ public class ItemChangeMeetingResponse {
 		}
 	}
 	
-	private final String calId;
-	private final String reqId;
+	private final ServerId calId;
+	private final ServerId reqId;
 	private final MeetingResponseStatus status;
 	
-	private ItemChangeMeetingResponse(String calId, String reqId, MeetingResponseStatus status) {
+	private ItemChangeMeetingResponse(ServerId calId, ServerId reqId, MeetingResponseStatus status) {
 		this.calId = calId;
 		this.reqId = reqId;
 		this.status = status;
 	}
 	
-	public String getCalId() {
+	public ServerId getCalId() {
 		return calId;
 	}
 	
-	public String getReqId() {
+	public ServerId getReqId() {
 		return reqId;
 	}
 

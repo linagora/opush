@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -41,29 +42,20 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
-public class ServerId {
+public class ServerId implements Serializable {
 
-	private static final String SERVER_ID_SEPRATOR = ":";
-	
-	private final CollectionId collectionId;
-	private final Integer itemId;
+	private static final String SERVER_ID_SEPARATOR = ":";
 
-	public ServerId(String serverId) throws InvalidServerId {
-		Iterator<String> iterator = splitServerId(serverId);
-		collectionId = getCollectionId(iterator, serverId);
-		itemId = getItemId(iterator);
-	}
-
-	private Iterator<String> splitServerId(String serverId) throws InvalidServerId {
-		Iterable<String> parts = Splitter.on(SERVER_ID_SEPRATOR).split(serverId);
+	public static ServerId of(String value) {
+		Iterable<String> parts = Splitter.on(SERVER_ID_SEPARATOR).split(value);
 		if (Iterables.size(parts) > 2) {
-			throw new InvalidServerId("two many parts for a serverId");
+			throw new InvalidServerId("Too many parts for a serverId");
 		}
 		Iterator<String> iterator = parts.iterator();
-		return iterator;
+		return of(getCollectionId(iterator, value), getItemId(iterator));	
 	}
-
-	private CollectionId getCollectionId(Iterator<String> iterator, String serverId) throws InvalidServerId {
+	
+	private static CollectionId getCollectionId(Iterator<String> iterator, String serverId) throws InvalidServerId {
 		 try {
 			 return CollectionId.of(iterator.next());
 		 } catch (NoSuchElementException e) {
@@ -73,7 +65,7 @@ public class ServerId {
 		 }
 	}
 
-	private Integer getItemId(Iterator<String> iterator) throws InvalidServerId {
+	private static Integer getItemId(Iterator<String> iterator) throws InvalidServerId {
 		if (iterator.hasNext()) {
 			try {
 				return Integer.valueOf(iterator.next());
@@ -85,6 +77,21 @@ public class ServerId {
 		}
 	}
 	
+	public static ServerId of(CollectionId collectionId, Integer ItemId) {
+		if (collectionId == null) {
+			throw new InvalidServerId("collectionId must not be null");
+		}
+		return new ServerId(collectionId, ItemId);
+	}
+	
+	private final CollectionId collectionId;
+	private final Integer itemId;
+	
+	private ServerId(CollectionId collectionId, Integer itemId) {
+		this.collectionId = collectionId;
+		this.itemId = itemId;
+	}
+
 	public CollectionId getCollectionId() {
 		return collectionId;
 	}
@@ -97,15 +104,6 @@ public class ServerId {
 		return itemId != null;
 	}
 	
-	@Override
-	public String toString() {
-		if (isItem()) {
-			return buildServerIdString(collectionId, itemId);
-		} else {
-			return String.valueOf(collectionId);
-		}
-	}
-
 	@Override
 	public final int hashCode(){
 		return Objects.hashCode(collectionId, itemId);
@@ -121,12 +119,20 @@ public class ServerId {
 		return false;
 	}
 
-	public static String buildServerIdString(CollectionId collectionId, long itemId) {
-		return collectionId.asString() + SERVER_ID_SEPRATOR + String.valueOf(itemId);
+	public String asString() {
+		if (isItem()) {
+			return collectionId.asString() + SERVER_ID_SEPARATOR + itemId;
+		} else {
+			return collectionId.asString();
+		}
 	}
 
-	public static String buildServerIdString(CollectionId collectionId, String itemId) {
-		return collectionId.asString() + SERVER_ID_SEPRATOR + itemId;
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+					.add("collectionId", collectionId)
+					.add("itemId", itemId)
+					.toString();
 	}
 	
 }

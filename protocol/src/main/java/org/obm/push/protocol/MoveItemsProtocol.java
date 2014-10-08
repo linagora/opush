@@ -34,6 +34,7 @@ package org.obm.push.protocol;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MoveItemsItem;
@@ -65,7 +66,7 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 			String dstFldId = DOMUtils.getElementText(mv, "DstFldId");
 
 			moveItemsRequestBuilder.add(MoveItem.builder()
-					.sourceMessageId(srcMsgId)
+					.sourceMessageId(ServerId.of(srcMsgId))
 					.sourceFolderId(CollectionId.of(srcFldId))
 					.destinationFolderId(CollectionId.of(dstFldId))
 					.build());
@@ -89,14 +90,14 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 			MoveItemsStatus itemStatus = MoveItemsStatus.fromSpecificationValue(DOMUtils.getElementText(response, "Status"));
 			String sourceMessageId = DOMUtils.getElementText(response, "SrcMsgId");
 			
-			String newDstId = null; 
+			ServerId newDstId = null; 
 			if (MoveItemsStatus.SUCCESS.equals(itemStatus)) {
-				newDstId = DOMUtils.getElementText(response, "DstMsgId");
+				newDstId = ServerId.of(DOMUtils.getElementText(response, "DstMsgId"));
 			}
 			
 			moveItemsResponseBuilder.add(MoveItemsItem.builder()
 					.itemStatus(itemStatus)
-					.sourceMessageId(sourceMessageId)
+					.sourceMessageId(ServerId.of(sourceMessageId))
 					.newDstId(newDstId)
 					.build());
 		}
@@ -117,15 +118,15 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 			switch (moveItemsItem.getItemStatus()) {
 			case SUCCESS:
 				DOMUtils.createElementAndText(response, "Status", MoveItemsStatus.SUCCESS.asSpecificationValue());
-				DOMUtils.createElementAndText(response, "SrcMsgId",	moveItemsItem.getSourceMessageId());
-				DOMUtils.createElementAndText(response, "DstMsgId",	moveItemsItem.getNewDstId());
+				DOMUtils.createElementAndText(response, "SrcMsgId",	moveItemsItem.getSourceMessageId().asString());
+				DOMUtils.createElementAndText(response, "DstMsgId",	moveItemsItem.getNewDstId().asString());
 				break;
 			case SERVER_ERROR:
-				DOMUtils.createElementAndText(response, "SrcMsgId", moveItemsItem.getSourceMessageId());
+				DOMUtils.createElementAndText(response, "SrcMsgId", moveItemsItem.getSourceMessageId().asString());
 				DOMUtils.createElementAndText(response, "Status", MoveItemsStatus.SERVER_ERROR.asSpecificationValue());
 				break;
 			default:
-				DOMUtils.createElementAndText(response, "SrcMsgId", moveItemsItem.getSourceMessageId());
+				DOMUtils.createElementAndText(response, "SrcMsgId", moveItemsItem.getSourceMessageId().asString());
 				DOMUtils.createElementAndText(response, "Status", moveItemsItem.getItemStatus().asSpecificationValue());
 				break;
 			}			
@@ -141,7 +142,7 @@ public class MoveItemsProtocol implements ActiveSyncProtocol<MoveItemsRequest, M
 		for (MoveItem moveItem : moveItemsRequest.getMoveItems()) {
 			Element move = DOMUtils.createElement(root, "Move");
 			
-			DOMUtils.createElementAndText(move, "SrcMsgId", moveItem.getSourceMessageId());
+			DOMUtils.createElementAndText(move, "SrcMsgId", moveItem.getSourceMessageId().asString());
 			DOMUtils.createElementAndText(move, "SrcFldId",	moveItem.getSourceFolderId().asString());
 			DOMUtils.createElementAndText(move, "DstFldId",	moveItem.getDestinationFolderId().asString());
 		}

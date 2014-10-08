@@ -33,6 +33,7 @@ package org.obm.push;
 
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.AttendeeStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -44,7 +45,7 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 
 public interface ICalendarBackend extends PIMBackend {
 
-	String handleMeetingResponse(UserDataRequest udr, Object iCalendar, AttendeeStatus status) 
+	ServerId handleMeetingResponse(UserDataRequest udr, Object iCalendar, AttendeeStatus status) 
 			throws UnexpectedObmSyncServerException, CollectionNotFoundException, DaoException,
 			ItemNotFoundException, ConversionException, HierarchyChangedException, ICalendarConverterException;
 }

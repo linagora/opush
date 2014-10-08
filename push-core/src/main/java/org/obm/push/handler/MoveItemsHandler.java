@@ -40,6 +40,7 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
@@ -144,7 +145,7 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 			
 			StatusForItem statusForItem = getStatusForItem(item);
 			MoveItemsStatus status = statusForItem.status;
-			String newDstId = null;
+			ServerId newDstId = null;
 			if (statusForItem.status == null) {
 				try {
 					PIMDataType dataClass = collectionPathHelper.recognizePIMDataType(statusForItem.srcCollection);

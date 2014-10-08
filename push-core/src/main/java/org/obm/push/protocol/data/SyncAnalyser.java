@@ -37,6 +37,7 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
@@ -187,7 +188,7 @@ public class SyncAnalyser {
 			commandsResponseBuilder.addCommand(
 				SyncCollectionCommand.builder()
 					.type(type)
-					.serverId(command.getServerId())
+					.serverId(serverId(command))
 					.clientId(command.getClientId())
 					.applicationData(decodeApplicationData(command.getApplicationData(), dataType, type))
 					.build());
@@ -195,6 +196,13 @@ public class SyncAnalyser {
 		return commandsResponseBuilder.build();
 	}
 
+	private ServerId serverId(SyncCollectionCommandDto dto) {
+		if (dto.getServerId() != null) {
+			return ServerId.of(dto.getServerId());
+		}
+		return null;
+	}
+	
 	private IApplicationData decodeApplicationData(Element applicationData, PIMDataType dataType, SyncCommand syncCommand) {
 		if (syncCommand.requireApplicationData()) {
 			IApplicationData data = decode(applicationData, dataType);

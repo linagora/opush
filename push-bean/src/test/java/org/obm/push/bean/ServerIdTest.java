@@ -41,116 +41,121 @@ import org.obm.push.protocol.bean.CollectionId;
 
 public class ServerIdTest {
 
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testEmptyString() throws InvalidServerId {
-		new ServerId("");
+	public void emptyStringShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("");
 	}
 
-	@SuppressWarnings("unused")
 	@Test(expected=NullPointerException.class)
-	public void testNullString() throws InvalidServerId {
-		new ServerId(null);
+	public void nullStringShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of(null);
 	}
 
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testNonIntCollectionIdString() throws InvalidServerId {
-		new ServerId("azd");
+	public void nonIntegerValueShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("azd");
 	}
 	
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testNonIntCollectionIdString2() throws InvalidServerId {
-		new ServerId("azd:123");
+	public void nonIntegerCollectionIdShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("azd:123");
 	}
 	
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testTooLargeIntCollectionIdString() throws InvalidServerId {
-		new ServerId("123456789123456");
+	public void tooLargeCollectionIdShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("123456789123456");
 	}
 	
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testNonIntItemIdString() throws InvalidServerId {
-		new ServerId("123:abc");
+	public void nonIntegerItemIdShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("123:abc");
 	}
 
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testTooLargeIntItemIdString() throws InvalidServerId {
-		new ServerId("123:123456789123456");
+	public void tooLargeItemIdShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("123:123456789123456");
 	}
 
 	
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testTooManyPartsString() throws InvalidServerId {
-		new ServerId("123:123:123");
+	public void tooManyPartsStringShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of("123:123:123");
 	}
 	
-	@SuppressWarnings("unused")
 	@Test(expected=InvalidServerId.class)
-	public void testWeirdString() throws InvalidServerId {
-		new ServerId(":123:123");
+	public void weirdStringValueShouldThrowAtCreation() throws InvalidServerId {
+		ServerId.of(":123:123");
 	}
 	
 	@Test
-	public void testSimpleCollectionIdString() throws InvalidServerId {
-		ServerId serverId = new ServerId("123");
+	public void collectionValueShouldBuild() throws InvalidServerId {
+		ServerId serverId = ServerId.of("123");
 		assertThat(serverId.getCollectionId()).isEqualTo(CollectionId.of(123));
 		assertThat(serverId.getItemId()).isNull();
 		assertThat(serverId.isItem()).isFalse();
 	}
 	
 	@Test
-	public void testSimpleServerIdString() throws InvalidServerId {
-		ServerId serverId = new ServerId("123:345");
+	public void itemIdStringShouldBuild() throws InvalidServerId {
+		ServerId serverId = ServerId.of("123:345");
 		assertThat(serverId.getCollectionId()).isEqualTo(CollectionId.of(123));
 		assertThat(serverId.getItemId()).isEqualTo(Integer.valueOf(345));
 		assertThat(serverId.isItem()).isTrue();
 	}
 	
 	@Test
-	public void testSimpleEquals() throws InvalidServerId {
-		ServerId serverId1 = new ServerId("123:345");
-		ServerId serverId2 = new ServerId("123:345");
+	public void twoIdenticalStringsShouldBuildEqualServerId() throws InvalidServerId {
+		ServerId serverId1 = ServerId.of("123:345");
+		ServerId serverId2 = ServerId.of("123:345");
 		assertThat(serverId1.equals(serverId2)).isTrue();
-		assertThat(serverId2.equals(serverId1)).isTrue();
 		assertThat(serverId1.hashCode()).isEqualTo(serverId2.hashCode());
 	}
 	
 	@Test
-	public void testNotEquals() throws InvalidServerId {
-		ServerId serverId1 = new ServerId("123:456");
-		ServerId serverId2 = new ServerId("123:345");
+	public void twoDifferentStringsShouldBuildDifferentServerId() throws InvalidServerId {
+		ServerId serverId1 = ServerId.of("123:456");
+		ServerId serverId2 = ServerId.of("123:345");
 		assertThat(serverId1.hashCode()).isNotEqualTo(serverId2.hashCode());
 		assertThat(serverId1).isNotEqualTo(serverId2);
-		assertThat(serverId2).isNotEqualTo(serverId1);
 	}
 	
 	@Test
-	public void testNotEquals2() throws InvalidServerId {
-		ServerId serverId1 = new ServerId("123");
-		ServerId serverId2 = new ServerId("123:345");
+	public void aCollectionIdShouldNotEqualAnItemId() throws InvalidServerId {
+		ServerId serverId1 = ServerId.of("123");
+		ServerId serverId2 = ServerId.of("123:345");
 		assertThat(serverId1.hashCode()).isNotEqualTo(serverId2.hashCode());
 		assertThat(serverId1).isNotEqualTo(serverId2);
-		assertThat(serverId2).isNotEqualTo(serverId1);
+	}
+
+	@Test(expected=InvalidServerId.class)
+	public void nullCollectionIdShouldThrow() {
+		ServerId.of(null, 12);
 	}
 	
 	@Test
-	public void testBuildServerIdAsStringZero() {
-		assertThat(ServerId.buildServerIdString(CollectionId.of(0), 0)).isEqualTo("0:0");
+	public void nullItemIdShouldBuildACollectionServerId() {
+		ServerId actual = ServerId.of(CollectionId.of(1), null);
+		assertThat(actual.asString()).isEqualTo("1");
+		assertThat(actual.getCollectionId()).isEqualTo(CollectionId.of(1));
+		assertThat(actual.getItemId()).isNull();
+		assertThat(actual.isItem()).isFalse();
 	}
-
+	
 	@Test
-	public void testBuildServerIdAsStringNegative() {
-		assertThat(ServerId.buildServerIdString(CollectionId.of(10), -5)).isEqualTo("10:-5");
+	public void negativeItemIdShouldBuild() {
+		ServerId actual = ServerId.of(CollectionId.of(1), -10);
+		assertThat(actual.asString()).isEqualTo("1:-10");
+		assertThat(actual.getCollectionId()).isEqualTo(CollectionId.of(1));
+		assertThat(actual.getItemId()).isEqualTo(-10);
+		assertThat(actual.isItem()).isTrue();
 	}
-
+	
 	@Test
-	public void testBuildServerIdAsString() {
-		assertThat(ServerId.buildServerIdString(CollectionId.of(10), 5)).isEqualTo("10:5");
+	public void simpleServerIdShouldBuild() {
+		ServerId actual = ServerId.of(CollectionId.of(1), 2);
+		assertThat(actual.asString()).isEqualTo("1:2");
+		assertThat(actual.getCollectionId()).isEqualTo(CollectionId.of(1));
+		assertThat(actual.getItemId()).isEqualTo(2);
+		assertThat(actual.isItem()).isTrue();
 	}
 }

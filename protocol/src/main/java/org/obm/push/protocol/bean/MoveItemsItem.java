@@ -32,6 +32,7 @@
 package org.obm.push.protocol.bean;
 
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.bean.ServerId;
 
 import com.google.common.base.Objects;
 
@@ -43,8 +44,8 @@ public class MoveItemsItem {
 	
 	public static class Builder {
 		private MoveItemsStatus itemStatus;
-		private String sourceMessageId;
-		private String newDstId;
+		private ServerId sourceMessageId;
+		private ServerId newDstId;
 		
 		private Builder() {}
 		
@@ -53,12 +54,12 @@ public class MoveItemsItem {
 			return this;
 		}
 		
-		public Builder sourceMessageId(String sourceMessageId) {
-			this.sourceMessageId = sourceMessageId;
+		public Builder sourceMessageId(ServerId serverId) {
+			this.sourceMessageId = serverId;
 			return this;
 		}
 		
-		public Builder newDstId(String newDstId) {
+		public Builder newDstId(ServerId newDstId) {
 			this.newDstId = newDstId;
 			return this;
 		}
@@ -69,10 +70,10 @@ public class MoveItemsItem {
 	}
 	
 	private final MoveItemsStatus itemStatus;
-	private final String sourceMessageId;
-	private final String newDstId;
+	private final ServerId sourceMessageId;
+	private final ServerId newDstId;
 
-	private MoveItemsItem(MoveItemsStatus itemStatus, String sourceMessageId, String newDstId) {
+	private MoveItemsItem(MoveItemsStatus itemStatus, ServerId sourceMessageId, ServerId newDstId) {
 		this.itemStatus = itemStatus;
 		this.sourceMessageId = sourceMessageId;
 		this.newDstId = newDstId; 
@@ -82,11 +83,11 @@ public class MoveItemsItem {
 		return itemStatus;
 	}
 	
-	public String getSourceMessageId() {
+	public ServerId getSourceMessageId() {
 		return sourceMessageId;
 	}
 	
-	public String getNewDstId() {
+	public ServerId getNewDstId() {
 		return newDstId;
 	}
 	

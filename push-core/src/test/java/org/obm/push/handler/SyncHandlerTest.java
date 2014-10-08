@@ -49,6 +49,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncKey;
@@ -62,6 +63,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.base.Optional;
+
 import org.obm.push.protocol.bean.CollectionId;
 
 
@@ -94,7 +96,7 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testProcessModificationForFetch() throws Exception {
-		String serverId = "15:2";
+		ServerId serverId = CollectionId.of(15).serverId(2);
 		SyncKey newSyncKey = new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184");
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5"))
@@ -130,7 +132,7 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testProcessModificationForFetchWithClientId() throws Exception {
-		String serverId = "15:2";
+		ServerId serverId = CollectionId.of(15).serverId(2);
 		SyncKey newSyncKey = new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184");
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(new SyncKey("5668714a-8e51-479e-9611-899fca8db8d5"))
@@ -178,14 +180,14 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.type(SyncCommand.MODIFY)
 								.build())
 						.build())
 				.build();
 
-		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn(serverId);
+		ServerId serverId = CollectionId.of(15).serverId(3);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), null, null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -210,15 +212,15 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.MODIFY)
 								.build())
 						.build())
 				.build();
 
-		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn(serverId);
+		ServerId serverId = CollectionId.of(15).serverId(3);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -243,13 +245,14 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.type(SyncCommand.ADD)
 								.build())
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), null, null))
+			.andReturn(CollectionId.of(15).serverId(3));
 		
 		mocks.replay();
 		testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -268,20 +271,21 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.ADD)
 								.build())
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), "1234", null))
+			.andReturn(CollectionId.of(15).serverId(3));
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
 		mocks.verify();
 		
-		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3", SyncStatus.OK));
+		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", CollectionId.of(15).serverId(3), SyncStatus.OK));
 		assertThat(clientCommands.getUpdates()).isEmpty();
 		assertThat(clientCommands.getDeletions()).isEmpty();
 		assertThat(clientCommands.getFetches()).isEmpty();
@@ -307,13 +311,13 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn("15:3");
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn(CollectionId.of(15).serverId(3));
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
 		mocks.verify();
 		
-		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", "15:3", SyncStatus.OK));
+		assertThat(clientCommands.getAdds()).containsOnly(new SyncClientCommands.Add("1234", CollectionId.of(15).serverId(3), SyncStatus.OK));
 		assertThat(clientCommands.getUpdates()).isEmpty();
 		assertThat(clientCommands.getDeletions()).isEmpty();
 		assertThat(clientCommands.getFetches()).isEmpty();
@@ -333,14 +337,14 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId(null)
 								.type(SyncCommand.DELETE)
 								.build())
 						.build())
 				.build();
 
-		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), "15:2", true);
+		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), CollectionId.of(15).serverId(2), true);
 		expectLastCall();
 		
 		mocks.replay();
@@ -349,7 +353,7 @@ public class SyncHandlerTest {
 
 		assertThat(clientCommands.getAdds()).isEmpty();
 		assertThat(clientCommands.getUpdates()).isEmpty();
-		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion("15:2", SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion(CollectionId.of(15).serverId(2), SyncStatus.OK));
 		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 	
@@ -367,14 +371,14 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.DELETE)
 								.build())
 						.build())
 				.build();
 
-		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), "15:2", true);
+		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), CollectionId.of(15).serverId(2), true);
 		expectLastCall();
 		
 		mocks.replay();
@@ -383,7 +387,7 @@ public class SyncHandlerTest {
 
 		assertThat(clientCommands.getAdds()).isEmpty();
 		assertThat(clientCommands.getUpdates()).isEmpty();
-		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion("15:2", SyncStatus.OK));
+		assertThat(clientCommands.getDeletions()).containsOnly(new SyncClientCommands.Deletion(CollectionId.of(15).serverId(2), SyncStatus.OK));
 		assertThat(clientCommands.getFetches()).isEmpty();
 	}
 
@@ -400,15 +404,15 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId(null)
 								.type(SyncCommand.CHANGE)
 								.build())
 						.build())
 				.build();
 
-		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", null, null)).andReturn(serverId);
+		ServerId serverId = CollectionId.of(15).serverId(3);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), null, null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -433,15 +437,15 @@ public class SyncHandlerTest {
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsResponse.builder()
 						.addCommand(SyncCollectionCommand.builder()
-								.serverId("15:2")
+								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.CHANGE)
 								.build())
 						.build())
 				.build();
 
-		String serverId = "15:3";
-		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), "15:2", "1234", null)).andReturn(serverId);
+		ServerId serverId = CollectionId.of(15).serverId(3);
+		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), "1234", null)).andReturn(serverId);
 		
 		mocks.replay();
 		SyncClientCommands clientCommands = testee.processClientModifications(udr, collection, syncState, newSyncKey);
@@ -473,7 +477,7 @@ public class SyncHandlerTest {
 						.build())
 				.build();
 
-		String serverId = "15:3";
+		ServerId serverId = CollectionId.of(15).serverId(3);
 		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn(serverId);
 		
 		mocks.replay();

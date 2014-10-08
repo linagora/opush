@@ -45,7 +45,7 @@ public class MeetingResponse {
 	public static class Builder {
 		private AttendeeStatus userResponse;
 		private CollectionId collectionId;
-		private String reqId;
+		private ServerId reqId;
 		private String longId;
 
 		private Builder() {}
@@ -60,7 +60,7 @@ public class MeetingResponse {
 			return this;
 		}
 		
-		public Builder reqId(String reqId) {
+		public Builder reqId(ServerId reqId) {
 			this.reqId = reqId;
 			return this;
 		}
@@ -77,10 +77,10 @@ public class MeetingResponse {
 	
 	private final AttendeeStatus userResponse;
 	private final CollectionId collectionId;
-	private final String reqId;
+	private final ServerId reqId;
 	private final String longId;
 	
-	private MeetingResponse(AttendeeStatus userResponse, CollectionId collectionId, String reqId, String longId) {
+	private MeetingResponse(AttendeeStatus userResponse, CollectionId collectionId, ServerId reqId, String longId) {
 		this.userResponse = userResponse;
 		this.collectionId = collectionId;
 		this.reqId = reqId;
@@ -95,7 +95,7 @@ public class MeetingResponse {
 		return collectionId;
 	}
 
-	public String getReqId() {
+	public ServerId getReqId() {
 		return reqId;
 	}
 

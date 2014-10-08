@@ -69,7 +69,7 @@ public class AnalysedSyncCollectionTest {
 	@Test
 	public void testBuildCommandGiveNotEmptyCommand() {
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.deletions(ImmutableList.of(ItemDeletion.builder().serverId("156").build()))
+				.deletions(ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build()))
 				.build();
 		
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()

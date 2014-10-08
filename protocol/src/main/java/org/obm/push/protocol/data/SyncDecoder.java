@@ -38,6 +38,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -174,7 +175,15 @@ public class SyncDecoder extends ActiveSyncDecoder {
  			.applicationData(DOMUtils.getUniqueElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName()))
  			.build();
 	}
-	
+
+	private ServerId serverId(Element commandElement) {
+		String stringValue = uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID);
+		if (!Strings.isNullOrEmpty(stringValue)) {
+			return ServerId.of(stringValue);
+		}
+		return null;
+	}
+
 	@VisibleForTesting List<BodyPreference> getBodyPreferences(Element optionElement) {
 		NodeList bodyPreferenceNodes = optionElement.getElementsByTagName(SyncRequestFields.BODY_PREFERENCE.getName());
 		List<BodyPreference> bodyPreferences = Lists.newArrayList();
@@ -266,7 +275,7 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		
 		return SyncCollectionCommand.builder()
 			.type(syncCommand)
- 			.serverId(uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID))
+			.serverId(serverId(commandElement))
  			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
  			.applicationData(applicationData)
  			.build();
@@ -293,7 +302,7 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return SyncCollectionCommand.builder()
 			.status(syncStatus)
 			.type(syncCommand)
- 			.serverId(uniqueStringFieldValue(commandElement, SyncResponseFields.SERVER_ID))
+ 			.serverId(serverId(commandElement))
  			.clientId(uniqueStringFieldValue(commandElement, SyncResponseFields.CLIENT_ID))
  			.applicationData(applicationData)
  			.build();

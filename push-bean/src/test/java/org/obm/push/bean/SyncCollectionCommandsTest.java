@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.collect.ImmutableList;
 
@@ -53,20 +54,24 @@ public class SyncCollectionCommandsTest {
 
 	@Test
 	public void testBuilderCommandsValid() {
+		ServerId serverIdDel = CollectionId.of(1).serverId(23);
+		ServerId serverIdFetch = CollectionId.of(1).serverId(33);
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId("3").build())
-			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId("8").build())
+			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build())
+			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build())
 			.build();
 		
 		assertThat(commands.getCommands()).containsOnly(
-				SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId("3").build(),
-				SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId("8").build());
+				SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build(),
+				SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build());
 	}
 	
 	@Test
 	public void testChangesAndDeletions() {
-		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId("123").build());
-		ImmutableList<ItemDeletion> deletions = ImmutableList.<ItemDeletion> of(ItemDeletion.builder().serverId("234").build());
+		ServerId serverId = CollectionId.of(1).serverId(23);
+		ServerId serverIdDel = CollectionId.of(1).serverId(23);
+		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
+		ImmutableList<ItemDeletion> deletions = ImmutableList.<ItemDeletion> of(ItemDeletion.builder().serverId(serverIdDel).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)
 				.deletions(deletions)
@@ -74,17 +79,17 @@ public class SyncCollectionCommandsTest {
 				
 		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
 				.type(SyncCommand.CHANGE)
-				.serverId("123")
+				.serverId(serverId)
 				.build());
 		assertThat(commands.getCommandsForType(SyncCommand.DELETE)).containsOnly(SyncCollectionCommand.builder()
 				.type(SyncCommand.DELETE)
-				.serverId("234")
+				.serverId(serverIdDel)
 				.build());
 	}
 	
 	@Test
 	public void testChangesWithClientId() {
-		String serverId = "123";
+		ServerId serverId = CollectionId.of(1).serverId(23);
 		ImmutableList<ItemChange> changes = ImmutableList.<ItemChange> of(ItemChange.builder().serverId(serverId).build());
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
 				.changes(changes)

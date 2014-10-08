@@ -60,12 +60,12 @@ public class MoveItemsProtocolTest {
 		String initialDocument = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + 
 				"<MoveItems>" +
 				"<Move>" +
-				"<SrcMsgId>messageId</SrcMsgId>" +
+				"<SrcMsgId>22:1</SrcMsgId>" +
 				"<SrcFldId>22</SrcFldId>" +
 				"<DstFldId>33</DstFldId>" +
 				"</Move>" +
 				"<Move>" +
-				"<SrcMsgId>messageId2</SrcMsgId>" +
+				"<SrcMsgId>23:2</SrcMsgId>" +
 				"<SrcFldId>23</SrcFldId>" +
 				"<DstFldId>34</DstFldId>" +
 				"</Move>" +
@@ -83,11 +83,11 @@ public class MoveItemsProtocolTest {
 				"<MoveItems>" +
 				"<Response>" +
 				"<Status>3</Status>" +
-				"<SrcMsgId>src</SrcMsgId>" +
-				"<DstMsgId>dst</DstMsgId>" +
+				"<SrcMsgId>1:2</SrcMsgId>" +
+				"<DstMsgId>2:3</DstMsgId>" +
 				"</Response>" +
 				"<Response>" +
-				"<SrcMsgId>src2</SrcMsgId>" +
+				"<SrcMsgId>3:4</SrcMsgId>" +
 				"<Status>5</Status>" +
 				"</Response>" +
 				"</MoveItems>";

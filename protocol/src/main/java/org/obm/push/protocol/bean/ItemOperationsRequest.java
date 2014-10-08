@@ -32,6 +32,7 @@
 package org.obm.push.protocol.bean;
 
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.StoreName;
 
 public class ItemOperationsRequest {
@@ -41,7 +42,7 @@ public class ItemOperationsRequest {
 		private StoreName storeName;
 		private String fileReference;
 		private CollectionId collectionId;
-		private String serverId;
+		private ServerId serverId;
 		private MSEmailBodyType type;
 		
 		public Fetch() {
@@ -71,11 +72,11 @@ public class ItemOperationsRequest {
 			this.collectionId = collectionId;
 		}
 		
-		public String getServerId() {
+		public ServerId getServerId() {
 			return serverId;
 		}
 		
-		public void setServerId(String serverId) {
+		public void setServerId(ServerId serverId) {
 			this.serverId = serverId;
 		}
 

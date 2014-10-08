@@ -67,14 +67,10 @@ public class CollectionId implements Serializable {
 		return id;
 	}
 
-	public String serverId(long itemId) {
-		return ServerId.buildServerIdString(this, itemId);
+	public ServerId serverId(int itemId) {
+		return ServerId.of(this, itemId);
 	}
 
-	public String serverId(String itemId) {
-		return ServerId.buildServerIdString(this, itemId);
-	}
-	
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(id);

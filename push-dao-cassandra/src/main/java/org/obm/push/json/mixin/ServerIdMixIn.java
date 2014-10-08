@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,38 +29,20 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.protocol.bean;
+package org.obm.push.json.mixin;
+
+import java.io.Serializable;
 
 import org.obm.push.bean.ServerId;
 
-public class MailRequest {
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-	private final CollectionId collectionId;
-	private final ServerId serverId;
-	private final boolean saveInSent;
-	private final byte[] mailContent;
+public abstract class ServerIdMixIn implements Serializable {
 
-	public MailRequest(CollectionId collectionId, ServerId serverId, boolean saveInSent, byte[] mailContent) {
-		this.collectionId = collectionId;
-		this.serverId = serverId;
-		this.saveInSent = saveInSent;
-		this.mailContent = mailContent;
-	}
+	@JsonValue
+	abstract int asString();
 	
-	public CollectionId getCollectionId() {
-		return collectionId;
-	}
-	
-	public ServerId getServerId() {
-		return serverId;
-	}
-	
-	public boolean isSaveInSent() {
-		return saveInSent;
-	}
-	
-	public byte[] getMailContent() {
-		return mailContent;
-	}
-	
+	@JsonCreator
+	static ServerId of(@SuppressWarnings("unused") String value) {return null;}
 }

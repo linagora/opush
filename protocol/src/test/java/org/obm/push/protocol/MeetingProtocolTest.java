@@ -66,12 +66,12 @@ public class MeetingProtocolTest {
 				"<Request>" +
 				"<UserResponse>1</UserResponse>" +
 				"<CollectionId>11</CollectionId>" +
-				"<ReqId>reqId</ReqId>" +
+				"<ReqId>11:22</ReqId>" +
 				"<LongId>londId</LongId>" +
 				"</Request>" +
 				"<Request>" +
 				"<UserResponse>3</UserResponse>" +
-				"<ReqId>reqId2</ReqId>" +
+				"<ReqId>12:34</ReqId>" +
 				"<LongId>londId2</LongId>" +
 				"</Request>" +
 				"</MeetingResponse>";
@@ -89,11 +89,11 @@ public class MeetingProtocolTest {
 				"<Result>" +
 				"<Status>1</Status>" +
 				"<CalId>11:2</CalId>" +
-				"<ReqId>reqId</ReqId>" +
+				"<ReqId>12:2</ReqId>" +
 				"</Result>" +
 				"<Result>" +
 				"<Status>2</Status>" +
-				"<ReqId>reqId2</ReqId>" +
+				"<ReqId>12:3</ReqId>" +
 				"</Result>" +
 				"</MeetingResponse>";
 		
@@ -109,7 +109,7 @@ public class MeetingProtocolTest {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
 					.collectionId(CollectionId.of(1))
 					.longId("2")
-					.reqId("3")
+					.reqId(CollectionId.of(1).serverId(3))
 					.userResponse(AttendeeStatus.ACCEPT)
 					.build()).build();
 		Document encodedRequest = meetingProtocol.encodeRequest(request);
@@ -119,7 +119,7 @@ public class MeetingProtocolTest {
 				"<Request>" +
 				"<UserResponse>1</UserResponse>" +
 				"<CollectionId>1</CollectionId>" +
-				"<ReqId>3</ReqId>" +
+				"<ReqId>1:3</ReqId>" +
 				"<LongId>2</LongId>" +
 				"</Request>" +
 				"</MeetingResponse>");
@@ -131,7 +131,7 @@ public class MeetingProtocolTest {
 	public void testEncodeLongIdIsNotRequired() throws Exception {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
 					.collectionId(CollectionId.of(1))
-					.reqId("3")
+					.reqId(CollectionId.of(1).serverId(3))
 					.userResponse(AttendeeStatus.ACCEPT)
 					.build()).build();
 		Document encodedRequest = meetingProtocol.encodeRequest(request);
@@ -141,7 +141,7 @@ public class MeetingProtocolTest {
 				"<Request>" +
 				"<UserResponse>1</UserResponse>" +
 				"<CollectionId>1</CollectionId>" +
-				"<ReqId>3</ReqId>" +
+				"<ReqId>1:3</ReqId>" +
 				"</Request>" +
 				"</MeetingResponse>");
 		
@@ -152,7 +152,7 @@ public class MeetingProtocolTest {
 	public void testEncodeCollectionIdIsNotRequired() throws Exception {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
 					.longId("2")
-					.reqId("3")
+					.reqId(CollectionId.of(1).serverId(3))
 					.userResponse(AttendeeStatus.ACCEPT)
 					.build()).build();
 		Document encodedRequest = meetingProtocol.encodeRequest(request);
@@ -161,7 +161,7 @@ public class MeetingProtocolTest {
 				"<MeetingResponse>" +
 				"<Request>" +
 				"<UserResponse>1</UserResponse>" +
-				"<ReqId>3</ReqId>" +
+				"<ReqId>1:3</ReqId>" +
 				"<LongId>2</LongId>" +
 				"</Request>" +
 				"</MeetingResponse>");
@@ -174,7 +174,7 @@ public class MeetingProtocolTest {
 		MeetingHandlerRequest request = MeetingHandlerRequest.builder().add(MeetingResponse.builder()
 					.collectionId(CollectionId.of(1))
 					.longId("2")
-					.reqId("3")
+					.reqId(CollectionId.of(1).serverId(3))
 					.build()).build();
 		Document encodedRequest = meetingProtocol.encodeRequest(request);
 		
@@ -183,7 +183,7 @@ public class MeetingProtocolTest {
 				"<Request>" +
 				"<UserResponse>2</UserResponse>" +
 				"<CollectionId>1</CollectionId>" +
-				"<ReqId>3</ReqId>" +
+				"<ReqId>1:3</ReqId>" +
 				"<LongId>2</LongId>" +
 				"</Request>" +
 				"</MeetingResponse>");

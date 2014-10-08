@@ -44,6 +44,7 @@ import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -61,7 +62,7 @@ import org.obm.push.protocol.bean.CollectionId;
 public class TaskBackend implements PIMBackend {
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, 
 				SyncCollectionOptions syncCollectionOptions)
 			throws ProcessingEmailException, CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		
@@ -69,7 +70,7 @@ public class TaskBackend implements PIMBackend {
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds,
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds,
 			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 		throws ProcessingEmailException, CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		throw new CollectionNotFoundException();
@@ -95,8 +96,8 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
-			String serverId, String clientId, IApplicationData data)
+	public ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
+			ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException,
 			DaoException, UnexpectedObmSyncServerException,
 			ItemNotFoundException {
@@ -104,14 +105,14 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public String move(UserDataRequest udr, String srcFolder, String dstFolder,
-			String messageId) throws CollectionNotFoundException,
+	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+			ServerId serverId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException {
 		

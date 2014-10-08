@@ -56,6 +56,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -79,30 +80,6 @@ public class MappingServiceImpl implements MappingService {
 		this.collectionPathBuilderProvider = collectionPathBuilderProvider;
 	}
 
-	@Override
-	public Integer getItemIdFromServerId(String serverId) {
-		if (serverId != null) {
-			String[] idx = serverId.split(":");
-			if (idx.length == 2) {
-				return Integer.parseInt(idx[1]);
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public CollectionId getCollectionIdFromServerId(String serverId) {
-		if (serverId != null) {
-			String[] idx = serverId.split(":");
-			if (idx.length == 2) {
-				return CollectionId.of(idx[0]);
-			}
-		}
-		return null;
-	}
-	
-
-	
 	@Override
 	public CollectionId createCollectionMapping(Device device, String col) throws DaoException {
 		return collectionDao.addCollectionMapping(device, col);
@@ -128,18 +105,18 @@ public class MappingServiceImpl implements MappingService {
 		List<ItemDeletion> deletions = Lists.newLinkedList();
 		for (Long uid: uids) {
 			deletions.add(ItemDeletion.builder()
-					.serverId(ServerId.buildServerIdString(collectionId, uid))
+					.serverId(collectionId.serverId(Ints.checkedCast(uid)))
 					.build());
 		}
 		return deletions;
 	}
 
 	@Override
-	public String getServerIdFor(CollectionId collectionId, String clientId) {
+	public ServerId getServerIdFor(CollectionId collectionId, String clientId) {
 		if (collectionId == null || Strings.isNullOrEmpty(clientId)) {
 			return null;
 		}
-		return collectionId.serverId(clientId);
+		return collectionId.serverId(Integer.valueOf(clientId));
 	}
 	
 	@Override

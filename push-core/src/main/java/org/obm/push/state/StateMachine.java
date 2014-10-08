@@ -166,7 +166,7 @@ public class StateMachine implements IStateMachine {
 
 					@Override
 					public ServerId apply(SyncCollectionCommand input) {
-						return new ServerId(input.getServerId());
+						return input.getServerId();
 					}
 				});
 	}
@@ -205,7 +205,7 @@ public class StateMachine implements IStateMachine {
 	}
 
 	private void addServerItemId(Set<ServerId> serverIds, ASItem change) throws InvalidServerId {
-		ServerId serverId = new ServerId( change.getServerId() );
+		ServerId serverId = change.getServerId();
 		if (serverId.isItem()) {
 			serverIds.add(serverId);
 		}

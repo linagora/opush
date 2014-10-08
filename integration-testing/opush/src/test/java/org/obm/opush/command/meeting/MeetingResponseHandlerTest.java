@@ -69,6 +69,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MeetingResponseStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.ms.MSEmail;
@@ -119,9 +120,9 @@ public class MeetingResponseHandlerTest {
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject CassandraServer cassandraServer;
 	
-	private int meetingCollectionId;
+	private CollectionId meetingCollectionId;
 	private int meetingItemId;
-	private int invitationCollectionId;
+	private CollectionId invitationCollectionId;
 	private int invitationItemId;
 	private CloseableHttpClient httpClient;
 
@@ -129,9 +130,9 @@ public class MeetingResponseHandlerTest {
 	public void setUp() throws Exception {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
-		meetingCollectionId = 2;
+		meetingCollectionId = CollectionId.of(2);
 		meetingItemId = 8;
-		invitationCollectionId = 5;
+		invitationCollectionId = CollectionId.of(5);
 		invitationItemId = 10;
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
@@ -349,14 +350,14 @@ public class MeetingResponseHandlerTest {
 	
 	private void expectMailbackendDeleteInvitationProcessCorrectly(MailBackend mailBackend) throws Exception {
 		
-		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class), anyBoolean());
+		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class), anyBoolean());
 		EasyMock.expectLastCall().once();
 	}
 	
 	private void expectMailbackendDeleteInvitationTriggersException(MailBackend mailBackend, Exception triggeredException)
 			throws Exception {
 		
-		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class), anyBoolean());
+		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class), anyBoolean());
 		EasyMock.expectLastCall().andThrow(triggeredException);
 	}
 
@@ -367,7 +368,7 @@ public class MeetingResponseHandlerTest {
 				anyObject(UserDataRequest.class),
 				anyObject(ICalendar.class),
 				anyObject(AttendeeStatus.class)))
-			.andReturn(serverId(meetingCollectionId, meetingItemId));
+			.andReturn(meetingCollectionId.serverId(meetingItemId));
 	}
 
 	private void expectHandleMeetingResponseTriggersException(CalendarBackend calendarBackend, Exception triggeredException)
@@ -383,7 +384,7 @@ public class MeetingResponseHandlerTest {
 	private void expectMailbackendGiveEmailForAnyIds(MailBackend mailBackend)
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
-		expect(mailBackend.getEmail(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class)))
+		expect(mailBackend.getEmail(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class)))
 			.andReturn(UidMSEmail.uidBuilder()
 					.uid(1)
 					.email(msEmail())
@@ -406,7 +407,7 @@ public class MeetingResponseHandlerTest {
 	private void expectMailbackendGettingInvitation(MailBackend mailBackend)
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
-		expect(mailBackend.getInvitation(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(String.class)))
+		expect(mailBackend.getInvitation(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class)))
 			.andReturn(null);
 	}
 
@@ -425,7 +426,7 @@ public class MeetingResponseHandlerTest {
 	}
 
 	private String buildMeetingResponseCommandSuccess() throws TransformerException {
-		return buildResponse(MeetingResponseStatus.SUCCESS, serverId(meetingCollectionId, meetingItemId));
+		return buildResponse(MeetingResponseStatus.SUCCESS, meetingCollectionId.serverId(meetingItemId));
 	}
 
 	private String buildMeetingResponseCommandInvalidRequest() throws TransformerException {
@@ -440,10 +441,10 @@ public class MeetingResponseHandlerTest {
 		return buildResponse(status, null);
 	}
 		
-	private String buildResponse(MeetingResponseStatus status, String calId) throws TransformerException {
+	private String buildResponse(MeetingResponseStatus status, ServerId serverId) throws TransformerException {
 		ItemChangeMeetingResponse itemChangeMeetingResponse = ItemChangeMeetingResponse.builder()
-			.reqId(serverId(invitationCollectionId, invitationItemId))
-			.calId(calId)
+			.reqId(invitationCollectionId.serverId(invitationItemId))
+			.calId(serverId)
 			.status(status)
 			.build();
 		
@@ -462,13 +463,10 @@ public class MeetingResponseHandlerTest {
 				"<MeetingResponse>" +
 					"<Request>" +
 						"<UserResponse>1</UserResponse>" + // MS-ASCMD 2.2.1.9.2.4 : 1 is SUCCESS
-						"<CollectionId>" + invitationCollectionId + "</CollectionId>" +
-						"<ReqId>" + serverId(invitationCollectionId, invitationItemId) + "</ReqId>" +
+						"<CollectionId>" + invitationCollectionId.asString() + "</CollectionId>" +
+						"<ReqId>" + invitationCollectionId.serverId(invitationItemId).asString() + "</ReqId>" +
 					"</Request>" +
 				"</MeetingResponse>");
 	}
 
-	private String serverId(int collectionId, int invitationId) {
-		return String.valueOf(collectionId) + ":" + String.valueOf(invitationId);
-	}
 }

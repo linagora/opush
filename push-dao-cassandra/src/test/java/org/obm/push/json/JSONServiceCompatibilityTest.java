@@ -285,7 +285,7 @@ public class JSONServiceCompatibilityTest {
 		msEvent.setUid(new MSEventUid("123"));
 		
 		ItemChange itemChange = ItemChange.builder()
-			.serverId(":33")
+			.serverId(CollectionId.of(1).serverId(33))
 			.isNew(true)
 			.data(msTask)
 			.build();
@@ -321,7 +321,7 @@ public class JSONServiceCompatibilityTest {
 						.status(SyncStatus.OBJECT_NOT_FOUND)
 						.clientId("1")
 						.type(SyncCommand.ADD)
-						.serverId("2")
+						.serverId(CollectionId.of(1).serverId(2))
 						.build())
 			.put(filename(MSContact.class), contact)
 			.put(filename(MSEmail.class), MSEmail.builder()
@@ -395,7 +395,7 @@ public class JSONServiceCompatibilityTest {
 			.put(filename(AnalysedSyncCollection.class), analysedSyncCollection)
 			.put(filename(MSEvent.class), msEvent)
 			.put(filename(ItemDeletion.class), ItemDeletion.builder()
-					.serverId("123")
+					.serverId(CollectionId.of(1).serverId(3))
 					.build())
 			.put(filename(ItemChange.class), itemChange)
 			.put(filename(WindowingContact.class), WindowingContact.builder().uid(102).applicationData(contact).build())

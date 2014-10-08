@@ -52,6 +52,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -590,7 +591,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Add>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 									"<ClientId>13579</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -610,7 +611,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId("13579")
 				.type(SyncCommand.ADD)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(expectedMSContact)
 				.build();
 
@@ -635,7 +636,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Add>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 									"<ClientId>13579</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -644,7 +645,7 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Add>" +
 								"<Add>" +
-									"<ServerId>456</ServerId>" +
+									"<ServerId>3:456</ServerId>" +
 									"<ClientId>02468</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush2@obm.org\"&lt;opush2@obm.org&gt;</Email1Address>" +
@@ -664,7 +665,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId("13579")
 				.type(SyncCommand.ADD)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(expectedMSContact)
 				.build();
 		
@@ -675,7 +676,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange2 = SyncCollectionCommand.builder()
 				.clientId("02468")
 				.type(SyncCommand.ADD)
-				.serverId("456")
+				.serverId(CollectionId.of(3).serverId(456))
 				.applicationData(expectedMSContact2)
 				.build();
 
@@ -701,7 +702,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Change>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 									"<ClientId>13579</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -721,7 +722,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId("13579")
 				.type(SyncCommand.CHANGE)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(expectedMSContact)
 				.build();
 
@@ -746,7 +747,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Change>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 									"<ClientId>13579</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -755,7 +756,7 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Change>" +
 								"<Change>" +
-									"<ServerId>456</ServerId>" +
+									"<ServerId>3:456</ServerId>" +
 									"<ClientId>02468</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush2@obm.org\"&lt;opush2@obm.org&gt;</Email1Address>" +
@@ -775,7 +776,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId("13579")
 				.type(SyncCommand.CHANGE)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(expectedMSContact)
 				.build();
 		
@@ -786,7 +787,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange2 = SyncCollectionCommand.builder()
 				.clientId("02468")
 				.type(SyncCommand.CHANGE)
-				.serverId("456")
+				.serverId(CollectionId.of(3).serverId(456))
 				.applicationData(expectedMSContact2)
 				.build();
 		
@@ -808,10 +809,10 @@ public class SyncProtocolTest {
 					"<Collections>" +
 						"<Collection>" +
 							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
-							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
+							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Fetch>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 								"</Fetch>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -821,7 +822,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.FETCH)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(null)
 				.build();
 
@@ -830,7 +831,7 @@ public class SyncProtocolTest {
 		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
 		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange);
-		assertThat(syncCollection.getFetchIds()).containsOnly("123");
+		assertThat(syncCollection.getFetchIds()).containsOnly(CollectionId.of(3).serverId(123));
 	}
 
 	@Test
@@ -846,10 +847,10 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Fetch>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>1:123</ServerId>" +
 								"</Fetch>" +
 								"<Fetch>" +
-									"<ServerId>456</ServerId>" +
+									"<ServerId>1:456</ServerId>" +
 								"</Fetch>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -859,13 +860,13 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.FETCH)
-				.serverId("123")
+				.serverId(CollectionId.of(1).serverId(123))
 				.applicationData(null)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionChange2 = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.FETCH)
-				.serverId("456")
+				.serverId(CollectionId.of(1).serverId(456))
 				.applicationData(null)
 				.build();
 
@@ -874,7 +875,7 @@ public class SyncProtocolTest {
 		assertThat(syncResponse.getCollectionResponses()).hasSize(1);
 		SyncCollectionResponse syncCollection = Iterables.getOnlyElement(syncResponse.getCollectionResponses());
 		assertThat(syncCollection.getCommands().getCommands()).containsOnly(expectedSyncCollectionChange, expectedSyncCollectionChange2);
-		assertThat(syncCollection.getFetchIds()).containsOnly("123", "456");
+		assertThat(syncCollection.getFetchIds()).containsOnly(CollectionId.of(1).serverId(123), CollectionId.of(1).serverId(456));
 	}
 
 	@Test
@@ -890,7 +891,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Delete>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 								"</Delete>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -900,7 +901,7 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.DELETE)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(null)
 				.build();
 
@@ -924,10 +925,10 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Delete>" +
-									"<ServerId>123</ServerId>" +
+									"<ServerId>3:123</ServerId>" +
 								"</Delete>" +
 								"<Delete>" +
-									"<ServerId>456</ServerId>" +
+									"<ServerId>3:456</ServerId>" +
 								"</Delete>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -937,13 +938,13 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.DELETE)
-				.serverId("123")
+				.serverId(CollectionId.of(3).serverId(123))
 				.applicationData(null)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionChange2 = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.DELETE)
-				.serverId("456")
+				.serverId(CollectionId.of(3).serverId(456))
 				.applicationData(null)
 				.build();
 
@@ -968,7 +969,7 @@ public class SyncProtocolTest {
 							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
 							"<Commands>" +
 								"<Add>" +
-									"<ServerId>12</ServerId>" +
+									"<ServerId>3:12</ServerId>" +
 									"<ClientId>120</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -977,7 +978,7 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Add>" +
 								"<Add>" +
-									"<ServerId>13</ServerId>" +
+									"<ServerId>3:13</ServerId>" +
 									"<ClientId>130</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -986,7 +987,7 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Add>" +
 								"<Change>" +
-									"<ServerId>34</ServerId>" +
+									"<ServerId>3:34</ServerId>" +
 									"<ClientId>340</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -995,7 +996,7 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Change>" +
 								"<Change>" +
-									"<ServerId>35</ServerId>" +
+									"<ServerId>3:35</ServerId>" +
 									"<ClientId>350</ClientId>" +
 									"<ApplicationData>" +
 										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
@@ -1004,16 +1005,16 @@ public class SyncProtocolTest {
 									"</ApplicationData>" +
 								"</Change>" +
 								"<Fetch>" +
-									"<ServerId>56</ServerId>" +
+									"<ServerId>3:56</ServerId>" +
 								"</Fetch>" +
 								"<Fetch>" +
-									"<ServerId>57</ServerId>" +
+									"<ServerId>3:57</ServerId>" +
 								"</Fetch>" +
 								"<Delete>" +
-									"<ServerId>78</ServerId>" +
+									"<ServerId>3:78</ServerId>" +
 								"</Delete>" +
 								"<Delete>" +
-									"<ServerId>79</ServerId>" +
+									"<ServerId>3:79</ServerId>" +
 								"</Delete>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -1027,49 +1028,49 @@ public class SyncProtocolTest {
 		SyncCollectionCommand expectedSyncCollectionAdd = SyncCollectionCommand.builder()
 				.clientId("120")
 				.type(SyncCommand.ADD)
-				.serverId("12")
+				.serverId(CollectionId.of(3).serverId(12))
 				.applicationData(expectedMSContact)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionAdd2 = SyncCollectionCommand.builder()
 				.clientId("130")
 				.type(SyncCommand.ADD)
-				.serverId("13")
+				.serverId(CollectionId.of(3).serverId(13))
 				.applicationData(expectedMSContact)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionChange = SyncCollectionCommand.builder()
 				.clientId("340")
 				.type(SyncCommand.CHANGE)
-				.serverId("34")
+				.serverId(CollectionId.of(3).serverId(34))
 				.applicationData(expectedMSContact)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionChange2 = SyncCollectionCommand.builder()
 				.clientId("350")
 				.type(SyncCommand.CHANGE)
-				.serverId("35")
+				.serverId(CollectionId.of(3).serverId(35))
 				.applicationData(expectedMSContact)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionFetch = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.FETCH)
-				.serverId("56")
+				.serverId(CollectionId.of(3).serverId(56))
 				.applicationData(null)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionFetch2 = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.FETCH)
-				.serverId("57")
+				.serverId(CollectionId.of(3).serverId(57))
 				.applicationData(null)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionDelete = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.DELETE)
-				.serverId("78")
+				.serverId(CollectionId.of(3).serverId(78))
 				.applicationData(null)
 				.build();
 		SyncCollectionCommand expectedSyncCollectionDelete2 = SyncCollectionCommand.builder()
 				.clientId(null)
 				.type(SyncCommand.DELETE)
-				.serverId("79")
+				.serverId(CollectionId.of(3).serverId(79))
 				.applicationData(null)
 				.build();
 		
@@ -1082,7 +1083,7 @@ public class SyncProtocolTest {
 				expectedSyncCollectionChange, expectedSyncCollectionChange2,
 				expectedSyncCollectionFetch,  expectedSyncCollectionFetch2,
 				expectedSyncCollectionDelete, expectedSyncCollectionDelete2);
-		assertThat(syncCollection.getFetchIds()).containsOnly("56", "57");
+		assertThat(syncCollection.getFetchIds()).containsOnly(CollectionId.of(3).serverId(56), CollectionId.of(3).serverId(57));
 	}
 
 	@Test
@@ -1249,7 +1250,7 @@ public class SyncProtocolTest {
 	public void encodeAddCommand() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		MSContact contact = new MSContact();
 		contact.setEmail1Address("opush@obm.org");
 		contact.setFileAs("Dobney, JoLynn Julie");
@@ -1284,7 +1285,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Add>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<ApplicationData>" +
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
 										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
@@ -1308,7 +1309,7 @@ public class SyncProtocolTest {
 	public void encodeDeleteCommand() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		MSContact contact = new MSContact();
 		contact.setEmail1Address("opush@obm.org");
 		contact.setFileAs("Dobney, JoLynn Julie");
@@ -1342,7 +1343,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Delete>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 								"</Delete>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -1357,7 +1358,7 @@ public class SyncProtocolTest {
 	public void encodeChangeCommand() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		String clientId = "123";
 		MSContact contact = new MSContact();
 		contact.setEmail1Address("opush@obm.org");
@@ -1394,7 +1395,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Commands>" +
 								"<Change>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<ApplicationData>" +
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
 										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
@@ -1418,7 +1419,7 @@ public class SyncProtocolTest {
 	public void encodeAddResponse() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		String clientId = "123";
 		
 		SyncResponse syncResponse = SyncResponse.builder()
@@ -1447,7 +1448,7 @@ public class SyncProtocolTest {
 							"<Responses>" +
 								"<Add>" +
 									"<ClientId>" + clientId + "</ClientId>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<Status>6</Status>" +
 								"</Add>" +
 							"</Responses>" +
@@ -1463,7 +1464,7 @@ public class SyncProtocolTest {
 	public void encodeDeleteResponse() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		
 		SyncResponse syncResponse = SyncResponse.builder()
 			.status(SyncStatus.OK)
@@ -1490,7 +1491,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Delete>" +
-								"<ServerId>" + serverId + "</ServerId>" +
+								"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<Status>6</Status>" +
 								"</Delete>" +
 							"</Responses>" +
@@ -1506,7 +1507,7 @@ public class SyncProtocolTest {
 	public void encodeChangeResponse() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		
 		SyncResponse syncResponse = SyncResponse.builder()
 			.status(SyncStatus.OK)
@@ -1533,7 +1534,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Change>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<Status>6</Status>" +
 								"</Change>" +
 							"</Responses>" +
@@ -1549,7 +1550,7 @@ public class SyncProtocolTest {
 	public void encodeFetchResponse() throws Exception {
 		CollectionId collectionId = CollectionId.of(3);
 		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
-		String serverId = "3:6";
+		ServerId serverId = collectionId.serverId(6);
 		MSContact contact = new MSContact();
 		contact.setEmail1Address("opush@obm.org");
 		contact.setFileAs("Dobney, JoLynn Julie");
@@ -1580,7 +1581,7 @@ public class SyncProtocolTest {
 							"<Status>1</Status>" +
 							"<Responses>" +
 								"<Fetch>" +
-									"<ServerId>" + serverId + "</ServerId>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
 									"<Status>6</Status>" +
 									"<ApplicationData>" +
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +

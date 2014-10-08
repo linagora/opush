@@ -149,14 +149,14 @@ public class BeansTest {
 							SyncCollectionCommand.builder()
 								.clientId("1")
 								.type(SyncCommand.ADD)
-								.serverId("2")
+								.serverId(CollectionId.of(1).serverId(2))
 								.build()), 
 					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
 							SyncCommand.CHANGE,
 							SyncCollectionCommand.builder()
 								.clientId("3")
 								.type(SyncCommand.CHANGE)
-								.serverId("4")
+								.serverId(CollectionId.of(1).serverId(4))
 								.build())) 
 			.verify();
 	}

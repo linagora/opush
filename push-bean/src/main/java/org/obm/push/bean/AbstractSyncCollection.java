@@ -79,12 +79,12 @@ public abstract class AbstractSyncCollection<T extends SyncCollectionCommands> i
 		return commands;
 	}
 
-	public List<String> getFetchIds() {
+	public List<ServerId> getFetchIds() {
 		return FluentIterable.from(
 				commands.getCommandsForType(SyncCommand.FETCH))
-				.transform(new Function<SyncCollectionCommand, String>() {
+				.transform(new Function<SyncCollectionCommand, ServerId>() {
 					@Override
-					public String apply(SyncCollectionCommand input) {
+					public ServerId apply(SyncCollectionCommand input) {
 						return input.getServerId();
 					}
 				}).toList();

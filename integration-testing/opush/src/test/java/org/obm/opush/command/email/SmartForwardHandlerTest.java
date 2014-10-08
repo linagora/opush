@@ -111,7 +111,7 @@ public class SmartForwardHandlerTest {
 		
 		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1);
-		serverId = new ServerId(inboxCollectionId.serverId(1l));
+		serverId = inboxCollectionId.serverId(1);
 		
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		UserClient userClient = classToInstanceMap.get(UserClient.class);

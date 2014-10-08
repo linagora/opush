@@ -40,6 +40,7 @@ import org.obm.push.backend.CollectionPath;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
@@ -65,14 +66,11 @@ public interface MappingService {
 	List<ItemDeletion> buildItemsToDeleteFromUids(CollectionId collectionId,
 			Collection<Long> uids);
 
-	String getServerIdFor(CollectionId collectionId, String clientId);
-	
-	Integer getItemIdFromServerId(String serverId);
-
-	CollectionId getCollectionIdFromServerId(String serverId);
+	ServerId getServerIdFor(CollectionId collectionId, String clientId);
 	
 	List<CollectionPath> listCollections(UserDataRequest udr, FolderSyncState folderSyncState) throws DaoException;
 
 	void snapshotCollections(FolderSyncState outgoingSyncState, Set<CollectionId> collectionIds)
 			throws DaoException;
+
 }

@@ -34,6 +34,7 @@ package org.obm.push.bean.change.item;
 import java.io.Serializable;
 
 import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.ms.MSEmail;
 
 import com.google.common.base.Objects;
@@ -48,7 +49,7 @@ public class ItemChange implements ASItem, Serializable {
 	
 	public static class Builder {
 		private IApplicationData data;
-		private String serverId;
+		private ServerId serverId;
 		private boolean isNew;
 		
 		private Builder() {
@@ -59,7 +60,7 @@ public class ItemChange implements ASItem, Serializable {
 			return this;
 		}
 		
-		public Builder serverId(String serverId) {
+		public Builder serverId(ServerId serverId) {
 			this.serverId = serverId;
 			return this;
 		}
@@ -75,17 +76,17 @@ public class ItemChange implements ASItem, Serializable {
 	}
 	
 	private final IApplicationData data;
-	private final String serverId;
+	private final ServerId serverId;
 	private final boolean isNew;
 
-	private ItemChange(IApplicationData data, String serverId, boolean isNew) {
+	private ItemChange(IApplicationData data, ServerId serverId, boolean isNew) {
 		this.data = data;
 		this.serverId = serverId;
 		this.isNew = isNew;
 	}
 	
 	@Override
-	public String getServerId() {
+	public ServerId getServerId() {
 		return serverId;
 	}
 

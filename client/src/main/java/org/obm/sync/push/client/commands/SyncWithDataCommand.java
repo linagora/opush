@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
@@ -66,13 +67,13 @@ public class SyncWithDataCommand extends SyncWithCommand {
 		}
 		
 		public SyncWithDataCommand create(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-				String serverId, String clientId, IApplicationData data, Device device) throws SAXException, IOException {
+				ServerId serverId, String clientId, IApplicationData data, Device device) throws SAXException, IOException {
 			return new SyncWithDataCommand(decoder, syncKey, collectionId, command, serverId, clientId, data, encoderFactory, device);
 		}
 	}
 	
 	private SyncWithDataCommand(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-			String serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
+			ServerId serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
 					throws SAXException, IOException {
 		super(decoder, new SyncWithCommandDataTemplate(syncKey, collectionId, command, serverId, clientId, data, encoders, device));
 	}
@@ -84,7 +85,7 @@ public class SyncWithDataCommand extends SyncWithCommand {
 		private final Device device;
 
 		protected SyncWithCommandDataTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-				String serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
+				ServerId serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
 				throws SAXException, IOException {
 			super(syncKey, collectionId, command, serverId, clientId);
 			this.data = data;

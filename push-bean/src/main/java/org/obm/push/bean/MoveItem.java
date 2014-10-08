@@ -42,13 +42,13 @@ public class MoveItem {
 	}
 	
 	public static class Builder {
-		private String sourceMessageId;
+		private ServerId sourceMessageId;
 		private CollectionId sourceFolderId;
 		private CollectionId destinationFolderId;
 
 		private Builder() {}
 		
-		public Builder sourceMessageId(String sourceMessageId) {
+		public Builder sourceMessageId(ServerId sourceMessageId) {
 			this.sourceMessageId = sourceMessageId;
 			return this;
 		}
@@ -68,17 +68,17 @@ public class MoveItem {
 		}
 	}
 	
-	private final String sourceMessageId;
+	private final ServerId sourceMessageId;
 	private final CollectionId sourceFolderId;
 	private final CollectionId destinationFolderId;
 
-	private MoveItem(String sourceMessageId, CollectionId sourceFolderId, CollectionId destinationFolderId) {
+	private MoveItem(ServerId sourceMessageId, CollectionId sourceFolderId, CollectionId destinationFolderId) {
 		this.sourceMessageId = sourceMessageId;
 		this.sourceFolderId = sourceFolderId;
 		this.destinationFolderId = destinationFolderId;
 	}
 	
-	public String getSourceMessageId() {
+	public ServerId getSourceMessageId() {
 		return sourceMessageId;
 	}
 

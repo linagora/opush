@@ -146,7 +146,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		DOMUtils.createElementAndText(root, "Status", error);
 		return ret;
 	}
-	
+
 	private void serializeChange(Device device, Element col, IApplicationData applicationData) throws IOException {
 		if (applicationData != null) {
 			Element apData = DOMUtils.createElement(col, "ApplicationData");
@@ -166,7 +166,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		for (ItemChange itemChange : collectionResponse.getItemChanges()) {
 			String commandName = selectCommandName(itemChange);
 			Element command = DOMUtils.createElement(commands, commandName);
-			DOMUtils.createElementAndText(command, "ServerId", itemChange.getServerId());
+			DOMUtils.createElementAndText(command, "ServerId", itemChange.getServerId().asString());
 			serializeChange(device, command, itemChange.getData());
 		}
 
@@ -177,23 +177,23 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 			case ADD:
 				Element add = DOMUtils.createElement(responses, "Add");
 				DOMUtils.createElementAndText(add, "ClientId", responseToClientCommand.getClientId());
-				DOMUtils.createElementAndText(add, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(add, "ServerId", responseToClientCommand.getServerId().asString());
 				DOMUtils.createElementAndText(add, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case CHANGE:
 			case MODIFY:
 				Element change = DOMUtils.createElement(responses, "Change");
-				DOMUtils.createElementAndText(change, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(change, "ServerId", responseToClientCommand.getServerId().asString());
 				DOMUtils.createElementAndText(change, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case DELETE:
 				Element delete = DOMUtils.createElement(responses, "Delete");
-				DOMUtils.createElementAndText(delete, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(delete, "ServerId", responseToClientCommand.getServerId().asString());
 				DOMUtils.createElementAndText(delete, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				break;
 			case FETCH:
 				Element fetch = DOMUtils.createElement(responses, "Fetch");
-				DOMUtils.createElementAndText(fetch, "ServerId", responseToClientCommand.getServerId());
+				DOMUtils.createElementAndText(fetch, "ServerId", responseToClientCommand.getServerId().asString());
 				DOMUtils.createElementAndText(fetch, "Status", responseToClientCommand.getStatus().asSpecificationValue());
 				serializeChange(device, fetch, responseToClientCommand.getApplicationData());
 				break;
@@ -218,7 +218,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 	
 	private static void serializeDeletion(Element commands, ItemDeletion deletion) {
 		Element del = DOMUtils.createElement(commands, "Delete");
-		DOMUtils.createElementAndText(del, "ServerId", deletion.getServerId());
+		DOMUtils.createElementAndText(del, "ServerId", deletion.getServerId().asString());
 	}
 
 	@Override

@@ -199,8 +199,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, allocatedState, inboxCollectionId);
 
 		 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -271,8 +271,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -335,10 +335,10 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, new ServerId(inboxCollectionId.serverId(3)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, new ServerId(inboxCollectionId.serverId(4)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, inboxCollectionId.serverId(3))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, inboxCollectionId.serverId(4))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -402,7 +402,7 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
@@ -470,8 +470,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
@@ -539,8 +539,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKey)).andReturn(currentAllocatedState);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -595,8 +595,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
@@ -616,7 +616,7 @@ public class MailBackendGetChangedTest {
 		List<SyncCollectionCommand> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
 		assertThat(deletions).hasSize(1);
 		SyncCollectionCommand deletion = deletions.get(0);
-		assertThat(deletion.getServerId()).isEqualTo("1234:1");
+		assertThat(deletion.getServerId()).isEqualTo(CollectionId.of(1234).serverId(1));
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 	}
 	
@@ -657,9 +657,9 @@ public class MailBackendGetChangedTest {
 		expect(collectionDao.updateState(user.device, inboxCollectionId, newAllocatedSyncKey, secondAllocatedState.getSyncDate()))
 			.andReturn(newAllocatedState);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(3)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(4)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(3))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(4))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -725,8 +725,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
@@ -744,7 +744,7 @@ public class MailBackendGetChangedTest {
 		SyncCollectionResponse inboxResponse = getCollectionWithId(syncResponse, inboxCollectionId);
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 		List<ServerId> deletions = inboxResponse.getResponses().deletions();
-		assertThat(deletions).containsOnly(new ServerId(inboxCollectionId.serverId(emailId1)));
+		assertThat(deletions).containsOnly(inboxCollectionId.serverId(emailId1));
 	}
 
 	@Test
@@ -798,9 +798,9 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformInitialSync(firstAllocatedStateTrash, trashCollectionId);
 		expect(collectionDao.findItemStateForKey(secondAllocatedSyncKeyTrash)).andReturn(firstAllocatedStateTrash);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(emailId1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(emailId2)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedStateTrash, new ServerId(trashCollectionId.serverId(trashEmailId)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(emailId1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(emailId2))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedStateTrash, trashCollectionId.serverId(trashEmailId))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
@@ -865,8 +865,8 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(true);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(currentAllocatedState, inboxCollectionId.serverId(1))).andReturn(true);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -938,11 +938,11 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		String serverId = inboxCollectionId.serverId(1);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(serverId))).andReturn(false);
+		ServerId serverId = inboxCollectionId.serverId(1);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
-		itemTrackingDao.markAsDeleted(newAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		itemTrackingDao.markAsDeleted(newAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
 		mocksControl.replay();
@@ -1054,7 +1054,7 @@ public class MailBackendGetChangedTest {
 
 	@Test
 	public void testFetchCommandGenerateSyncKey() throws Exception {
-		String emailId = "1";
+		int emailId = 1;
 		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
 		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
@@ -1089,7 +1089,7 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, currentAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, currentAllocatedState, newAllocatedState, inboxCollectionId);
 
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(emailId)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(emailId))).andReturn(false);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
@@ -1103,7 +1103,7 @@ public class MailBackendGetChangedTest {
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 
-		String serverId = inboxCollectionId.serverId(1);
+		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.syncWithCommand(
 				decoder, secondAllocatedSyncKey, inboxCollectionId, SyncCommand.FETCH, serverId);
 		
@@ -1166,11 +1166,11 @@ public class MailBackendGetChangedTest {
 		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 		expectCollectionDaoPerformSync(thirdAllocatedSyncKey, thirdAllocatedState, lastAllocatedState, inboxCollectionId);
 		
-		String serverId = inboxCollectionId.serverId(emailId);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(serverId))).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		ServerId serverId = inboxCollectionId.serverId(emailId);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().anyTimes();
-		itemTrackingDao.markAsDeleted(lastAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		itemTrackingDao.markAsDeleted(lastAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
 		sendNEmailsToImapServer(1);

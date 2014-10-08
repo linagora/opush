@@ -35,6 +35,7 @@ import javax.naming.NoPermissionException;
 
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
@@ -50,15 +51,15 @@ import org.obm.push.protocol.bean.CollectionId;
 
 public interface IContentsImporter {
 
-	String importMessageChange(UserDataRequest udr, CollectionId collectionId, String serverId, String clientId, IApplicationData data)
+	ServerId importMessageChange(UserDataRequest udr, CollectionId collectionId, ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException, ItemNotFoundException,
 			ConversionException, HierarchyChangedException, NoPermissionException;
 
-	void importMessageDeletion(UserDataRequest udr, PIMDataType type, CollectionId collectionId, String serverId, Boolean moveToTrash) 
+	void importMessageDeletion(UserDataRequest udr, PIMDataType type, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException,
 			ItemNotFoundException, UnsupportedBackendFunctionException;
 
-	String importMoveItem(UserDataRequest udr, PIMDataType type, String srcFolder, String dstFolder, String messageId)
+	ServerId importMoveItem(UserDataRequest udr, PIMDataType type, String srcFolder, String dstFolder, ServerId messageId)
 			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnsupportedBackendFunctionException;
 
 	void emptyFolderContent(UserDataRequest udr, String collectionPath, boolean deleteSubFolder) 

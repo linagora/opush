@@ -54,6 +54,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -373,8 +374,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
-			String serverId, String clientId, IApplicationData data)
+	public ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
+			ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException,
 			DaoException, UnexpectedObmSyncServerException,
 			ItemNotFoundException, NoPermissionException {
@@ -394,13 +395,13 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		
 	}
 
-	private Contact convertContact(String serverId, MSContact contact) {
+	private Contact convertContact(ServerId serverId, MSContact contact) {
 		if (serverId == null) {
 			return contactConverter.contact(contact);
 		}
 		
 		Contact convertedContact = contactConverter.contact(contact);
-		convertedContact.setUid(mappingService.getItemIdFromServerId(serverId));
+		convertedContact.setUid(serverId.getItemId());
 		return convertedContact;
 	}
 
@@ -423,11 +424,11 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException {
 		
-		Integer contactId = mappingService.getItemIdFromServerId(serverId);
+		Integer contactId = serverId.getItemId();
 		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 		try {
 			removeContact(addressBookId, contactId);
@@ -450,7 +451,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException {
 	
@@ -458,14 +459,14 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		
 		List<ItemChange> ret = new LinkedList<ItemChange>();
-		for (String serverId: fetchServerIds) {
+		for (ServerId serverId: fetchServerIds) {
 			try {
 
-				Integer contactId = mappingService.getItemIdFromServerId(serverId);
+				Integer contactId = serverId.getItemId();
 				Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 				
 				Contact contact = getContactFromId(addressBookId, contactId);
@@ -494,8 +495,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public String move(UserDataRequest udr, String srcFolder, String dstFolder,
-			String messageId) throws CollectionNotFoundException,
+	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+			ServerId messageId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
 	}

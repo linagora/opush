@@ -86,7 +86,7 @@ public abstract class SmartEmailCommand implements IEasCommand<Boolean> {
 			.append("&CollectionId=")
 			.append(collectionId.asString())
 			.append("&ItemId=")
-			.append(serverId.toString())
+			.append(serverId.asString())
 			.append("&SaveInSent=T")
 			.toString();
 	}

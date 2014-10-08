@@ -167,7 +167,7 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 
 					@Override
 					public ServerId apply(SyncCollectionCommand SyncCollectionCommand) {
-						return new ServerId(SyncCollectionCommand.getServerId());
+						return SyncCollectionCommand.getServerId();
 					}
 				}).toList();
 	}

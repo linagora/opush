@@ -141,12 +141,12 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 		return responses;
 	}
 
-	public List<String> getResponseFetchIds() {
+	public List<ServerId> getResponseFetchIds() {
 		return FluentIterable.from(
 				responses.getCommandsForType(SyncCommand.FETCH))
-				.transform(new Function<SyncCollectionCommand, String>() {
+				.transform(new Function<SyncCollectionCommand, ServerId>() {
 					@Override
-					public String apply(SyncCollectionCommand input) {
+					public ServerId apply(SyncCollectionCommand input) {
 						return input.getServerId();
 					}
 				}).toList();

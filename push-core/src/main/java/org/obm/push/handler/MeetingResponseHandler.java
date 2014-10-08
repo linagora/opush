@@ -40,6 +40,7 @@ import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.MeetingResponse;
 import org.obm.push.bean.MeetingResponseStatus;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.exception.ConversionException;
@@ -174,7 +175,7 @@ public class MeetingResponseHandler extends WbxmlRequestHandler {
 
 	private void handleEmail(UserDataRequest udr, MeetingResponse item, ItemChangeMeetingResponse.Builder builder) {
 		try {
-			String serverId = handle(udr, item);
+			ServerId serverId = handle(udr, item);
 			builder.status(MeetingResponseStatus.SUCCESS);
 			
 			if (!AttendeeStatus.DECLINE.equals(item.getUserResponse())) {
@@ -204,7 +205,7 @@ public class MeetingResponseHandler extends WbxmlRequestHandler {
 		}
 	}
 
-	private String handle(UserDataRequest udr, MeetingResponse item) 
+	private ServerId handle(UserDataRequest udr, MeetingResponse item) 
 			throws ConversionException, CollectionNotFoundException, ItemNotFoundException, UnexpectedObmSyncServerException, DaoException, HierarchyChangedException, ICalendarConverterException {
 		
 		Object invitation = mailBackend.getInvitation(udr, item.getCollectionId(), item.getReqId());

@@ -60,6 +60,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -98,7 +99,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Ints;
 
 
 public class MailboxBackendTest {
@@ -154,16 +154,14 @@ public class MailboxBackendTest {
 	
 	@Test
 	public void fetchShouldQuietlyIgnoreMissingEmail() throws Exception {
-		long itemId = 2;
+		int itemId = 2;
 		CollectionId collectionId = CollectionId.of(1);
-		String serverId = collectionId.asString() + ":" + itemId;
+		ServerId serverId = collectionId.serverId(itemId);
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
 
 		expect(mailboxService.fetchEmailMetadata(udr, collectionPath, itemId)).andThrow(new ItemNotFoundException("failure"));
-		expect(mappingService.getCollectionIdFromServerId(serverId)).andReturn(collectionId);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(Ints.checkedCast(itemId));
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		
 		mocks.replay();
@@ -175,9 +173,9 @@ public class MailboxBackendTest {
 
 	@Test
 	public void testFetchMimeSinglePartBase64Email() throws Exception {
-		long itemId = 2;
+		int itemId = 2;
 		CollectionId collectionId = CollectionId.of(1);
-		String serverId = collectionId.asString() + ":" + itemId;
+		ServerId serverId = collectionId.serverId(itemId);
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 		String collectionPath = "INBOX";
@@ -187,8 +185,6 @@ public class MailboxBackendTest {
 		expect(transformer.transform(mailStream, Charsets.UTF_8)).andReturn(mailStream);
 		
 		mockMailboxServiceFetchFullMail(mailStream, itemId, collectionPath);
-		expect(mappingService.getCollectionIdFromServerId(serverId)).andReturn(collectionId);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(Ints.checkedCast(itemId));
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
 		
@@ -225,7 +221,7 @@ public class MailboxBackendTest {
 	public void testFetchTextPlainSinglePartBase64Email() throws Exception {
 		int itemId = 2;
 		CollectionId collectionId = CollectionId.of(1);
-		String serverId = collectionId.asString() + ":" + itemId;
+		ServerId serverId = collectionId.serverId(itemId);
 		String collectionPath = "INBOX";
 
 		InputStream mailStream = loadEmail("SinglePartBase64.eml");
@@ -233,8 +229,6 @@ public class MailboxBackendTest {
 		expect(transformer.transform(mailStream, Charsets.UTF_8)).andReturn(mailStream);
 		
 		mockMailboxServiceFetchFullMail(mailStream, itemId, collectionPath);
-		expect(mappingService.getCollectionIdFromServerId(serverId)).andReturn(collectionId);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(Ints.checkedCast(itemId));
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
 		
@@ -288,7 +282,7 @@ public class MailboxBackendTest {
 	public void testFetchWithoutCorrespondingBodyPreference() throws Exception {
 		int itemId = 2;
 		CollectionId collectionId = CollectionId.of(1);
-		String serverId = collectionId.asString() + ":" + itemId;
+		ServerId serverId = collectionId.serverId(itemId);
 		String collectionPath = "INBOX";
 
 		final Capture<InputStream> capturedStream = new Capture<InputStream>();
@@ -303,8 +297,6 @@ public class MailboxBackendTest {
 			});
 
 		mockMailboxServiceFetchFullMailWithMimePartAddress(loadEmail("OBMFULL-4123.eml"), itemId, collectionPath);
-		expect(mappingService.getCollectionIdFromServerId(serverId)).andReturn(collectionId);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(Ints.checkedCast(itemId));
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
 		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
 		

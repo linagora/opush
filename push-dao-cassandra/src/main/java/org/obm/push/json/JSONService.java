@@ -51,6 +51,7 @@ import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommands;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
@@ -84,6 +85,7 @@ import org.obm.push.json.mixin.MSEventUidMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestCategoryMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestRecurrenceMixIn;
+import org.obm.push.json.mixin.ServerIdMixIn;
 import org.obm.push.json.mixin.SnapshotMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsMixIn;
@@ -214,6 +216,7 @@ public class JSONService {
 			.setMixInAnnotation(MSMeetingRequestCategory.class, MSMeetingRequestCategoryMixIn.class)
 			.setMixInAnnotation(MSMeetingRequest.class, MSMeetingRequestMixIn.class)
 			.setMixInAnnotation(MSMeetingRequestRecurrence.class, MSMeetingRequestRecurrenceMixIn.class)
+			.setMixInAnnotation(ServerId.class, ServerIdMixIn.class)
 			.setMixInAnnotation(Snapshot.class, SnapshotMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommand.class, SyncCollectionCommandMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommands.class, SyncCollectionCommandsMixIn.class)

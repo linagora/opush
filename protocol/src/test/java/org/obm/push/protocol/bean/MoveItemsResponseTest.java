@@ -52,16 +52,16 @@ public class MoveItemsResponseTest {
 		MoveItemsResponse response = MoveItemsResponse.builder()
 			.add(MoveItemsItem.builder()
 				.itemStatus(MoveItemsStatus.SUCCESS)
-				.newDstId("dest1")
-				.sourceMessageId("1").build())
+				.newDstId(CollectionId.of(2).serverId(2))
+				.sourceMessageId(CollectionId.of(1).serverId(2)).build())
 			.add(MoveItemsItem.builder()
 				.itemStatus(MoveItemsStatus.SERVER_ERROR)
-				.newDstId("dest2")
-				.sourceMessageId("2").build())
+				.newDstId(CollectionId.of(2).serverId(3))
+				.sourceMessageId(CollectionId.of(1).serverId(3)).build())
 			.add(MoveItemsItem.builder()
 				.itemStatus(MoveItemsStatus.ITEM_ALREADY_EXISTS_AT_DESTINATION)
-				.newDstId("dest3")
-				.sourceMessageId("3").build())
+				.newDstId(CollectionId.of(2).serverId(4))
+				.sourceMessageId(CollectionId.of(1).serverId(4)).build())
 			.build();
 
 		assertThat(response.getSummary()).isEqualTo(

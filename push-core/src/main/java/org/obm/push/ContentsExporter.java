@@ -40,6 +40,7 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
@@ -98,7 +99,7 @@ public class ContentsExporter implements IContentsExporter {
 	
 	@Override
 	public Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, CollectionId collectionId, 
-			SyncCollectionOptions options, String fetchId, SyncKey newSyncKey) 
+			SyncCollectionOptions options, ServerId fetchId, SyncKey newSyncKey) 
 					throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException {
 		
 		PIMBackend backend = backends.getBackend(dataType);

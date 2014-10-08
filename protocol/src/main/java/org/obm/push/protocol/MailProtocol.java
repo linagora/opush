@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.MailRequestStatus;
+import org.obm.push.bean.ServerId;
 import org.obm.push.exception.QuotaExceededException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MailRequest;
@@ -66,7 +67,7 @@ public class MailProtocol {
 
 	public MailRequest getRequest(ActiveSyncRequest request) throws IOException, QuotaExceededException {
 		CollectionId collectionId = request.<CollectionId>getParameter("CollectionId");
-		String serverId = request.<String>getParameter("ItemId");
+		ServerId serverId = request.<ServerId>getParameter("ItemId");
 		byte[] mailContent = streamBytes(request.getInputStream());
 		return new MailRequest(collectionId, serverId, getSaveInSentParameter(request) , mailContent);
 	}

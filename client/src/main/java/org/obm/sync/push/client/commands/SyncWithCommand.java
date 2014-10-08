@@ -33,6 +33,7 @@ package org.obm.sync.push.client.commands;
 
 import java.io.IOException;
 
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
@@ -49,7 +50,7 @@ import com.google.common.base.Strings;
 public class SyncWithCommand extends Sync {
 	
 	public SyncWithCommand(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-			String serverId, String clientId) throws SAXException, IOException {
+			ServerId serverId, String clientId) throws SAXException, IOException {
 		this(decoder, new SyncWithCommandTemplate(syncKey, collectionId, command, serverId, clientId));
 	}
 	
@@ -62,11 +63,11 @@ public class SyncWithCommand extends Sync {
 		protected final SyncKey syncKey;
 		protected final CollectionId collectionId;
 		protected final SyncCommand command;
-		protected final String serverId;
+		protected final ServerId serverId;
 		protected final String clientId;
 
 		protected SyncWithCommandTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-				String serverId, String clientId) throws SAXException, IOException {
+				ServerId serverId, String clientId) throws SAXException, IOException {
 			super("SyncWithCommandRequest.xml");
 			this.syncKey = syncKey;
 			this.collectionId = collectionId;
@@ -84,8 +85,8 @@ public class SyncWithCommand extends Sync {
 			
 			Element commandsEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COMMANDS.getName());
 			Element commandEl = DOMUtils.createElement(commandsEl, command.asSpecificationValue());
-			if (!Strings.isNullOrEmpty(serverId)) {
-				DOMUtils.createElementAndText(commandEl, SyncRequestFields.SERVER_ID.getName(), serverId);
+			if (serverId != null) {
+				DOMUtils.createElementAndText(commandEl, SyncRequestFields.SERVER_ID.getName(), serverId.asString());
 			}
 			if (!Strings.isNullOrEmpty(clientId)) {
 				DOMUtils.createElementAndText(commandEl, SyncRequestFields.CLIENT_ID.getName(), clientId);

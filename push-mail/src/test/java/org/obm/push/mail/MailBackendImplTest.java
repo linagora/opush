@@ -63,6 +63,7 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -95,6 +96,7 @@ import org.obm.push.utils.DateUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 
 
 public class MailBackendImplTest {
@@ -178,8 +180,8 @@ public class MailBackendImplTest {
 		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
 		expect(changesBuilder.build()).andReturn(emailChanges);
 		
-		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":" + 245).isNew(true).data(email1Data).build();
-		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":" + 546).isNew(true).data(email2Data).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId.serverId(245)).isNew(true).data(email1Data).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId.serverId(546)).isNew(true).data(email2Data).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 			.changes(ImmutableList.of(itemChange1, itemChange2))
 			.build();
@@ -372,10 +374,10 @@ public class MailBackendImplTest {
 
 	private ImmutableList<ItemChange> itemChanges(Email modifiedEmail, Email newEmail) {
 		ItemChange changeItemChange = ItemChange.builder()
-			.serverId(collectionPath + ":" + modifiedEmail.getUid())
+			.serverId(collectionId.serverId(Ints.checkedCast(modifiedEmail.getUid())))
 			.build();
 		ItemChange newItemChange = ItemChange.builder()
-			.serverId(collectionPath + ":" + newEmail.getUid())
+			.serverId(collectionId.serverId(Ints.checkedCast(newEmail.getUid())))
 			.build();
 		ImmutableList<ItemChange> itemChanges = ImmutableList.<ItemChange> of(changeItemChange, newItemChange);
 		return itemChanges;
@@ -383,7 +385,7 @@ public class MailBackendImplTest {
 
 	private ImmutableList<ItemDeletion> itemDeletions(Email deletedEmail) {
 		ItemDeletion deletedItemDeletion = ItemDeletion.builder()
-				.serverId(collectionPath + ":" + deletedEmail.getUid())
+				.serverId(collectionId.serverId(Ints.checkedCast(deletedEmail.getUid())))
 				.build();
 		ImmutableList<ItemDeletion> itemDeletions = ImmutableList.<ItemDeletion> of(deletedItemDeletion);
 		return itemDeletions;
@@ -561,8 +563,8 @@ public class MailBackendImplTest {
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
-		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":546").data(itemChangeData2).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId.serverId(245)).data(itemChangeData1).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId.serverId(546)).data(itemChangeData2).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
@@ -627,7 +629,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId.serverId(245)).data(itemChangeData1).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();
@@ -678,8 +680,8 @@ public class MailBackendImplTest {
 
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
 		MSEmail itemChangeData2 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
-		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId + ":546").data(itemChangeData2).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId.serverId(245)).data(itemChangeData1).build();
+		ItemChange itemChange2 = ItemChange.builder().serverId(collectionId.serverId(546)).data(itemChangeData2).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
@@ -730,7 +732,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(true);
 		
 		MSEmail itemChangeData1 = control.createMock(MSEmail.class);
-		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId + ":245").data(itemChangeData1).build();
+		ItemChange itemChange1 = ItemChange.builder().serverId(collectionId.serverId(245)).data(itemChangeData1).build();
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();
@@ -790,7 +792,7 @@ public class MailBackendImplTest {
 	@Test(expected=InvalidSyncKeyException.class)
 	public void testFetchWhenNoSnapshotLinkedToSyncKey() {
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().build();
-		List<String> itemIds = ImmutableList.of("1:1");
+		List<ServerId> itemIds = ImmutableList.of(CollectionId.of(1).serverId(1));
 
 		SyncKey previousSyncKey = new SyncKey("123");
 		SyncKey nextSyncKey = new SyncKey("456");
@@ -856,19 +858,16 @@ public class MailBackendImplTest {
 
 	@Test
 	public void testGetInvitation() throws Exception {
-		int serverId = 1;
-		
-		expect(mappingService.getItemIdFromServerId(collectionPath))
-			.andReturn(serverId).once();
+		int itemId = 1;
 		
 		ICalendar expectedCalendar = control.createMock(ICalendar.class);
 		
-		expect(msEmailFetcher.fetchInvitation(udr, collectionId, collectionPath, Long.valueOf(serverId)))
+		expect(msEmailFetcher.fetchInvitation(udr, collectionId, collectionPath, Long.valueOf(itemId)))
 			.andReturn(expectedCalendar);
 		
 		control.replay();
 		
-		ICalendar ics = testee.getInvitation(udr, collectionId, collectionPath);
+		ICalendar ics = testee.getInvitation(udr, collectionId, collectionId.serverId(itemId));
 		
 		control.verify();
 		assertThat(ics).isEqualTo(expectedCalendar);

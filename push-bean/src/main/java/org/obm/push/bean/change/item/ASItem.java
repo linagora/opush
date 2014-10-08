@@ -31,8 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.item;
 
+import org.obm.push.bean.ServerId;
+
 public interface ASItem {
 	
-	String getServerId();
+	ServerId getServerId();
 	
 }

@@ -61,7 +61,7 @@ public class MailProtocolTest {
 		ActiveSyncRequest request = createMock(ActiveSyncRequest.class);
 		
 		expect(request.getParameter("CollectionId")).andReturn(CollectionId.of(1)).once();
-		expect(request.getParameter("ItemId")).andReturn("1").once();
+		expect(request.getParameter("ItemId")).andReturn(CollectionId.of(1).serverId(1)).once();
 		expect(request.getInputStream()).andReturn(loadDataFile("bigEml.eml")).once();
 		expect(request.getParameter("SaveInSent")).andReturn("T").once();
 		
@@ -79,7 +79,7 @@ public class MailProtocolTest {
 		ActiveSyncRequest request = createMock(ActiveSyncRequest.class);
 		
 		expect(request.getParameter("CollectionId")).andReturn(CollectionId.of(1)).once();
-		expect(request.getParameter("ItemId")).andReturn("1").once();
+		expect(request.getParameter("ItemId")).andReturn(CollectionId.of(1).serverId(1)).once();
 		expect(request.getInputStream()).andReturn(loadDataFile("bigEml.eml")).once();
 		expect(request.getParameter("SaveInSent")).andReturn("T").once();
 		
@@ -100,10 +100,10 @@ public class MailProtocolTest {
 	public void testEncodeRequest() throws Exception {
 		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
 		byte[] mailContent = new byte[] {123, 54, 23, 87, 10, 23, 10, 23 };
-		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), "12", true, mailContent);
+		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), CollectionId.of(23).serverId(12), true, mailContent);
 		
 		ActiveSyncRequest expectedActiveSyncRequest = new SendEmailSyncRequest.Builder()
-			.parameters(ImmutableMap.<String, Object>of("CollectionId", CollectionId.of(23), "ItemId", "12", "SaveInSent", "T"))
+			.parameters(ImmutableMap.<String, Object>of("CollectionId", CollectionId.of(23), "ItemId", CollectionId.of(23).serverId(12), "SaveInSent", "T"))
 			.inputStream(new ByteArrayInputStream(mailContent))
 			.build();
 		
@@ -121,7 +121,7 @@ public class MailProtocolTest {
 	@Test(expected=QuotaExceededException.class)
 	public void testEncodeRequestMaxSizeException() throws Exception {
 		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
-		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), "12", true, new byte[] {123, 54, 23, 87, 10, 23, 10, 23 });
+		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), CollectionId.of(23).serverId(12), true, new byte[] {123, 54, 23, 87, 10, 23, 10, 23 });
 		
 		expect(emailConfiguration.getMessageMaxSize()).andReturn(2).once();
 		replay(emailConfiguration);
@@ -132,7 +132,7 @@ public class MailProtocolTest {
 
 	@Test
 	public void testEncodeRequestEmptyMailContent() throws Exception {
-		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), "12", true, null);
+		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), CollectionId.of(23).serverId(12), true, null);
 		
 		MailProtocol mailProtocol = new MailProtocol(null);
 		ActiveSyncRequest encodedRequest = mailProtocol.encodeRequest(sendSimpleEmailRequest);

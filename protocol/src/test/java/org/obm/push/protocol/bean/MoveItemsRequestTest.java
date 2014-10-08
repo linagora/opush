@@ -53,15 +53,15 @@ public class MoveItemsRequestTest {
 			.add(MoveItem.builder()
 				.destinationFolderId(CollectionId.of(11))
 				.sourceFolderId(CollectionId.of(1))
-				.sourceMessageId("1").build())
+				.sourceMessageId(CollectionId.of(1).serverId(1)).build())
 			.add(MoveItem.builder()
 				.destinationFolderId(CollectionId.of(12))
 				.sourceFolderId(CollectionId.of(2))
-				.sourceMessageId("2").build())
+				.sourceMessageId(CollectionId.of(2).serverId(2)).build())
 			.add(MoveItem.builder()
 				.destinationFolderId(CollectionId.of(13))
 				.sourceFolderId(CollectionId.of(3))
-				.sourceMessageId("3").build())
+				.sourceMessageId(CollectionId.of(3).serverId(3)).build())
 			.build();
 
 		assertThat(request.getSummary()).isEqualTo(

@@ -241,7 +241,7 @@ public class SyncHandlerOnCalendarsTest {
 		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
 			.andReturn(msEventUid);
 		
-		ServerId serverId = new ServerId(calendarCollectionId.serverId(msEvent.getUid().serializeToString()));
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(msEvent.getUid().serializeToString()));
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
@@ -268,7 +268,7 @@ public class SyncHandlerOnCalendarsTest {
 		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
-					.serverId(serverId.toString())
+					.serverId(serverId)
 					.isNew(true)
 					.build()));
 
@@ -276,7 +276,7 @@ public class SyncHandlerOnCalendarsTest {
 		assertEqualsWithoutApplicationData(sameCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
-						.serverId(serverId.toString())
+						.serverId(serverId)
 						.isNew(true)
 						.build()));
 	}
@@ -358,16 +358,14 @@ public class SyncHandlerOnCalendarsTest {
 		expect(calendarDao.getMSEventUidFor(eventExtId, user.device))
 			.andReturn(msEventUid);
 		
-		String serverId = calendarCollectionId.serverId(msEvent.getUid().serializeToString());
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(msEvent.getUid().serializeToString()));
 		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
 			.andReturn(eventExtId);
 		
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, 
-				new ServerId(serverId)))
-			.andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		// Update from device
 		Date exceptionDate = secondDateTime.plusDays(1).toDate();
@@ -548,7 +546,7 @@ public class SyncHandlerOnCalendarsTest {
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
-		String serverId = calendarCollectionId.serverId(createdMSEvent.getUid().serializeToString());
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionId, SyncCommand.ADD, 
 				serverId, clientId, createdMSEvent);
 		mocksControl.verify();

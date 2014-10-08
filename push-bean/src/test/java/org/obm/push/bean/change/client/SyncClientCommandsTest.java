@@ -34,9 +34,11 @@ package org.obm.push.bean.change.client;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.client.SyncClientCommands.Update;
+import org.obm.push.protocol.bean.CollectionId;
 
 @SuppressWarnings("unused")
 
@@ -48,19 +50,14 @@ public class SyncClientCommandsTest {
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testChangeWhenEmpty() {
-		new Update("", null);
-	}
-
-	@Test(expected=IllegalArgumentException.class)
 	public void testChangeWhenNoSyncStatus() {
-		new Update("123", null);
+		new Update(ServerId.of("123"), null);
 	}
 
 	@Test
 	public void testChangeWhenOk() {
-		Update actual = new Update("123", SyncStatus.OK);
-		assertThat(actual.serverId).isEqualTo("123");
+		Update actual = new Update(ServerId.of("123"), SyncStatus.OK);
+		assertThat(actual.serverId).isEqualTo(ServerId.of("123"));
 		assertThat(actual.syncStatus).isEqualTo(SyncStatus.OK);
 	}
 
@@ -71,7 +68,7 @@ public class SyncClientCommandsTest {
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testAddWhenClientIdNull() {
-		new Add(null, "123", null);
+		new Add(null, ServerId.of("123"), null);
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -81,23 +78,18 @@ public class SyncClientCommandsTest {
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testAddWhenClientIdEmpty() {
-		new Add("", "123", null);
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testAddWhenServerIdEmpty() {
-		new Add("123", "", null);
+		new Add("", ServerId.of("123"), null);
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testAddWhenNoSyncStatus() {
-		new Add("123", "456", null);
+		new Add("123", ServerId.of("456"), null);
 	}
 
 	@Test
 	public void testAddWhenOk() {
-		Add actual = new Add("123", "98:7", SyncStatus.OK);
-		assertThat(actual.serverId).isEqualTo("98:7");
+		Add actual = new Add("123", CollectionId.of(98).serverId(7), SyncStatus.OK);
+		assertThat(actual.serverId).isEqualTo(CollectionId.of(98).serverId(7));
 		assertThat(actual.clientId).isEqualTo("123");
 		assertThat(actual.syncStatus).isEqualTo(SyncStatus.OK);
 	}
@@ -117,8 +109,8 @@ public class SyncClientCommandsTest {
 	@Test
 	public void testSumOfCommandsWhenTwoAdd() {
 		SyncClientCommands actual = SyncClientCommands.builder()
-				.putAdd(new Add("123", "98:7", SyncStatus.OK))
-				.putAdd(new Add("456", "98:6", SyncStatus.OK))
+				.putAdd(new Add("123", CollectionId.of(98).serverId(7), SyncStatus.OK))
+				.putAdd(new Add("456", CollectionId.of(98).serverId(6), SyncStatus.OK))
 				.build();
 		assertThat(actual.sumOfCommands()).isEqualTo(2);
 	}
@@ -126,8 +118,8 @@ public class SyncClientCommandsTest {
 	@Test
 	public void testSumOfCommandsWhenTwoChange() {
 		SyncClientCommands actual = SyncClientCommands.builder()
-				.putUpdate(new Update("98:7", SyncStatus.OK))
-				.putUpdate(new Update("98:6", SyncStatus.OK))
+				.putUpdate(new Update(CollectionId.of(98).serverId(7), SyncStatus.OK))
+				.putUpdate(new Update(CollectionId.of(98).serverId(6), SyncStatus.OK))
 				.build();
 		assertThat(actual.sumOfCommands()).isEqualTo(2);
 	}
@@ -135,10 +127,10 @@ public class SyncClientCommandsTest {
 	@Test
 	public void testSumOfCommandsWhenTwoAddAndTwoChange() {
 		SyncClientCommands actual = SyncClientCommands.builder()
-				.putAdd(new Add("123", "98:7", SyncStatus.OK))
-				.putAdd(new Add("456", "98:6", SyncStatus.OK))
-				.putUpdate(new Update("98:7", SyncStatus.OK))
-				.putUpdate(new Update("98:6", SyncStatus.OK))
+				.putAdd(new Add("123", CollectionId.of(98).serverId(7), SyncStatus.OK))
+				.putAdd(new Add("456", CollectionId.of(98).serverId(6), SyncStatus.OK))
+				.putUpdate(new Update(CollectionId.of(98).serverId(7), SyncStatus.OK))
+				.putUpdate(new Update(CollectionId.of(98).serverId(6), SyncStatus.OK))
 				.build();
 		assertThat(actual.sumOfCommands()).isEqualTo(4);
 	}

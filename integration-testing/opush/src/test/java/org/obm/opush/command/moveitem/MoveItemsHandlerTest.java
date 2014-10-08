@@ -156,7 +156,7 @@ public class MoveItemsHandlerTest {
 		MoveResult moveResult = Iterables.getOnlyElement(response.getMoveResults());
 		assertThat(moveResult.status).isEqualTo(MoveItemsStatus.SUCCESS);
 		assertThat(moveResult.srcMsgId).isEqualTo(inboxCollectionId.serverId(1));
-		assertThat(moveResult.dstMsgId).startsWith(trashCollectionId.asString() + ":");
+		assertThat(moveResult.dstMsgId.getCollectionId()).isEqualTo(trashCollectionId);
 
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);

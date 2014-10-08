@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.item.ItemChange;
@@ -55,6 +54,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -88,7 +88,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					@Override
 					public ItemDeletion apply(Email email) {
 						return ItemDeletion.builder()
-								.serverId(ServerId.buildServerIdString(collectionId, email.getUid()))
+								.serverId(collectionId.serverId(Ints.checkedCast(email.getUid())))
 								.build();
 					}}
 				
@@ -109,7 +109,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					public ItemChange apply(Long uid) {
 						
 						return ItemChange.builder()
-								.serverId(collectionId.serverId(uid))
+								.serverId(collectionId.serverId(Ints.checkedCast(uid)))
 								.data(uidToMSEmailMap.get(uid))
 								.isNew(true)
 								.build();
@@ -127,7 +127,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 					public ItemChange apply(Email email) {
 						
 						return ItemChange.builder()
-								.serverId(collectionId.serverId(email.getUid()))
+								.serverId(collectionId.serverId(Ints.checkedCast(email.getUid())))
 								.data(new MSEmailMetadata(email.isRead()))
 								.isNew(false)
 								.build();

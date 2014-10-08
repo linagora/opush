@@ -68,6 +68,7 @@ import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
@@ -321,8 +322,8 @@ public class ContactsBackendTest {
 	public void testCreateOrUpdate() throws Exception {
 		CollectionId otherContactCollectionUid = CollectionId.of(1);
 		CollectionId targetcontactCollectionUid = CollectionId.of(2);
-		int serverId = 215;
-		String serverIdAsString = String.valueOf(serverId);
+		ServerId serverId = targetcontactCollectionUid.serverId(215);
+		String itemId = "215";
 		String clientId = "1";
 		String clientIdHash = "146565647814688";
 
@@ -336,30 +337,29 @@ public class ContactsBackendTest {
 		expectBuildCollectionPath("folder", otherContactCollectionUid);
 		expectBuildCollectionPath("folder_1", targetcontactCollectionUid);
 		
-		Contact contact = newContactObject(serverId);
+		Contact contact = newContactObject(serverId.getItemId());
 		expect(bookClient.storeContact(token, targetcontactCollectionUid.asInt(), contact, clientIdHash))
 			.andReturn(contact).once();
 		
 		expectMappingServiceCollectionIdBehavior(books);
 		
-		expect(mappingService.getItemIdFromServerId(serverIdAsString)).andReturn(serverId).once();
-		expect(mappingService.getServerIdFor(targetcontactCollectionUid, serverIdAsString))
-			.andReturn(serverIdAsString);
+		expect(mappingService.getServerIdFor(targetcontactCollectionUid, itemId))
+			.andReturn(serverId);
 
 		MSContact msContact = new MSContact();
 
 		mocks.replay();
-		String newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, serverIdAsString, clientId, msContact);
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, serverId, clientId, msContact);
 		mocks.verify();
 		
-		assertThat(newServerId).isEqualTo(serverIdAsString);
+		assertThat(newServerId).isEqualTo(targetcontactCollectionUid.serverId(215));
 	}
 	
 	@Test
 	public void testCreateOrUpdateCreatesContact() throws Exception {
 		CollectionId otherContactCollectionUid = CollectionId.of(1);
 		CollectionId targetcontactCollectionUid = CollectionId.of(2);
-		int serverId = 215;
+		ServerId serverId = targetcontactCollectionUid.serverId(215);
 		String clientId = "1";
 		String clientIdHash = "146565647814688";
 
@@ -375,30 +375,29 @@ public class ContactsBackendTest {
 		
 		MSContact msContact = new MSContact();
 		
-		Contact contact = newContactObject(serverId);
+		Contact contact = newContactObject(serverId.getItemId());
 		Contact convertedContact = contactConverter.contact(msContact);
 		expect(bookClient.storeContact(token, targetcontactCollectionUid.asInt(), convertedContact, clientIdHash))
 			.andReturn(contact).once();
 		
 		expectMappingServiceCollectionIdBehavior(books);
 		
-		String serverIdAsString = String.valueOf(serverId);
-		expect(mappingService.getServerIdFor(targetcontactCollectionUid, serverIdAsString))
-			.andReturn(serverIdAsString);
+		expect(mappingService.getServerIdFor(targetcontactCollectionUid, "215"))
+			.andReturn(serverId);
 
 		mocks.replay();
 		
-		String newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, null, clientId, msContact);
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, null, clientId, msContact);
 		
 		mocks.verify();
 		
-		assertThat(newServerId).isEqualTo(serverIdAsString);
+		assertThat(newServerId).isEqualTo(targetcontactCollectionUid.serverId(215));
 	}
 	
 	@Test(expected=NoPermissionException.class)
 	public void testCreateNoPermissionLetsPropagateTheException() throws Exception {
 		CollectionId contactCollectionUid = CollectionId.of(2);
-		String serverId = null;
+		ServerId serverId = null;
 		String clientId = "489654";
 		String clientIdHash = "78481484087";
 		MSContact msContact = new MSContact();
@@ -427,7 +426,7 @@ public class ContactsBackendTest {
 	public void testUpdateNoPermissionLetsPropagateTheException() throws Exception {
 		CollectionId contactCollectionUid = CollectionId.of(2);
 		int itemId = 215;
-		String serverId = "2:215";
+		ServerId serverId = contactCollectionUid.serverId(itemId);
 		String clientId = "489654";
 		String clientIdHash = "78481484087";
 		MSContact msContact = new MSContact();
@@ -439,7 +438,6 @@ public class ContactsBackendTest {
 		expectListAllBooks(token,books);
 		expectBuildCollectionPath("folder", contactCollectionUid);
 		expectMappingServiceCollectionIdBehavior(books);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(itemId).once();
 		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
 		
 		Contact contact = newContactObject(itemId);
@@ -458,8 +456,8 @@ public class ContactsBackendTest {
 	public void testDelete() throws Exception {
 		CollectionId otherContactCollectionUid = CollectionId.of(1);
 		CollectionId targetcontactCollectionUid = CollectionId.of(2);
-		int serverId = 2;
-		String serverIdAsString = String.valueOf(serverId);
+		int itemId = 2;
+		ServerId serverId = targetcontactCollectionUid.serverId(itemId);
 		
 		List<AddressBook> books = ImmutableList.of(
 				newAddressBookObject("folder", otherContactCollectionUid, false),
@@ -470,14 +468,13 @@ public class ContactsBackendTest {
 		expectBuildCollectionPath("folder", otherContactCollectionUid);
 		expectBuildCollectionPath("folder_1", targetcontactCollectionUid);
 		
-		expect(bookClient.removeContact(token, targetcontactCollectionUid.asInt(), serverId))
-			.andReturn(newContactObject(serverId)).once();
+		expect(bookClient.removeContact(token, targetcontactCollectionUid.asInt(), itemId))
+			.andReturn(newContactObject(itemId)).once();
 
-		expect(mappingService.getItemIdFromServerId(serverIdAsString)).andReturn(serverId).once();
 		expectMappingServiceCollectionIdBehavior(books);
 
 		mocks.replay();
-		contactsBackend.delete(userDataRequest, targetcontactCollectionUid, serverIdAsString, true);
+		contactsBackend.delete(userDataRequest, targetcontactCollectionUid, serverId, true);
 		mocks.verify();
 	}
 
@@ -489,7 +486,7 @@ public class ContactsBackendTest {
 		CollectionId otherContactCollectionUid = CollectionId.of(1);
 		CollectionId targetcontactCollectionUid = CollectionId.of(2);
 		int itemId = 215;
-		String serverId = targetcontactCollectionUid.serverId(itemId);
+		ServerId serverId = targetcontactCollectionUid.serverId(itemId);
 		
 		List<AddressBook> books = ImmutableList.of(
 				newAddressBookObject("folder", otherContactCollectionUid, false),
@@ -504,7 +501,6 @@ public class ContactsBackendTest {
 		expect(bookClient.getContactFromId(token, targetcontactCollectionUid.asInt(), itemId)).andReturn(contact);
 
 		expectMappingServiceCollectionIdBehavior(books);
-		expect(mappingService.getItemIdFromServerId(serverId)).andReturn(itemId);
 		expect(mappingService.getServerIdFor(targetcontactCollectionUid, String.valueOf(itemId))).andReturn(serverId);
 	
 		mocks.replay();

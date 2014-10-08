@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.collect.ImmutableList;
 
@@ -69,12 +70,12 @@ public class DataDeltaTest {
 	@Test
 	public void testChangesWhenData() {
 		DataDelta dataDelta = DataDelta.builder()
-				.changes(ImmutableList.<ItemChange>of(ItemChange.builder().serverId("132").build()))
+				.changes(ImmutableList.<ItemChange>of(ItemChange.builder().serverId(CollectionId.of(1).serverId(2)).build()))
 				.syncKey(new SyncKey("123"))
 				.syncDate(date("2012-01-01T10:22:33"))
 				.build();
 		
-		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId("132").build());
+		assertThat(dataDelta.getChanges()).containsOnly(ItemChange.builder().serverId(CollectionId.of(1).serverId(2)).build());
 	}
 
 	@Test
@@ -102,12 +103,12 @@ public class DataDeltaTest {
 	@Test
 	public void testDeletionsWhenData() {
 		DataDelta dataDelta = DataDelta.builder()
-				.deletions(ImmutableList.<ItemDeletion>of(ItemDeletion.builder().serverId("132").build()))
+				.deletions(ImmutableList.<ItemDeletion>of(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build()))
 				.syncKey(new SyncKey("123"))
 				.syncDate(date("2012-01-01T10:22:33"))
 				.build();
 		
-		assertThat(dataDelta.getDeletions()).containsOnly(ItemDeletion.builder().serverId("132").build());
+		assertThat(dataDelta.getDeletions()).containsOnly(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build());
 	}
 	
 	@Test

@@ -386,7 +386,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			.build();
 	}
 
-	private ItemChange createItemChangeToAddFromEvent(final UserDataRequest udr, final Event event, String serverId)
+	private ItemChange createItemChangeToAddFromEvent(final UserDataRequest udr, final Event event, ServerId serverId)
 			throws DaoException, ConversionException {
 		
 		IApplicationData ev = eventService.convertEventToMSEvent(udr, event);
@@ -396,13 +396,13 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			.build();
 	}
 
-	private String getServerIdFor(CollectionId collectionId, EventObmId uid) {
-		return ServerId.buildServerIdString(collectionId, uid.getObmId());
+	private ServerId getServerIdFor(CollectionId collectionId, EventObmId uid) {
+		return collectionId.serverId(uid.getObmId());
 	}
 
 	@Override
-	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
-			String serverId, String clientId, IApplicationData data)
+	public ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
+			ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, 
 			DaoException, UnexpectedObmSyncServerException, ItemNotFoundException, ConversionException, HierarchyChangedException {
 
@@ -466,7 +466,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return null;
 	}
 
-	private Event fetchReferenceEvent(AccessToken token, String serverId, EventExtId eventExtId, CollectionPath collectionPath)
+	private Event fetchReferenceEvent(AccessToken token, ServerId serverId, EventExtId eventExtId, CollectionPath collectionPath)
 					throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
 		if (serverId != null) {
 			EventObmId id = convertServerIdToEventObmId(serverId);
@@ -532,8 +532,8 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		}
 	}
 	
-	private EventObmId convertServerIdToEventObmId(String serverId) {
-		return new EventObmId(mappingService.getItemIdFromServerId(serverId));
+	private EventObmId convertServerIdToEventObmId(ServerId serverId) {
+		return new EventObmId(serverId.getItemId());
 	}
 
 	private Event convertMSObjectToObmObject(UserDataRequest udr,
@@ -555,7 +555,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash) 
+	public void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException {
 
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
@@ -579,7 +579,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public String handleMeetingResponse(UserDataRequest udr, Object iCalendar, AttendeeStatus status) 
+	public ServerId handleMeetingResponse(UserDataRequest udr, Object iCalendar, AttendeeStatus status) 
 			throws UnexpectedObmSyncServerException, CollectionNotFoundException, DaoException,
 			ItemNotFoundException, ConversionException, HierarchyChangedException, ICalendarConverterException {
 		
@@ -706,7 +706,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions,
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
@@ -714,14 +714,14 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
 		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
 		
 		List<ItemChange> ret = new LinkedList<ItemChange>();
 		AccessToken token = getAccessToken();
-		for (String serverId : fetchServerIds) {
+		for (ServerId serverId : fetchServerIds) {
 			try {
 				Event event = getEventFromServerId(token, collectionPath, serverId);
 				if (event != null) {
@@ -739,8 +739,8 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return ret;
 	}
 	
-	private Event getEventFromServerId(AccessToken token, CollectionPath collectionPath, String serverId) throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
-		Integer itemId = mappingService.getItemIdFromServerId(serverId);
+	private Event getEventFromServerId(AccessToken token, CollectionPath collectionPath, ServerId serverId) throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
+		Integer itemId = serverId.getItemId();
 		if (itemId == null) {
 			return null;
 		}
@@ -748,8 +748,8 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	@Override
-	public String move(UserDataRequest udr, String srcFolder, String dstFolder,
-			String messageId) throws CollectionNotFoundException,
+	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+			ServerId serverId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
 	}

@@ -33,6 +33,7 @@ package org.obm.sync.push.client.commands;
 
 import java.io.IOException;
 
+import org.obm.push.bean.ServerId;
 import org.obm.push.protocol.MeetingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
@@ -47,7 +48,7 @@ import org.xml.sax.SAXException;
 
 public class MeetingResponseCommand extends AbstractCommand<MeetingHandlerResponse> {
 	
-	public MeetingResponseCommand(final CollectionId collectionId, final String requestId) throws SAXException, IOException {
+	public MeetingResponseCommand(final CollectionId collectionId, final ServerId serverId) throws SAXException, IOException {
 		super(NS.MeetingResponse, "MeetingResponse", new TemplateDocument("MeetingResponseRequest.xml") {
 
 			@Override
@@ -55,7 +56,7 @@ public class MeetingResponseCommand extends AbstractCommand<MeetingHandlerRespon
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), MeetingRequestFields.COLLECTION_ID.getName());
 				collection.setTextContent(collectionId.asString());
 				Element request = DOMUtils.getUniqueElement(document.getDocumentElement(), MeetingRequestFields.REQUEST_ID.getName());
-				request.setTextContent(requestId);
+				request.setTextContent(serverId.asString());
 			}});
 	}
 

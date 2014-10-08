@@ -146,8 +146,9 @@ public class MailBackendHandlerTest {
 	@Test
 	public void testDeleteMail() throws Exception {
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		CollectionId serverId = CollectionId.of(1234);
-		String syncEmailId = ":2";
+		CollectionId collectionId = CollectionId.of(1234);
+		int syncEmailId = 2;
+		ServerId serverId = collectionId.serverId(syncEmailId);
 		SyncKey syncKey = new SyncKey("sync state");
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncDate(DateUtils.getCurrentDate())
@@ -156,7 +157,7 @@ public class MailBackendHandlerTest {
 		DataDelta delta = DataDelta.builder()
 			.changes(new ItemChangesBuilder()
 				.addItemChange(ItemChange.builder()
-					.serverId(serverId + syncEmailId)
+					.serverId(serverId)
 					.data(applicationData("text", MSEmailBodyType.PlainText)))
 				.build())
 			.syncDate(new Date())
@@ -164,7 +165,7 @@ public class MailBackendHandlerTest {
 			.build();
 		
 		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockDao(serverId, syncState);
+		mockDao(collectionId, syncState);
 		
 		bindChangedToDelta(delta);
 		
@@ -176,7 +177,7 @@ public class MailBackendHandlerTest {
 		greenMail.waitForIncomingEmail(2);
 
 		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		opClient.deleteEmail(decoder, syncEmailSyncKey, serverId, serverId + syncEmailId);
+		opClient.deleteEmail(decoder, syncEmailSyncKey, collectionId, serverId);
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_TRASH_NAME, 1);

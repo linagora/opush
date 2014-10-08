@@ -65,7 +65,6 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.ItemSyncState;
-import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
@@ -329,8 +328,8 @@ public class MailBackendGetItemEstimateTest {
 		expectCollectionDaoPerformInitialSync(firstAllocatedState);
 		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, allocatedState);
 		
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(1)))).andReturn(false);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(inboxCollectionId.serverId(2)))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
 	}
 
 	private void expectCollectionDaoPerformSync(SyncKey requestSyncKey, ItemSyncState allocatedState, ItemSyncState newItemSyncState)

@@ -74,7 +74,7 @@ public abstract class ItemTrackingDaoTest {
 				.syncDate(dateUTC("2005-10-15T11:15:10Z"))
 				.syncKey(new SyncKey("123"))
 				.build();
-		itemTrackingDao.markAsSynced(nonExistingState, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(nonExistingState, ImmutableSet.of(ServerId.of("9:1")));
 	}
 	
 	@Test
@@ -82,9 +82,9 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isTrue();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isTrue();
 	}
 	
 	@Test
@@ -92,9 +92,9 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:99"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:99"))).isFalse();
 	}
 	
 	@Test
@@ -102,7 +102,7 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
 
 		ItemSyncState otherState = ItemSyncState.builder()
 				.id(25)
@@ -110,7 +110,7 @@ public abstract class ItemTrackingDaoTest {
 				.syncKey(new SyncKey("123"))
 				.build();
 		
-		assertThat(itemTrackingDao.isServerIdSynced(otherState, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(otherState, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
@@ -118,10 +118,10 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isTrue();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isTrue();
 	}
 	
 	@Test(expected=DaoException.class)
@@ -131,7 +131,7 @@ public abstract class ItemTrackingDaoTest {
 				.syncDate(dateUTC("2005-10-15T11:15:10Z"))
 				.syncKey(new SyncKey("123"))
 				.build();
-		itemTrackingDao.markAsDeleted(nonExistingState, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(nonExistingState, ImmutableSet.of(ServerId.of("9:1")));
 	}
 	
 	@Test
@@ -139,9 +139,9 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
@@ -149,9 +149,9 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:99"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:99"))).isFalse();
 	}
 	
 	@Test
@@ -159,14 +159,14 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
 
 		ItemSyncState otherState = ItemSyncState.builder()
 				.id(25)
 				.syncDate(dateUTC("2005-10-15T11:15:10Z"))
 				.syncKey(new SyncKey("123"))
 				.build();
-		assertThat(itemTrackingDao.isServerIdSynced(otherState, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(otherState, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
@@ -174,10 +174,10 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
@@ -185,25 +185,25 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isTrue();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isTrue();
 	}
 	
 	@Test
 	public void testMarkAsSyncedThenAsDeletedWithOtherStateDependsOnLastSyncDate() {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
-		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));
-		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateDeleted2 = collectionDao.updateState(device, colId, new SyncKey("789"), dateUTC("2005-10-19T11:15:10Z"));
-		itemTrackingDao.markAsDeleted(stateDeleted2, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(stateDeleted2, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(stateSynced, new ServerId("9:1"))).isTrue();
-		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted, new ServerId("9:1"))).isFalse();
-		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted2, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(stateSynced, ServerId.of("9:1"))).isTrue();
+		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted, ServerId.of("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted2, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
@@ -211,25 +211,24 @@ public abstract class ItemTrackingDaoTest {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
-		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(new ServerId("9:1")));
-		itemTrackingDao.markAsSynced(state, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
+		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
 		
-		assertThat(itemTrackingDao.isServerIdSynced(state, new ServerId("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(state, ServerId.of("9:1"))).isFalse();
 	}
 	
 	@Test
 	public void testMarkAsDeletedThenAsSyncedWithOtherStateDependsOnLastSyncDate() {
 		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
-		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));
-		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateSynced2 = collectionDao.updateState(device, colId, new SyncKey("789"), dateUTC("2005-10-19T11:15:10Z"));
-		itemTrackingDao.markAsSynced(stateSynced2, ImmutableSet.of(new ServerId("9:1")));
+		itemTrackingDao.markAsSynced(stateSynced2, ImmutableSet.of(ServerId.of("9:1")));
 
-		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted, new ServerId("9:1"))).isFalse();
-		assertThat(itemTrackingDao.isServerIdSynced(stateSynced, new ServerId("9:1"))).isTrue();
-		assertThat(itemTrackingDao.isServerIdSynced(stateSynced2, new ServerId("9:1"))).isTrue()
-		;
+		assertThat(itemTrackingDao.isServerIdSynced(stateDeleted, ServerId.of("9:1"))).isFalse();
+		assertThat(itemTrackingDao.isServerIdSynced(stateSynced, ServerId.of("9:1"))).isTrue();
+		assertThat(itemTrackingDao.isServerIdSynced(stateSynced2, ServerId.of("9:1"))).isTrue();
 	}
 }

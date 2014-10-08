@@ -135,6 +135,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -398,10 +399,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.build());
 	}
 
-	private Map<CollectionId, Collection<Long>> getEmailUidByCollectionId(List<String> fetchIds) {
+	private Map<CollectionId, Collection<Long>> getEmailUidByCollectionId(List<ServerId> fetchIds) {
 		Map<CollectionId, Collection<Long>> ret = Maps.newHashMap();
-		for (String serverId : fetchIds) {
-			CollectionId collectionId = mappingService.getCollectionIdFromServerId(serverId);
+		for (ServerId serverId : fetchIds) {
+			CollectionId collectionId = serverId.getCollectionId();
 			Collection<Long> set = ret.get(collectionId);
 			if (set == null) {
 				set = Sets.newHashSet();
@@ -439,7 +440,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash)
+	public void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ItemNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		try {
@@ -479,7 +480,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public String createOrUpdate(UserDataRequest udr, CollectionId collectionId, String serverId, String clientId, IApplicationData data)
+	public ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId, ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, ItemNotFoundException {
 		
 		org.obm.push.bean.ms.MSEmail msEmail = (org.obm.push.bean.ms.MSEmail)data;
@@ -501,17 +502,17 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public String move(UserDataRequest udr, String srcFolder, String dstFolder, String messageId) 
+	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder, ServerId serverId) 
 			throws CollectionNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		
 		try {
-			logger.info("move( messageId =  {}, from = {}, to = {} )", messageId, srcFolder, dstFolder);
-			final Long currentMailUid = getEmailUidFromServerId(messageId);
+			logger.info("move( messageId =  {}, from = {}, to = {} )", serverId, srcFolder, dstFolder);
+			final Long currentMailUid = getEmailUidFromServerId(serverId);
 			final CollectionId dstFolderId = mappingService.getCollectionIdFor(udr.getDevice(), dstFolder);
 			MessageSet messages = mailboxService.move(udr, srcFolder, dstFolder, MessageSet.singleton(currentMailUid));
 			if (!messages.isEmpty()) {
 				expunge(udr, srcFolder);
-				return ServerId.buildServerIdString(dstFolderId, Iterables.getOnlyElement(messages));	
+				return ServerId.of(dstFolderId, Ints.checkedCast(Iterables.getOnlyElement(messages)));	
 			}
 			throw new ItemNotFoundException("The item to move may not exists anymore");
 		} catch (MailException e) {
@@ -542,7 +543,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, String serverId)
+	public void replyEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, ServerId serverId)
 			throws ProcessingEmailException, CollectionNotFoundException, ItemNotFoundException {
 		
 		try {
@@ -551,8 +552,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				collectionPath = mappingService.getCollectionPathFor(collectionId);
 			}
 			
-			if (serverId == null || !serverId.isEmpty()) {
-				collectionId = mappingService.getCollectionIdFromServerId(serverId);
+			if (serverId != null) {
+				collectionId = serverId.getCollectionId();
 				collectionPath = mappingService.getCollectionPathFor(collectionId);
 			}
 			
@@ -588,7 +589,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public void forwardEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, String serverId) 
+	public void forwardEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent, CollectionId collectionId, ServerId serverId) 
 			throws ProcessingEmailException, CollectionNotFoundException {
 		
 		try {
@@ -740,7 +741,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public UidMSEmail getEmail(UserDataRequest udr, CollectionId collectionId, String serverId) throws CollectionNotFoundException, ProcessingEmailException {
+	public UidMSEmail getEmail(UserDataRequest udr, CollectionId collectionId, ServerId serverId) throws CollectionNotFoundException, ProcessingEmailException {
 		try {
 			String collectionName = mappingService.getCollectionPathFor(collectionId);
 			Long uid = getEmailUidFromServerId(serverId);
@@ -763,7 +764,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public org.obm.icalendar.ICalendar getInvitation(UserDataRequest udr, CollectionId collectionId, String serverId) 
+	public org.obm.icalendar.ICalendar getInvitation(UserDataRequest udr, CollectionId collectionId, ServerId serverId) 
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
@@ -878,8 +879,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public Long getEmailUidFromServerId(String serverId) {
-		Integer itemIdFromServerId = mappingService.getItemIdFromServerId(serverId);
+	public Long getEmailUidFromServerId(ServerId serverId) {
+		Integer itemIdFromServerId = serverId.getItemId();
 		if (itemIdFromServerId != null) {
 			return itemIdFromServerId.longValue();
 		} else {
@@ -888,7 +889,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions) 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> itemIds, SyncCollectionOptions collectionOptions) 
 			throws ProcessingEmailException {
 		
 		LinkedList<ItemChange> fetchs = new LinkedList<ItemChange>();
@@ -905,7 +906,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> itemIds, SyncCollectionOptions collectionOptions, 
+	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> itemIds, SyncCollectionOptions collectionOptions, 
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 			throws ProcessingEmailException {
 

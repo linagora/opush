@@ -32,6 +32,7 @@
 package org.obm.sync.push.client;
 
 import org.obm.push.bean.MoveItemsStatus;
+import org.obm.push.bean.ServerId;
 
 import com.google.common.base.Objects;
 
@@ -39,11 +40,11 @@ public final class MoveItemsResponse {
 
 	public static class MoveResult {
 		
-		public final String srcMsgId;
-		public final String dstMsgId;
+		public final ServerId srcMsgId;
+		public final ServerId dstMsgId;
 		public final MoveItemsStatus status;
 		
-		public MoveResult(String srcMsgId, String dstMsgId, MoveItemsStatus status) {
+		public MoveResult(ServerId srcMsgId, ServerId dstMsgId, MoveItemsStatus status) {
 			this.srcMsgId = srcMsgId;
 			this.dstMsgId = dstMsgId;
 			this.status = status;

@@ -41,6 +41,7 @@ import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -61,16 +62,16 @@ import org.obm.push.protocol.bean.CollectionId;
 
 public interface PIMBackend {
 
-	String createOrUpdate(UserDataRequest udr, CollectionId collectionId,
-			String serverId, String clientId, IApplicationData data)
+	ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
+			ServerId serverId, String clientId, IApplicationData data)
 			throws CollectionNotFoundException, ProcessingEmailException, 
 			DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
 			ConversionException, HierarchyChangedException, NoPermissionException;
 	
-	String move(UserDataRequest udr, String srcFolder, String dstFolder, String messageId)
+	ServerId move(UserDataRequest udr, String srcFolder, String dstFolder, ServerId messageId)
 		throws CollectionNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException;
 	
-	void delete(UserDataRequest udr, CollectionId collectionId, String serverId, Boolean moveToTrash) 
+	void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
 			ProcessingEmailException, UnsupportedBackendFunctionException;
 	
@@ -79,11 +80,11 @@ public interface PIMBackend {
 	
 	PIMDataType getPIMDataType();
 	
-	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
+	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
 			throws ProcessingEmailException, CollectionNotFoundException, 
 			DaoException, UnexpectedObmSyncServerException, ConversionException;
 
-	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<String> fetchServerIds,
+	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds,
 			SyncCollectionOptions syncCollectionOptions, ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 		throws ProcessingEmailException, CollectionNotFoundException, 
 			DaoException, UnexpectedObmSyncServerException, ConversionException;

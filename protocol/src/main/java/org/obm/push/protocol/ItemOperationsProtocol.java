@@ -38,6 +38,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.StoreName;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.activesync.ProtocolException;
@@ -113,7 +114,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 			fetch.setStoreName(storeName);
 			fetch.setFileReference(reference);
 			fetch.setCollectionId(CollectionId.of(collectionId));
-			fetch.setServerId(serverId);
+			fetch.setServerId(ServerId.of(serverId));
 			fetch.setType(getType(fetchNode));
 			return fetch;
 		}
@@ -188,7 +189,7 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 		Element resp = DOMUtils.createElement(root, "Response");
 		Element fetchResp = DOMUtils.createElement(resp, "Fetch");
 		DOMUtils.createElementAndText(fetchResp, "Status", fetchItemResult.getStatus().asSpecificationValue());
-		DOMUtils.createElementAndText(fetchResp, "AirSync:ServerId", fetchItemResult.getServerId());
+		DOMUtils.createElementAndText(fetchResp, "AirSync:ServerId", fetchItemResult.getServerId().asString());
 
 		if (ItemOperationsStatus.SUCCESS == fetchItemResult.getStatus() &&
 				fetchItemResult.getSyncCollection() != null) {

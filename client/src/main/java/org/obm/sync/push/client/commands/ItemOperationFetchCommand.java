@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ItemOperationFetchResponse;
@@ -53,11 +54,11 @@ import com.google.common.collect.Lists;
 
 public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResponse> {
 
-	public ItemOperationFetchCommand(CollectionId collectionId, String...serverIds) throws SAXException, IOException {
+	public ItemOperationFetchCommand(CollectionId collectionId, ServerId... serverIds) throws SAXException, IOException {
 		this(collectionId, null, serverIds);
 	}
 	
-	public ItemOperationFetchCommand(final CollectionId collectionId, final MSEmailBodyType bodyType, final String...serverIds)
+	public ItemOperationFetchCommand(final CollectionId collectionId, final MSEmailBodyType bodyType, final ServerId... serverIds)
 			throws SAXException, IOException {
 		
 		super(NS.ItemOperations, "ItemOperations", new TemplateDocument("ItemOperationsFetchRequest.xml") {
@@ -66,11 +67,11 @@ public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResp
 			protected void customize(Document document, AccountInfos accountInfos) {
 				Element documentElement = document.getDocumentElement();
 				
-				for (String serverId : serverIds) {
+				for (ServerId serverId : serverIds) {
 					Element fetchElement = DOMUtils.createElement(documentElement, "Fetch");
 					DOMUtils.createElementAndText(fetchElement, "Store", "Mailbox");
 					DOMUtils.createElementAndText(fetchElement, "AirSync:CollectionId", collectionId.asString());
-					DOMUtils.createElementAndText(fetchElement, "AirSync:ServerId", serverId);
+					DOMUtils.createElementAndText(fetchElement, "AirSync:ServerId", serverId.asString());
 					customizeOptions(fetchElement);
 				}
 			}
@@ -99,7 +100,7 @@ public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResp
 			String serverId = DOMUtils.getElementText(fetch, "ServerId");
 			Element data = DOMUtils.getUniqueElement(fetch, "Properties");
 			fetchResponses.add(new ItemOperationFetchResponse(
-					ItemOperationsStatus.fromSpecificationValue(statusAsString), serverId, data));
+					ItemOperationsStatus.fromSpecificationValue(statusAsString), ServerId.of(serverId), data));
 		}
 		
 		String status = DOMUtils.getElementText(documentElement, "Status");
