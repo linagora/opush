@@ -88,7 +88,7 @@ public class GetItemEstimateHandlerTest {
 		stMachine = control.createMock(StateMachine.class);
 		windowingDao = control.createMock(WindowingDao.class);
 		
-		testee = new GetItemEstimateHandler(null, null, null, contentsExporter, stMachine, windowingDao, null, null, null, null, null);
+		testee = new GetItemEstimateHandler(contentsExporter, stMachine, windowingDao, null, null, null, null, null);
 		
 	}
 	

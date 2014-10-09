@@ -36,8 +36,6 @@ import java.util.Set;
 import org.obm.push.ContinuationService;
 import org.obm.push.backend.CollectionChangeListener;
 import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IListenerRegistration;
 import org.obm.push.bean.AnalysedSyncCollection;
@@ -61,12 +59,9 @@ import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.PingResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.MissingRequestParameterException;
 import org.obm.push.protocol.data.PingAnalyser;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
@@ -79,6 +74,7 @@ import com.google.inject.name.Named;
 @Singleton
 public class PingHandler extends WbxmlRequestHandler implements IContinuationHandler {
 	
+	private final IBackend backend;
 	private final MonitoredCollectionDao monitoredCollectionDao;
 	private final PingProtocol protocol;
 	private final PingAnalyser pingAnalyser;
@@ -86,18 +82,16 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final boolean enablePush;
 
 	@Inject
-	protected PingHandler(IBackend backend, EncoderFactory encoderFactory,
-			IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter, StateMachine stMachine,
+	protected PingHandler(IBackend backend,
 			PingProtocol pingProtocol, PingAnalyser pingAnalyser,
 			MonitoredCollectionDao monitoredCollectionDao,
-			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper, ContinuationService continuationService,
+			WBXMLTools wbxmlTools, DOMDumper domDumper, ContinuationService continuationService,
 			@Named("enable-push") boolean enablePush) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
-		this.pingAnalyser = pingAnalyser;
+		super(wbxmlTools, domDumper);
 		
+		this.backend = backend;
+		this.pingAnalyser = pingAnalyser;
 		this.monitoredCollectionDao = monitoredCollectionDao;
 		this.protocol = pingProtocol;
 		this.continuationService = continuationService;

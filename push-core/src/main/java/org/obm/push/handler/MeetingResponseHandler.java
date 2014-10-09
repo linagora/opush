@@ -32,8 +32,6 @@
 package org.obm.push.handler;
 
 import org.obm.push.ICalendarBackend;
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.AttendeeStatus;
@@ -61,10 +59,7 @@ import org.obm.push.protocol.MeetingProtocol;
 import org.obm.push.protocol.bean.ItemChangeMeetingResponse;
 import org.obm.push.protocol.bean.MeetingHandlerRequest;
 import org.obm.push.protocol.bean.MeetingHandlerResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -81,18 +76,17 @@ public class MeetingResponseHandler extends WbxmlRequestHandler {
 	private final MeetingProtocol meetingProtocol;
 	private final MailBackend mailBackend;
 	private final ICalendarBackend calendarBackend;
+	private final IContentsImporter contentsImporter;
 	
 	@Inject
-	protected MeetingResponseHandler(IBackend backend,
-			EncoderFactory encoderFactory, IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter,	StateMachine stMachine, 
-			MeetingProtocol meetingProtocol, CollectionDao collectionDao,
-			MailBackend mailBackend, WBXMLTools wbxmlTools,
+	protected MeetingResponseHandler(
+			IContentsImporter contentsImporter,
+			MeetingProtocol meetingProtocol, MailBackend mailBackend, WBXMLTools wbxmlTools,
 			ICalendarBackend calendarBackend, DOMDumper domDumper) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
-		
+		super(wbxmlTools, domDumper);
+	
+		this.contentsImporter = contentsImporter;
 		this.meetingProtocol = meetingProtocol;
 		this.mailBackend = mailBackend;
 		this.calendarBackend = calendarBackend;

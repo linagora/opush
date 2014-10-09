@@ -58,7 +58,7 @@ public class ItemOperationsHandlerTest {
 
 	@Before
 	public void setUp() {
-		itemOperationsHandler = new ItemOperationsHandler(null, null, null, null, null, null, null, null, null, null, null);
+		itemOperationsHandler = new ItemOperationsHandler(null, null, null, null, null, null, null, null);
 	}
 	
 	@Test

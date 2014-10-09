@@ -31,9 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
-import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.GetItemEstimateStatus;
@@ -62,7 +60,6 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.protocol.bean.GetItemEstimateRequest;
 import org.obm.push.protocol.bean.GetItemEstimateResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
@@ -80,19 +77,23 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 	private final WindowingDao windowingDao;
 	private final GetItemEstimateProtocol protocol;
 	private final ICollectionPathHelper collectionPathHelper;
+	private final IContentsExporter contentsExporter;
+	private final StateMachine stMachine;
+	private final CollectionDao collectionDao;
 
 	@Inject
-	protected GetItemEstimateHandler(IBackend backend,
-			EncoderFactory encoderFactory, IContentsImporter contentsImporter,
+	protected GetItemEstimateHandler(
 			IContentsExporter contentsExporter, StateMachine stMachine,
 			WindowingDao windowingDao, CollectionDao collectionDao,
 			GetItemEstimateProtocol protocol, WBXMLTools wbxmlTools, DOMDumper domDumper,
 			ICollectionPathHelper collectionPathHelper) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		
+		this.contentsExporter = contentsExporter;
+		this.stMachine = stMachine;
 		this.windowingDao = windowingDao;
+		this.collectionDao = collectionDao;
 		this.protocol = protocol;
 		this.collectionPathHelper = collectionPathHelper;
 	}

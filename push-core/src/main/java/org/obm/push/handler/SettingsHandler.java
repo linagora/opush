@@ -31,18 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
 import org.obm.push.protocol.SettingsProtocol;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -55,13 +49,9 @@ public class SettingsHandler extends WbxmlRequestHandler {
 	private final SettingsProtocol protocol;
 
 	@Inject
-	protected SettingsHandler(IBackend backend, EncoderFactory encoderFactory,
-			IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter, StateMachine stMachine, SettingsProtocol protocol,
-			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper) {
+	protected SettingsHandler(SettingsProtocol protocol, WBXMLTools wbxmlTools, DOMDumper domDumper) {
 		
-		super(backend, encoderFactory, contentsImporter, 
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		this.protocol = protocol;
 	}
 

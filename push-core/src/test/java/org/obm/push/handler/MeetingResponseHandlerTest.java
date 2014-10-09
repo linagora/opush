@@ -38,8 +38,6 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ICalendarBackend;
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.Credentials;
@@ -55,9 +53,6 @@ import org.obm.push.impl.DOMDumper;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.MeetingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.protocol.data.EncoderFactory;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 
 
@@ -69,13 +64,8 @@ public class MeetingResponseHandlerTest {
 	private UserDataRequest udr;
 	
 	private MeetingResponseHandler meetingResponseHandler;
-	private IBackend backend;
-	private EncoderFactory encoderFactory;
 	private IContentsImporter contentsImporter;
-	private IContentsExporter contentsExporter;
-	private StateMachine stMachine; 
 	private MeetingProtocol meetingProtocol;
-	private CollectionDao collectionDao;
 	private MailBackend mailBackend;
 	private WBXMLTools wbxmlTools;
 	private ICalendarBackend calendarBackend;
@@ -84,20 +74,15 @@ public class MeetingResponseHandlerTest {
 	@Before
 	public void setup() {
 		control = createControl();
-		backend = control.createMock(IBackend.class);
-		encoderFactory = control.createMock(EncoderFactory.class);
 		contentsImporter = control.createMock(IContentsImporter.class);
-		contentsExporter = control.createMock(IContentsExporter.class);
-		stMachine = control.createMock(StateMachine.class); 
 		meetingProtocol = control.createMock(MeetingProtocol.class);
-		collectionDao = control.createMock(CollectionDao.class);
 		mailBackend = control.createMock(MailBackend.class);
 		wbxmlTools = control.createMock(WBXMLTools.class);
 		calendarBackend = control.createMock(ICalendarBackend.class);
 		domDumper = control.createMock(DOMDumper.class);
 		
-		meetingResponseHandler = new MeetingResponseHandler(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, meetingProtocol, collectionDao, mailBackend,
+		meetingResponseHandler = new MeetingResponseHandler(contentsImporter,
+				meetingProtocol, mailBackend,
 				wbxmlTools, calendarBackend, domDumper);
 		
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");

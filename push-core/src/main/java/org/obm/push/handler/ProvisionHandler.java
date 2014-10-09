@@ -31,9 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.handler;
 
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.PolicyConfigurationService;
 import org.obm.push.bean.ProvisionPolicyStatus;
@@ -47,10 +44,7 @@ import org.obm.push.protocol.ProvisionProtocol;
 import org.obm.push.protocol.bean.ProvisionRequest;
 import org.obm.push.protocol.bean.ProvisionResponse;
 import org.obm.push.protocol.bean.ProvisionResponse.Builder;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.wbxml.WBXMLTools;
@@ -69,14 +63,10 @@ public class ProvisionHandler extends WbxmlRequestHandler {
 	private final PolicyConfigurationService policyConfigurationService;
 
 	@Inject
-	protected ProvisionHandler(IBackend backend, EncoderFactory encoderFactory,
-			DeviceDao deviceDao, IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter, StateMachine stMachine, CollectionDao collectionDao, 
-			ProvisionProtocol.Factory provisionProtocolFactory, WBXMLTools wbxmlTools, DOMDumper domDumper,
+	protected ProvisionHandler(DeviceDao deviceDao, ProvisionProtocol.Factory provisionProtocolFactory, WBXMLTools wbxmlTools, DOMDumper domDumper,
 			PolicyConfigurationService policyConfigurationService) {
 		
-		super(backend, encoderFactory, contentsImporter, contentsExporter, 
-				stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		
 		this.deviceDao = deviceDao;
 		this.protocolFactory = provisionProtocolFactory;

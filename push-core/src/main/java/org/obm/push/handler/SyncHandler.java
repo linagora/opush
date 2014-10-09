@@ -92,7 +92,6 @@ import org.obm.push.protocol.bean.AnalysedSyncRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncAnalyser;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.service.DateService;
@@ -129,9 +128,13 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final DateService dateService;
 	private final SyncAnalyser syncAnalyser;
 	private final SummaryLoggerService summaryLoggerService;
+	private final IContentsImporter contentsImporter;
+	private final IContentsExporter contentsExporter;
+	private final IBackend backend;
+	private final StateMachine stMachine;
+	private final CollectionDao collectionDao;
 
-	@Inject SyncHandler(IBackend backend, EncoderFactory encoderFactory,
-			IContentsImporter contentsImporter, IContentsExporter contentsExporter,
+	@Inject SyncHandler(IBackend backend, IContentsImporter contentsImporter, IContentsExporter contentsExporter,
 			StateMachine stMachine,
 			MonitoredCollectionDao monitoredCollectionService, SyncProtocol syncProtocol,
 			CollectionDao collectionDao, ItemTrackingDao itemTrackingDao,
@@ -142,11 +145,15 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			DateService dateService, SyncAnalyser syncAnalyser,
 			SummaryLoggerService summaryLoggerService) {
 		
-		super(backend, encoderFactory, contentsImporter, contentsExporter, 
-				stMachine, collectionDao, wbxmlTools, domDumper);
-		
+		super(wbxmlTools, domDumper);
+
+		this.backend = backend;
+		this.contentsImporter = contentsImporter;
+		this.contentsExporter = contentsExporter;
+		this.stMachine = stMachine;
 		this.monitoredCollectionService = monitoredCollectionService;
 		this.syncProtocol = syncProtocol;
+		this.collectionDao = collectionDao;
 		this.itemTrackingDao = itemTrackingDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.continuationService = continuationService;

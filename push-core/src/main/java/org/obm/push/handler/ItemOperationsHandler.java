@@ -34,7 +34,6 @@ package org.obm.push.handler;
 import java.util.Arrays;
 import java.util.List;
 
-import org.obm.push.backend.IBackend;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
@@ -77,9 +76,7 @@ import org.obm.push.protocol.bean.ItemOperationsResponse.EmptyFolderContentsResu
 import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult;
 import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult.FetchAttachmentResult;
 import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult.FetchItemResult;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.FileUtils;
 import org.obm.push.wbxml.WBXMLTools;
@@ -98,19 +95,22 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 	private final ItemOperationsProtocol.Factory protocolFactory;
 	private final MailBackend mailBackend;
 	private final ICollectionPathHelper collectionPathHelper;
+	private final IContentsImporter contentsImporter;
+	private final IContentsExporter contentsExporter;
+	private final CollectionDao collectionDao;
 
 	@Inject
-	protected ItemOperationsHandler(IBackend backend,
-			EncoderFactory encoderFactory, IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter,
-			StateMachine stMachine, ItemOperationsProtocol.Factory protocolFactory,
+	protected ItemOperationsHandler(IContentsImporter contentsImporter,
+			IContentsExporter contentsExporter, ItemOperationsProtocol.Factory protocolFactory,
 			CollectionDao collectionDao, WBXMLTools wbxmlTools,
 			MailBackend mailBackend, DOMDumper domDumper, ICollectionPathHelper collectionPathHelper) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		
+		this.contentsImporter = contentsImporter;
+		this.contentsExporter = contentsExporter;
 		this.protocolFactory = protocolFactory;
+		this.collectionDao = collectionDao;
 		this.mailBackend = mailBackend;
 		this.collectionPathHelper = collectionPathHelper;
 	}

@@ -33,9 +33,6 @@ package org.obm.push.handler;
 
 import java.util.Set;
 
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.SearchStatus;
 import org.obm.push.bean.StoreName;
@@ -47,11 +44,8 @@ import org.obm.push.impl.Responder;
 import org.obm.push.protocol.SearchProtocol;
 import org.obm.push.protocol.bean.SearchRequest;
 import org.obm.push.protocol.bean.SearchResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.search.ISearchSource;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -68,15 +62,10 @@ public class SearchHandler extends WbxmlRequestHandler {
 	private final SearchProtocol protocol;
 	
 	@Inject
-	protected SearchHandler(IBackend backend, EncoderFactory encoderFactory,
-			Set<ISearchSource> searchSources,
-			IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter, StateMachine stMachine,
-			SearchProtocol searchProtocol, CollectionDao collectionDao,
-			WBXMLTools wbxmlTools, DOMDumper domDumper) {
+	protected SearchHandler(Set<ISearchSource> searchSources,
+			SearchProtocol searchProtocol, WBXMLTools wbxmlTools, DOMDumper domDumper) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		
 		this.protocol = searchProtocol;
 		this.sources =
@@ -86,7 +75,7 @@ public class SearchHandler extends WbxmlRequestHandler {
 					return input.getStoreName();
 				}
 			});
-   	}
+	}
 	
 	@Override
 	public void process(IContinuation continuation, UserDataRequest udr,

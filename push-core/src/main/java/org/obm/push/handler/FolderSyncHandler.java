@@ -32,9 +32,6 @@
 package org.obm.push.handler;
 
 import org.obm.push.SummaryLoggerService;
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.bean.FolderSyncState;
@@ -52,10 +49,8 @@ import org.obm.push.impl.Responder;
 import org.obm.push.protocol.FolderSyncProtocol;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -68,19 +63,18 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 	private final IHierarchyExporter hierarchyExporter;
 	private final FolderSyncProtocol protocol;
 	private final SummaryLoggerService summaryLoggerService;
+	private final StateMachine stMachine;
 	
 	@Inject
-	protected FolderSyncHandler(IBackend backend, EncoderFactory encoderFactory,
-			IContentsImporter contentsImporter, IHierarchyExporter hierarchyExporter,
-			IContentsExporter contentsExporter, StateMachine stMachine,
-			CollectionDao collectionDao, FolderSyncProtocol protocol,
+	protected FolderSyncHandler(IHierarchyExporter hierarchyExporter, StateMachine stMachine,
+			FolderSyncProtocol protocol,
 			WBXMLTools wbxmlTools, DOMDumper domDumper,
 			SummaryLoggerService summaryLoggerService) {
 		
-		super(backend, encoderFactory, contentsImporter,
-				contentsExporter, stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
 		
 		this.hierarchyExporter = hierarchyExporter;
+		this.stMachine = stMachine;
 		this.protocol = protocol;
 		this.summaryLoggerService = summaryLoggerService;
 	}

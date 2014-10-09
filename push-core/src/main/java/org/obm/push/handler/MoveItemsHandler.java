@@ -32,8 +32,6 @@
 package org.obm.push.handler;
 
 import org.obm.push.SummaryLoggerService;
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.ICollectionPathHelper;
@@ -57,9 +55,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
@@ -78,19 +74,20 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 	private final MoveItemsProtocol moveItemsProtocol;
 	private final ICollectionPathHelper collectionPathHelper;
 	private final SummaryLoggerService summaryLoggerService;
+	private final IContentsImporter contentsImporter;
+	private final CollectionDao collectionDao;
 
 	@Inject
-	protected MoveItemsHandler(IBackend backend, EncoderFactory encoderFactory,
-			IContentsImporter contentsImporter, IContentsExporter contentsExporter, 
-			StateMachine stMachine, MoveItemsProtocol moveItemsProtocol,
+	protected MoveItemsHandler(IContentsImporter contentsImporter, MoveItemsProtocol moveItemsProtocol,
 			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper,
 			ICollectionPathHelper collectionPathHelper,
 			SummaryLoggerService summaryLoggerService) {
 		
-		super(backend, encoderFactory, contentsImporter, contentsExporter, 
-				stMachine, collectionDao, wbxmlTools, domDumper);
+		super(wbxmlTools, domDumper);
+		this.contentsImporter = contentsImporter;
 		
 		this.moveItemsProtocol = moveItemsProtocol;
+		this.collectionDao = collectionDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.summaryLoggerService = summaryLoggerService;
 	}

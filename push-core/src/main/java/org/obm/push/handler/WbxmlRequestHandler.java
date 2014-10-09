@@ -34,17 +34,11 @@ package org.obm.push.handler;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.obm.push.backend.IBackend;
-import org.obm.push.backend.IContentsExporter;
-import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.technicallog.bean.KindToBeLogged;
 import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.obm.push.utils.FileUtils;
@@ -61,29 +55,10 @@ public abstract class WbxmlRequestHandler implements IRequestHandler {
 
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 
-	protected final IBackend backend;
-	protected final EncoderFactory encoderFactory;
-	protected final IContentsImporter contentsImporter;
-	protected final IContentsExporter contentsExporter;
-	protected final StateMachine stMachine;
-	protected final CollectionDao collectionDao;
-
 	private final WBXMLTools wbxmlTools;
-
 	private final DOMDumper domDumper;
 
-	protected WbxmlRequestHandler(IBackend backend,
-			EncoderFactory encoderFactory, IContentsImporter contentsImporter,
-			IContentsExporter contentsExporter,
-			StateMachine stMachine, CollectionDao collectionDao,
-			WBXMLTools wbxmlTools, DOMDumper domDumper) {
-		
-		this.backend = backend;
-		this.encoderFactory = encoderFactory;
-		this.contentsImporter = contentsImporter;
-		this.contentsExporter = contentsExporter;
-		this.stMachine = stMachine;
-		this.collectionDao = collectionDao;
+	protected WbxmlRequestHandler(WBXMLTools wbxmlTools, DOMDumper domDumper) {
 		this.wbxmlTools = wbxmlTools;
 		this.domDumper = domDumper;
 	}
@@ -141,9 +116,5 @@ public abstract class WbxmlRequestHandler implements IRequestHandler {
 	protected abstract void process(IContinuation continuation,
 			UserDataRequest udr, Document doc, ActiveSyncRequest request,
 			Responder responder);
-
-	protected EncoderFactory getEncoders() {
-		return encoderFactory;
-	}
 
 }
