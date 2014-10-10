@@ -130,7 +130,7 @@ public abstract class MonitoredCollectionDaoTest {
 		for(Integer id : ids){
 			cols.add(AnalysedSyncCollection.builder()
 					.collectionId(CollectionId.of(id))
-					.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+					.syncKey(SyncKey.INITIAL_SYNC_KEY)
 					.build());
 		}
 		return cols;

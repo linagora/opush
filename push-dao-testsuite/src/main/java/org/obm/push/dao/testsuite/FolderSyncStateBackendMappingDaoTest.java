@@ -46,8 +46,8 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 
@@ -75,13 +75,13 @@ public abstract class FolderSyncStateBackendMappingDaoTest {
 	
 	@Test(expected=DaoException.class)
 	public void testCreateMappingWhenNonExistingFolderState() {
-		FolderSyncState folderSyncState = FolderSyncState.builder().id(4).syncKey(new SyncKey("123")).build();
+		FolderSyncState folderSyncState = FolderSyncState.builder().id(4).syncKey(new FolderSyncKey("123")).build();
 		folderStateDao.createMapping(PIMDataType.EMAIL, folderSyncState);
 	}
 	
 	@Test
 	public void testCreateMapping() {
-		FolderSyncState folderSyncState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
+		FolderSyncState folderSyncState = collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
 		
 		folderStateDao.createMapping(PIMDataType.EMAIL, folderSyncState);
 		folderStateDao.createMapping(PIMDataType.CALENDAR, folderSyncState);
@@ -95,7 +95,7 @@ public abstract class FolderSyncStateBackendMappingDaoTest {
 	
 	@Test
 	public void testGetLastSyncDateWhenMappingOverriding() {
-		FolderSyncState folderSyncState = collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
+		FolderSyncState folderSyncState = collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
 
 		folderStateDao.createMapping(PIMDataType.EMAIL, folderSyncState);
 		folderStateDao.createMapping(PIMDataType.EMAIL, folderSyncState);

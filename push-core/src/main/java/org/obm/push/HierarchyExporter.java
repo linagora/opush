@@ -39,7 +39,6 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges.Builder;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.service.impl.MappingService;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -63,7 +62,7 @@ public class HierarchyExporter implements IHierarchyExporter {
 
 	@Override
 	public HierarchyCollectionChanges getChanged(UserDataRequest udr, FolderSyncState incomingSyncState,
-			FolderSyncState outgoingSyncState) throws DaoException, InvalidSyncKeyException {
+			FolderSyncState outgoingSyncState) throws DaoException {
 		
 		Builder builder = HierarchyCollectionChanges.builder();
 		for (PIMBackend backend: backends) {

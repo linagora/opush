@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,56 +29,34 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.exception.activesync;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 
-import com.google.common.collect.ImmutableList;
+public class InvalidFolderSyncKeyException extends RuntimeException {
 
-public class AnalysedSyncCollectionTest {
+	private final CollectionId collectionId;
+	private final FolderSyncKey syncKey;
 
-	@Test
-	public void testBuildNoCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	public InvalidFolderSyncKeyException(FolderSyncKey folderSyncKey) {
+		this(null, folderSyncKey);
+	}
+	
+	public InvalidFolderSyncKeyException(CollectionId collectionId, FolderSyncKey folderSyncKey) {
+		super(String.format(
+				"A client provided an unknown SyncKey (%s), may be expected after database migration", 
+				folderSyncKey));
+		this.collectionId = collectionId;
+		this.syncKey = folderSyncKey;
+	}
+	
+	public CollectionId getCollectionId() {
+		return collectionId;
 	}
 
-	@Test
-	public void testBuildNullCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(null)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	public Object getSyncKey() {
+		return syncKey;
 	}
 
-	@Test
-	public void testBuildCommandGiveNotEmptyCommand() {
-		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.deletions(ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build()))
-				.build();
-		
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(commands)
-			.build();
-		
-		assertThat(collection.getCommands()).isEqualTo(commands);
-	}
 }

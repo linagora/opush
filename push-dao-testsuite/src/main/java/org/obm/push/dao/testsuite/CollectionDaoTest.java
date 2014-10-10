@@ -50,6 +50,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSnapshotDao;
 
@@ -71,32 +72,32 @@ public abstract class CollectionDaoTest {
 	
 	@Test(expected=DaoException.class)
 	public void testAllocateFolderSyncStateUniqueSyncKey() throws Exception {
-		collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
-		collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
+		collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
+		collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
 	}
 
 	@Test(expected=DaoException.class)
 	public void testAllocateFolderSyncStateUniqueSyncKeyButOtherDevice() throws Exception {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
-		collectionDao.allocateNewFolderSyncState(otherDevice, new SyncKey("123"));
+		collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
+		collectionDao.allocateNewFolderSyncState(otherDevice, new FolderSyncKey("123"));
 	}
 	
 	@Test
 	public void testGetUserCollectionsWhenEmpty() throws Exception {
-		SyncKey sk = new SyncKey("123");
+		FolderSyncKey sk = new FolderSyncKey("123");
 		List<String> result = collectionDao.getUserCollections(FolderSyncState.builder().syncKey(sk).build());
 		assertThat(result).isEmpty();
 	}
 	
 	@Test
 	public void testGetUserCollectionsForAnotherSyncKey() throws Exception {
-		SyncKey otherSk = new SyncKey("123");
+		FolderSyncKey otherSk = new FolderSyncKey("123");
 		FolderSyncState newFolderSyncState = collectionDao.allocateNewFolderSyncState(device, otherSk);
 		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The collection")));
 
-		SyncKey sk = new SyncKey("456");
+		FolderSyncKey sk = new FolderSyncKey("456");
 		FolderSyncState otherFolderSyncState = collectionDao.allocateNewFolderSyncState(device, sk);
 		folderSnapshotDao.createFolderSnapshot(otherFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The right collection")));
@@ -107,7 +108,7 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testGetUserCollectionsWhenMany() throws Exception {
-		SyncKey sk = new SyncKey("123");
+		FolderSyncKey sk = new FolderSyncKey("123");
 		FolderSyncState newFolderSyncState = collectionDao.allocateNewFolderSyncState(device, sk);
 		folderSnapshotDao.createFolderSnapshot(newFolderSyncState.getId(), ImmutableSet.of(
 				collectionDao.addCollectionMapping(device, "The collection"),
@@ -219,14 +220,14 @@ public abstract class CollectionDaoTest {
 	
 	@Test
 	public void testFindFolderStateForKeyWhenNonExistingKey() throws Exception {
-		assertThat(collectionDao.findFolderStateForKey(new SyncKey("123"))).isNull();
+		assertThat(collectionDao.findFolderStateForKey(new FolderSyncKey("123"))).isNull();
 	}
 	
 	@Test
 	public void testFindFolderStateForKey() throws Exception {
-		FolderSyncState state = collectionDao.allocateNewFolderSyncState(device, new SyncKey("123"));
+		FolderSyncState state = collectionDao.allocateNewFolderSyncState(device, new FolderSyncKey("123"));
 		
-		assertThat(collectionDao.findFolderStateForKey(new SyncKey("123"))).isEqualTo(state);
+		assertThat(collectionDao.findFolderStateForKey(new FolderSyncKey("123"))).isEqualTo(state);
 	}
 	
 	@Test

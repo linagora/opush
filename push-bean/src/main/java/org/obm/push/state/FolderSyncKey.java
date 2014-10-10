@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,56 +29,47 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.state;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.common.base.Objects;
 
-import org.junit.Test;
-import org.obm.push.bean.change.item.ItemDeletion;
-import org.obm.push.protocol.bean.CollectionId;
 
-import com.google.common.collect.ImmutableList;
+public class FolderSyncKey {
 
-public class AnalysedSyncCollectionTest {
+	public static final FolderSyncKey INITIAL_FOLDER_SYNC_KEY = new FolderSyncKey("0"); 
+	
+	private String syncKey;
 
-	@Test
-	public void testBuildNoCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	public FolderSyncKey(String syncKey) {
+		this.syncKey = syncKey;
 	}
 
-	@Test
-	public void testBuildNullCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(null)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	public String asString() {
+		return syncKey;
 	}
 
-	@Test
-	public void testBuildCommandGiveNotEmptyCommand() {
-		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.deletions(ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build()))
-				.build();
-		
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(commands)
-			.build();
-		
-		assertThat(collection.getCommands()).isEqualTo(commands);
+	public boolean isInitialFolderSync() {
+		return this.equals(INITIAL_FOLDER_SYNC_KEY);
+	}
+	
+	@Override
+	public final int hashCode(){
+		return Objects.hashCode(syncKey);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
+		if (object instanceof FolderSyncKey) {
+			FolderSyncKey that = (FolderSyncKey) object;
+			return Objects.equal(this.syncKey, that.syncKey);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("syncKey", syncKey)
+			.toString();
 	}
 }

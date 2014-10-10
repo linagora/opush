@@ -35,10 +35,10 @@ import java.util.List;
 
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.Summary;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.state.FolderSyncKey;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -53,7 +53,7 @@ public class FolderSyncResponse {
 		
 		private FolderSyncStatus status;
 		private HierarchyCollectionChanges hierarchyItemsChanges;
-		private SyncKey newSyncKey;
+		private FolderSyncKey newSyncKey;
 
 		private Builder() {}
 		
@@ -62,8 +62,8 @@ public class FolderSyncResponse {
 			return this;
 		}
 		
-		public Builder newSyncKey(SyncKey newSyncKey) {
-			this.newSyncKey = newSyncKey;
+		public Builder newSyncKey(FolderSyncKey folderSyncKey) {
+			this.newSyncKey = folderSyncKey;
 			return this;
 		}
 		
@@ -81,10 +81,10 @@ public class FolderSyncResponse {
 	
 	private final FolderSyncStatus status;
 	private final HierarchyCollectionChanges hierarchyItemsChanges;
-	private final SyncKey newSyncKey;
+	private final FolderSyncKey newSyncKey;
 	
 	private FolderSyncResponse(FolderSyncStatus status,
-			HierarchyCollectionChanges hierarchyItemsChanges, SyncKey newSyncKey) {
+			HierarchyCollectionChanges hierarchyItemsChanges, FolderSyncKey newSyncKey) {
 		this.status = status;
 		this.hierarchyItemsChanges = hierarchyItemsChanges;
 		this.newSyncKey = newSyncKey;
@@ -94,7 +94,7 @@ public class FolderSyncResponse {
 		return hierarchyItemsChanges;
 	}
 	
-	public SyncKey getNewSyncKey() {
+	public FolderSyncKey getNewSyncKey() {
 		return newSyncKey;
 	}
 	

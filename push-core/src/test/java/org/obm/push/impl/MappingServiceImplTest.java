@@ -31,11 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -46,10 +46,10 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 
 import com.google.common.collect.Lists;
@@ -60,7 +60,7 @@ public class MappingServiceImplTest {
 
 	@Test
 	public void testListCollection() throws DaoException, CollectionPathException {
-		SyncKey incomingSyncKey = new SyncKey("1234-12345678-1234");
+		FolderSyncKey incomingSyncKey = new FolderSyncKey("1234-12345678-1234");
 
 		String collectionEmail = "obm:\\\\login@domain\\email\\INBOX";
 		String collectionCalendar = "obm:\\\\login@domain\\calendar\\login@domain";

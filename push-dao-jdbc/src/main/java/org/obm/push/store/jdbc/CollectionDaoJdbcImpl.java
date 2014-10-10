@@ -54,6 +54,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.JDBCUtils;
 import org.obm.sync.calendar.EventType;
@@ -91,7 +92,7 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 		List<String> userCollections = Lists.newArrayList();
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
-			ps.setString(1, folderSyncState.getSyncKey().getSyncKey());
+			ps.setString(1, folderSyncState.getSyncKey().asString());
 			try (ResultSet resultSet = ps.executeQuery()) {
 				while (resultSet.next()) {
 					userCollections.add(resultSet.getString("collection"));
@@ -181,13 +182,13 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
 	@Override
-	public FolderSyncState allocateNewFolderSyncState(Device device, SyncKey newSyncKey) throws DaoException {
+	public FolderSyncState allocateNewFolderSyncState(Device device, FolderSyncKey newSyncKey) throws DaoException {
 		String statement = "INSERT INTO opush_folder_sync_state (sync_key, device_id) VALUES (?, ?)";
 		
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			
-			ps.setString(1, newSyncKey.getSyncKey());
+			ps.setString(1, newSyncKey.asString());
 			ps.setInt(2, device.getDatabaseId());
 			ps.executeUpdate();
 
@@ -221,17 +222,17 @@ public class CollectionDaoJdbcImpl extends AbstractJdbcImpl implements Collectio
 	}
 
 	@Override
-	public FolderSyncState findFolderStateForKey(SyncKey syncKey) throws DaoException {
+	public FolderSyncState findFolderStateForKey(FolderSyncKey syncKey) throws DaoException {
 		String statement = "SELECT " + SYNC_STATE_FOLDER_FIELDS + " FROM " + SYNC_STATE_FOLDER_TABLE + " WHERE sync_key=?";
 
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			
-			ps.setString(1, syncKey.getSyncKey());
+			ps.setString(1, syncKey.asString());
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					SyncKey rsSyncKey = new SyncKey(rs.getString("sync_key"));
+					FolderSyncKey rsSyncKey = new FolderSyncKey(rs.getString("sync_key"));
 					return FolderSyncState.builder()
 							.syncKey(rsSyncKey)
 							.id(rs.getInt("id"))

@@ -78,7 +78,7 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 			syncCollections.add(SyncCollection.builder()
 				.dataType(PIMDataType.recognizeDataType(DOMUtils.getElementText(f, "Class")))
 				.collectionId(id)
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 		}
 		

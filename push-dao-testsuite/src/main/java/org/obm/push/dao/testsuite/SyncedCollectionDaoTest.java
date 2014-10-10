@@ -75,7 +75,7 @@ public abstract class SyncedCollectionDaoTest {
 	@Test
 	public void testGetWhenPutWithOtherDevice() {
 		Device otherDevice = new Device(6, "otherType", new DeviceId("otherId"), new Properties(), ProtocolVersion.V121);
-		syncedCollectionDao.put(user, otherDevice, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user, otherDevice, buildCollection(CollectionId.of(1), SyncKey.INITIAL_SYNC_KEY));
 		
 		assertThat(syncedCollectionDao.get(credentials, device, CollectionId.of(1))).isNull();
 	}
@@ -83,14 +83,14 @@ public abstract class SyncedCollectionDaoTest {
 	@Test
 	public void testGetWhenPutWithOtherCredentials() {
 		User user2 = Factory.create().createUser("login@domain2", "email@domain2", "displayName2");
-		syncedCollectionDao.put(user2, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user2, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_SYNC_KEY));
 
 		assertThat(syncedCollectionDao.get(credentials, device, CollectionId.of(1))).isNull();
 	}
 	
 	@Test
 	public void testGetWhenPut() {
-		syncedCollectionDao.put(user, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY));
+		syncedCollectionDao.put(user, device, buildCollection(CollectionId.of(1), SyncKey.INITIAL_SYNC_KEY));
 		AnalysedSyncCollection syncCollection = syncedCollectionDao.get(credentials, device, CollectionId.of(1));
 		assertThat(syncCollection).isNotNull();
 		assertThat(syncCollection.getCollectionId()).isEqualTo(CollectionId.of(1));
@@ -99,7 +99,7 @@ public abstract class SyncedCollectionDaoTest {
 	@Test
 	public void testGetWhenOverridingPut() {
 		SyncKey expectedSyncKey = new SyncKey("123");
-		AnalysedSyncCollection col = buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY);
+		AnalysedSyncCollection col = buildCollection(CollectionId.of(1), SyncKey.INITIAL_SYNC_KEY);
 		syncedCollectionDao.put(user, device, col);
 		col = buildCollection(CollectionId.of(1), expectedSyncKey);
 		syncedCollectionDao.put(user, device, col);

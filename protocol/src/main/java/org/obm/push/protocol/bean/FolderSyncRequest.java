@@ -31,7 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.bean;
 
-import org.obm.push.bean.SyncKey;
+import org.obm.push.state.FolderSyncKey;
 
 import com.google.common.base.Objects;
 
@@ -42,11 +42,11 @@ public class FolderSyncRequest {
 	}
 	
 	public static class Builder {
-		private SyncKey syncKey;
+		private FolderSyncKey syncKey;
 
 		private Builder() {}
 		
-		public Builder syncKey(SyncKey syncKey) {
+		public Builder syncKey(FolderSyncKey syncKey) {
 			this.syncKey = syncKey;
 			return this;
 		}
@@ -56,13 +56,13 @@ public class FolderSyncRequest {
 		}
 	}
 
-	private final SyncKey syncKey;
+	private final FolderSyncKey syncKey;
 	
-	private FolderSyncRequest(SyncKey syncKey) {
+	private FolderSyncRequest(FolderSyncKey syncKey) {
 		this.syncKey = syncKey;
 	}
 	
-	public SyncKey getSyncKey() {
+	public FolderSyncKey getSyncKey() {
 		return syncKey;
 	}
 	

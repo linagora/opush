@@ -43,7 +43,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForNullDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build();
 		
 		assertThat(syncCollection.getDataClass()).isNull();
@@ -53,7 +53,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForUnknownDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.UNKNOWN)
 				.build();
 		
@@ -64,7 +64,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForEmailDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.EMAIL)
 				.build();
 		
@@ -75,7 +75,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForCalendarDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.CALENDAR)
 				.build();
 		
@@ -86,7 +86,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForContactDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.CONTACTS)
 				.build();
 		
@@ -97,7 +97,7 @@ public class AbstractSyncCollectionTest {
 	public void testDataClassForDefaultDataType() {
 		SyncCollectionResponse syncCollection = SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build();
 		
 		assertThat(syncCollection.getDataClass()).isNull();

@@ -55,13 +55,13 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
 import org.obm.push.spushnik.bean.CheckResult;
 import org.obm.push.spushnik.bean.CheckStatus;
 import org.obm.push.spushnik.bean.Credentials;
-import org.obm.push.state.SyncKeyFactory;
+import org.obm.push.state.FolderSyncKey;
+import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
@@ -147,8 +147,8 @@ public class FolderSyncScenarioMockTest {
 			.andReturn(policyKey).once();
 		
 		// FolderSync
-		SyncKey syncKey = new SyncKey("123");
-		expect(classToInstanceMap.get(SyncKeyFactory.class).randomSyncKey())
+		FolderSyncKey syncKey = new FolderSyncKey("123");
+		expect(classToInstanceMap.get(FolderSyncKeyFactory.class).randomSyncKey())
 			.andReturn(syncKey).once();
 		FolderSyncState syncState = FolderSyncState.builder()
 				.syncKey(syncKey)

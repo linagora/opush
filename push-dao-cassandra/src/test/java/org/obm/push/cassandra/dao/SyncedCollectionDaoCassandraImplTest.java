@@ -77,7 +77,7 @@ public class SyncedCollectionDaoCassandraImplTest extends SyncedCollectionDaoTes
 	
 	@Test
 	public void getShouldReturnV1WhenPutDoneByV1UsingCredentials() {
-		AnalysedSyncCollection collection = buildCollection(CollectionId.of(1), SyncKey.INITIAL_FOLDER_SYNC_KEY);
+		AnalysedSyncCollection collection = buildCollection(CollectionId.of(1), SyncKey.INITIAL_SYNC_KEY);
 		syncedCollectionDaoV1.put(credentials, device, collection);
 		
 		assertThat(syncedCollectionDao.get(credentials, device, collection.getCollectionId()))

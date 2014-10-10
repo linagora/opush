@@ -74,7 +74,7 @@ public class FolderSyncStateBackendMappingDaoJdbcImpl extends AbstractJdbcImpl i
 				PreparedStatement ps = con.prepareStatement(statement)) { 
 		
 			ps.setObject(1, dbcp.getJdbcObject(dataType.getDbFieldName(), dataType.getDbValue()));
-			ps.setString(2, folderSyncState.getSyncKey().getSyncKey());
+			ps.setString(2, folderSyncState.getSyncKey().asString());
 
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {

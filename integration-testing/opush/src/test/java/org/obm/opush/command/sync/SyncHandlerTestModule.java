@@ -50,8 +50,9 @@ public class SyncHandlerTestModule  extends AbstractOpushEnv {
 
 		Module contentsExporterBackend = bindContentsExporterBackendModule();
 		Module contentsImporterBackend = bindContentsImporterBackendModule();
+		Module syncKeyFactoryModule = bindSyncKeyFactoryModule();
 		
-		return Modules.combine(overrideModule, contentsExporterBackend, contentsImporterBackend);
+		return Modules.combine(overrideModule, contentsExporterBackend, contentsImporterBackend, syncKeyFactoryModule);
 	}
 
 	private Module bindContentsExporterBackendModule() {
@@ -64,5 +65,11 @@ public class SyncHandlerTestModule  extends AbstractOpushEnv {
 		AbstractOverrideModule contentsImporterBackend = ModuleUtils.buildContentsImporterBackendModule(getMocksControl());
 		getMockMap().addMap(contentsImporterBackend.getMockMap());
 		return contentsImporterBackend;
+	}
+	
+	private Module bindSyncKeyFactoryModule() {
+		AbstractOverrideModule module = ModuleUtils.buildSyncKeyFactoryModule(getMocksControl());
+		getMockMap().addMap(module.getMockMap());
+		return module;
 	}
 }

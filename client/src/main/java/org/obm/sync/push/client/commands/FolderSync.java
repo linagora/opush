@@ -33,9 +33,9 @@ package org.obm.sync.push.client.commands;
 
 import java.io.IOException;
 
-import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.FolderSyncProtocol;
 import org.obm.push.protocol.bean.FolderSyncResponse;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ResponseTransformer;
 import org.obm.sync.push.client.beans.AccountInfos;
@@ -51,12 +51,12 @@ public class FolderSync extends AbstractCommand<FolderSyncResponse> {
 
 	private static final String TEMPLATE_NAME = "FolderSyncRequest.xml";
 	
-	public FolderSync(final SyncKey syncKey) throws SAXException, IOException {
+	public FolderSync(final FolderSyncKey key) throws SAXException, IOException {
 		super(NS.FolderHierarchy, "FolderSync", new TemplateDocument(TEMPLATE_NAME) {
 			@Override
 			protected void customize(Document document, AccountInfos accountInfos) {
 				Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), "SyncKey");
-				sk.setTextContent(syncKey.getSyncKey());
+				sk.setTextContent(key.asString());
 			}
 		});		
 	}

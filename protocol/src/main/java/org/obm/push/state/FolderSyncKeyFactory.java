@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,56 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.state;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.obm.push.utils.UUIDFactory;
 
-import org.junit.Test;
-import org.obm.push.bean.change.item.ItemDeletion;
-import org.obm.push.protocol.bean.CollectionId;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-import com.google.common.collect.ImmutableList;
+@Singleton
+public class FolderSyncKeyFactory {
 
-public class AnalysedSyncCollectionTest {
+	private final UUIDFactory uuidFactory;
 
-	@Test
-	public void testBuildNoCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	@Inject
+	@VisibleForTesting FolderSyncKeyFactory(UUIDFactory uuidFactory) {
+		this.uuidFactory = uuidFactory;
 	}
-
-	@Test
-	public void testBuildNullCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(null)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsResponse.empty());
+	
+	public FolderSyncKey randomSyncKey() {
+		return new FolderSyncKey (uuidFactory.randomUUID().toString());
 	}
-
-	@Test
-	public void testBuildCommandGiveNotEmptyCommand() {
-		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-				.deletions(ImmutableList.of(ItemDeletion.builder().serverId(CollectionId.of(1).serverId(2)).build()))
-				.build();
-		
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(commands)
-			.build();
-		
-		assertThat(collection.getCommands()).isEqualTo(commands);
-	}
+	
 }

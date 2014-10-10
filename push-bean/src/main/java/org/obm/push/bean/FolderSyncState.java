@@ -33,6 +33,8 @@ package org.obm.push.bean;
 
 import java.io.Serializable;
 
+import org.obm.push.state.FolderSyncKey;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -44,13 +46,13 @@ public class FolderSyncState implements Serializable {
 	
 	public static class Builder {
 		
-		private SyncKey syncKey;
+		private FolderSyncKey syncKey;
 		private int id;
 		
 		private Builder() {}
 		
-		public Builder syncKey(SyncKey syncKey) {
-			this.syncKey = syncKey;
+		public Builder syncKey(FolderSyncKey newSyncKey) {
+			this.syncKey = newSyncKey;
 			return this;
 		}
 		
@@ -66,23 +68,19 @@ public class FolderSyncState implements Serializable {
 	}
 	
 	public boolean isInitialFolderSync() {
-		return isSyncKeyOfInitialFolderSync(getSyncKey());
+		return syncKey.isInitialFolderSync();
 	}
 	
-	public static boolean isSyncKeyOfInitialFolderSync(SyncKey syncKey) {
-		return SyncKey.INITIAL_FOLDER_SYNC_KEY.equals(syncKey);
-	}
-	
-	private final SyncKey syncKey;
+	private final FolderSyncKey syncKey;
 	private final int id;
 	
-	private FolderSyncState(SyncKey syncKey, int id) {
+	private FolderSyncState(FolderSyncKey syncKey, int id) {
 		this.syncKey = syncKey;
 		this.id = id;
 	}
 	
 
-	public SyncKey getSyncKey() {
+	public FolderSyncKey getSyncKey() {
 		return syncKey;
 	}
 

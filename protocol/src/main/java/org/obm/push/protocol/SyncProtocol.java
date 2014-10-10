@@ -110,7 +110,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 					DOMUtils.createElementAndText(ce, "CollectionId", collectionResponse.getCollectionId().asString());
 					DOMUtils.createElementAndText(ce, "Status", status.asSpecificationValue());
 	
-					if (!collectionResponse.getSyncKey().equals(SyncKey.INITIAL_FOLDER_SYNC_KEY)) {
+					if (!collectionResponse.getSyncKey().equals(SyncKey.INITIAL_SYNC_KEY)) {
 						if (collectionResponse.isMoreAvailable()) {
 							// MoreAvailable has to be before Commands
 							DOMUtils.createElement(ce, "MoreAvailable");

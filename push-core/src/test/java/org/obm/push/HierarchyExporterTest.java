@@ -50,7 +50,6 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -62,6 +61,7 @@ import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.state.FolderSyncKey;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -143,8 +143,8 @@ public class HierarchyExporterTest {
 	
 	@Test
 	public void testNothingChanges() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234567890a"));
-		FolderSyncState outgoingSyncKey = buildFolderSyncState(new SyncKey("1234567890b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890a"));
+		FolderSyncState outgoingSyncKey = buildFolderSyncState(new FolderSyncKey("1234567890b"));
 		
 		FolderBackend folderExporter = createStrictMock(FolderBackend.class);
 
@@ -182,8 +182,8 @@ public class HierarchyExporterTest {
 		CollectionId contactParentCollectionId = CollectionId.of(5);
 		CollectionId mailParentCollectionId = CollectionId.of(2);
 		
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234567890a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890b"));
 		
 		FolderBackend folderExporter = createStrictMock(FolderBackend.class);
 
@@ -297,7 +297,7 @@ public class HierarchyExporterTest {
 			.andReturn(hierarchyItemsChanges).once();
 	}
 
-	private FolderSyncState buildFolderSyncState(SyncKey syncKey) {
+	private FolderSyncState buildFolderSyncState(FolderSyncKey syncKey) {
 		return FolderSyncState.builder()
 				.syncKey(syncKey)
 				.build();

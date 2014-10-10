@@ -67,7 +67,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
@@ -134,7 +134,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	@Override
 	public HierarchyCollectionChanges getHierarchyChanges(UserDataRequest udr, 
 			FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
-			throws DaoException, InvalidSyncKeyException {
+			throws DaoException {
 
 		try {
 			FolderChanges folderChanges = listAddressBooksChanged(lastKnownState);
@@ -151,7 +151,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		}
 	}
 
-	private Date backendLastSyncDate(FolderSyncState lastKnownState) throws DaoException, InvalidSyncKeyException {
+	private Date backendLastSyncDate(FolderSyncState lastKnownState) throws DaoException {
 
 		if (lastKnownState.isInitialFolderSync()) {
 			return DateUtils.getEpochCalendar().getTime();
@@ -161,13 +161,13 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	private Date getLastSyncDateFromSyncState(FolderSyncState lastKnownState)
-			throws InvalidSyncKeyException, DaoException {
+			throws DaoException {
 		
 		Date lastSyncDate = mappingService.getLastBackendMapping(getPIMDataType(), lastKnownState);
 		if (lastSyncDate != null) {
 			return lastSyncDate;
 		}
-		throw new InvalidSyncKeyException(lastKnownState.getSyncKey());
+		throw new InvalidFolderSyncKeyException(lastKnownState.getSyncKey());
 	}
 
 	private void snapshotHierarchy(UserDataRequest udr, Set<CollectionPath> lastKnownCollections,
@@ -249,7 +249,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	private FolderChanges listAddressBooksChanged(FolderSyncState lastKnownState)
-			throws UnexpectedObmSyncServerException, DaoException, InvalidSyncKeyException {
+			throws UnexpectedObmSyncServerException, DaoException {
 		
 		AccessToken token = getAccessToken();
 		Date lastSyncDate = backendLastSyncDate(lastKnownState);

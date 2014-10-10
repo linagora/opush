@@ -241,7 +241,7 @@ public class SyncHandlerWithBackendTest {
 
 	@Test
 	public void testInitialSyncThenRecreatesAccountOnMails() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
 		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
 		SyncKey newFirstAllocatedSyncKey = new SyncKey("52add403-4c77-40a3-9a2b-f593534557f1");
@@ -364,7 +364,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testInitialSyncThenRecreatesAccountOnCalendars() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
 		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
 		SyncKey newFirstAllocatedSyncKey = new SyncKey("faacfa99-d6ef-406b-8c59-fc90a6710443");
@@ -544,7 +544,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testInitialSyncThenRecreatesAccountOnContacts() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
 		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
 		SyncKey newFirstAllocatedSyncKey = new SyncKey("faacfa99-d6ef-406b-8c59-fc90a6710443");
@@ -1200,7 +1200,7 @@ public class SyncHandlerWithBackendTest {
 
 	@Test
 	public void testEventSensitivityNotModifiedByDevices() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("b91c285a-46c3-436e-8ad5-4b851830150e");
 		SyncKey secondAllocatedSyncKey = new SyncKey("96e8dcae-ac37-4b6f-a310-f7fcd5c3d858");
 		SyncKey thirdAllocatedSyncKey = new SyncKey("82a066ae-c8c5-4a89-a706-0ea5e7750f5e");
@@ -1344,7 +1344,7 @@ public class SyncHandlerWithBackendTest {
 
 	@Test
 	public void syncShouldRespondWhenAskingTwiceForFirstSyncKeyAndWindowing() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
 		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
 		SyncKey newSecondAllocatedSyncKey = new SyncKey("279cf50e-9f28-4c92-8ac6-7d3e7cab1056");
@@ -1415,7 +1415,7 @@ public class SyncHandlerWithBackendTest {
 
 	@Test
 	public void syncShouldRespondWhenAskingTwiceForFirstSyncKey() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
 		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
 		SyncKey newSecondAllocatedSyncKey = new SyncKey("279cf50e-9f28-4c92-8ac6-7d3e7cab1056");

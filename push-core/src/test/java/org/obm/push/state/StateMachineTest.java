@@ -58,7 +58,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -70,7 +70,7 @@ import com.google.common.collect.ImmutableSet;
 
 public class StateMachineTest {
 	
-	SyncKeyFactory syncKeyFactory;
+	FolderSyncKeyFactory syncKeyFactory;
 	User user;
 	Device device;
 	UserDataRequest udr;
@@ -79,7 +79,7 @@ public class StateMachineTest {
 	@Before
 	public void setUp() {
 		UUIDFactory uuidFactory = new UUIDFactory() {};
-		syncKeyFactory = new SyncKeyFactory(uuidFactory);
+		syncKeyFactory = new FolderSyncKeyFactory(uuidFactory);
 
 		user = Factory.create().createUser("test@test", "test@domain", "displayName");
 		device = new Device.Factory().create(3, "type", "agent", new DeviceId("my phone"), ProtocolVersion.V121);
@@ -99,12 +99,12 @@ public class StateMachineTest {
 	public void testGetFolderSyncStateWithEmptyKey() throws Exception {
 		StateMachine stateMachine = new StateMachine(null , null, syncKeyFactory);
 		
-		stateMachine.getFolderSyncState(new SyncKey(""));
+		stateMachine.getFolderSyncState(new FolderSyncKey(""));
 	}
 
 	@Test
 	public void testGetFolderSyncStateWithInitialKey() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 
 		StateMachine stateMachine = new StateMachine(null , null, syncKeyFactory);
 		FolderSyncState folderSyncState = stateMachine.getFolderSyncState(initialSyncKey);
@@ -115,7 +115,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testGetFolderSyncStateWithKnownKey() throws Exception {
-		SyncKey knownSyncKey = new SyncKey("1234");
+		FolderSyncKey knownSyncKey = new FolderSyncKey("1234");
 		int knownSyncStateId = 156;
 		FolderSyncState knownFolderSyncState = FolderSyncState.builder()
 				.syncKey(knownSyncKey)
@@ -135,9 +135,9 @@ public class StateMachineTest {
 		assertThat(folderSyncState.isInitialFolderSync()).isFalse();
 	}
 
-	@Test(expected=InvalidSyncKeyException.class)
+	@Test(expected=InvalidFolderSyncKeyException.class)
 	public void testGetFolderSyncStateWithUnknownKey() throws Exception {
-		SyncKey unknownSyncKey = new SyncKey("1234");
+		FolderSyncKey unknownSyncKey = new FolderSyncKey("1234");
 		
 		CollectionDao collectionDao = control.createMock(CollectionDao.class);
 		expect(collectionDao.findFolderStateForKey(unknownSyncKey)).andReturn(null).once();

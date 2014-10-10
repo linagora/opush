@@ -141,7 +141,7 @@ public class PingAnalyser {
 			if (lastKnownState != null) {
 				syncCollectionRequestBuilder.syncKey(lastKnownState.getSyncKey());
 			} else {
-				syncCollectionRequestBuilder.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY);
+				syncCollectionRequestBuilder.syncKey(SyncKey.INITIAL_SYNC_KEY);
 			}
 			analysedSyncCollections.add(syncCollectionRequestBuilder.build());
 		}

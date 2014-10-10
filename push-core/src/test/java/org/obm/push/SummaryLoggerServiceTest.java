@@ -62,6 +62,7 @@ import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
 import org.obm.push.protocol.bean.SyncResponse;
+import org.obm.push.state.FolderSyncKey;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
@@ -252,7 +253,7 @@ public class SummaryLoggerServiceTest {
 		FolderSyncResponse response = FolderSyncResponse.builder()
 			.status(FolderSyncStatus.OK)
 			.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
-			.newSyncKey(new SyncKey("123"))
+			.newSyncKey(new FolderSyncKey("123"))
 			.build();
 
 		loggerOut.info("CHANGE: 0, DELETE: 0, FETCH: 0");
@@ -288,7 +289,7 @@ public class SummaryLoggerServiceTest {
 				.changes(ImmutableList.of(add, change))
 				.deletions(ImmutableList.of(del))
 				.build())
-			.newSyncKey(new SyncKey("123"))
+			.newSyncKey(new FolderSyncKey("123"))
 			.build();
 
 		loggerOut.info("CHANGE: 2, DELETE: 1, FETCH: 0");

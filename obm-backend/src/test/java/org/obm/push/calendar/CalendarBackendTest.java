@@ -99,6 +99,7 @@ import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.NotAllowedException;
@@ -172,8 +173,8 @@ public class CalendarBackendTest {
 		this.device = new Device.Factory().create(null, "iPhone", "iOs 5", new DeviceId("my phone"), null);
 		this.userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		this.token = new AccessToken(0, "OBM");
-		this.lastKnownState = buildFolderSyncState(new SyncKey("1234567890a"));
-		this.outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
+		this.lastKnownState = buildFolderSyncState(new FolderSyncKey("1234567890a"));
+		this.outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890b"));
 		this.rootCalendarPath = "obm:\\\\test@test\\calendar\\";
 		this.userCalendarCollectionPath = new CalendarCollectionPath(rootCalendarPath, "test");
 		this.httpClient = HttpClientBuilder.create().build();
@@ -286,8 +287,8 @@ public class CalendarBackendTest {
 
 	@Test
 	public void testInitialCalendarChangesWhenMultipleCalendar() throws Exception {
-		FolderSyncState lastKnownState = buildFolderSyncState(new SyncKey("1234567890a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
+		FolderSyncState lastKnownState = buildFolderSyncState(new FolderSyncKey("1234567890a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890b"));
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
@@ -344,8 +345,8 @@ public class CalendarBackendTest {
 
 	@Test
 	public void testDeletionWhenMultipleCalendar() throws Exception {
-		FolderSyncState lastKnownState = buildFolderSyncState(new SyncKey("1234567890a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234567890b"));
+		FolderSyncState lastKnownState = buildFolderSyncState(new FolderSyncKey("1234567890a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234567890b"));
 
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
@@ -1246,7 +1247,7 @@ public class CalendarBackendTest {
 				.build());
 	}
 
-	private FolderSyncState buildFolderSyncState(SyncKey syncKey) {
+	private FolderSyncState buildFolderSyncState(FolderSyncKey syncKey) {
 		return FolderSyncState.builder()
 				.syncKey(syncKey)
 				.build();

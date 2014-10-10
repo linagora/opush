@@ -59,7 +59,6 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -73,6 +72,7 @@ import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
@@ -165,10 +165,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testDefaultContactChanges() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890a"))
+				.syncKey(new FolderSyncKey("1234567890a"))
 				.build();
 		FolderSyncState outgoingSyncState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890b"))
+				.syncKey(new FolderSyncKey("1234567890b"))
 				.build();
 		
 		Date lastSyncDate = DateUtils.date("2012-12-15T20:30:45Z");
@@ -204,10 +204,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testNoContactsChanges() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890a"))
+				.syncKey(new FolderSyncKey("1234567890a"))
 				.build();
 		FolderSyncState outgoingSyncState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890b"))
+				.syncKey(new FolderSyncKey("1234567890b"))
 				.build();
 
 		Date lastSyncDate = DateUtils.date("2012-12-15T20:30:45Z");
@@ -232,10 +232,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testOnlyChanges() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890a"))
+				.syncKey(new FolderSyncKey("1234567890a"))
 				.build();
 		FolderSyncState outgoingSyncState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890b"))
+				.syncKey(new FolderSyncKey("1234567890b"))
 				.build();
 		
 		CollectionId otherCollectionMappingId = CollectionId.of(203);
@@ -276,10 +276,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testOnlyDeletions() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890a"))
+				.syncKey(new FolderSyncKey("1234567890a"))
 				.build();
 		FolderSyncState outgoingSyncState = FolderSyncState.builder()
-				.syncKey(new SyncKey("1234567890b"))
+				.syncKey(new FolderSyncKey("1234567890b"))
 				.build();
 		
 		CollectionId otherCollectionMappingId = CollectionId.of(203);
@@ -320,10 +320,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testSameAddAndDeleteDiscardDelete() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 		CollectionId targetCollectionId = CollectionId.of(2);
 			
@@ -360,10 +360,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testSameLastKnownAndAdd() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 		CollectionId targetCollectionId = CollectionId.of(2);
 		
@@ -391,10 +391,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testTwoSameLastKnownAndAdd() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of(
@@ -425,10 +425,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testOneLastKnownInTwoAdd() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of(new ContactCollectionPath("known", CollectionId.of(2)));
@@ -466,10 +466,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testOneAddOneKnownDelete() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of(new ContactCollectionPath("known", CollectionId.of(2)));
@@ -508,10 +508,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testOneAddOneUnknownDelete() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of();
@@ -548,10 +548,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testTwoAddWithSameNamesAndDifferentUidsKeepBoth() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of();
@@ -597,10 +597,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testTwoAddWithSameNamesAndSameUidsDiscardsOne() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of();
@@ -636,10 +636,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testTwoDeleteWithSameNamesAndDifferentUidsKeepBoth() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of(
@@ -673,10 +673,10 @@ public class ContactsBackendHierarchyChangesTest {
 	@Test
 	public void testTwoDeleteWithSameNamesAndSameUidsDiscardsOne() throws Exception {
 		FolderSyncState lastKnownState = FolderSyncState.builder()
-				.syncKey(new SyncKey("key1"))
+				.syncKey(new FolderSyncKey("key1"))
 				.build();
-		FolderSyncState outgoingSyncState=  FolderSyncState.builder()
-				.syncKey(new SyncKey("key2"))
+		FolderSyncState outgoingSyncState = FolderSyncState.builder()
+				.syncKey(new FolderSyncKey("key2"))
 				.build();
 
 		List<CollectionPath> lastKnown = ImmutableList.<CollectionPath>of(

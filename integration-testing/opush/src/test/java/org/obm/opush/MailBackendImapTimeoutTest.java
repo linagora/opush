@@ -84,6 +84,7 @@ import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.store.HeartbeatDao;
@@ -177,7 +178,7 @@ public class MailBackendImapTimeoutTest {
 
 	@Test
 	public void testSyncHandler() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("8afde786-94c2-4a2a-af20-f9ebc93bf42d");
 		SyncKey secondAllocatedSyncKey = new SyncKey("c8c5f1ba-abec-429c-9742-14e50f613060");
 		int allocatedStateId = 3;
@@ -215,8 +216,8 @@ public class MailBackendImapTimeoutTest {
 	}
 	@Test
 	public void testFolderSyncHandler() throws Exception {
-		SyncKey syncKey = new SyncKey("cf32d2cb-2f09-425b-b840-bee03c1dd18e");
-		SyncKey secondSyncKey = new SyncKey("768380e9-c6d5-45c1-baaa-19c7405daffb");
+		FolderSyncKey syncKey = new FolderSyncKey("cf32d2cb-2f09-425b-b840-bee03c1dd18e");
+		FolderSyncKey secondSyncKey = new FolderSyncKey("768380e9-c6d5-45c1-baaa-19c7405daffb");
 		int stateId = 3;
 		int stateId2 = 4;
 		

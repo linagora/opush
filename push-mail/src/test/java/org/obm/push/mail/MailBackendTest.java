@@ -63,7 +63,6 @@ import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -84,6 +83,7 @@ import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
 
 import com.google.common.base.Function;
@@ -181,8 +181,8 @@ public class MailBackendTest {
 	
 	@Test
 	public void initialHierarchyContainsBaseFolders() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(SyncKey.INITIAL_FOLDER_SYNC_KEY);
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(FolderSyncKey.INITIAL_FOLDER_SYNC_KEY);
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234"));
 
 		Map<String, CollectionId> mailboxesIds = ImmutableMap.of(
 			"INBOX", CollectionId.of(1),
@@ -228,8 +228,8 @@ public class MailBackendTest {
 
 	@Test
 	public void emptyHierarchyChanges() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234b"));
 
 		Map<String, CollectionId> mailboxesIds = ImmutableMap.of(
 				"INBOX", CollectionId.of(1),
@@ -257,8 +257,8 @@ public class MailBackendTest {
 	
 	@Test
 	public void newImapFolder() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234b"));
 
 		Map<String, CollectionId> mailboxesIds = ImmutableMap.of(
 				"INBOX", CollectionId.of(1),
@@ -296,8 +296,8 @@ public class MailBackendTest {
 	
 	@Test
 	public void deletedImapFolder() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234b"));
 
 		Map<String, CollectionId> mailboxesIds = ImmutableMap.of(
 				"INBOX", CollectionId.of(1),
@@ -328,8 +328,8 @@ public class MailBackendTest {
 	
 	@Test
 	public void deletedAndAddedImapFolders() throws Exception {
-		FolderSyncState incomingSyncState = buildFolderSyncState(new SyncKey("1234a"));
-		FolderSyncState outgoingSyncState = buildFolderSyncState(new SyncKey("1234b"));
+		FolderSyncState incomingSyncState = buildFolderSyncState(new FolderSyncKey("1234a"));
+		FolderSyncState outgoingSyncState = buildFolderSyncState(new FolderSyncKey("1234b"));
 
 		Map<String, CollectionId> mailboxesIds = ImmutableMap.of(
 				"INBOX", CollectionId.of(1),
@@ -552,7 +552,7 @@ public class MailBackendTest {
 		};
 	}
 	
-	private FolderSyncState buildFolderSyncState(SyncKey syncKey) {
+	private FolderSyncState buildFolderSyncState(FolderSyncKey syncKey) {
 		return FolderSyncState.builder()
 				.syncKey(syncKey)
 				.build();

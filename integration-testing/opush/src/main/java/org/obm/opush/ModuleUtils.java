@@ -36,6 +36,7 @@ import org.obm.guice.AbstractOverrideModule;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.service.DateService;
+import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.state.SyncKeyFactory;
 
 public class ModuleUtils {
@@ -66,6 +67,7 @@ public class ModuleUtils {
 			@Override
 			protected void configureImpl() {
 				bindWithMock(SyncKeyFactory.class);
+				bindWithMock(FolderSyncKeyFactory.class);
 			}
 		};
 	}

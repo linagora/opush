@@ -45,7 +45,7 @@ public class SyncCollectionResponseTest {
 	public void testBuildNoResponseGiveEmptyCommand() {
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
 			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.build();
 		
@@ -57,7 +57,7 @@ public class SyncCollectionResponseTest {
 	public void testBuildNullResponseGiveEmptyCommand() {
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
 			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.responses(null)
 			.build();
@@ -74,7 +74,7 @@ public class SyncCollectionResponseTest {
 		
 		SyncCollectionResponse collection = SyncCollectionResponse.builder()
 			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.responses(responses)
 			.build();

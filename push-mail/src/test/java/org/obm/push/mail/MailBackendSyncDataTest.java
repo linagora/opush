@@ -323,7 +323,7 @@ public class MailBackendSyncDataTest {
 	
 	@Test
 	public void testMailBackendSyncDataCreationInitialWhenNoChange() throws Exception {
-		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey syncKey = SyncKey.INITIAL_SYNC_KEY;
 		long uidNext = 45612;
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
@@ -356,7 +356,7 @@ public class MailBackendSyncDataTest {
 
 	@Test
 	public void testMailBackendSyncDataCreationInitialWhithChanges() throws Exception {
-		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey syncKey = SyncKey.INITIAL_SYNC_KEY;
 		long uidNext = 45612;
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 

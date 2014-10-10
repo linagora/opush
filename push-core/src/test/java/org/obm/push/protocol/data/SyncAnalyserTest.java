@@ -291,7 +291,7 @@ public class SyncAnalyserTest {
 			.collectionPath(collectionPath)
 			.dataType(PIMDataType.EMAIL)
 			.options(syncCollectionOptions)
-			.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.status(SyncStatus.OK)
 			.commands(SyncCollectionCommandsResponse.builder().build())
 			.build();
@@ -340,7 +340,7 @@ public class SyncAnalyserTest {
 				.collectionPath(collectionPath)
 				.dataType(PIMDataType.EMAIL)
 				.options(syncCollectionOptions)
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.status(SyncStatus.OK)
 				.commands(SyncCollectionCommandsResponse.builder().build())
 				.build();

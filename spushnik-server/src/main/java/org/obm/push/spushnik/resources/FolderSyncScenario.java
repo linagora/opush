@@ -35,9 +35,9 @@ import javax.ws.rs.Path;
 
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.ProvisionStatus;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.spushnik.bean.CheckResult;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.ProvisionResponse;
 
@@ -59,7 +59,7 @@ public class FolderSyncScenario extends Scenario {
 			return buildError("Provision step two: " + provisionStatusStepOne);
 		}
 		
-		FolderSyncResponse folderSync = client.folderSync(SyncKey.INITIAL_FOLDER_SYNC_KEY);
+		FolderSyncResponse folderSync = client.folderSync(FolderSyncKey.INITIAL_FOLDER_SYNC_KEY);
 		FolderSyncStatus folderSyncStatus = folderSync.getStatus();
 		if (!folderSyncStatus.equals(FolderSyncStatus.OK)) {
 			return buildError("FolderSync: " + folderSyncStatus.asXmlValue());

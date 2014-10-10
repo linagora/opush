@@ -134,12 +134,12 @@ public class PingProtocolTest {
 					SyncCollection.builder()
 						.collectionId(CollectionId.of(1))
 						.dataType(PIMDataType.CALENDAR)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.build(),
 						SyncCollection.builder()
 						.collectionId(CollectionId.of(4))
 						.dataType(PIMDataType.CONTACTS)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.build()))
 				.heartbeatInterval(null)
 				.build());
@@ -152,12 +152,12 @@ public class PingProtocolTest {
 					SyncCollectionResponse.builder()
 						.collectionId(CollectionId.of(1))
 						.dataType(PIMDataType.CALENDAR)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.build(),
 					SyncCollectionResponse.builder()
 						.collectionId(CollectionId.of(4))
 						.dataType(PIMDataType.CONTACTS)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.build()))
 				.pingStatus(PingStatus.NO_CHANGES)
 				.build();
@@ -213,17 +213,17 @@ public class PingProtocolTest {
 			SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
 				.dataType(null)
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build(), 
 			SyncCollection.builder()
 				.collectionId(CollectionId.of(2))
 				.dataType(PIMDataType.UNKNOWN)
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build(), 
 			SyncCollection.builder()
 				.collectionId(CollectionId.of(3))
 				.dataType(PIMDataType.CONTACTS)
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 	}
 }

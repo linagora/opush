@@ -41,7 +41,7 @@ import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
+import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.impl.DOMDumper;
@@ -91,7 +91,7 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 			Document ret = protocol.encodeResponse(udr.getDevice(), folderSyncResponse);
 			sendResponse(responder, ret);
 			
-		} catch (InvalidSyncKeyException e) {
+		} catch (InvalidFolderSyncKeyException e) {
 			logger.warn(e.getMessage(), e);
 			sendResponse(responder, protocol.encodeErrorResponse(FolderSyncStatus.INVALID_SYNC_KEY));
 		} catch (NoDocumentException e) {
@@ -117,13 +117,13 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 	}
 	
 	private FolderSyncResponse doTheJob(UserDataRequest udr, FolderSyncRequest folderSyncRequest)
-			throws InvalidSyncKeyException, DaoException, UnexpectedObmSyncServerException {
+			throws DaoException, UnexpectedObmSyncServerException {
 		
 		return getFolderSyncResponse(udr, folderSyncRequest);
 	}
 
 	private FolderSyncResponse getFolderSyncResponse(UserDataRequest udr, FolderSyncRequest folderSyncRequest)
-			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
+			throws DaoException, UnexpectedObmSyncServerException {
 		
 		FolderSyncState incomingSyncState = stMachine.getFolderSyncState(folderSyncRequest.getSyncKey());
 		FolderSyncState outgoingSyncState = stMachine.allocateNewFolderSyncState(udr);

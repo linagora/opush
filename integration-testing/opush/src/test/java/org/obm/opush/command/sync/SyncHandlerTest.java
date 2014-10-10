@@ -38,6 +38,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
 import static org.obm.opush.IntegrationPushTestUtils.mockHierarchyChangesOnlyInbox;
+import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
 import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 import static org.obm.opush.IntegrationTestUtils.expectAllocateFolderState;
 import static org.obm.opush.IntegrationTestUtils.expectContentExporterFetching;
@@ -119,6 +120,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -170,14 +172,18 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncDefaultMailFolderUnchange() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
 		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -195,14 +201,17 @@ public class SyncHandlerTest {
 	
 	@Test
 	public void testSyncWithWaitReturnsServerError() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey firstSyncKey = new FolderSyncKey("345");
 		SyncKey syncEmailSyncKey = new SyncKey("1");
 		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		
+		mockNextGeneratedSyncKey(classToInstanceMap, firstSyncKey);
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -219,7 +228,8 @@ public class SyncHandlerTest {
 	
 	@Test
 	public void testSyncOneInboxMail() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey firstSyncKey = new FolderSyncKey("345");
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 
@@ -234,7 +244,9 @@ public class SyncHandlerTest {
 			.syncKey(syncEmailSyncKey)
 			.build();
 
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2342"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -257,7 +269,8 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncTwoMailButOneDisappearing() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("F2342");
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 
@@ -265,7 +278,9 @@ public class SyncHandlerTest {
 		expectUserCollectionsNeverChange(collectionDao, users.jaures, ImmutableList.of(syncEmailCollectionId));
 		mockCollectionDaoForEmailSync(collectionDao, syncEmailSyncKey, ImmutableList.of(syncEmailCollectionId));
 		
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2342"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockUsersAccess(classToInstanceMap, userAsList);
@@ -292,7 +307,8 @@ public class SyncHandlerTest {
 	
 	@Test
 	public void testSyncTwoInboxMails() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("F2342");
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		
@@ -310,7 +326,9 @@ public class SyncHandlerTest {
 			.syncKey(new SyncKey("123"))
 			.build();
 
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2342"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -337,7 +355,7 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncOneInboxDeletedMail() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		
@@ -348,7 +366,10 @@ public class SyncHandlerTest {
 			.syncKey(new SyncKey("123"))
 			.build();
 
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -367,7 +388,8 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncInboxOneNewOneDeletedMail() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
@@ -383,7 +405,9 @@ public class SyncHandlerTest {
 			.syncKey(new SyncKey("123"))
 			.build();
 
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("23455"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList, classToInstanceMap);
@@ -407,7 +431,7 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncInboxFetchIdsNotEmpty() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
 		CollectionId syncEmailCollectionId = CollectionId.of(432);
 		ServerId serverId = syncEmailCollectionId.serverId(123);
@@ -428,7 +452,10 @@ public class SyncHandlerTest {
 				"Sync", 
 				users.jaures.device);
 		
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		expectContentExporterFetching(classToInstanceMap.get(IContentsExporter.class), userDataRequest, itemChange);
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
@@ -453,13 +480,14 @@ public class SyncHandlerTest {
 		CollectionId collectionId = CollectionId.of(1);
 		String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(users.jaures); 
 		
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("456");
 		Date initialUpdateStateDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstItemSyncState = ItemSyncState.builder().syncKey(initialSyncKey).syncDate(initialUpdateStateDate).build();
 		
 		IntegrationUserAccessUtils.mockUsersAccess(classToInstanceMap, userAsList);
-		
+
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2342"));
 		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).times(2);
 		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(null);
@@ -487,7 +515,8 @@ public class SyncHandlerTest {
 		OpushUser user = users.jaures;
 		CollectionId collectionId = CollectionId.of(1);
 		String collectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialFolderSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("13424");
 
 		SyncCollectionOptions toStoreOptions = SyncCollectionOptions.builder()
@@ -501,7 +530,11 @@ public class SyncHandlerTest {
 				.build();
 
 		IntegrationUserAccessUtils.mockUsersAccess(classToInstanceMap, userAsList);
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(secondSyncKey));
+
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"), new SyncKey("3345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		IContentsExporter contentsExporter = classToInstanceMap.get(IContentsExporter.class);
@@ -526,7 +559,7 @@ public class SyncHandlerTest {
 		opushServer.start();
 		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
-		FolderSyncResponse folderSyncResponse = opClient.folderSync(initialSyncKey);
+		FolderSyncResponse folderSyncResponse = opClient.folderSync(initialFolderSyncKey);
 		CollectionChange inbox = lookupInbox(folderSyncResponse.getCollectionsAddedAndUpdated());
 		
 		opClient.syncEmail(decoder, initialSyncKey, inbox.getCollectionId(), toStoreOptions.getFilterType(), 25);
@@ -536,18 +569,18 @@ public class SyncHandlerTest {
 		checkMailFolderHasNoChange(syncWithoutOptions, inbox.getCollectionId());
 	}
 
-	private FolderSyncState newSyncState(SyncKey syncEmailSyncKey) {
+	private FolderSyncState newSyncState(FolderSyncKey folderSyncKey) {
 		return FolderSyncState.builder()
-				.syncKey(syncEmailSyncKey)
+				.syncKey(folderSyncKey)
 				.build();
 	}
 	
 	public void testPartialSyncWhenNoPreviousSendError13() throws Exception {
-		SyncKey initialFolderSyncKey = new SyncKey("0");
-		SyncKey nextFolderSyncKey = new SyncKey("1234");
+		FolderSyncKey initialFolderSyncKey = new FolderSyncKey("0");
+		FolderSyncKey nextFolderSyncKey = new FolderSyncKey("1234");
 		
 		IntegrationUserAccessUtils.mockUsersAccess(classToInstanceMap, userAsList);
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(nextFolderSyncKey));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(nextFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mocksControl.replay();
@@ -563,8 +596,8 @@ public class SyncHandlerTest {
 	@Ignore("We don't support partial request yet")
 	@Test
 	public void testPartialSyncWhenValidPreviousSync() throws Exception {
-		SyncKey initialFolderSyncKey = new SyncKey("0");
-		SyncKey nextFolderSyncKey = new SyncKey("56789");
+		FolderSyncKey initialFolderSyncKey = new FolderSyncKey("0");
+		FolderSyncKey nextFolderSyncKey = new FolderSyncKey("56789");
 
 		SyncKey initialSyncKey = new SyncKey("1234");
 		CollectionId syncEmailCollectionId = CollectionId.of(12);
@@ -573,7 +606,7 @@ public class SyncHandlerTest {
 			.syncKey(new SyncKey("123"))
 			.build();
 		
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(nextFolderSyncKey));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(nextFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(initialSyncKey, ImmutableSet.of(syncEmailCollectionId), emptyDelta, userAsList, classToInstanceMap);
@@ -643,10 +676,14 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncOnHierarchyChangedException() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
 		CollectionId syncEmailCollectionId = CollectionId.of(4);
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockUsersAccess(classToInstanceMap, userAsList);
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
@@ -665,10 +702,14 @@ public class SyncHandlerTest {
 
 	@Test
 	public void testSyncOnIllegalArgumentException() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
 		CollectionId syncEmailCollectionId = CollectionId.of(4);
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncEmailSyncKey));
+		
+		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("234");
+		mockNextGeneratedSyncKey(classToInstanceMap, firstFolderSyncKey);
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
+		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), users.jaures.device, newSyncState(firstFolderSyncKey));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockUsersAccess(classToInstanceMap, userAsList);
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
@@ -757,7 +798,7 @@ public class SyncHandlerTest {
 					.build())
 			.build();
 		
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2342"));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList, classToInstanceMap);
@@ -802,7 +843,7 @@ public class SyncHandlerTest {
 					.build())
 			.build();
 		
-		expectAllocateFolderState(classToInstanceMap.get(CollectionDao.class), newSyncState(syncKey));
+		mockNextGeneratedSyncKey(classToInstanceMap, new SyncKey("2345"));
 		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
 		mockHierarchyChangesOnlyInbox(classToInstanceMap);
 		mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList, classToInstanceMap);

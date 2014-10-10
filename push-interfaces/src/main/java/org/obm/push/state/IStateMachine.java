@@ -50,7 +50,7 @@ public interface IStateMachine {
 	
 	ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException;
 	
-	FolderSyncState getFolderSyncState(SyncKey syncKey) throws DaoException, InvalidSyncKeyException;
+	FolderSyncState getFolderSyncState(FolderSyncKey syncKey) throws DaoException, InvalidSyncKeyException;
 	
 	FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException;
 	

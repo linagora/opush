@@ -47,7 +47,7 @@ public class SyncCollectionTest {
 	public void testDataClassForNullDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build();
 		
 		assertThat(syncCollection.getDataClass()).isNull();
@@ -57,7 +57,7 @@ public class SyncCollectionTest {
 	public void testDataClassForUnknownDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.UNKNOWN)
 				.build();
 		
@@ -68,7 +68,7 @@ public class SyncCollectionTest {
 	public void testDataClassForEmailDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.EMAIL)
 				.build();
 		
@@ -79,7 +79,7 @@ public class SyncCollectionTest {
 	public void testDataClassForCalendarDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.CALENDAR)
 				.build();
 		
@@ -90,7 +90,7 @@ public class SyncCollectionTest {
 	public void testDataClassForContactDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.dataType(PIMDataType.CONTACTS)
 				.build();
 		
@@ -101,7 +101,7 @@ public class SyncCollectionTest {
 	public void testDataClassForDefaultDataType() {
 		SyncCollection syncCollection = SyncCollection.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build();
 		
 		assertThat(syncCollection.getDataClass()).isNull();

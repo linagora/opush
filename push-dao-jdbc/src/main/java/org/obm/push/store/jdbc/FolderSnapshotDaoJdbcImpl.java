@@ -44,6 +44,7 @@ import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.FolderSnapshotDao;
 
 import com.google.common.collect.Lists;
@@ -101,7 +102,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 	}
 
 	@Override
-	public List<CollectionId> getFolderSnapshot(String folderSyncKey) throws DaoException {
+	public List<CollectionId> getFolderSnapshot(FolderSyncKey folderSyncKey) throws DaoException {
 		String statement = "SELECT collection_id FROM opush_folder_snapshot " +
 				"INNER JOIN opush_folder_sync_state ON opush_folder_sync_state.id = folder_sync_state_id " +
 				"WHERE sync_key = ?";
@@ -109,7 +110,7 @@ public class FolderSnapshotDaoJdbcImpl extends AbstractJdbcImpl implements Folde
 		try (Connection con = dbcp.getConnection();
 				PreparedStatement ps = con.prepareStatement(statement)) {
 			
-			ps.setString(1, folderSyncKey);
+			ps.setString(1, folderSyncKey.asString());
 
 			try (ResultSet rs = ps.executeQuery()) {
 				List<CollectionId> collectionIds = Lists.newArrayList();

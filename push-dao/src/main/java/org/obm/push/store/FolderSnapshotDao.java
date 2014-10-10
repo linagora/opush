@@ -37,6 +37,7 @@ import java.util.Set;
 import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 
 public interface FolderSnapshotDao {
 
@@ -44,7 +45,7 @@ public interface FolderSnapshotDao {
 	
 	List<CollectionId> getFolderSnapshot(Integer folderSyncStateId) throws DaoException;
 	
-	List<CollectionId> getFolderSnapshot(String folderSyncKey) throws DaoException;
+	List<CollectionId> getFolderSnapshot(FolderSyncKey folderSyncKey) throws DaoException;
 	
 	Integer getFolderSyncStateId(CollectionId collectionId, Device device) throws DaoException;
 	

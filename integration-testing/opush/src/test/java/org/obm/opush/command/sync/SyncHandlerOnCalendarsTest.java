@@ -164,7 +164,7 @@ public class SyncHandlerOnCalendarsTest {
 	
 	@Test
 	public void clientMayAskForAnOldSyncKey() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
 		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
 		SyncKey thirdAllocatedSyncKey = new SyncKey("54ad87c8-9324-4e1c-ae63-daae556be7be");
@@ -283,7 +283,7 @@ public class SyncHandlerOnCalendarsTest {
 	
 	@Test
 	public void syncShouldReturnServerErrorWhenTwoExceptionAtSameDate() throws Exception {
-		SyncKey initialSyncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("ba9cc33e-0be1-40f9-94ee-4a28760e7dbb");
 		SyncKey secondAllocatedSyncKey = new SyncKey("2c24fbbc-6a94-4d6a-b9a7-7b4974a09a3c");
 		SyncKey thirdAllocatedSyncKey = new SyncKey("f909aa0f-cc7e-44b7-8395-2d6e69be54a4");

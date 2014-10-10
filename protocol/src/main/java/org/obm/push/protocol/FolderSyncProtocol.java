@@ -39,7 +39,6 @@ import javax.xml.parsers.FactoryConfigurationError;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -47,6 +46,7 @@ import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.utils.DOMUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		if (doc == null) {
 			throw new NoDocumentException("Document of FolderSync request is null.");
 		}
-		SyncKey syncKey = new SyncKey(DOMUtils.getElementText(doc.getDocumentElement(), "SyncKey"));
+		FolderSyncKey syncKey = new FolderSyncKey(DOMUtils.getElementText(doc.getDocumentElement(), "SyncKey"));
 		return FolderSyncRequest.builder()
 			.syncKey(syncKey)
 			.build();
@@ -127,7 +127,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		
 		return FolderSyncResponse.builder()
 			.status(status)
-			.newSyncKey(new SyncKey(newSyncKey))
+			.newSyncKey(new FolderSyncKey(newSyncKey))
 			.hierarchyItemsChanges(hierarchyItemsChanges)
 			.build();
 	}
@@ -155,7 +155,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		DOMUtils.createElementAndText(root, "Status", folderSyncResponse.getStatus().asXmlValue());
 		
 		Element sk = DOMUtils.createElement(root, "SyncKey");
-		sk.setTextContent(folderSyncResponse.getNewSyncKey().getSyncKey());
+		sk.setTextContent(folderSyncResponse.getNewSyncKey().asString());
 
 		Element changes = DOMUtils.createElement(root, "Changes");
 		DOMUtils.createElementAndText(changes, "Count", String.valueOf(folderSyncResponse.getCount()));
@@ -192,7 +192,7 @@ public class FolderSyncProtocol implements ActiveSyncProtocol<FolderSyncRequest,
 		Element root = ret.getDocumentElement();
 
 		Element sk = DOMUtils.createElement(root, "SyncKey");
-		sk.setTextContent(folderSyncRequest.getSyncKey().getSyncKey());
+		sk.setTextContent(folderSyncRequest.getSyncKey().asString());
 		
 		return ret;
 	}

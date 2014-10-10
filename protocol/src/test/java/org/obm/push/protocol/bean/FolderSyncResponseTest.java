@@ -37,10 +37,10 @@ import org.junit.Test;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.Summary;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.state.FolderSyncKey;
 
 import com.google.common.collect.ImmutableList;
 
@@ -49,7 +49,7 @@ public class FolderSyncResponseTest {
 	@Test(expected=NullPointerException.class)
 	public void buildNeedStatus() {
 		FolderSyncResponse.builder()
-			.newSyncKey(new SyncKey("123"))
+			.newSyncKey(new FolderSyncKey("123"))
 			.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
 			.build();
 	}
@@ -57,7 +57,7 @@ public class FolderSyncResponseTest {
 	@Test(expected=NullPointerException.class)
 	public void buildNeedChanges() {
 		FolderSyncResponse.builder()
-			.newSyncKey(new SyncKey("123"))
+			.newSyncKey(new FolderSyncKey("123"))
 			.status(FolderSyncStatus.OK)
 			.build();
 	}
@@ -67,7 +67,7 @@ public class FolderSyncResponseTest {
 		FolderSyncResponse response = FolderSyncResponse.builder()
 			.status(FolderSyncStatus.OK)
 			.hierarchyItemsChanges(HierarchyCollectionChanges.empty())
-			.newSyncKey(new SyncKey("123"))
+			.newSyncKey(new FolderSyncKey("123"))
 			.build();
 		assertThat(response.getCount()).isEqualTo(0);
 		assertThat(response.getSummary()).isEqualTo(Summary.empty());
@@ -88,7 +88,7 @@ public class FolderSyncResponseTest {
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.changes(ImmutableList.of(add))
 						.build())
-				.newSyncKey(new SyncKey("123"))
+				.newSyncKey(new FolderSyncKey("123"))
 				.build();
 		
 		assertThat(response.getCount()).isEqualTo(1);
@@ -111,7 +111,7 @@ public class FolderSyncResponseTest {
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.changes(ImmutableList.of(change))
 						.build())
-				.newSyncKey(new SyncKey("123"))
+				.newSyncKey(new FolderSyncKey("123"))
 				.build();
 		assertThat(response.getCount()).isEqualTo(1);
 		assertThat(response.getSummary()).isEqualTo(
@@ -129,7 +129,7 @@ public class FolderSyncResponseTest {
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder()
 						.deletions(ImmutableList.of(del))
 						.build())
-				.newSyncKey(new SyncKey("123"))
+				.newSyncKey(new FolderSyncKey("123"))
 				.build();
 		
 		assertThat(response.getCount()).isEqualTo(1);
@@ -163,7 +163,7 @@ public class FolderSyncResponseTest {
 						.changes(ImmutableList.of(add, change))
 						.deletions(ImmutableList.of(del))
 						.build())
-				.newSyncKey(new SyncKey("123"))
+				.newSyncKey(new FolderSyncKey("123"))
 				.build();
 		
 		assertThat(response.getCount()).isEqualTo(3);

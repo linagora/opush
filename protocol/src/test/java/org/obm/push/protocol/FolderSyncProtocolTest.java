@@ -41,10 +41,10 @@ import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncStatus;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
@@ -140,7 +140,7 @@ public class FolderSyncProtocolTest {
 	@Test
 	public void testEncodeStatusOK() throws Exception {
 		Document encodedDocument = folderSyncProtocol.encodeResponse(device, FolderSyncResponse.builder()
-				.newSyncKey(new SyncKey("1234"))
+				.newSyncKey(new FolderSyncKey("1234"))
 				.status(FolderSyncStatus.OK)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder().build())
 				.build());
@@ -159,7 +159,7 @@ public class FolderSyncProtocolTest {
 	@Test
 	public void testEncodeStatusInvalidSyncKey() throws Exception {
 		Document encodedDocument = folderSyncProtocol.encodeResponse(device, FolderSyncResponse.builder()
-				.newSyncKey(new SyncKey("1234"))
+				.newSyncKey(new FolderSyncKey("1234"))
 				.status(FolderSyncStatus.INVALID_SYNC_KEY)
 				.hierarchyItemsChanges(HierarchyCollectionChanges.builder().build())
 				.build());

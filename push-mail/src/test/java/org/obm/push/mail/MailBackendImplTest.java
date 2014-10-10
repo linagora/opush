@@ -154,7 +154,7 @@ public class MailBackendImplTest {
 	
 	@Test
 	public void testInitialGetChangesWithInitialSyncKey() throws Exception {
-		testInitialGetChangesUsingSyncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY, new SyncKey("1234"));
+		testInitialGetChangesUsingSyncKey(SyncKey.INITIAL_SYNC_KEY, new SyncKey("1234"));
 	}
 	
 	@Test
@@ -225,7 +225,7 @@ public class MailBackendImplTest {
 
 	@Test
 	public void testInitialWhenNoChange() throws Exception {
-		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey syncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey newSyncKey = new SyncKey("1234");
 		long uidNext = 45612;
 		int windowSize = 10;
@@ -393,7 +393,7 @@ public class MailBackendImplTest {
 	
 	@Test
 	public void testGetItemEstimateInitialWhenNoChange() throws Exception {
-		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey syncKey = SyncKey.INITIAL_SYNC_KEY;
 		long uidNext = 45612;
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
@@ -418,7 +418,7 @@ public class MailBackendImplTest {
 
 	@Test
 	public void testGetItemEstimateInitialWhithChanges() throws Exception {
-		SyncKey syncKey = SyncKey.INITIAL_FOLDER_SYNC_KEY;
+		SyncKey syncKey = SyncKey.INITIAL_SYNC_KEY;
 		long uidNext = 45612;
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 

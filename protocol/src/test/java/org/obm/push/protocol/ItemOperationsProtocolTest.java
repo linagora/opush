@@ -140,7 +140,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(null);
 		
@@ -186,7 +186,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(itemChange);
 		
@@ -233,7 +233,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setStatus(ItemOperationsStatus.SERVER_ERROR);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 		fetchItemResult.setItemChange(itemChange);
 		
@@ -269,7 +269,7 @@ public class ItemOperationsProtocolTest {
 		fetchItemResult.setStatus(ItemOperationsStatus.SUCCESS);
 		fetchItemResult.setSyncCollection(SyncCollectionResponse.builder()
 				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.build());
 		
 		EmptyFolderContentsResult emptyFolderContentsResult = new EmptyFolderContentsResult();

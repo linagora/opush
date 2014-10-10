@@ -62,6 +62,7 @@ import org.obm.push.protocol.bean.MeetingHandlerResponse;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.wbxml.WBXmlException;
 import org.obm.sync.push.client.beans.AccountInfos;
 import org.obm.sync.push.client.beans.Folder;
@@ -134,7 +135,7 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new SmartForward(emailData, collectionId, serverId));
 	}
 
-	public FolderSyncResponse folderSync(SyncKey key) throws Exception {
+	public FolderSyncResponse folderSync(FolderSyncKey key) throws Exception {
 		return run(new FolderSync(key));
 	}
 

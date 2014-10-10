@@ -51,6 +51,7 @@ import org.obm.push.bean.change.item.ASItem;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
@@ -77,14 +78,14 @@ public class StateMachine implements IStateMachine {
 	
 	private final CollectionDao collectionDao;
 	private final ItemTrackingDao itemTrackingDao;
-	private final SyncKeyFactory syncKeyFactory;
+	private final FolderSyncKeyFactory folderSyncKeyFactory;
 
 	@Inject
 	@VisibleForTesting StateMachine(CollectionDao collectionDao, ItemTrackingDao itemTrackingDao,
-			SyncKeyFactory syncKeyFactory) {
+			FolderSyncKeyFactory folderSyncKeyFactory) {
 		this.collectionDao = collectionDao;
 		this.itemTrackingDao = itemTrackingDao;
-		this.syncKeyFactory = syncKeyFactory;
+		this.folderSyncKeyFactory = folderSyncKeyFactory;
 	}
 
 	@Override
@@ -98,29 +99,29 @@ public class StateMachine implements IStateMachine {
 	}
 	
 	@Override
-	public FolderSyncState getFolderSyncState(SyncKey syncKey) throws DaoException, InvalidSyncKeyException {
-		Preconditions.checkArgument(syncKey != null && !Strings.isNullOrEmpty(syncKey.getSyncKey()));
+	public FolderSyncState getFolderSyncState(FolderSyncKey folderSyncKey) throws DaoException, InvalidSyncKeyException {
+		Preconditions.checkArgument(folderSyncKey != null && !Strings.isNullOrEmpty(folderSyncKey.asString()));
 		
-		if (FolderSyncState.isSyncKeyOfInitialFolderSync(syncKey)) {
+		if (folderSyncKey.isInitialFolderSync()) {
 			return FolderSyncState.builder()
-					.syncKey(syncKey)
+					.syncKey(folderSyncKey)
 					.build();
 		} else {
-			return findFolderSyncState(syncKey);
+			return findFolderSyncState(folderSyncKey);
 		}
 	}
 
-	private FolderSyncState findFolderSyncState(SyncKey syncKey) throws DaoException, InvalidSyncKeyException {
-		FolderSyncState folderSyncStateForKey = collectionDao.findFolderStateForKey(syncKey);
+	private FolderSyncState findFolderSyncState(FolderSyncKey folderSyncKey) throws DaoException, InvalidSyncKeyException {
+		FolderSyncState folderSyncStateForKey = collectionDao.findFolderStateForKey(folderSyncKey);
 		if (folderSyncStateForKey == null) {
-			throw new InvalidSyncKeyException(syncKey);
+			throw new InvalidFolderSyncKeyException(folderSyncKey);
 		}
 		return folderSyncStateForKey;
 	}
 	
 	@Override
 	public FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException {
-		SyncKey newSk = syncKeyFactory.randomSyncKey();
+		FolderSyncKey newSk = folderSyncKeyFactory.randomSyncKey();
 		FolderSyncState newFolderState = collectionDao.allocateNewFolderSyncState(udr.getDevice(), newSk);
 		
 		log(udr, newFolderState);

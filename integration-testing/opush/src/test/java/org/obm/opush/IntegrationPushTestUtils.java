@@ -48,6 +48,8 @@ import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
+import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.state.SyncKeyFactory;
 import org.obm.push.task.TaskBackend;
 import org.obm.push.utils.collection.ClassToInstanceAgregateView;
@@ -124,6 +126,16 @@ public class IntegrationPushTestUtils {
 			expect(syncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
 		}
 	}
+	
+	public static void mockNextGeneratedSyncKey(
+			ClassToInstanceAgregateView<Object> classToInstanceMap,
+			FolderSyncKey... newGeneratedSyncKey) {
+		FolderSyncKeyFactory syncKeyFactory = classToInstanceMap.get(FolderSyncKeyFactory.class);
+		for (FolderSyncKey nextSyncKey : newGeneratedSyncKey) {
+			expect(syncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
+		}
+	}
+
 
 	public static CollectionChange buildInboxFolder() {
 		return CollectionChange.builder()

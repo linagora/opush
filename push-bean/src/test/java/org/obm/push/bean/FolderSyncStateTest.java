@@ -34,6 +34,7 @@ package org.obm.push.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.state.FolderSyncKey;
 
 
 public class FolderSyncStateTest {
@@ -45,7 +46,7 @@ public class FolderSyncStateTest {
 	
 	@Test
 	public void testSyncStateBuilder() {
-		SyncKey syncKey = new SyncKey("123");
+		FolderSyncKey syncKey = new FolderSyncKey("123");
 		int id = 1;
 		
 		FolderSyncState syncState = FolderSyncState.builder()

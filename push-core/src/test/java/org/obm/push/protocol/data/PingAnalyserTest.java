@@ -134,7 +134,7 @@ public class PingAnalyserTest {
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
 						.collectionPath(collectionPath)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
 						.build())
 				.build());
@@ -197,7 +197,7 @@ public class PingAnalyserTest {
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
 						.collectionPath(collectionPath)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
 						.build())
 				.build());
@@ -303,7 +303,7 @@ public class PingAnalyserTest {
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId2)
 						.collectionPath(collectionPath2)
-						.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.CONTACTS)
 						.build())
 				.build());

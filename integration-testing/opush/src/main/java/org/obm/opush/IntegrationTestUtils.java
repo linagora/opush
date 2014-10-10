@@ -142,9 +142,8 @@ public class IntegrationTestUtils {
 		expect(collectionDao.getCollectionPath(otherCollectionId)).andThrow(new CollectionNotFoundException()).anyTimes();
 	}
 
-	public static void expectAllocateFolderState(CollectionDao collectionDao, FolderSyncState folderSyncState) throws DaoException {
-		expect(collectionDao.allocateNewFolderSyncState(anyObject(Device.class), anyObject(SyncKey.class)))
-			.andReturn(folderSyncState);
+	public static void expectAllocateFolderState(CollectionDao collectionDao, Device device, FolderSyncState folderSyncState) throws DaoException {
+		expect(collectionDao.allocateNewFolderSyncState(device, folderSyncState.getSyncKey())).andReturn(folderSyncState);
 	}
 	
 	public static void expectGetCollectionPath(CollectionDao collectionDao, CollectionId collectionId, String serverId) throws CollectionNotFoundException, DaoException {

@@ -486,7 +486,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		if (syncCollectionRequest.getStatus() != SyncStatus.OK) {
 			builder.status(syncCollectionRequest.getStatus());
 		} else if (isDataTypeKnown(dataType)) {
-			if (SyncKey.INITIAL_FOLDER_SYNC_KEY.equals(syncCollectionRequest.getSyncKey())) {
+			if (SyncKey.INITIAL_SYNC_KEY.equals(syncCollectionRequest.getSyncKey())) {
 				handleInitialSync(udr, syncCollectionRequest, builder);
 			} else {
 				try {
@@ -550,7 +550,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 
 		Builder<ItemChange> builder = ImmutableList.builder();
 		for (ItemChange change: itemChanges) {
-			boolean isItemAddition = st.getSyncKey().equals(SyncKey.INITIAL_FOLDER_SYNC_KEY) || 
+			boolean isItemAddition = st.getSyncKey().equals(SyncKey.INITIAL_SYNC_KEY) || 
 					!itemTrackingDao.isServerIdSynced(st, change.getServerId());
 			builder.add(ItemChange.builder()
 					.serverId(change.getServerId())

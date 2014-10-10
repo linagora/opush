@@ -44,14 +44,14 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.mail.MailBackend;
-import org.obm.push.state.SyncKeyFactory;
+import org.obm.push.state.FolderSyncKey;
+import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
@@ -101,8 +101,8 @@ public class SpushnikScenarioTestUtils {
 			.andReturn(policyKey).once();
 		
 		// FolderSync
-		SyncKey syncKey = new SyncKey("123");
-		expect(classToInstanceMap.get(SyncKeyFactory.class).randomSyncKey())
+		FolderSyncKey syncKey = new FolderSyncKey("123");
+		expect(classToInstanceMap.get(FolderSyncKeyFactory.class).randomSyncKey())
 			.andReturn(syncKey).once();
 		FolderSyncState syncState = FolderSyncState.builder()
 				.syncKey(syncKey)
@@ -111,7 +111,7 @@ public class SpushnikScenarioTestUtils {
 		expect(classToInstanceMap.get(CollectionDao.class).allocateNewFolderSyncState(device, syncKey))
 			.andReturn(syncState).once();
 		FolderSyncState initialSyncState = FolderSyncState.builder()
-				.syncKey(SyncKey.INITIAL_FOLDER_SYNC_KEY)
+				.syncKey(FolderSyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.id(0)
 				.build();
 		ContactsBackend contactsBackend = classToInstanceMap.get(ContactsBackend.class);
