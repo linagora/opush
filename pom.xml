@@ -479,6 +479,12 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-guava</artifactId>
+				<version>1.2.0</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.cassandraunit</groupId>
 				<artifactId>cassandra-unit</artifactId>
 				<version>2.0.2.1-fc4cc78d0a7487</version>

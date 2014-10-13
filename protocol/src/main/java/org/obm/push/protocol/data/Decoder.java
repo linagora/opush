@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -133,7 +134,10 @@ public class Decoder {
 		if (node != null) {
 			byte[] nodeInBase64 = node.getTextContent().getBytes(Charsets.UTF_8);
 			ASTimeZone asTimeZone = base64asTimeZoneDecoder.decode(nodeInBase64);
-			return asTimeZoneConverter.convert(asTimeZone);
+			Optional<TimeZone> optional = asTimeZoneConverter.convert(asTimeZone);
+			if (optional.isPresent()) {
+				return optional.get();
+			}
 		}
 		return default_value;
 	}

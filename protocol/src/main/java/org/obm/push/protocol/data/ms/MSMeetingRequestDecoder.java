@@ -59,6 +59,7 @@ import org.w3c.dom.Node;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -179,7 +180,12 @@ public class MSMeetingRequestDecoder extends ActiveSyncDecoder {
 			byte[] tzInBase64 = timeZone.getBytes(Charsets.UTF_8);
 			ASTimeZone asTimeZone = base64asTimeZoneDecoder.decode(tzInBase64);
 			if (asTimeZone != null) {
-				return asTimeZoneConverter.convert(asTimeZone);
+				Optional<TimeZone> optional = asTimeZoneConverter.convert(asTimeZone);
+				if (optional.isPresent()) {
+					return optional.get();
+				} else {
+					throw new ConversionException("ASTimeZone format is invalid or not supported : " + asTimeZone);
+				}
 			} else {
 				throw new ConversionException("TimeZone format is invalid or not supported : " + timeZone);
 			}

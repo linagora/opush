@@ -41,11 +41,11 @@ import org.joda.time.DateTimeZone;
 import org.obm.push.protocol.bean.ASTimeZone;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -80,8 +80,8 @@ public class ASTimeZoneConverterImpl implements ASTimeZoneConverter {
 	}
 	
 	@Override
-	public TimeZone convert(ASTimeZone asTimeZone) {
-		return Iterables.getFirst(matchJavaTimeZones(asTimeZone), TimeZone.getTimeZone(UTC));
+	public Optional<TimeZone> convert(ASTimeZone asTimeZone) {
+		return FluentIterable.from(matchJavaTimeZones(asTimeZone)).first();
 	}
 
 	@VisibleForTesting Iterable<TimeZone> matchJavaTimeZones(ASTimeZone asTimeZone) {

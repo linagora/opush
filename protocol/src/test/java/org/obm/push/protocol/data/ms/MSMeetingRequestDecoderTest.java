@@ -32,12 +32,12 @@
 
 package org.obm.push.protocol.data.ms;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.DateUtils.date;
 
 import java.text.ParseException;
@@ -54,13 +54,16 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceDayOfWeek;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrenceType;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestSensitivity;
 import org.obm.push.exception.ConversionException;
+import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.protocol.data.ASTimeZoneConverter;
 import org.obm.push.protocol.data.Base64ASTimeZoneDecoder;
 import org.obm.push.utils.DOMUtils;
+import org.obm.push.utils.type.UnsignedShort;
 import org.w3c.dom.Document;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 
 
@@ -322,6 +325,47 @@ public class MSMeetingRequestDecoderTest {
 		replay(base64AsTimeZoneDecoder, asTimeZoneConverter, asTimeZone);
 		
 		decoder.timeZone(utc);
+	}
+
+	@Test(expected=ConversionException.class)
+	public void parseASTimeZoneInvalid() throws ConversionException {
+		String invalidASTimeZone = 
+				"xP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAFAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAFAAMAAAAAAAAAxP///w==";
+		
+		ASTimeZone asTimeZone = ASTimeZone.builder()
+				.bias(-60)
+				.dayLightBias(-60)
+				.dayLightDate(ASSystemTime.builder()
+						.dayOfWeek(UnsignedShort.checkedCast(0))
+						.hour(UnsignedShort.checkedCast(3))
+						.milliseconds(UnsignedShort.checkedCast(0))
+						.minute(UnsignedShort.checkedCast(0))
+						.month(UnsignedShort.checkedCast(3))
+						.second(UnsignedShort.checkedCast(0))
+						.weekOfMonth(UnsignedShort.checkedCast(5))
+						.year(UnsignedShort.checkedCast(0))
+						.build())
+				.dayLightName("")
+				.standardBias(0)
+				.standardDate(ASSystemTime.builder()
+						.dayOfWeek(UnsignedShort.checkedCast(0))
+						.hour(UnsignedShort.checkedCast(2))
+						.milliseconds(UnsignedShort.checkedCast(0))
+						.minute(UnsignedShort.checkedCast(0))
+						.month(UnsignedShort.checkedCast(10))
+						.second(UnsignedShort.checkedCast(0))
+						.weekOfMonth(UnsignedShort.checkedCast(5))
+						.year(UnsignedShort.checkedCast(0))
+						.build())
+				.standardName("")
+				.build();
+		expect(base64AsTimeZoneDecoder.decode(aryEq(invalidASTimeZone.getBytes(Charsets.UTF_8))))
+			.andReturn(asTimeZone).anyTimes();
+		expect(asTimeZoneConverter.convert(asTimeZone))
+			.andReturn(Optional.<TimeZone> absent());
+		replay(base64AsTimeZoneDecoder, asTimeZoneConverter);
+		
+		decoder.timeZone(invalidASTimeZone);
 	}
 
 	@Test(expected=ConversionException.class)
@@ -1132,7 +1176,7 @@ public class MSMeetingRequestDecoderTest {
 		expect(base64AsTimeZoneDecoder.decode(aryEq(utc.getBytes(Charsets.UTF_8))))
 			.andReturn(asTimeZone);
 		expect(asTimeZoneConverter.convert(asTimeZone))
-			.andReturn(expectedTimeZone);
+			.andReturn(Optional.of(expectedTimeZone));
 		replay(base64AsTimeZoneDecoder, asTimeZoneConverter, asTimeZone);
 		return asTimeZone;
 	}

@@ -32,7 +32,9 @@
 package org.obm.push.calendar;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -40,10 +42,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.xml.parsers.FactoryConfigurationError;
 
 import org.assertj.core.api.Assertions;
+import org.easymock.IMocksControl;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -61,6 +66,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.ConversionException;
+import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.protocol.data.ASTimeZoneConverter;
 import org.obm.push.protocol.data.Base64ASTimeZoneDecoder;
 import org.obm.push.protocol.data.CalendarDecoder;
@@ -73,6 +79,7 @@ import org.obm.sync.calendar.ParticipationRole;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -81,6 +88,8 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 public class EventConverterTest {
 
+	private IMocksControl control;
+	
 	@Inject EventConverterImpl eventConverter;
 	private CalendarDecoder decoder;
 	private Base64ASTimeZoneDecoder base64AsTimeZoneDecoder;
@@ -88,11 +97,24 @@ public class EventConverterTest {
 	
 	@Before
 	public void init() {
+		control = createControl();
+		
 		this.eventConverter = new EventConverterImpl(
 				new MSEventToObmEventConverterImpl(), new ObmEventToMSEventConverterImpl());
-		base64AsTimeZoneDecoder = createMock(Base64ASTimeZoneDecoder.class);
-		asTimeZoneConverter = createMock(ASTimeZoneConverter.class);
+		base64AsTimeZoneDecoder = control.createMock(Base64ASTimeZoneDecoder.class);
+		expect(base64AsTimeZoneDecoder.decode((byte[]) anyObject()))
+			.andReturn(null);
+		asTimeZoneConverter = control.createMock(ASTimeZoneConverter.class);
+		expect(asTimeZoneConverter.convert(anyObject(ASTimeZone.class)))
+			.andReturn(Optional.<TimeZone> absent());
+		
+		control.replay();
 		this.decoder = new CalendarDecoder(base64AsTimeZoneDecoder, asTimeZoneConverter);
+	}
+	
+	@After
+	public void tearDown() {
+		control.verify();
 	}
 
 	@Test

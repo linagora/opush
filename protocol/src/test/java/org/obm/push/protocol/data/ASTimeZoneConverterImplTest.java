@@ -32,6 +32,7 @@
 package org.obm.push.protocol.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Locale;
@@ -42,8 +43,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
+import org.obm.push.utils.IntEncoder;
 import org.obm.push.utils.type.UnsignedShort;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -62,18 +65,20 @@ public class ASTimeZoneConverterImplTest {
 		TimeZone timeZone = TimeZone.getTimeZone("Europe/Paris");
 		ASTimeZone asTimeZone = toASTimeZone(timeZone);
 
-		TimeZone expectedTimeZone = asTimeZoneConverter.convert(asTimeZone);
-
-		assertThat(expectedTimeZone).isEqualTo(timeZone);
+		Optional<TimeZone> expectedTimeZone = asTimeZoneConverter.convert(asTimeZone);
+		
+		assertThat(expectedTimeZone).isPresent();
+		assertThat(expectedTimeZone.get()).isEqualTo(timeZone);
 	}
 	
 	@Test
 	public void testConvertGS2LosAngelesTimeZone() {
 		TimeZone timeZone = TimeZone.getTimeZone("America/Los_Angeles");
 
-		TimeZone expectedTimeZone = asTimeZoneConverter.convert(gs2LosAngelesTimeZone());
+		Optional<TimeZone> expectedTimeZone = asTimeZoneConverter.convert(gs2LosAngelesTimeZone());
 
-		assertThat(expectedTimeZone).isEqualTo(timeZone);
+		assertThat(expectedTimeZone).isPresent();
+		assertThat(expectedTimeZone.get()).isEqualTo(timeZone);
 	}
 
 	private ASTimeZone gs2LosAngelesTimeZone() {
@@ -121,7 +126,7 @@ public class ASTimeZoneConverterImplTest {
 			TimeZone timeZone = TimeZone.getTimeZone(tZI);
 			ASTimeZone asTimeZone = toASTimeZone(timeZone);
 
-			TimeZone expectedTimeZone = asTimeZoneConverter.convert(asTimeZone);
+			TimeZone expectedTimeZone = asTimeZoneConverter.convert(asTimeZone).get();
 			map.put(tZI, expectedTimeZone);
 		}
 		assertTimezoneIdsAreCorrect(map);
@@ -165,11 +170,11 @@ public class ASTimeZoneConverterImplTest {
 	
 	@Test
 	public void testConvertDefaultValue() {
-		TimeZone timeZone = TimeZone.getTimeZone("No/Matching");
-		ASTimeZone asTimeZone = toASTimeZone(timeZone);
+		Base64ASTimeZoneDecoderImpl base64asTimeZoneDecoderImpl = new Base64ASTimeZoneDecoderImpl(new WCHAREncoder(), new IntEncoder(), new SystemTimeEncoder());
+		ASTimeZone asTimeZone = base64asTimeZoneDecoderImpl.decode("xP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAFAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAFAAMAAAAAAAAAxP///w==".getBytes());
 
-		TimeZone expectedTimeZone = asTimeZoneConverter.convert(asTimeZone);
+		Optional<TimeZone> expectedTimeZone = asTimeZoneConverter.convert(asTimeZone);
 
-		assertThat(expectedTimeZone).isEqualTo(TimeZone.getTimeZone("UTC"));
+		assertThat(expectedTimeZone).isAbsent();
 	}
 }

@@ -32,12 +32,12 @@
 
 package org.obm.push.protocol.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.obm.push.TestUtils.getXml;
 
 import java.util.Date;
@@ -57,6 +57,8 @@ import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.utils.type.UnsignedShort;
 import org.w3c.dom.Document;
+
+import com.google.common.base.Optional;
 
 
 public class CalendarDecoderTest {
@@ -176,7 +178,7 @@ public class CalendarDecoderTest {
 			.andReturn(asTimeZone).anyTimes();
 		
 		expect(asTimeZoneConverter.convert(eq(asTimeZone)))
-			.andReturn(timeZone).anyTimes();
+			.andReturn(Optional.of(timeZone)).anyTimes();
 		
 		replay(base64AsTimeZoneDecoder, asTimeZoneConverter);
 	}

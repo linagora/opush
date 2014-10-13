@@ -35,7 +35,9 @@ import java.util.TimeZone;
 
 import org.obm.push.protocol.bean.ASTimeZone;
 
+import com.google.common.base.Optional;
+
 public interface ASTimeZoneConverter {
 
-	TimeZone convert(ASTimeZone asTimeZone);
+	Optional<TimeZone> convert(ASTimeZone asTimeZone);
 }
