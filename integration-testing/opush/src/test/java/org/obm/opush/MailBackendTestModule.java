@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.env.AbstractOpushGreenMailEnv;
 
 import com.google.inject.Module;
@@ -45,23 +44,9 @@ public class MailBackendTestModule  extends AbstractOpushGreenMailEnv {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-
-		Module syncKeyFactoryModule = bindSyncKeyFactory();
-		Module dateServiceModule = bindDateService();
-		
-		return Modules.combine(overrideModule, syncKeyFactoryModule, dateServiceModule);
+		return Modules.combine(super.overrideModule(),
+				ModuleUtils.dateServiceModule(getMocksControl()),
+				ModuleUtils.syncKeyFactoryModule(getMocksControl()));
 	}
 
-	private Module bindDateService() {
-		AbstractOverrideModule dateServiceModule = ModuleUtils.buildDateServiceModule(getMocksControl());
-		getMockMap().addMap(dateServiceModule.getMockMap());
-		return dateServiceModule;
-	}
-
-	private Module bindSyncKeyFactory() {
-		AbstractOverrideModule syncKeyFactoryModule = ModuleUtils.buildSyncKeyFactoryModule(getMocksControl());
-		getMockMap().addMap(syncKeyFactoryModule.getMockMap());
-		return syncKeyFactoryModule;
-	}
 }

@@ -36,10 +36,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +56,8 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
@@ -83,7 +82,6 @@ import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.inject.Inject;
@@ -92,16 +90,20 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class PushContinuationTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PingProtocol pingProtocol;
-	@Inject SyncDecoder syncDecoder;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private PendingQueriesLock pendingQueries;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PingProtocol pingProtocol;
+	@Inject private SyncDecoder syncDecoder;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private CollectionDao collectionDao;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private HeartbeatDao heartbeatDao;
+	@Inject private MailBackend mailBackend;
 	
 	private static final SyncKey INCOMING_SYNC_KEY = new SyncKey("132");
 	private static final SyncKey NEW_SYNC_KEY = new SyncKey("456");
@@ -140,7 +142,7 @@ public class PushContinuationTest {
 
 	@Test
 	public void testSyncAfterPing() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		expectPing();
 		expectSyncWithoutChanges();
@@ -148,7 +150,7 @@ public class PushContinuationTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		Future<PingResponse> pingFuture = opClient.pingASync(async, pingProtocol, inboxCollectionId, HEARTBEAT);
 		
 		// We have to wait for Ping request really arrived in OPush
@@ -166,7 +168,6 @@ public class PushContinuationTest {
 	private void expectSyncWithoutChanges() {
 		Credentials credentials = new Credentials(user.user, user.password);
 		
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(inboxCollectionId))
 			.andReturn("obm:\\\\" + user.user.getLoginAtDomain() + "\\email\\INBOX").anyTimes();
 		ItemSyncState itemSyncState = ItemSyncState.builder()
@@ -181,7 +182,6 @@ public class PushContinuationTest {
 				.syncDate(DateUtils.getCurrentDate())
 				.build()).anyTimes();
 		
-		MailBackend mailBackend = classToInstanceMap.get(MailBackend.class);
 		expect(mailBackend.getChanged(eq(new UserDataRequest(credentials, "Sync", user.device)), 
 				eq(itemSyncState), 
 				anyObject(AnalysedSyncCollection.class), 
@@ -193,11 +193,8 @@ public class PushContinuationTest {
 	}
 	
 	private void expectPing() {
-		HeartbeatDao heartbeatDao = classToInstanceMap.get(HeartbeatDao.class);
 		heartbeatDao.updateLastHeartbeat(user.device, HEARTBEAT);
 		expectLastCall();
-		
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.lastKnownState(user.device, inboxCollectionId))
 			.andReturn(ItemSyncState.builder()
 				.syncKey(NEW_SYNC_KEY)

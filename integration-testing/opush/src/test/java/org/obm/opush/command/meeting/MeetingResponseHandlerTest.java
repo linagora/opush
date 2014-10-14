@@ -35,8 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
 import java.io.IOException;
 import java.util.Date;
@@ -58,6 +56,8 @@ import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.icalendar.ICalendar;
+import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
@@ -94,7 +94,6 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.SerializableInputStream;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.push.wbxml.WBXmlException;
 import org.obm.sync.push.client.HttpRequestException;
 import org.obm.sync.push.client.OPClient;
@@ -104,21 +103,24 @@ import org.xml.sax.SAXException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
 @GuiceModule(DefaultOpushModule.class)
 public class MeetingResponseHandlerTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject MeetingProtocol protocol;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private MeetingProtocol protocol;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private MailBackend mailBackend;
+	@Inject private CalendarBackend calendarBackend;
+	@Inject private CollectionDao collectionDao;
 	
 	private CollectionId meetingCollectionId;
 	private int meetingItemId;
@@ -297,7 +299,7 @@ public class MeetingResponseHandlerTest {
 	private Document postMeetingAcceptedResponse()
 			throws TransformerException, WBXmlException, IOException, HttpRequestException, SAXException  {
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = buildMeetingAcceptedResponse();
 
 		Document serverResponse = opClient.postXml("MeetingResponse", document, "MeetingResponse");
@@ -325,8 +327,8 @@ public class MeetingResponseHandlerTest {
 	private void prepareMockForEmailDeletionError(Exception triggeredException) throws Exception {
 		prepareMockForCommonNeeds();
 
-		expectMailbackendDeleteInvitationTriggersException(classToInstanceMap.get(MailBackend.class), triggeredException);
-		expectHandleMeetingResponseProcessCorrectly(classToInstanceMap.get(CalendarBackend.class));
+		expectMailbackendDeleteInvitationTriggersException(triggeredException);
+		expectHandleMeetingResponseProcessCorrectly();
 		
 		mocksControl.replay();
 	}
@@ -334,34 +336,34 @@ public class MeetingResponseHandlerTest {
 	private void prepareMockForMeetingResponseHandlingError(Exception triggeredException) throws Exception {
 		prepareMockForCommonNeeds();
 		
-		expectMailbackendDeleteInvitationProcessCorrectly(classToInstanceMap.get(MailBackend.class));
-		expectHandleMeetingResponseTriggersException(classToInstanceMap.get(CalendarBackend.class), triggeredException);
+		expectMailbackendDeleteInvitationProcessCorrectly();
+		expectHandleMeetingResponseTriggersException(triggeredException);
 		
 		mocksControl.replay();
 	}
 	
 	private void prepareMockForCommonNeeds() throws Exception {
 		
-		mockUsersAccess(classToInstanceMap, Sets.newHashSet(users.jaures));
-		expectCollectionDaoUnchange(classToInstanceMap.get(CollectionDao.class));
-		expectMailbackendGiveEmailForAnyIds(classToInstanceMap.get(MailBackend.class));
-		expectMailbackendGettingInvitation(classToInstanceMap.get(MailBackend.class));
+		userAccessUtils.mockUsersAccess(users.jaures);
+		expectCollectionDaoUnchange();
+		expectMailbackendGiveEmailForAnyIds();
+		expectMailbackendGettingInvitation();
 	}
 	
-	private void expectMailbackendDeleteInvitationProcessCorrectly(MailBackend mailBackend) throws Exception {
+	private void expectMailbackendDeleteInvitationProcessCorrectly() throws Exception {
 		
 		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class), anyBoolean());
 		EasyMock.expectLastCall().once();
 	}
 	
-	private void expectMailbackendDeleteInvitationTriggersException(MailBackend mailBackend, Exception triggeredException)
+	private void expectMailbackendDeleteInvitationTriggersException(Exception triggeredException)
 			throws Exception {
 		
 		mailBackend.delete(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class), anyBoolean());
 		EasyMock.expectLastCall().andThrow(triggeredException);
 	}
 
-	private void expectHandleMeetingResponseProcessCorrectly(CalendarBackend calendarBackend)
+	private void expectHandleMeetingResponseProcessCorrectly()
 			throws Exception {
 		
 		expect(calendarBackend.handleMeetingResponse(
@@ -371,7 +373,7 @@ public class MeetingResponseHandlerTest {
 			.andReturn(meetingCollectionId.serverId(meetingItemId));
 	}
 
-	private void expectHandleMeetingResponseTriggersException(CalendarBackend calendarBackend, Exception triggeredException)
+	private void expectHandleMeetingResponseTriggersException(Exception triggeredException)
 			throws Exception {
 		
 		expect(calendarBackend.handleMeetingResponse(
@@ -381,7 +383,7 @@ public class MeetingResponseHandlerTest {
 			.andThrow(triggeredException);
 	}
 
-	private void expectMailbackendGiveEmailForAnyIds(MailBackend mailBackend)
+	private void expectMailbackendGiveEmailForAnyIds()
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
 		expect(mailBackend.getEmail(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class)))
@@ -404,14 +406,14 @@ public class MeetingResponseHandlerTest {
 			.build();
 	}
 
-	private void expectMailbackendGettingInvitation(MailBackend mailBackend)
+	private void expectMailbackendGettingInvitation()
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
 		expect(mailBackend.getInvitation(anyObject(UserDataRequest.class), anyObject(CollectionId.class), anyObject(ServerId.class)))
 			.andReturn(null);
 	}
 
-	private void expectCollectionDaoUnchange(CollectionDao collectionDao) throws DaoException {
+	private void expectCollectionDaoUnchange() throws DaoException {
 		Date dateFirstSyncFromASSpecs = new Date(0);
 		
 		ItemSyncState syncState = ItemSyncState.builder()

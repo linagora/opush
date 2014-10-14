@@ -41,7 +41,7 @@ import org.obm.push.state.SyncKeyFactory;
 
 public class ModuleUtils {
 
-	public static AbstractOverrideModule buildContentsExporterBackendModule(IMocksControl mocksControl) {
+	public static AbstractOverrideModule contentsExporterModule(IMocksControl mocksControl) {
 		return new AbstractOverrideModule(mocksControl) {
 
 			@Override
@@ -51,7 +51,7 @@ public class ModuleUtils {
 		};
 	}
 	
-	public static AbstractOverrideModule buildContentsImporterBackendModule(IMocksControl mocksControl) {
+	public static AbstractOverrideModule contentsImporterModule(IMocksControl mocksControl) {
 		return new AbstractOverrideModule(mocksControl) {
 
 			@Override
@@ -61,7 +61,7 @@ public class ModuleUtils {
 		};
 	}
 
-	public static AbstractOverrideModule buildSyncKeyFactoryModule(IMocksControl mocksControl) {
+	public static AbstractOverrideModule syncKeyFactoryModule(IMocksControl mocksControl) {
 		return new AbstractOverrideModule(mocksControl) {
 
 			@Override
@@ -72,7 +72,7 @@ public class ModuleUtils {
 		};
 	}
 
-	public static AbstractOverrideModule buildDateServiceModule(IMocksControl mocksControl) {
+	public static AbstractOverrideModule dateServiceModule(IMocksControl mocksControl) {
 		return new AbstractOverrideModule(mocksControl) {
 
 			@Override

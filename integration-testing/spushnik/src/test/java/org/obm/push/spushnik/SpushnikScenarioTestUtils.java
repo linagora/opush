@@ -38,7 +38,7 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Properties;
 
-import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
@@ -57,16 +57,25 @@ import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.task.TaskBackend;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.auth.AuthFault;
-import org.obm.sync.client.login.LoginClient;
+
+import com.google.inject.Inject;
 
 public class SpushnikScenarioTestUtils {
 
-	public static void mockWorkingFolderSync(
-			ClassToInstanceAgregateView<Object> classToInstanceMap, OpushUser userFixture) throws AuthFault {
+	@Inject private DeviceDao deviceDao;
+	@Inject private FolderSyncKeyFactory folderSyncKeyFactory;
+	@Inject private CollectionDao collectionDao;
+	@Inject private ContactsBackend contactsBackend;
+	@Inject private CalendarBackend calendarBackend;
+	@Inject private TaskBackend taskBackend;
+	@Inject private MailBackend mailBackend;
+	@Inject private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
+	@Inject private IntegrationUserAccessUtils accessUtils;
+	
+	public void mockWorkingFolderSync(OpushUser userFixture) throws AuthFault {
 		
-		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), userFixture);
+		accessUtils.expectUserLoginFromOpush(userFixture);
 		User user = userFixture.user;
 		DeviceId deviceId = new DeviceId("spushnik");
 		Device device = new Device(user.hashCode(), 
@@ -76,7 +85,6 @@ public class SpushnikScenarioTestUtils {
 				userFixture.deviceProtocolVersion);
 		
 		// First provisionning
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user, 
 				deviceId, 
 				"spushnikAgent",
@@ -102,43 +110,31 @@ public class SpushnikScenarioTestUtils {
 		
 		// FolderSync
 		FolderSyncKey syncKey = new FolderSyncKey("123");
-		expect(classToInstanceMap.get(FolderSyncKeyFactory.class).randomSyncKey())
+		expect(folderSyncKeyFactory.randomSyncKey())
 			.andReturn(syncKey).once();
 		FolderSyncState syncState = FolderSyncState.builder()
 				.syncKey(syncKey)
 				.id(1)
 				.build();
-		expect(classToInstanceMap.get(CollectionDao.class).allocateNewFolderSyncState(device, syncKey))
+		expect(collectionDao.allocateNewFolderSyncState(device, syncKey))
 			.andReturn(syncState).once();
 		FolderSyncState initialSyncState = FolderSyncState.builder()
 				.syncKey(FolderSyncKey.INITIAL_FOLDER_SYNC_KEY)
 				.id(0)
 				.build();
-		ContactsBackend contactsBackend = classToInstanceMap.get(ContactsBackend.class);
-		expect(contactsBackend.getPIMDataType())
-			.andReturn(PIMDataType.CONTACTS).once();
 		expect(contactsBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
 			.andReturn(HierarchyCollectionChanges.builder()
 					.build()).once();
-		CalendarBackend calendarBackend = classToInstanceMap.get(CalendarBackend.class);
-		expect(calendarBackend.getPIMDataType())
-			.andReturn(PIMDataType.CALENDAR).once();
 		expect(calendarBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
 			.andReturn(HierarchyCollectionChanges.builder()
 					.build()).once();
-		TaskBackend taskBackend = classToInstanceMap.get(TaskBackend.class);
-		expect(taskBackend.getPIMDataType())
-			.andReturn(PIMDataType.TASKS).once();
 		expect(taskBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
 			.andReturn(HierarchyCollectionChanges.builder()
 					.build()).once();
-		MailBackend mailBackend = classToInstanceMap.get(MailBackend.class);
-		expect(mailBackend.getPIMDataType())
-			.andReturn(PIMDataType.EMAIL).once();
 		expect(mailBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
 			.andReturn(HierarchyCollectionChanges.builder()
 					.build()).once();
-		classToInstanceMap.get(FolderSyncStateBackendMappingDao.class).createMapping(anyObject(PIMDataType.class), eq(syncState));
+		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), eq(syncState));
 		expectLastCall().anyTimes();
 	}
 	

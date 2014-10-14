@@ -33,15 +33,6 @@ package org.obm.opush.command.sync.folder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationPushTestUtils.mockHierarchyChangesForMailboxes;
-import static org.obm.opush.IntegrationPushTestUtils.mockHierarchyChangesOnlyInbox;
-import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationTestUtils.expectCreateFolderMappingState;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -55,6 +46,9 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.IntegrationPushTestUtils;
+import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
@@ -70,8 +64,6 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.common.collect.Iterables;
@@ -82,22 +74,23 @@ import com.google.inject.Inject;
 @GuiceModule(FolderSyncHandlerTestModule.class)
 public class FolderSyncHandlerTest {
 	
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private CollectionDao collectionDao;
 	
-	private List<OpushUser> userAsList;
 	private OpushUser user;
 	private CloseableHttpClient httpClient;
 
 	@Before
 	public void init() throws Exception {
 		user = users.jaures;
-		userAsList = Arrays.asList(user);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 		cassandraServer.start();
 		httpClient = HttpClientBuilder.create().build();
@@ -117,11 +110,11 @@ public class FolderSyncHandlerTest {
 		FolderSyncKey newGeneratedSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
 		FolderSyncState newMappingSyncState = FolderSyncState.builder().syncKey(newGeneratedSyncKey).build();
 		
-		mockUsersAccess(classToInstanceMap, userAsList);
-		mockHierarchyChangesOnlyInbox(classToInstanceMap);
-		mockNextGeneratedSyncKey(classToInstanceMap, newGeneratedSyncKey);
-		expectCollectionDaoAllocateFolderSyncState(classToInstanceMap.get(CollectionDao.class), newGeneratedSyncKey, newMappingSyncState);
-		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockHierarchyChangesOnlyInbox();
+		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		expectCollectionDaoAllocateFolderSyncState(newGeneratedSyncKey, newMappingSyncState);
+		testUtils.expectCreateFolderMappingState();
 
 //		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 //		expectUserCollectionsNeverChange(collectionDao, fakeTestUsers, Collections.<Integer>emptySet());
@@ -131,7 +124,7 @@ public class FolderSyncHandlerTest {
 		mocksControl.replay();
 		
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(initialSyncKey);
 		
 		mocksControl.verify();
@@ -153,17 +146,17 @@ public class FolderSyncHandlerTest {
 		int newSyncStateId = 1156;
 		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
 		
-		mockUsersAccess(classToInstanceMap, userAsList);
-		mockHierarchyChangesForMailboxes(classToInstanceMap, buildHierarchyItemsChangeEmpty());
-		mockNextGeneratedSyncKey(classToInstanceMap, newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(classToInstanceMap.get(CollectionDao.class), newSyncKey, newSyncState);
-		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockHierarchyChangesForMailboxes(buildHierarchyItemsChangeEmpty());
+		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
+		testUtils.expectCreateFolderMappingState();
 
 		mocksControl.replay();
 		
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();
@@ -200,17 +193,17 @@ public class FolderSyncHandlerTest {
 //		expectUserCollectionsNeverChange(collectionDao, fakeTestUsers, Collections.<Integer>emptySet());
 //		mockCollectionDao(collectionDao, syncKey, serverId);
 		
-		mockUsersAccess(classToInstanceMap, userAsList);
-		mockHierarchyChangesForMailboxes(classToInstanceMap, mailboxChanges);
-		mockNextGeneratedSyncKey(classToInstanceMap, newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(classToInstanceMap.get(CollectionDao.class), newSyncKey, newSyncState);
-		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
+		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
+		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();
@@ -239,16 +232,16 @@ public class FolderSyncHandlerTest {
 					CollectionDeletion.builder().collectionId(collectionId).build()))
 			.build();
 		
-		mockUsersAccess(classToInstanceMap, userAsList);
-		mockHierarchyChangesForMailboxes(classToInstanceMap, mailboxChanges);
-		mockNextGeneratedSyncKey(classToInstanceMap, newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(classToInstanceMap.get(CollectionDao.class), newSyncKey, newSyncState);
-		expectCreateFolderMappingState(classToInstanceMap.get(FolderSyncStateBackendMappingDao.class));
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
+		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
+		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(newSyncKey);
 
 		mocksControl.verify();
@@ -265,17 +258,16 @@ public class FolderSyncHandlerTest {
 		return HierarchyCollectionChanges.builder().build();
 	}
 
-	private void expectCollectionDaoAllocateFolderSyncState(CollectionDao collectionDao, FolderSyncKey folderSyncKey, FolderSyncState newSyncState) 
+	private void expectCollectionDaoAllocateFolderSyncState(FolderSyncKey folderSyncKey, FolderSyncState newSyncState) 
 			throws DaoException {
 	
 		expect(collectionDao.allocateNewFolderSyncState(user.device, folderSyncKey)).andReturn(newSyncState);
 	}
 
-	private void expectCollectionDaoFindFolderSyncState(CollectionDao collectionDao,
-			FolderSyncKey newSyncKey, FolderSyncState newSyncState) throws DaoException {
+	private void expectCollectionDaoFindFolderSyncState(FolderSyncKey newSyncKey, FolderSyncState newSyncState) throws DaoException {
 		
 		expect(collectionDao.findFolderStateForKey(newSyncKey)).andReturn(FolderSyncState.builder().syncKey(newSyncKey).build());
-		expectCollectionDaoAllocateFolderSyncState(collectionDao, newSyncState.getSyncKey(), newSyncState);
+		expectCollectionDaoAllocateFolderSyncState(newSyncState.getSyncKey(), newSyncState);
 	}
 
 	private FolderSyncState newFolderSyncState(FolderSyncKey newGeneratedSyncKey, int newSyncStateId) {

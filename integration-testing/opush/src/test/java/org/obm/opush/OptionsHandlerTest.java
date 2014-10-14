@@ -33,7 +33,6 @@ package org.obm.opush;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
 
 import org.apache.http.Header;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -60,11 +59,13 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class OptionsHandlerTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject IMocksControl mocksControl;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -86,7 +87,7 @@ public class OptionsHandlerTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		OptionsResponse options = opClient.options();
 		
 		assertThat(Iterables.tryFind(options.getHeaders(), new Predicate<Header>() {

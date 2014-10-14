@@ -55,15 +55,8 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
-import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.DeviceDao;
 import org.obm.push.utils.DOMUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
-import org.obm.sync.auth.AuthFault;
-import org.obm.sync.client.login.LoginClient;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -74,13 +67,15 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class AutodiscoverHandlerTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	
 	private CloseableHttpClient httpClient;
 	
 	@Before
@@ -100,13 +95,16 @@ public class AutodiscoverHandlerTest {
 
 	@Test
 	public void testAutodiscoverCommand() throws Exception {
-		prepareMocks();
+		userAccessUtils.expectUserDeviceAccess(users.jaures);
+		userAccessUtils.expectUserLoginFromOpush(users.jaures);
+		testUtils.expectUserCollectionsNeverChange(users.jaures, Collections.<CollectionId>emptySet());
+		
 		String externalUrl = "https://external-url/Microsoft-Server-ActiveSync";
 		configuration.activeSyncServletUrl = externalUrl;
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = IntegrationTestUtils.buildOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		String emailAddress = users.jaures.user.getEmail();
 		Document document = opClient.postXml("Autodiscover", buildAutodiscoverCommand(emailAddress), "Autodiscover", null, false);
@@ -135,27 +133,6 @@ public class AutodiscoverHandlerTest {
 				"</Autodiscover>");
 	}
 
-	private void prepareMocks() throws CollectionNotFoundException, DaoException, AuthFault {
-		mockDeviceDao();
-		mockLoginService();
-		mockCollectionDaoNoChange();
-	}
-
-	private void mockDeviceDao() throws DaoException {
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
-		IntegrationTestUtils.expectUserDeviceAccess(deviceDao, users.jaures);
-	}
-
-	private void mockCollectionDaoNoChange() throws CollectionNotFoundException, DaoException {
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, Collections.<CollectionId>emptySet());
-	}
-	
-	private void mockLoginService() throws AuthFault {
-		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
-		IntegrationTestUtils.expectUserLoginFromOpush(loginClient, users.jaures);
-	}
-	
 	private Document buildAutodiscoverCommand(String emailAddress)
 			throws SAXException, IOException {
 		return DOMUtils.parse("<Autodiscover xmlns=\"http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006\">"

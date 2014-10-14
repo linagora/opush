@@ -53,6 +53,7 @@ import org.obm.push.backend.WindowingEvent;
 import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
@@ -767,7 +768,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }

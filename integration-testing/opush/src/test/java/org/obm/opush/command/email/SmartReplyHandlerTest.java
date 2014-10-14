@@ -34,10 +34,6 @@ package org.obm.opush.command.email;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.obm.DateUtils.date;
-import static org.obm.opush.IntegrationTestUtils.appendToINBOX;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationTestUtils.loadEmail;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
 import java.util.Date;
 
@@ -55,6 +51,7 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
@@ -63,12 +60,10 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.ServerId;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.client.user.UserClient;
 import org.obm.sync.date.DateProvider;
 import org.obm.sync.push.client.OPClient;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.store.SimpleStoredMessage;
@@ -79,15 +74,18 @@ import com.icegreen.greenmail.util.GreenMail;
 @GuiceModule(MailBackendTestModule.class)
 public class SmartReplyHandlerTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject GreenMail greenMail;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject DateProvider dateProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private GreenMail greenMail;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private DateProvider dateProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private CollectionDao collectionDao;
+	@Inject private UserClient userClient;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
@@ -108,13 +106,11 @@ public class SmartReplyHandlerTest {
 		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1);
 		serverId = inboxCollectionId.serverId(1);
 		
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		UserClient userClient = classToInstanceMap.get(UserClient.class);
-		mockUsersAccess(classToInstanceMap, Lists.newArrayList(user));
+		userAccessUtils.mockUsersAccess(user);
 		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
 		expect(userClient.getUserEmail(user.accessToken)).andReturn(user.user.getLoginAtDomain()).anyTimes();
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
@@ -130,12 +126,12 @@ public class SmartReplyHandlerTest {
 
 	@Test
 	public void testReplyWithAlternativeToAnAlternative() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -144,12 +140,12 @@ public class SmartReplyHandlerTest {
 
 	@Test
 	public void testReplyWithTextToAnAlternative() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -158,12 +154,12 @@ public class SmartReplyHandlerTest {
 
 	@Test
 	public void testReplyWithHtmlToAnAlternative() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -172,12 +168,12 @@ public class SmartReplyHandlerTest {
 	
 	@Test
 	public void testOBMFULL4924() throws Exception {
-		appendToINBOX(greenMailUser, "eml/OBMFULL-4924-inboxEmail.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/OBMFULL-4924-inboxEmail.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/OBMFULL-4924-replyingEmail.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/OBMFULL-4924-replyingEmail.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -186,7 +182,7 @@ public class SmartReplyHandlerTest {
 	
 	@Test
 	public void testQuotaExceededErrorMail() throws Exception {
-		appendToINBOX(greenMailUser, "eml/quotaExceeded.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/quotaExceeded.eml");
 		assertThat(inboxFolder.getMessageCount()).isEqualTo(1);
 
 		Date expectedDate = date("2012-05-04T11:30:12");
@@ -194,7 +190,7 @@ public class SmartReplyHandlerTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/quotaExceeded.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/quotaExceeded.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -205,14 +201,14 @@ public class SmartReplyHandlerTest {
 
 	@Test
 	public void testReplySendsReportEmailWhenError() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		
 		Date expectedDate = date("2012-05-04T11:30:12");
 		expect(dateProvider.getDate()).andReturn(expectedDate);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailReply(loadEmail("eml/badToSyntax.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/badToSyntax.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -223,6 +219,6 @@ public class SmartReplyHandlerTest {
 	}
 
 	private OPClient opClient() {
-		return buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		return testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 	}
 }

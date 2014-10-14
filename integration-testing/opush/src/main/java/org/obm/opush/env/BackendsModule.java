@@ -58,18 +58,18 @@ public class BackendsModule extends AbstractOverrideModule {
 		bindWithMock(CalendarBackend.class);
 		bindWithMock(EventService.class);
 		CalendarBackend calendarBackend = getMock(CalendarBackend.class);
-		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR);
+		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR).anyTimes();
 	}
 	
 	protected void bindContactsBackend() {
 		bindWithMock(ContactsBackend.class);
 		ContactsBackend contactBackend = getMock(ContactsBackend.class);
-		expect(contactBackend.getPIMDataType()).andReturn(PIMDataType.CONTACTS);
+		expect(contactBackend.getPIMDataType()).andReturn(PIMDataType.CONTACTS).anyTimes();
 	}
 	
 	protected void bindTaskBackend() {
 		bindWithMock(TaskBackend.class);
 		TaskBackend taskBackend = getMock(TaskBackend.class);
-		expect(taskBackend.getPIMDataType()).andReturn(PIMDataType.TASKS);
+		expect(taskBackend.getPIMDataType()).andReturn(PIMDataType.TASKS).anyTimes();
 	}
 }

@@ -34,6 +34,7 @@ package org.obm.push.backend;
 import java.util.List;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
@@ -77,5 +78,5 @@ public interface IContentsExporter {
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, 
 			UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
 
-	void initialize(UserDataRequest udr, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey);
+	void initialize(DeviceId deviceId, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey);
 }

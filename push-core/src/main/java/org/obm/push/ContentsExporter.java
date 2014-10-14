@@ -37,6 +37,7 @@ import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
@@ -128,8 +129,8 @@ public class ContentsExporter implements IContentsExporter {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(DeviceId deviceId, CollectionId collectionId, PIMDataType dataType, FilterType filterType, SyncKey newSyncKey) {
 		backends.getBackend(dataType)
-			.initialize(udr, collectionId, filterType, newSyncKey);
+			.initialize(deviceId, collectionId, filterType, newSyncKey);
 	}
 }

@@ -36,11 +36,8 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
 import java.io.ByteArrayInputStream;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +62,6 @@ import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
@@ -82,7 +78,6 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.SerializableInputStream;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.common.base.Charsets;
@@ -99,18 +94,21 @@ import com.icegreen.greenmail.util.ServerSetup;
 @GuiceModule(MailBackendHandlerTestModule.class)
 public class MailBackendHandlerTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject GreenMail greenMail;
-	@Inject ICollectionPathHelper collectionPathHelper;
-	@Inject ImapConnectionCounter imapConnectionCounter;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject SyncDecoder decoder;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private GreenMail greenMail;
+	@Inject private ImapConnectionCounter imapConnectionCounter;
+	@Inject private PendingQueriesLock pendingQueries;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private SyncDecoder decoder;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IContentsExporter contentsExporter;
+	@Inject private CollectionDao collectionDao;
+	@Inject private ItemTrackingDao itemTrackingDao;
 	
 	private ServerSetup smtpServerSetup;
 	private String mailbox;
@@ -164,7 +162,7 @@ public class MailBackendHandlerTest {
 			.syncKey(syncState.getSyncKey())
 			.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		mockDao(collectionId, syncState);
 		
 		bindChangedToDelta(delta);
@@ -176,7 +174,7 @@ public class MailBackendHandlerTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", smtpServerSetup);
 		greenMail.waitForIncomingEmail(2);
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.deleteEmail(decoder, syncEmailSyncKey, collectionId, serverId);
 
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
@@ -189,7 +187,6 @@ public class MailBackendHandlerTest {
 	}
 
 	private void bindChangedToDelta(DataDelta delta) throws Exception {
-		IContentsExporter contentsExporter = classToInstanceMap.get(IContentsExporter.class);
 		expect(contentsExporter.getChanged(
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
@@ -204,9 +201,8 @@ public class MailBackendHandlerTest {
 	}
 	
 	private void mockCollectionDao(CollectionId serverId, ItemSyncState syncState) throws Exception {
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		expect(collectionDao.getCollectionPath(serverId))
-			.andReturn(IntegrationTestUtils.buildEmailInboxCollectionPath(users.jaures)).anyTimes();
+			.andReturn(testUtils.buildEmailInboxCollectionPath(users.jaures)).anyTimes();
 		
 		expect(collectionDao.findItemStateForKey(anyObject(SyncKey.class)))
 			.andReturn(syncState).anyTimes();
@@ -217,11 +213,10 @@ public class MailBackendHandlerTest {
 		expect(collectionDao.getCollectionMapping(eq(user.device), anyObject(String.class)))
 			.andReturn(serverId).anyTimes();
 		
-		IntegrationTestUtils.expectUserCollectionsNeverChange(collectionDao, users.jaures, ImmutableList.of(serverId));
+		testUtils.expectUserCollectionsNeverChange(users.jaures, ImmutableList.of(serverId));
 	}
 
 	private void mockItemTrackingDao() throws Exception {
-		ItemTrackingDao itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
 		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
 		expectLastCall().anyTimes();
 		

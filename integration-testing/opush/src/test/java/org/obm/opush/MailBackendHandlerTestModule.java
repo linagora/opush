@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush;
 
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.env.AbstractOpushGreenMailEnv;
 
 import com.google.inject.Module;
@@ -45,16 +44,8 @@ public class MailBackendHandlerTestModule  extends AbstractOpushGreenMailEnv {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-
-		Module contentsExporterBackend = bindContentsExporterBackendModule();
-		
-		return Modules.combine(overrideModule, contentsExporterBackend);
+		return Modules.combine(super.overrideModule(),
+				ModuleUtils.contentsExporterModule(getMocksControl()));
 	}
 
-	private Module bindContentsExporterBackendModule() {
-		AbstractOverrideModule contentsExporterBackend = ModuleUtils.buildContentsExporterBackendModule(getMocksControl());
-		getMockMap().addMap(contentsExporterBackend.getMockMap());
-		return contentsExporterBackend;
-	}
 }

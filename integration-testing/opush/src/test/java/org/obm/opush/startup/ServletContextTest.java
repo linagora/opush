@@ -59,11 +59,12 @@ import com.google.inject.Inject;
 @GuiceModule(DefaultOpushModule.class)
 public class ServletContextTest {
 
-	@Inject OpushServer opushServer;
-	@Inject CassandraServer cassandraServer;
-	@Inject	Users users;
-	@Inject IMocksControl control;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private OpushServer opushServer;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private IMocksControl control;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private IntegrationTestUtils testUtils;
 	
 	private CloseableHttpClient httpClient;
 	private OpushUser user;
@@ -87,7 +88,7 @@ public class ServletContextTest {
 		cassandraServer.start();
 		control.replay();
 		opushServer.start();
-		OPClient opClient = IntegrationTestUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		OptionsResponse options = opClient.options();
 		assertThat(options.getStatusLine().getStatusCode()).isEqualTo(200);
 	}

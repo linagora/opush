@@ -62,7 +62,6 @@ import org.obm.push.spushnik.SpushnikModule;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
 import org.obm.push.spushnik.SpushnikServer;
 import org.obm.push.spushnik.SpushnikTestUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
@@ -72,13 +71,13 @@ import com.google.inject.Inject;
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private SpushnikScenarioTestUtils spushnikScenarioTestUtils;
 	
 	private CloseableHttpClient httpClient;
 	private SpushnikServer spushnikServer;
@@ -99,7 +98,7 @@ public class FolderSyncScenarioTest {
 		spushnikServer.start();
 		baseURL = "http://localhost:" + spushnikServer.getPort() + "/spushnik/";
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
-		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, users.jaures);
+		spushnikScenarioTestUtils.mockWorkingFolderSync(users.jaures);
 		mocksControl.replay();
 		cassandraServer.start();
 		opushServer.start();

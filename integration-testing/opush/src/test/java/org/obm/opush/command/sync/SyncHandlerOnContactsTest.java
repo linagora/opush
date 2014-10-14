@@ -35,13 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
-import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-import static org.obm.opush.command.sync.SyncTestUtils.getCollectionWithId;
-import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoPerformSync;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -57,7 +51,9 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.IntegrationPushTestUtils;
 import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
@@ -76,7 +72,6 @@ import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.base.EmailAddress;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
@@ -97,20 +92,23 @@ import com.google.inject.Inject;
 @RunWith(GuiceRunner.class)
 public class SyncHandlerOnContactsTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject SyncDecoder decoder;
-	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private SyncDecoder decoder;
+	@Inject private SyncWithDataCommand.Factory syncWithDataCommandFactory;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private SyncTestUtils syncTestUtils;
 	
-	private ItemTrackingDao itemTrackingDao;
-	private CollectionDao collectionDao;
-	private BookClient bookClient;
-	private DateService dateService;
+	@Inject private ItemTrackingDao itemTrackingDao;
+	@Inject private CollectionDao collectionDao;
+	@Inject private BookClient bookClient;
+	@Inject private DateService dateService;
 
 	private OpushUser user;
 	private String contactCollectionPath;
@@ -125,13 +123,8 @@ public class SyncHandlerOnContactsTest {
 		user = users.jaures;
 
 		contactCollectionId = CollectionId.of(7891);
-		contactCollectionPath = IntegrationTestUtils.buildContactCollectionPath(user, contactCollectionId);
+		contactCollectionPath = testUtils.buildContactCollectionPath(user, contactCollectionId);
 		
-		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
-		collectionDao = classToInstanceMap.get(CollectionDao.class);
-		bookClient = classToInstanceMap.get(BookClient.class);
-		dateService = classToInstanceMap.get(DateService.class);
-
 		expect(collectionDao.getCollectionPath(contactCollectionId)).andReturn(contactCollectionPath).anyTimes();
 		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
@@ -164,9 +157,9 @@ public class SyncHandlerOnContactsTest {
 				.id(secondAllocatedStateId)
 				.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		Contact initialContact = new Contact();
@@ -208,7 +201,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		mocksControl.verify();
@@ -221,7 +214,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionId);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
@@ -264,10 +257,10 @@ public class SyncHandlerOnContactsTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -334,7 +327,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = 
@@ -344,7 +337,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -376,10 +369,10 @@ public class SyncHandlerOnContactsTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -450,7 +443,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
@@ -459,7 +452,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -491,10 +484,10 @@ public class SyncHandlerOnContactsTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -563,7 +556,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
@@ -572,7 +565,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(updateSyncResponse, contactCollectionId);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(updateSyncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		assertThat(syncCollectionResponse.getCommands().getCommands()).hasSize(0);
@@ -604,10 +597,10 @@ public class SyncHandlerOnContactsTest {
 				.id(thirdAllocatedStateId)
 				.build();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, contactCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -646,7 +639,7 @@ public class SyncHandlerOnContactsTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		WBXMLOPClient opushClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
@@ -668,7 +661,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse syncCollectionResponse = getCollectionWithId(syncResponse, contactCollectionId);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
@@ -684,7 +677,7 @@ public class SyncHandlerOnContactsTest {
 		
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		SyncCollectionResponse sameSyncCollectionResponse = getCollectionWithId(sameSyncResponse, contactCollectionId);
+		SyncCollectionResponse sameSyncCollectionResponse = syncTestUtils.getCollectionWithId(sameSyncResponse, contactCollectionId);
 		assertThat(sameSyncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
 		List<SyncCollectionCommand> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();

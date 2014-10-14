@@ -31,14 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik.resources;
 
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ModuleUtils;
 import org.obm.opush.env.DefaultOpushModule;
 
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
-public class ScenarioTestModule  extends DefaultOpushModule {
+public class ScenarioTestModule extends DefaultOpushModule {
 	
 	public ScenarioTestModule() {
 		super();
@@ -46,23 +45,8 @@ public class ScenarioTestModule  extends DefaultOpushModule {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-
-		Module syncKeyFactoryModule = bindSyncKeyFactory();
-		Module dateServiceModule = bindDateService();
-		
-		return Modules.combine(overrideModule, syncKeyFactoryModule, dateServiceModule);
-	}
-
-	private Module bindDateService() {
-		AbstractOverrideModule dateServiceModule = ModuleUtils.buildDateServiceModule(getMocksControl());
-		getMockMap().addMap(dateServiceModule.getMockMap());
-		return dateServiceModule;
-	}
-
-	private Module bindSyncKeyFactory() {
-		AbstractOverrideModule syncKeyFactoryModule = ModuleUtils.buildSyncKeyFactoryModule(getMocksControl());
-		getMockMap().addMap(syncKeyFactoryModule.getMockMap());
-		return syncKeyFactoryModule;
+		return Modules.combine(super.overrideModule(),
+				ModuleUtils.dateServiceModule(getMocksControl()),
+				ModuleUtils.syncKeyFactoryModule(getMocksControl()));
 	}
 }

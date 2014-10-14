@@ -36,11 +36,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
-import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
-import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -90,7 +86,6 @@ import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.task.TaskBackend;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.ItemOperationResponse;
 import org.obm.sync.push.client.MoveItemsResponse;
 import org.obm.sync.push.client.OPClient;
@@ -106,26 +101,25 @@ import com.icegreen.greenmail.util.GreenMail;
 @GuiceModule(MailBackendImapTimeoutTestModule.class)
 public class MailBackendImapTimeoutTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject GreenMail greenMail;
-	@Inject ImapConnectionCounter imapConnectionCounter;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject ContactsBackend contactsBackend;
-	@Inject TaskBackend taskBackend;
-	@Inject CalendarBackend calendarBackend;
-	@Inject SyncDecoder syncDecoder;
-	@Inject PingProtocol pingProtocol;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
-	
-	private CollectionDao collectionDao;
-	private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
-	private HeartbeatDao heartbeatDao;
-	private DateService dateService;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private GreenMail greenMail;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private ContactsBackend contactsBackend;
+	@Inject private TaskBackend taskBackend;
+	@Inject private CalendarBackend calendarBackend;
+	@Inject private SyncDecoder syncDecoder;
+	@Inject private PingProtocol pingProtocol;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private CollectionDao collectionDao;
+	@Inject private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
+	@Inject private HeartbeatDao heartbeatDao;
+	@Inject private DateService dateService;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IntegrationPushTestUtils pushTestUtils;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
@@ -148,16 +142,11 @@ public class MailBackendImapTimeoutTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1234);
-		trashCollectionPath = IntegrationTestUtils.buildEmailTrashCollectionPath(user);
+		trashCollectionPath = testUtils.buildEmailTrashCollectionPath(user);
 		trashCollectionId = CollectionId.of(1645);
 		
-		collectionDao = classToInstanceMap.get(CollectionDao.class);
-		folderSyncStateBackendMappingDao = classToInstanceMap.get(FolderSyncStateBackendMappingDao.class);
-		heartbeatDao = classToInstanceMap.get(HeartbeatDao.class);
-		dateService = classToInstanceMap.get(DateService.class);
-
 		bindCollectionIdToPath();
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
@@ -184,8 +173,8 @@ public class MailBackendImapTimeoutTest {
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -206,7 +195,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.syncEmail(syncDecoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		SyncResponse syncResponse = opClient.syncEmail(syncDecoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
@@ -221,8 +210,8 @@ public class MailBackendImapTimeoutTest {
 		int stateId = 3;
 		int stateId2 = 4;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, syncKey);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(syncKey);
 		
 		FolderSyncState folderSyncState = FolderSyncState.builder()
 				.syncKey(syncKey)
@@ -247,12 +236,6 @@ public class MailBackendImapTimeoutTest {
 			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
 		expect(calendarBackend.getHierarchyChanges(udr, folderSyncState, secondFolderSyncState))
 			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
-		expect(contactsBackend.getPIMDataType())
-			.andReturn(PIMDataType.CONTACTS).anyTimes();
-		expect(taskBackend.getPIMDataType())
-			.andReturn(PIMDataType.TASKS).anyTimes();
-		expect(calendarBackend.getPIMDataType())
-			.andReturn(PIMDataType.CALENDAR).anyTimes();
 		
 		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), anyObject(FolderSyncState.class));
 		expectLastCall().anyTimes();
@@ -260,7 +243,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(syncKey);
 		
@@ -273,7 +256,7 @@ public class MailBackendImapTimeoutTest {
 		SyncKey syncKey = new SyncKey("a7a6b55c-71d2-4754-98df-af6465a91481");
 		int stateId = 3;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState syncState = ItemSyncState.builder()
@@ -290,7 +273,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		GetItemEstimateSingleFolderResponse itemEstimateResponse = opClient.getItemEstimateOnMailFolder(syncKey, inboxCollectionId);
 		
@@ -300,12 +283,12 @@ public class MailBackendImapTimeoutTest {
 	
 	@Test
 	public void testItemOperationsHandler() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		ItemOperationResponse itemOperationResponse = opClient.itemOperationFetch(inboxCollectionId, inboxCollectionId.serverId(1));
 		
@@ -315,12 +298,12 @@ public class MailBackendImapTimeoutTest {
 	
 	@Test
 	public void testMeetingResponseHandler() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		MeetingHandlerResponse meetingHandlerResponse = opClient.meetingResponse(inboxCollectionId, inboxCollectionId.serverId(1));
 		
@@ -330,7 +313,7 @@ public class MailBackendImapTimeoutTest {
 
 	@Test
 	public void testMoveItemsHandler() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 
 		expect(collectionDao.getCollectionMapping(user.device, trashCollectionPath))
 			.andReturn(trashCollectionId).anyTimes();
@@ -338,7 +321,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		MoveItemsResponse moveItemsResponse = opClient.moveItems(
 				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId));
@@ -354,7 +337,7 @@ public class MailBackendImapTimeoutTest {
 		SyncKey syncKey = new SyncKey("35aff2e3-544d-4b3f-b6d8-cc9162a45dce");
 		int stateId = 3;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState syncState = ItemSyncState.builder()
@@ -372,7 +355,7 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		greenMail.lockGreenmailAndReleaseAfter(20);
 		PingResponse pingResponse = opClient.ping(pingProtocol, inboxCollectionId, heartbeat);
 		

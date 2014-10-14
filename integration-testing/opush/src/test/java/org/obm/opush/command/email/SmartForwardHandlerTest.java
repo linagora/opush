@@ -34,10 +34,6 @@ package org.obm.opush.command.email;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.appendToINBOX;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationTestUtils.loadEmail;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
 import java.io.InputStreamReader;
 
@@ -55,6 +51,7 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
@@ -66,11 +63,9 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.EventService;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.client.user.UserClient;
 import org.obm.sync.push.client.OPClient;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.store.MailFolder;
@@ -81,14 +76,18 @@ import com.icegreen.greenmail.util.GreenMail;
 @GuiceModule(MailBackendTestModule.class)
 public class SmartForwardHandlerTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject GreenMail greenMail;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private GreenMail greenMail;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private CollectionDao collectionDao;
+	@Inject private UserClient userClient;
+	@Inject private IntegrationUserAccessUtils userAccess;
+	@Inject private EventService eventService;
+	@Inject private IntegrationTestUtils testUtils;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
@@ -109,13 +108,11 @@ public class SmartForwardHandlerTest {
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		cassandraServer.start();
 		
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1);
 		serverId = inboxCollectionId.serverId(1);
 		
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		UserClient userClient = classToInstanceMap.get(UserClient.class);
-		mockUsersAccess(classToInstanceMap, Lists.newArrayList(user));
+		userAccess.mockUsersAccess(user);
 		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
 		expect(userClient.getUserEmail(user.accessToken)).andReturn(user.user.getLoginAtDomain()).anyTimes();
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
@@ -131,13 +128,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardClearTextOnOriginalClearText() throws Exception {
-		appendToINBOX(greenMailUser, "eml/textPlain.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/textPlain.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -151,13 +148,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardHtmlOnOriginalHtml() throws Exception {
-		appendToINBOX(greenMailUser, "eml/textHtml.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/textHtml.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -171,13 +168,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardClearTextOnOriginalMultipartAlt() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -191,13 +188,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardHtmlOnOriginalMultipartAlt() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textHtml.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -211,13 +208,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardMultipartAltOnOriginalClearText() throws Exception {
-		appendToINBOX(greenMailUser, "eml/textPlain.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/textPlain.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -233,13 +230,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardMultipartAltOnOriginalHtml() throws Exception {
-		appendToINBOX(greenMailUser, "eml/textHtml.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/textHtml.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/multipartAlternative.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -253,13 +250,13 @@ public class SmartForwardHandlerTest {
 	
 	@Test
 	public void testForwardMultipartAltRelatedOnOriginalB64Text() throws Exception {
-		appendToINBOX(greenMailUser, "eml/multipartAlternativeThenRelated.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternativeThenRelated.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlainB64.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlainB64.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -274,13 +271,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardedMailWithICSAttachmentShowsAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -294,13 +291,13 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void testForwardedExternalMailWithICSAttachmentShowsAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/externalICSAsAttachment.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/externalICSAsAttachment.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -314,16 +311,15 @@ public class SmartForwardHandlerTest {
 	
 	@Test
 	public void testForwardedInvitationDoesntShowAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/invitation.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/invitation.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
-		EventService eventService = classToInstanceMap.get(EventService.class);
 		expect(eventService.parseEventFromICalendar(anyObject(UserDataRequest.class), anyObject(String.class)))
 			.andReturn(new MSEvent()).anyTimes();
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -337,16 +333,15 @@ public class SmartForwardHandlerTest {
 	
 	@Test
 	public void testForwardedCancelInvitationDoesntShowAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
 		assertThat(sentFolder.getMessageCount()).isEqualTo(0);
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(1);
-		EventService eventService = classToInstanceMap.get(EventService.class);
 		expect(eventService.parseEventFromICalendar(anyObject(UserDataRequest.class), anyObject(String.class)))
 			.andReturn(new MSEvent()).anyTimes();
 		
 		mocksControl.replay();
 		opushServer.start();
-		boolean success = opClient().emailForward(loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		boolean success = opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
 		assertThat(success).isTrue();
@@ -359,6 +354,6 @@ public class SmartForwardHandlerTest {
 	}
 	
 	private OPClient opClient() {
-		return buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		return testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 	}
 }

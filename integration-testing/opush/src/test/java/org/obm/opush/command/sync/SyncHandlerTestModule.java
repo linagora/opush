@@ -31,14 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.sync;
 
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ModuleUtils;
 import org.obm.opush.env.AbstractOpushEnv;
 
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
-public class SyncHandlerTestModule  extends AbstractOpushEnv {
+public class SyncHandlerTestModule extends AbstractOpushEnv {
 	
 	public SyncHandlerTestModule() {
 		super();
@@ -46,30 +45,9 @@ public class SyncHandlerTestModule  extends AbstractOpushEnv {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-
-		Module contentsExporterBackend = bindContentsExporterBackendModule();
-		Module contentsImporterBackend = bindContentsImporterBackendModule();
-		Module syncKeyFactoryModule = bindSyncKeyFactoryModule();
-		
-		return Modules.combine(overrideModule, contentsExporterBackend, contentsImporterBackend, syncKeyFactoryModule);
-	}
-
-	private Module bindContentsExporterBackendModule() {
-		AbstractOverrideModule contentsExporterBackend = ModuleUtils.buildContentsExporterBackendModule(getMocksControl());
-		getMockMap().addMap(contentsExporterBackend.getMockMap());
-		return contentsExporterBackend;
-	}
-
-	private Module bindContentsImporterBackendModule() {
-		AbstractOverrideModule contentsImporterBackend = ModuleUtils.buildContentsImporterBackendModule(getMocksControl());
-		getMockMap().addMap(contentsImporterBackend.getMockMap());
-		return contentsImporterBackend;
-	}
-	
-	private Module bindSyncKeyFactoryModule() {
-		AbstractOverrideModule module = ModuleUtils.buildSyncKeyFactoryModule(getMocksControl());
-		getMockMap().addMap(module.getMockMap());
-		return module;
+		return Modules.combine(super.overrideModule(),
+				ModuleUtils.contentsExporterModule(getMocksControl()),
+				ModuleUtils.contentsImporterModule(getMocksControl()),
+				ModuleUtils.syncKeyFactoryModule(getMocksControl()));
 	}
 }

@@ -51,7 +51,6 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 	
 	protected abstract GlobalAppConfiguration<OpushConfiguration> opushConfiguration();
 	protected abstract Module overrideModule() throws Exception;
-	protected abstract void onModuleInstalled();
 	
 	protected void configure() {
 		OverriddenModuleBuilder override = Modules.override(
@@ -61,7 +60,6 @@ public abstract class ActiveSyncServletModule extends AbstractModule {
 				new OpushModule(opushConfiguration(), noDatabase()));
 		try {
 			install(override.with(overrideModule()));
-			onModuleInstalled();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

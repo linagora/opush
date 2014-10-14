@@ -62,6 +62,7 @@ import org.obm.push.bean.Address;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
@@ -932,11 +933,11 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		snapshotDao.put(
 				SnapshotKey.builder()
 					.collectionId(collectionId)
-					.deviceId(udr.getDevId())
+					.deviceId(deviceId)
 					.syncKey(newSyncKey).build(),
 				Snapshot.builder()
 					.emails(ImmutableList.<Email> of())

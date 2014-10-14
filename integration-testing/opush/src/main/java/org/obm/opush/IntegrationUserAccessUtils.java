@@ -34,6 +34,7 @@ package org.obm.opush;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -42,30 +43,34 @@ import org.obm.push.bean.Device;
 import org.obm.push.exception.DaoException;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.client.login.LoginClient;
+
+import com.google.inject.Inject;
 
 import fr.aliacom.obm.common.user.UserPassword;
 
 public class IntegrationUserAccessUtils {
 
-	public static void mockUsersAccess(ClassToInstanceAgregateView<Object> classToInstanceMap,
-			Collection<OpushUser> users) throws DaoException, AuthFault {
-		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
-		expectUserLoginFromOpush(loginClient, users);
-		
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
-		expectUserDeviceAccess(deviceDao, users);
+	@Inject LoginClient loginClient;
+	@Inject DeviceDao deviceDao;
+
+	public void mockUsersAccess(OpushUser... users) throws DaoException, AuthFault {
+		mockUsersAccess(Arrays.asList(users));
 	}
 	
-	public static void expectUserLoginFromOpush(LoginClient loginClient, Collection<OpushUser> users) throws AuthFault {
+	public void mockUsersAccess(Collection<OpushUser> users) throws DaoException, AuthFault {
+		expectUserLoginFromOpush(users);
+		expectUserDeviceAccess(users);
+	}
+	
+	public void expectUserLoginFromOpush(Collection<OpushUser> users) throws AuthFault {
 		for (OpushUser user : users) {
-			expectUserLoginFromOpush(loginClient, user);
+			expectUserLoginFromOpush(user);
 		}
 	}
 
-	public static void expectUserLoginFromOpush(LoginClient loginClient, OpushUser user) throws AuthFault {
+	public void expectUserLoginFromOpush(OpushUser user) throws AuthFault {
 		UserPassword userPassword = UserPassword.valueOf(String.valueOf(user.password));
 		expect(loginClient.login(user.user.getLoginAtDomain(), userPassword)).andReturn(user.accessToken).anyTimes();
 		loginClient.logout(user.accessToken);
@@ -74,13 +79,13 @@ public class IntegrationUserAccessUtils {
 	}
 
 
-	public static void expectUserDeviceAccess(DeviceDao deviceDao, Collection<OpushUser> users) throws DaoException {
+	public void expectUserDeviceAccess(Collection<OpushUser> users) throws DaoException {
 		for (OpushUser user : users) {
-			expectUserDeviceAccess(deviceDao, user);
+			expectUserDeviceAccess(user);
 		}
 	}
 	
-	public static void expectUserDeviceAccess(DeviceDao deviceDao, OpushUser user) throws DaoException {
+	public void expectUserDeviceAccess(OpushUser user) throws DaoException {
 		expect(deviceDao.getDevice(user.user, 
 				user.deviceId, 
 				user.userAgent,

@@ -32,7 +32,6 @@
 package org.obm.opush.command.sync;
 
 import org.easymock.IMocksControl;
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ModuleUtils;
 import org.obm.opush.env.AbstractOpushGreenMailEnv;
 import org.obm.opush.env.BackendsModule;
@@ -48,26 +47,12 @@ public class SyncHandlerWithBackendTestModule extends AbstractOpushGreenMailEnv 
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-
-		Module syncKeyFactoryModule = bindSyncKeyFactory();
-		Module dateServiceModule = bindDateService();
-		
-		return Modules.combine(overrideModule, syncKeyFactoryModule, dateServiceModule);
+		return Modules.combine(
+				super.overrideModule(),
+				ModuleUtils.dateServiceModule(getMocksControl()),
+				ModuleUtils.syncKeyFactoryModule(getMocksControl()));
 	}
 
-	private Module bindDateService() {
-		AbstractOverrideModule dateServiceModule = ModuleUtils.buildDateServiceModule(getMocksControl());
-		getMockMap().addMap(dateServiceModule.getMockMap());
-		return dateServiceModule;
-	}
-
-	private Module bindSyncKeyFactory() {
-		AbstractOverrideModule syncKeyFactoryModule = ModuleUtils.buildSyncKeyFactoryModule(getMocksControl());
-		getMockMap().addMap(syncKeyFactoryModule.getMockMap());
-		return syncKeyFactoryModule;
-	}
-	
 	@Override
 	protected BackendsModule backendsModule() {
 		return new UnmockedBackendsModule(getMocksControl());
@@ -80,11 +65,8 @@ public class SyncHandlerWithBackendTestModule extends AbstractOpushGreenMailEnv 
 		}
 
 		@Override
-		protected void bindCalendarBackend() {
-		}
-
-		@Override
-		protected void bindContactsBackend() {
+		protected void configureImpl() {
+			bindTaskBackend();
 		}
 	}
 }

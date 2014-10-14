@@ -34,12 +34,6 @@ package org.obm.opush.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationTestUtils.expectSyncState;
-import static org.obm.opush.IntegrationTestUtils.expectUserCollectionsNeverChange;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoForEmailSync;
-import static org.obm.opush.command.sync.SyncTestUtils.mockItemTrackingDao;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,8 +51,10 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
-import org.obm.opush.Users;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
+import org.obm.opush.Users;
 import org.obm.opush.command.sync.SyncTestUtils;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
@@ -76,11 +72,7 @@ import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 
@@ -91,13 +83,16 @@ import com.google.inject.Inject;
 @GuiceModule(GetIemEstimateTestModule.class)
 public class GetItemEstimateHandlerTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private SyncTestUtils syncTestUtils;
+	@Inject private IContentsExporter contentsExporterBackend;
 	
 	private CloseableHttpClient httpClient;
 
@@ -124,7 +119,7 @@ public class GetItemEstimateHandlerTest {
 		Set<CollectionId> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, collectionId);
@@ -142,7 +137,7 @@ public class GetItemEstimateHandlerTest {
 		Set<CollectionId> existingCollections = Collections.<CollectionId>emptySet();
 		mockAccessAndStateThenStart(existingCollections, syncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, unexistingCollectionId);
@@ -160,7 +155,7 @@ public class GetItemEstimateHandlerTest {
 		Set<CollectionId> existingCollections = Sets.newHashSet(collectionId);
 		mockAccessAndStateThenStart(existingCollections, invalidSyncKey, expectedSyncState);
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(invalidSyncKey, collectionId);
@@ -172,10 +167,10 @@ public class GetItemEstimateHandlerTest {
 
 	private void mockAccessAndStateThenStart(Set<CollectionId> existingCollections, SyncKey syncKey, ItemSyncState syncState)
 			throws Exception {
-		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
+		testUtils.expectSyncState(syncKey, syncState);
 
 		DataDelta delta = DataDelta.builder().syncDate(new Date()).syncKey(syncKey).build();
-		SyncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, Arrays.asList(users.jaures), classToInstanceMap);
+		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, Arrays.asList(users.jaures));
 		mocksControl.replay();
 		opushServer.start();
 	}
@@ -187,16 +182,16 @@ public class GetItemEstimateHandlerTest {
 		CollectionId collectionId = CollectionId.of(15105);
 		Set<CollectionId> syncEmailCollectionsIds = Sets.newHashSet(collectionId);
 		
-		expectSyncState(classToInstanceMap.get(StateMachine.class), syncKey, syncState);
+		testUtils.expectSyncState(syncKey, syncState);
 
-		mockUsersAccess(classToInstanceMap, Arrays.asList(users.jaures));
+		userAccessUtils.mockUsersAccess(users.jaures);
 		
 		mockEmailSyncWithHierarchyChangedException(syncKey, syncEmailCollectionsIds);
 		
 		mocksControl.replay();
 		opushServer.start();
 		
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		GetItemEstimateSingleFolderResponse response =
 				opClient.getItemEstimateOnMailFolder(syncKey, collectionId);
@@ -209,14 +204,10 @@ public class GetItemEstimateHandlerTest {
 	private void mockEmailSyncWithHierarchyChangedException(SyncKey syncKey, Set<CollectionId> syncEmailCollectionsIds)
 			throws DaoException, ConversionException, FilterTypeChangedException {
 
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-		expectUserCollectionsNeverChange(collectionDao, users.jaures, syncEmailCollectionsIds);
-		mockCollectionDaoForEmailSync(collectionDao, syncKey, syncEmailCollectionsIds);
+		testUtils.expectUserCollectionsNeverChange(users.jaures, syncEmailCollectionsIds);
+		syncTestUtils.mockCollectionDaoForEmailSync(syncKey, syncEmailCollectionsIds);
+		syncTestUtils.mockItemTrackingDao();
 		
-		ItemTrackingDao itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
-		mockItemTrackingDao(itemTrackingDao);
-		
-		IContentsExporter contentsExporterBackend = classToInstanceMap.get(IContentsExporter.class);
 		expect(contentsExporterBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(PIMDataType.class),

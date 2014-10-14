@@ -40,6 +40,8 @@ import org.obm.push.bean.PIMDataType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -47,11 +49,17 @@ import com.google.inject.Singleton;
 @Singleton
 public class Backends implements Iterable<PIMBackend> {
 
-	private final Map<PIMDataType, PIMBackend> backends;
+	private final Supplier<Map<PIMDataType, PIMBackend>> backends;
 
 	@Inject
-	@VisibleForTesting Backends(Set<PIMBackend> backends) {
-		this.backends = buildBackendsMap(backends);
+	@VisibleForTesting Backends(final Set<PIMBackend> backends) {
+		this.backends = Suppliers.memoize(new Supplier<Map<PIMDataType, PIMBackend>>() {
+
+			@Override
+			public Map<PIMDataType, PIMBackend> get() {
+				return buildBackendsMap(backends);
+			}
+		});
 	}
 
 	private Map<PIMDataType, PIMBackend> buildBackendsMap(Set<PIMBackend> backends) {
@@ -63,13 +71,13 @@ public class Backends implements Iterable<PIMBackend> {
 	}
 
 	public PIMBackend getBackend(PIMDataType dataType) {
-		PIMBackend backend = backends.get(dataType);
+		PIMBackend backend = backends.get().get(dataType);
 		Preconditions.checkNotNull(backend, "Datatype %s not handled", dataType);
 		return backend;
 	}
 	
 	@Override
 	public Iterator<PIMBackend> iterator() {
-		return backends.values().iterator();
+		return backends.get().values().iterator();
 	}
 }

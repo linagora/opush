@@ -36,7 +36,6 @@ import static org.easymock.EasyMock.expect;
 
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
@@ -52,92 +51,83 @@ import org.obm.push.state.FolderSyncKey;
 import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.state.SyncKeyFactory;
 import org.obm.push.task.TaskBackend;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 public class IntegrationPushTestUtils {
 
-	public static void mockHierarchyChangesOnlyInbox(ClassToInstanceAgregateView<Object> classToInstanceMap)
+	@Inject CalendarBackend calendarBackend;
+	@Inject TaskBackend taskBackend;
+	@Inject ContactsBackend contactsBackend;
+	@Inject MailBackend mailBackend;
+	@Inject SyncKeyFactory syncKeyFactory;
+	@Inject FolderSyncKeyFactory folderSyncKeyFactory;
+	
+	public void mockHierarchyChangesOnlyInbox()
 			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
 		
 		HierarchyCollectionChanges hierarchyItemsChanges = HierarchyCollectionChanges.builder()
 			.changes(Lists.newArrayList(buildInboxFolder()))
 			.build();
 		
-		mockHierarchyChangesForMailboxes(classToInstanceMap, hierarchyItemsChanges);
+		mockHierarchyChangesForMailboxes(hierarchyItemsChanges);
 	}
 
-	public static void mockHierarchyChangesForMailboxes(ClassToInstanceAgregateView<Object> classToInstanceMap,
-			HierarchyCollectionChanges mailboxesChanges) throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
+	public void mockHierarchyChangesForMailboxes(HierarchyCollectionChanges mailboxesChanges)
+			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
 		
-		mockAddressBook(classToInstanceMap);
-		mockTask(classToInstanceMap);
-		mockCalendar(classToInstanceMap);
-		mockMailBackend(classToInstanceMap, mailboxesChanges);
+		mockAddressBook();
+		mockTask();
+		mockCalendar();
+		mockMailBackend(mailboxesChanges);
 	}
 
-	public static void mockCalendar(ClassToInstanceAgregateView<Object> classToInstanceMap)
+	public void mockCalendar()
 			throws DaoException, UnexpectedObmSyncServerException {
-		CalendarBackend calendarBackend = classToInstanceMap.get(CalendarBackend.class);
-		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR).anyTimes();
 		expect(calendarBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
 				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
 			.andReturn(emptyChange()).anyTimes();
 	}
 	
-	public static void mockTask(ClassToInstanceAgregateView<Object> classToInstanceMap) throws DaoException {
-		TaskBackend taskBackend = classToInstanceMap.get(TaskBackend.class);
-		expect(taskBackend.getPIMDataType()).andReturn(PIMDataType.TASKS).anyTimes();
+	public void mockTask() throws DaoException {
 		expect(taskBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
 				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
 			.andReturn(emptyChange()).anyTimes();
 	}
 	
-	public static void mockAddressBook(ClassToInstanceAgregateView<Object> classToInstanceMap)
+	public void mockAddressBook()
 			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
-		
-		ContactsBackend contactsBackend = classToInstanceMap.get(ContactsBackend.class);
-		expect(contactsBackend.getPIMDataType()).andReturn(PIMDataType.CONTACTS).anyTimes();
 		expect(contactsBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
 				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
 			.andReturn(emptyChange()).anyTimes();
 	}
 	
-	public static void mockMailBackend(ClassToInstanceAgregateView<Object> classToInstanceMap, HierarchyCollectionChanges hierarchyMailboxesChanges)
+	public void mockMailBackend(HierarchyCollectionChanges hierarchyMailboxesChanges)
 			throws DaoException, InvalidSyncKeyException {
 		
-		MailBackend mailBackend = classToInstanceMap.get(MailBackend.class);
-		expect(mailBackend.getPIMDataType()).andReturn(PIMDataType.EMAIL).anyTimes();
 		expect(mailBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
 				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
 			.andReturn(hierarchyMailboxesChanges).anyTimes();
 	}
 
-	private static HierarchyCollectionChanges emptyChange() {
+	private HierarchyCollectionChanges emptyChange() {
 		return HierarchyCollectionChanges.builder().build();
 	}
 	
-	public static void mockNextGeneratedSyncKey(
-			ClassToInstanceAgregateView<Object> classToInstanceMap, SyncKey...nextSyncKeys) {
-		
-		SyncKeyFactory syncKeyFactory = classToInstanceMap.get(SyncKeyFactory.class);
+	public void mockNextGeneratedSyncKey(SyncKey... nextSyncKeys) {
 		for (SyncKey nextSyncKey : nextSyncKeys) {
 			expect(syncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
 		}
 	}
 	
-	public static void mockNextGeneratedSyncKey(
-			ClassToInstanceAgregateView<Object> classToInstanceMap,
-			FolderSyncKey... newGeneratedSyncKey) {
-		FolderSyncKeyFactory syncKeyFactory = classToInstanceMap.get(FolderSyncKeyFactory.class);
+	public void mockNextGeneratedSyncKey(FolderSyncKey... newGeneratedSyncKey) {
 		for (FolderSyncKey nextSyncKey : newGeneratedSyncKey) {
-			expect(syncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
+			expect(folderSyncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
 		}
 	}
 
-
-	public static CollectionChange buildInboxFolder() {
+	public CollectionChange buildInboxFolder() {
 		return CollectionChange.builder()
 				.collectionId(CollectionId.of(1))
 				.parentCollectionId(CollectionId.ROOT)

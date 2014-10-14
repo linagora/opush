@@ -33,10 +33,7 @@ package org.obm.opush.command.moveitem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -54,6 +51,7 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
 import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.Users;
@@ -63,7 +61,6 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.MoveItemsResponse;
 import org.obm.sync.push.client.MoveItemsResponse.MoveResult;
 import org.obm.sync.push.client.OPClient;
@@ -80,18 +77,18 @@ import com.icegreen.greenmail.util.GreenMailUtil;
 @GuiceModule(MailBackendTestModule.class)
 public class MoveItemsHandlerTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject GreenMail greenMail;
-	@Inject IMocksControl mocksControl;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject ImapConnectionCounter imapConnectionCounter;
-	@Inject Configuration configuration;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
-	
-	private CollectionDao collectionDao;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private GreenMail greenMail;
+	@Inject private IMocksControl mocksControl;
+	@Inject private PendingQueriesLock pendingQueries;
+	@Inject private ImapConnectionCounter imapConnectionCounter;
+	@Inject private Configuration configuration;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private CollectionDao collectionDao;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
@@ -114,12 +111,11 @@ public class MoveItemsHandlerTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1234);
-		trashCollectionPath = IntegrationTestUtils.buildEmailTrashCollectionPath(user);
+		trashCollectionPath = testUtils.buildEmailTrashCollectionPath(user);
 		trashCollectionId = CollectionId.of(1645);
 		
-		collectionDao = classToInstanceMap.get(CollectionDao.class);
 
 		bindCollectionIdToPath();
 
@@ -143,12 +139,12 @@ public class MoveItemsHandlerTest {
 
 	@Test
 	public void testMoveInboxToTrash() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
 				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId));
 		mocksControl.verify();
@@ -167,12 +163,12 @@ public class MoveItemsHandlerTest {
 
 	@Test
 	public void testTwoMoveInboxToTrash() throws Exception {
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email one", "email two");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
 				new Move(inboxCollectionId.serverId(1), inboxCollectionId, trashCollectionId),
 				new Move(inboxCollectionId.serverId(2), inboxCollectionId, trashCollectionId));
@@ -200,12 +196,12 @@ public class MoveItemsHandlerTest {
 	public void testMoveUnexistingEmailFromInboxToTrash() throws Exception {
 		int unexistingEmailId1 = 1561;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		mocksControl.replay();
 		opushServer.start();
 		sendEmailsToImapServer("email body data");
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		MoveItemsResponse response = opClient.moveItems(
 				new Move(inboxCollectionId.serverId(unexistingEmailId1), inboxCollectionId, trashCollectionId));
 		mocksControl.verify();

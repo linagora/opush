@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.command.sync.folder;
 
-import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ModuleUtils;
 import org.obm.opush.env.AbstractOpushEnv;
 
@@ -46,24 +45,9 @@ public class FolderSyncHandlerTestModule  extends AbstractOpushEnv {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-		
-		Module contentsExporterBackend = bindContentsExporterBackendModule();
-		Module syncKeyFactory = bindSyncKeyFactoryModule();
-		
-		return Modules.combine(overrideModule, contentsExporterBackend, syncKeyFactory);
-	}
-
-	private Module bindContentsExporterBackendModule() {
-		return bindModule(ModuleUtils.buildContentsExporterBackendModule(getMocksControl()));
-	}
-
-	private Module bindSyncKeyFactoryModule() {
-		return bindModule(ModuleUtils.buildSyncKeyFactoryModule(getMocksControl()));
-	}
-	
-	private Module bindModule(AbstractOverrideModule module) {
-		getMockMap().addMap(module.getMockMap());
-		return module;
+		return Modules.combine(
+				super.overrideModule(),
+				ModuleUtils.contentsExporterModule(getMocksControl()),
+				ModuleUtils.syncKeyFactoryModule(getMocksControl()));
 	}
 }

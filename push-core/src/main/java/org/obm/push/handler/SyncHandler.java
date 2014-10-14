@@ -539,7 +539,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		backend.resetCollection(udr, collectionId);
 		SyncKey newSyncKey = syncKeyFactory.randomSyncKey();
 		stMachine.allocateNewSyncStateWithoutTracking(udr, collectionId, dateService.getEpochPlusOneSecondDate(), newSyncKey);
-		contentsExporter.initialize(udr, collectionId, syncCollectionRequest.getDataType(), syncCollectionRequest.getOptions().getFilterType(), newSyncKey);
+		contentsExporter.initialize(udr.getDevId(), collectionId, syncCollectionRequest.getDataType(), syncCollectionRequest.getOptions().getFilterType(), newSyncKey);
 		
 		builder.syncKey(newSyncKey)
 			.status(SyncStatus.OK);

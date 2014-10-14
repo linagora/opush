@@ -54,6 +54,6 @@ public final class EmailModule extends AbstractOverrideModule {
 		bindWithMock(SmtpSenderImpl.class);
 		bindWithMock(MailBackend.class);
 		MailBackend mailBackend = getMock(MailBackend.class);
-		expect(mailBackend.getPIMDataType()).andReturn(PIMDataType.EMAIL);
+		expect(mailBackend.getPIMDataType()).andReturn(PIMDataType.EMAIL).anyTimes();
 	}
 }

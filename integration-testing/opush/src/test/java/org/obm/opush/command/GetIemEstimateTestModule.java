@@ -47,29 +47,19 @@ public class GetIemEstimateTestModule  extends AbstractOpushEnv {
 	
 	@Override
 	protected Module overrideModule() throws Exception {
-		Module overrideModule = super.overrideModule();
-		
-		Module stateMachine = bindStateMachineModule();
-		Module contentsExporterBackend = bindContentsExporterBackendModule();
-		
-		return Modules.combine(overrideModule, stateMachine, contentsExporterBackend);
+		return Modules.combine(
+				super.overrideModule(),
+				stateMachineModule(),
+				ModuleUtils.contentsExporterModule(getMocksControl()));
 	}
 
-	private Module bindStateMachineModule() {
-		AbstractOverrideModule mailBackend = new AbstractOverrideModule(getMocksControl()) {
+	private Module stateMachineModule() {
+		return new AbstractOverrideModule(getMocksControl()) {
 
 			@Override
 			protected void configureImpl() {
 				bindWithMock(StateMachine.class);
 			}
 		};
-		getMockMap().addMap(mailBackend.getMockMap());
-		return mailBackend;
-	}
-	
-	private Module bindContentsExporterBackendModule() {
-		AbstractOverrideModule contentsExporterBackend = ModuleUtils.buildContentsExporterBackendModule(getMocksControl());
-		getMockMap().addMap(contentsExporterBackend.getMockMap());
-		return contentsExporterBackend;
 	}
 }

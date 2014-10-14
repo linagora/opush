@@ -38,13 +38,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.reportMatcher;
 import static org.obm.DateUtils.date;
-import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
-import static org.obm.opush.IntegrationTestUtils.appendToINBOX;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
-import static org.obm.opush.command.sync.SyncTestUtils.assertEqualsWithoutApplicationData;
-import static org.obm.opush.command.sync.SyncTestUtils.getCollectionWithId;
-import static org.obm.opush.command.sync.SyncTestUtils.mockCollectionDaoPerformSync;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -76,7 +69,9 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
+import org.obm.opush.IntegrationPushTestUtils;
 import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.PendingQueriesLock;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
@@ -103,7 +98,6 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.exception.DaoException;
-import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
@@ -116,7 +110,6 @@ import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
 import org.obm.sync.calendar.Event;
@@ -140,7 +133,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -156,30 +148,32 @@ public class SyncHandlerWithBackendTest {
 	private final static int ONE_WINDOWS_SIZE = 1;
 	private final static int ONE_HUNDRED_WINDOWS_SIZE = 100;
 	
-	@Inject	Injector injector;
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject GreenMail greenMail;
-	@Inject ImapConnectionCounter imapConnectionCounter;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject MailboxService mailboxService;
-	@Inject SyncDecoder decoder;
-	@Inject SyncWithDataCommand.Factory syncWithDataCommandFactory;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject TransactionProvider transactionProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private	Users users;
+	@Inject private	OpushServer opushServer;
+	@Inject private GreenMail greenMail;
+	@Inject private ImapConnectionCounter imapConnectionCounter;
+	@Inject private PendingQueriesLock pendingQueries;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private SyncDecoder decoder;
+	@Inject private SyncWithDataCommand.Factory syncWithDataCommandFactory;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private TransactionProvider transactionProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private SnapshotDao snapshotDao;
+	@Inject private ItemTrackingDao itemTrackingDao;
+	@Inject private CollectionDao collectionDao;
+	@Inject private CalendarDao calendarDao;
+	@Inject private DateService dateService;
+	@Inject private CalendarClient calendarClient;
+	@Inject private BookClient bookClient;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private LoginClient loginClient;
+	@Inject private DeviceDao deviceDao;
+	@Inject private SyncTestUtils syncTestUtils;
 	
-	private SnapshotDao snapshotDao;
-	private ItemTrackingDao itemTrackingDao;
-	private CollectionDao collectionDao;
-	private CalendarDao calendarDao;
-	private DateService dateService;
-	private CalendarClient calendarClient;
-	private BookClient bookClient;
-
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
@@ -204,20 +198,12 @@ public class SyncHandlerWithBackendTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1234);
-		calendarCollectionPath = IntegrationTestUtils.buildCalendarCollectionPath(user);
+		calendarCollectionPath = testUtils.buildCalendarCollectionPath(user);
 		calendarCollectionId = CollectionId.of(5678);
 		contactCollectionId = CollectionId.of(7891);
-		contactCollectionPath = IntegrationTestUtils.buildContactCollectionPath(user, contactCollectionId);
-		
-		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
-		collectionDao = classToInstanceMap.get(CollectionDao.class);
-		calendarDao = classToInstanceMap.get(CalendarDao.class);
-		dateService = classToInstanceMap.get(DateService.class);
-		calendarClient = classToInstanceMap.get(CalendarClient.class);
-		bookClient = classToInstanceMap.get(BookClient.class);
-		snapshotDao = injector.getInstance(SnapshotDao.class);
+		contactCollectionPath = testUtils.buildContactCollectionPath(user, contactCollectionId);
 
 		bindCollectionIdToPath();
 		
@@ -255,8 +241,8 @@ public class SyncHandlerWithBackendTest {
 		int newThirdAllocatedStateId = 7;
 		int newFourthAllocatedStateId = 8;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, 
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -296,16 +282,16 @@ public class SyncHandlerWithBackendTest {
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		ServerId serverId = inboxCollectionId.serverId(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(4);
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, inboxCollectionId);
 
 		expect(itemTrackingDao.isServerIdSynced(newFirstAllocatedState, serverId)).andReturn(false);
 		ServerId serverId2 = inboxCollectionId.serverId(1);
@@ -316,7 +302,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -327,25 +313,25 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse thirdSyncResponse = opClient.syncEmail(decoder, newThirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, inboxCollectionId);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionId);
-		SyncCollectionResponse secondCollectionResponse = getCollectionWithId(secondSyncResponse, inboxCollectionId);
-		SyncCollectionResponse thirdCollectionResponse = getCollectionWithId(thirdSyncResponse, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
+		SyncCollectionResponse secondCollectionResponse = syncTestUtils.getCollectionWithId(secondSyncResponse, inboxCollectionId);
+		SyncCollectionResponse thirdCollectionResponse = syncTestUtils.getCollectionWithId(thirdSyncResponse, inboxCollectionId);
 
-		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(2))
 						.isNew(true)
 						.build()));
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(2))
 						.isNew(true)
 						.build()));
 		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
-		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(1))
@@ -378,8 +364,8 @@ public class SyncHandlerWithBackendTest {
 		int newThirdAllocatedStateId = 7;
 		int newFourthAllocatedStateId = 8;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, 
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -419,7 +405,7 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		EventExtId eventExtId = new EventExtId("1");
@@ -471,9 +457,9 @@ public class SyncHandlerWithBackendTest {
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, calendarCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
@@ -503,7 +489,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -514,25 +500,25 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse thirdSyncResponse = opClient.syncEmail(decoder, newThirdAllocatedSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionId);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, calendarCollectionId);
-		SyncCollectionResponse secondCollectionResponse = getCollectionWithId(secondSyncResponse, calendarCollectionId);
-		SyncCollectionResponse thirdCollectionResponse = getCollectionWithId(thirdSyncResponse, calendarCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, calendarCollectionId);
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, calendarCollectionId);
+		SyncCollectionResponse secondCollectionResponse = syncTestUtils.getCollectionWithId(secondSyncResponse, calendarCollectionId);
+		SyncCollectionResponse thirdCollectionResponse = syncTestUtils.getCollectionWithId(thirdSyncResponse, calendarCollectionId);
 
-		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
 		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
-		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId2)
@@ -558,8 +544,8 @@ public class SyncHandlerWithBackendTest {
 		int newThirdAllocatedStateId = 7;
 		int newFourthAllocatedStateId = 8;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, 
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -602,7 +588,7 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		Contact contact = new Contact();
@@ -629,9 +615,9 @@ public class SyncHandlerWithBackendTest {
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
 		
 		expectCollectionDaoPerformInitialSync(newFirstAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, contactCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newFirstAllocatedSyncKey, newFirstAllocatedState, newSecondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newSecondAllocatedSyncKey, newSecondAllocatedState, newThirdAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, newThirdAllocatedSyncKey, newThirdAllocatedState, newFourthAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(newThirdAllocatedState.getSyncDate()).once();
@@ -655,7 +641,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.syncEmail(decoder, initialSyncKey, contactCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, contactCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		
@@ -665,25 +651,25 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse thirdSyncResponse = opClient.syncEmail(decoder, newThirdAllocatedSyncKey, contactCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, contactCollectionId);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, contactCollectionId);
-		SyncCollectionResponse secondCollectionResponse = getCollectionWithId(secondSyncResponse, contactCollectionId);
-		SyncCollectionResponse thirdCollectionResponse = getCollectionWithId(thirdSyncResponse, contactCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, contactCollectionId);
+		SyncCollectionResponse secondCollectionResponse = syncTestUtils.getCollectionWithId(secondSyncResponse, contactCollectionId);
+		SyncCollectionResponse thirdCollectionResponse = syncTestUtils.getCollectionWithId(thirdSyncResponse, contactCollectionId);
 
-		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
 		assertThat(firstCollectionResponse.isMoreAvailable()).isTrue();
-		assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(secondCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId2)
@@ -725,8 +711,8 @@ public class SyncHandlerWithBackendTest {
 		int secondAllocatedStateId = 4;
 		int thirdAllocatedStateId = 5;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		initializeEmptySnapshotForSyncKey(firstAllocatedSyncKey);
 		
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -746,8 +732,8 @@ public class SyncHandlerWithBackendTest {
 				.build();
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
 
 		ServerId serverId = inboxCollectionId.serverId(1);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
@@ -756,7 +742,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
@@ -766,11 +752,11 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.verify();
 
 		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionId);
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), ImmutableList.of(
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), ImmutableList.of(
 				ItemChange.builder().serverId(serverId).isNew(true).build()));
 
-		SyncCollectionResponse inboxResponse = getCollectionWithId(secondSyncResponse, inboxCollectionId);
+		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(secondSyncResponse, inboxCollectionId);
 		SyncCollectionResponsesResponse responses = inboxResponse.getResponses();
 		assertThat(inboxResponse.isMoreAvailable()).isFalse();
 		assertThat(responses.getCommands()).hasSize(1);
@@ -796,7 +782,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testNoContentDispositionPartIsSentAsAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/attachmentWithoutContentDisposition.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/attachmentWithoutContentDisposition.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
 		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
@@ -817,17 +803,17 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(1);
@@ -844,7 +830,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testMailWithICSAttachment() throws Exception {
-		appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("a548f9c2-4eab-4a81-bb29-7a9bbb2d32b3");
 		SyncKey secondAllocatedSyncKey = new SyncKey("9ecb6879-5ec9-44f7-8b4d-91530cefb044");
@@ -865,17 +851,17 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(1);
@@ -887,7 +873,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testForwardedEmailWithAttachments() throws Exception {
-		appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("626befef-21cc-4910-8e08-f9e966ca0495");
 		SyncKey secondAllocatedSyncKey = new SyncKey("33521cf6-aa8c-424b-94c3-08068c24c310");
@@ -908,17 +894,17 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(2);
@@ -935,7 +921,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testInvitationDoesntShownInAttachments() throws Exception {
-		appendToINBOX(greenMailUser, "eml/invitation.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/invitation.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("bec49e8d-4bb1-43fa-beac-baa82e1b1e72");
 		SyncKey secondAllocatedSyncKey = new SyncKey("838edf22-870f-4980-93e2-8df4058cba50");
@@ -956,20 +942,20 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
 			.andReturn(new MSEventUid("1"));
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(0);
@@ -977,7 +963,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testCancelInvitationDoesntShownInAttachments() throws Exception {
-		appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("9d66d5cd-f636-466a-9309-ba84feda617f");
 		SyncKey secondAllocatedSyncKey = new SyncKey("c701603f-f61b-4419-96a0-3098863fcd71");
@@ -998,20 +984,20 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
 			.andReturn(new MSEventUid("1"));
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(0);
@@ -1019,7 +1005,7 @@ public class SyncHandlerWithBackendTest {
 	
 	@Test
 	public void testModifiedOccurenceInvitationDoesntShownInAttachments() throws Exception {
-		appendToINBOX(greenMailUser, "eml/modifiedOccurenceInvitation.eml");
+		testUtils.appendToINBOX(greenMailUser, "eml/modifiedOccurenceInvitation.eml");
 
 		SyncKey firstAllocatedSyncKey = new SyncKey("04a3200c-064d-491f-91f3-1c04e6d46dd5");
 		SyncKey secondAllocatedSyncKey = new SyncKey("7ecea940-44bc-4525-a005-68a963408ebd");
@@ -1040,17 +1026,17 @@ public class SyncHandlerWithBackendTest {
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
 		expectLastCall().once();
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, PIMDataType.EMAIL);
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(response, inboxCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(0);
@@ -1075,13 +1061,11 @@ public class SyncHandlerWithBackendTest {
 				.id(secondAllocatedStateId)
 				.build();
 		
-		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
 		// Login is done in authentication
 		expect(loginClient.authenticate(user.user.getLoginAtDomain(), UserPassword.valueOf(String.valueOf(user.password))))
 			.andReturn(user.accessToken).anyTimes();
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, 
 				user.deviceId, 
 				user.userAgent,
@@ -1094,10 +1078,10 @@ public class SyncHandlerWithBackendTest {
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(firstDate)
 			.anyTimes();
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, secondAllocatedSyncKey);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, secondAllocatedSyncKey);
 		
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
@@ -1124,7 +1108,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 
-		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
+		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.sync(decoder, firstAllocatedSyncKey,
 					new Folder(calendarCollectionId.asString()),
 					new Folder(contactCollectionId.asString()));
@@ -1161,22 +1145,20 @@ public class SyncHandlerWithBackendTest {
 				.id(5)
 				.build();
 		
-		LoginClient loginClient = classToInstanceMap.get(LoginClient.class);
 		loginClient.logout(user.accessToken);
 		expectLastCall().anyTimes();
 		// Login is done in authentication
 		expect(loginClient.authenticate(userEmail, UserPassword.valueOf(String.valueOf(complexPassword)))).andReturn(user.accessToken).anyTimes();
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user.user, user.deviceId, user.userAgent, user.deviceProtocolVersion))
 			.andReturn(user.device).anyTimes();
 		expect(deviceDao.getPolicyKey(user.user, user.deviceId, PolicyStatus.ACCEPTED))
 			.andReturn(5l).anyTimes();
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(firstDate).anyTimes();
-		mockNextGeneratedSyncKey(classToInstanceMap, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -1187,15 +1169,15 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		
-		SyncResponse syncResponse = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
+		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.sync(decoder, firstAllocatedSyncKey,
 					new Folder(calendarCollectionId.asString()),
 					new Folder(inboxCollectionId.asString()));
 		
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		assertThat(getCollectionWithId(syncResponse, calendarCollectionId).getStatus()).isEqualTo(SyncStatus.OK);
-		assertThat(getCollectionWithId(syncResponse, inboxCollectionId).getStatus()).isEqualTo(SyncStatus.OK);
+		assertThat(syncTestUtils.getCollectionWithId(syncResponse, calendarCollectionId).getStatus()).isEqualTo(SyncStatus.OK);
+		assertThat(syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId).getStatus()).isEqualTo(SyncStatus.OK);
 	}
 
 	@Test
@@ -1208,8 +1190,8 @@ public class SyncHandlerWithBackendTest {
 		int secondAllocatedStateId = 4;
 		int thirdAllocatedStateId = 5;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, 
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
@@ -1232,8 +1214,8 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
 		
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
 
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
@@ -1295,7 +1277,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -1306,16 +1288,16 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.verify();
 
-		SyncCollectionResponse collectionResponse = getCollectionWithId(syncResponse, calendarCollectionId);
-		SyncCollectionResponse updatedCollectionResponse = getCollectionWithId(updatedSyncResponse, calendarCollectionId);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, calendarCollectionId);
+		SyncCollectionResponse updatedCollectionResponse = syncTestUtils.getCollectionWithId(updatedSyncResponse, calendarCollectionId);
 
-		assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(serverId)
 						.isNew(true)
 						.build()));
-		assertEqualsWithoutApplicationData(updatedCollectionResponse.getItemChanges(), 
+		syncTestUtils.assertEqualsWithoutApplicationData(updatedCollectionResponse.getItemChanges(), 
 				ImmutableList.<ItemChange> of());
 	}
 	
@@ -1352,8 +1334,8 @@ public class SyncHandlerWithBackendTest {
 		int secondAllocatedStateId = 4;
 		int newSecondAllocatedStateId = 5;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		userAccessUtils.mockUsersAccess(user);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1375,8 +1357,8 @@ public class SyncHandlerWithBackendTest {
 		
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(3);
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
 		ServerId serverId = inboxCollectionId.serverId(2);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false).times(2);
@@ -1386,7 +1368,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -1395,8 +1377,8 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.verify();
 
 		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionId);
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(2))
@@ -1404,8 +1386,8 @@ public class SyncHandlerWithBackendTest {
 						.build()));
 		
 		assertThat(newFirstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse newFirstCollectionResponse = getCollectionWithId(newFirstSyncResponse, inboxCollectionId);
-		assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
+		SyncCollectionResponse newFirstCollectionResponse = syncTestUtils.getCollectionWithId(newFirstSyncResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(2))
@@ -1423,8 +1405,8 @@ public class SyncHandlerWithBackendTest {
 		int secondAllocatedStateId = 4;
 		int newSecondAllocatedStateId = 5;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		userAccessUtils.mockUsersAccess(Arrays.asList(user));
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1447,8 +1429,8 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
 		expect(dateService.getCurrentDate()).andReturn(newSecondAllocatedState.getSyncDate()).times(1);
 		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, newSecondAllocatedState, inboxCollectionId);
 		
 		ServerId serverId = inboxCollectionId.serverId(1);
 		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false).times(2);
@@ -1461,7 +1443,7 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
@@ -1470,8 +1452,8 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.verify();
 
 		assertThat(firstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(firstSyncResponse, inboxCollectionId);
-		assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(firstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(1))
@@ -1483,8 +1465,8 @@ public class SyncHandlerWithBackendTest {
 						.build()));
 		
 		assertThat(newFirstSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
-		SyncCollectionResponse newFirstCollectionResponse = getCollectionWithId(newFirstSyncResponse, inboxCollectionId);
-		assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
+		SyncCollectionResponse newFirstCollectionResponse = syncTestUtils.getCollectionWithId(newFirstSyncResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(newFirstCollectionResponse.getItemChanges(), 
 				ImmutableList.of(
 					ItemChange.builder()
 						.serverId(inboxCollectionId.serverId(1))

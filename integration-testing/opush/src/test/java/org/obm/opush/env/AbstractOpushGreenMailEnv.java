@@ -31,35 +31,15 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.env;
 
-import org.obm.guice.AbstractOverrideModule;
-
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
 
 public abstract class AbstractOpushGreenMailEnv extends AbstractOpushEnv {
 
 	public AbstractOpushGreenMailEnv() {
 		super();
 	}
-	
-	@Override
-	protected Module overrideModule() throws Exception {
-		ImmutableList<AbstractOverrideModule> modules = ImmutableList.of( 
-				dao(),
-				cassandra(),
-				obmSync(),
-				backendsModule(),
-				greenMail(),
-				configuration()
-				);
-		for (AbstractOverrideModule module: modules) {
-			getMockMap().addMap(module.getMockMap());
-		}
-		return Modules.combine(ImmutableList.<Module>builder().addAll(modules).build());
-	}
 
-	protected GreenMailEnvModule greenMail() {
+	@Override
+	protected GreenMailEnvModule email() {
 		return new GreenMailEnvModule(getMocksControl());
 	}
 }

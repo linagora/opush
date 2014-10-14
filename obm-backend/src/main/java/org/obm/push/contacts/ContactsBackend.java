@@ -47,6 +47,7 @@ import org.obm.push.backend.PathsToCollections.Builder;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
@@ -72,8 +73,8 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ObmSyncBackend;
-import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
@@ -510,7 +511,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }

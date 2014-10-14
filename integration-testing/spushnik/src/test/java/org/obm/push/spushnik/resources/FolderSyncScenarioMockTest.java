@@ -48,7 +48,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.IntegrationTestUtils;
+import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
@@ -65,8 +65,6 @@ import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
-import org.obm.sync.client.login.LoginClient;
 
 import com.google.inject.Inject;
 
@@ -74,15 +72,19 @@ import com.google.inject.Inject;
 @GuiceModule(ScenarioTestModule.class)
 public class FolderSyncScenarioMockTest {
 
-	@Inject Users users;
-	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject FolderSyncScenario folderSyncScenario;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
-
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private FolderSyncScenario folderSyncScenario;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private DeviceDao deviceDao;
+	@Inject private CollectionDao collectionDao;
+	@Inject private SpushnikScenarioTestUtils spushnikScenarioTestUtils;
+	@Inject private FolderSyncKeyFactory folderSyncKeyFactory;
+	
 	@Before
 	public void setup() throws Exception {
 		cassandraServer.start();
@@ -98,7 +100,7 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testScenarii() throws Exception {
-		SpushnikScenarioTestUtils.mockWorkingFolderSync(classToInstanceMap, users.jaures);
+		spushnikScenarioTestUtils.mockWorkingFolderSync(users.jaures);
 		mocksControl.replay();
 		opushServer.start();
 
@@ -114,8 +116,7 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testErrorInBackend() throws Exception {
-		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				users.jaures);
+		userAccessUtils.expectUserLoginFromOpush(users.jaures);
 		User user = users.jaures.user;
 		DeviceId deviceId = new DeviceId("spushnik");
 		Device device = new Device(user.hashCode(), 
@@ -124,7 +125,6 @@ public class FolderSyncScenarioMockTest {
 				new Properties(), 
 				users.jaures.deviceProtocolVersion);
 		// First provisionning
-		DeviceDao deviceDao = classToInstanceMap.get(DeviceDao.class);
 		expect(deviceDao.getDevice(user, 
 				deviceId, 
 				"spushnikAgent",
@@ -148,13 +148,13 @@ public class FolderSyncScenarioMockTest {
 		
 		// FolderSync
 		FolderSyncKey syncKey = new FolderSyncKey("123");
-		expect(classToInstanceMap.get(FolderSyncKeyFactory.class).randomSyncKey())
+		expect(folderSyncKeyFactory.randomSyncKey())
 			.andReturn(syncKey).once();
 		FolderSyncState syncState = FolderSyncState.builder()
 				.syncKey(syncKey)
 				.id(1)
 				.build();
-		expect(classToInstanceMap.get(CollectionDao.class).allocateNewFolderSyncState(device, syncKey))
+		expect(collectionDao.allocateNewFolderSyncState(device, syncKey))
 			.andReturn(syncState).once();
 		
 		mocksControl.replay();
@@ -172,8 +172,7 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testBadOpushPort() throws Exception {
-		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				users.jaures);
+		userAccessUtils.expectUserLoginFromOpush(users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -190,8 +189,7 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testBadOpushAddress() throws Exception {
-		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				users.jaures);
+		userAccessUtils.expectUserLoginFromOpush(users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -208,8 +206,7 @@ public class FolderSyncScenarioMockTest {
 
 	@Test
 	public void testBadWebApp() throws Exception {
-		IntegrationTestUtils.expectUserLoginFromOpush(classToInstanceMap.get(LoginClient.class), 
-				users.jaures);
+		userAccessUtils.expectUserLoginFromOpush(users.jaures);
 		
 		mocksControl.replay();
 		opushServer.start();

@@ -39,6 +39,7 @@ import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
@@ -131,7 +132,7 @@ public class TaskBackend implements PIMBackend {
 	}
 	
 	@Override
-	public void initialize(UserDataRequest udr, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
+	public void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey) {
 		// nothing to do
 	}
 }

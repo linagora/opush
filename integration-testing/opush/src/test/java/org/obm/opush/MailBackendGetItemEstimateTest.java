@@ -36,11 +36,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
-import static org.obm.opush.IntegrationPushTestUtils.mockNextGeneratedSyncKey;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +69,6 @@ import org.obm.push.service.DateService;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 
@@ -89,21 +84,23 @@ import com.icegreen.greenmail.util.ServerSetup;
 @GuiceModule(MailBackendTestModule.class)
 public class MailBackendGetItemEstimateTest {
 
-	@Inject	Users users;
-	@Inject	OpushServer opushServer;
-	@Inject	ClassToInstanceAgregateView<Object> classToInstanceMap;
-	@Inject GreenMail greenMail;
-	@Inject ImapConnectionCounter imapConnectionCounter;
-	@Inject PendingQueriesLock pendingQueries;
-	@Inject IMocksControl mocksControl;
-	@Inject Configuration configuration;
-	@Inject SyncDecoder decoder;
-	@Inject PolicyConfigurationProvider policyConfigurationProvider;
-	@Inject CassandraServer cassandraServer;
+	@Inject private Users users;
+	@Inject private OpushServer opushServer;
+	@Inject private GreenMail greenMail;
+	@Inject private ImapConnectionCounter imapConnectionCounter;
+	@Inject private PendingQueriesLock pendingQueries;
+	@Inject private IMocksControl mocksControl;
+	@Inject private Configuration configuration;
+	@Inject private SyncDecoder decoder;
+	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
+	@Inject private CassandraServer cassandraServer;
+	@Inject private IntegrationTestUtils testUtils;
+	@Inject private IntegrationUserAccessUtils userAccessUtils;
+	@Inject private IntegrationPushTestUtils pushTestUtils;
 	
-	private ItemTrackingDao itemTrackingDao;
-	private CollectionDao collectionDao;
-	private DateService dateService;
+	@Inject private ItemTrackingDao itemTrackingDao;
+	@Inject private CollectionDao collectionDao;
+	@Inject private DateService dateService;
 
 	private ServerSetup smtpServerSetup;
 	private GreenMailUser greenMailUser;
@@ -126,13 +123,9 @@ public class MailBackendGetItemEstimateTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 		
-		inboxCollectionPath = IntegrationTestUtils.buildEmailInboxCollectionPath(user);
+		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1234);
 		
-		itemTrackingDao = classToInstanceMap.get(ItemTrackingDao.class);
-		collectionDao = classToInstanceMap.get(CollectionDao.class);
-		dateService = classToInstanceMap.get(DateService.class);
-
 		bindCollectionIdToPath();
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
@@ -154,14 +147,14 @@ public class MailBackendGetItemEstimateTest {
 	public void testGetItemEstimateWithInvalidSyncKey() throws Exception {
 		SyncKey invalidSyncKey = new SyncKey("b5dcc20d-d781-418a-b2dc-91df8b313325");
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		expect(collectionDao.findItemStateForKey(invalidSyncKey)).andReturn(null);
 
 		mocksControl.replay();
 		
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		GetItemEstimateSingleFolderResponse itemEstimateResponse = opClient.getItemEstimateOnMailFolder(invalidSyncKey, inboxCollectionId);
 
@@ -177,7 +170,7 @@ public class MailBackendGetItemEstimateTest {
 		SyncKey lastSyncKey = new SyncKey("617b4ccd-2d67-4397-9e7e-57ef36fc7878");
 		int lastStateId = 3;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState lastSyncState = ItemSyncState.builder()
@@ -196,7 +189,7 @@ public class MailBackendGetItemEstimateTest {
 		mocksControl.replay();
 
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
@@ -222,7 +215,7 @@ public class MailBackendGetItemEstimateTest {
 		SyncKey lastSyncKey = new SyncKey("d604c7d1-39b6-4c15-8437-3aa46875cae7");
 		int lastStateId = 3;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState lastSyncState = ItemSyncState.builder()
@@ -241,7 +234,7 @@ public class MailBackendGetItemEstimateTest {
 		mocksControl.replay();
 
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
@@ -267,7 +260,7 @@ public class MailBackendGetItemEstimateTest {
 		SyncKey lastSyncKey = new SyncKey("f1856d19-7a4b-4422-ae84-bda5516bf4b8");
 		int lastStateId = 3;
 		
-		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		userAccessUtils.mockUsersAccess(user);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState lastSyncState = ItemSyncState.builder()
@@ -286,7 +279,7 @@ public class MailBackendGetItemEstimateTest {
 		mocksControl.replay();
 
 		opushServer.start();
-		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
@@ -310,7 +303,7 @@ public class MailBackendGetItemEstimateTest {
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
-		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey);
+		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()

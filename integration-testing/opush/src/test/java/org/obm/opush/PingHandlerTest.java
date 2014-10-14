@@ -36,10 +36,6 @@ import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.obm.opush.IntegrationTestUtils.buildCalendarCollectionPath;
-import static org.obm.opush.IntegrationTestUtils.buildWBXMLOpushClient;
-import static org.obm.opush.IntegrationTestUtils.expectUserCollectionsNeverChange;
-import static org.obm.opush.IntegrationUserAccessUtils.mockUsersAccess;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,7 +74,6 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.ItemSyncState;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -97,7 +92,6 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.DateUtils;
-import org.obm.push.utils.collection.ClassToInstanceAgregateView;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Document;
@@ -113,13 +107,17 @@ public class PingHandlerTest {
 
 	@Inject Users users;
 	@Inject OpushServer opushServer;
-	@Inject ClassToInstanceAgregateView<Object> classToInstanceMap;
 	@Inject IMocksControl mocksControl;
 	@Inject Configuration configuration;
 	@Inject PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject PingProtocol pingProtocol;
 	@Inject CassandraServer cassandraServer;
 	@Inject PendingQueriesLock queriesLock;
+	@Inject IntegrationTestUtils testUtils;
+	@Inject IntegrationUserAccessUtils userAccessUtils;
+	@Inject HeartbeatDao heartbeatDao;
+	@Inject CalendarBackend calendarBackend;
+	@Inject CollectionDao collectionDao;
 	
 	private CloseableHttpClient httpClient;
 	private ExecutorService threadpool;
@@ -165,7 +163,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = DOMUtils.parse(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Ping>" +
@@ -202,7 +200,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		ThreadPoolExecutor threadPoolExecutor = 
 				new ThreadPoolExecutor(20, 20, 1,TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
@@ -229,7 +227,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		
@@ -249,7 +247,7 @@ public class PingHandlerTest {
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkExecutionTime(5, 6, stopwatch);
@@ -265,7 +263,7 @@ public class PingHandlerTest {
 
 		Document document = buildPingCommand(20, users.jaures.hashCode());
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkFolderSyncRequiredResponse(response);
@@ -280,7 +278,7 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		
 		Future<PingResponse> response1 = opClient.pingASync(async, pingProtocol, collectionId, heartbeat);
 		PingResponse pingResponse1 = response1.get(heartbeat * 2,  TimeUnit.SECONDS);
@@ -299,8 +297,8 @@ public class PingHandlerTest {
 
 		opushServer.start();
 
-		OPClient opClientJaures = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		OPClient opClientBlum = buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
+		OPClient opClientJaures = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClientBlum = testUtils.buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
 		
 		queriesLock.expectedQueriesCountToBeStarted(1);
 		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, CollectionId.of(users.jaures.hashCode()), 1000);
@@ -312,7 +310,7 @@ public class PingHandlerTest {
 	
 	private void prepareMockNoChange(List<OpushUser> users) throws DaoException, CollectionNotFoundException, 
 			UnexpectedObmSyncServerException, AuthFault, ConversionException, HierarchyChangedException {
-		mockUsersAccess(classToInstanceMap, users);
+		userAccessUtils.mockUsersAccess(users);
 		mockForPingNeeds();
 		mockForNoChangePing(users);
 		mocksControl.replay();
@@ -320,7 +318,7 @@ public class PingHandlerTest {
 
 	private void prepareMockHasChanges(int noChangeIterationCount, List<OpushUser> users) throws DaoException, CollectionNotFoundException, 
 			UnexpectedObmSyncServerException, AuthFault, ConversionException, HierarchyChangedException {
-		mockUsersAccess(classToInstanceMap, users);
+		userAccessUtils.mockUsersAccess(users);
 		mockForPingNeeds();
 		mockForCalendarHasChangePing(noChangeIterationCount, users);
 		mocksControl.replay();
@@ -328,7 +326,7 @@ public class PingHandlerTest {
 
 	private void prepareMockHierarchyChangedException(List<OpushUser> users) throws DaoException, CollectionNotFoundException, 
 			UnexpectedObmSyncServerException, AuthFault, ConversionException, HierarchyChangedException {
-		mockUsersAccess(classToInstanceMap, users);
+		userAccessUtils.mockUsersAccess(users);
 		mockForPingNeeds();
 		mockForCalendarHierarchyChangedException(users);
 		mocksControl.replay();
@@ -342,7 +340,7 @@ public class PingHandlerTest {
 		Document document = buildPingCommand(heartbeatInterval, users.jaures.hashCode());
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
-		OPClient opClient = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		Document response = opClient.postXml("Ping", document, "Ping", null, false);
 		
 		checkExecutionTime(delta, expected, stopwatch);
@@ -383,52 +381,43 @@ public class PingHandlerTest {
 	}
 
 	private void mockForPingNeeds() throws DaoException {
-		HeartbeatDao heartbeatDao = classToInstanceMap.get(HeartbeatDao.class);
-		mockHeartbeatDao(heartbeatDao);
+		mockHeartbeatDao();
 	}
 	
 	private void mockForNoChangePing(List<OpushUser> users) throws DaoException, CollectionNotFoundException,
 			UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
-		CalendarBackend calendarBackend = classToInstanceMap.get(CalendarBackend.class);
-		mockCalendarBackendHasNoChange(calendarBackend);
+		mockCalendarBackendHasNoChange();
 
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
 		for (OpushUser user: users) {
-			expectUserCollectionsNeverChange(collectionDao, user, Arrays.asList(CollectionId.of(user.hashCode())));
+			testUtils.expectUserCollectionsNeverChange(user, Arrays.asList(CollectionId.of(user.hashCode())));
 		}
 	}
 
 	private void mockForCalendarHasChangePing(int noChangeIterationCount, List<OpushUser> users) 
 			throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException,
 			ConversionException, HierarchyChangedException {
-		CalendarBackend calendarBackend = classToInstanceMap.get(CalendarBackend.class);
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-
-		mockCollectionDaoHasChange(collectionDao, noChangeIterationCount, users);
-		mockCalendarBackendHasContentChanges(calendarBackend);
+		mockCollectionDaoHasChange(noChangeIterationCount, users);
+		mockCalendarBackendHasContentChanges();
 	}
 
 	private void mockForCalendarHierarchyChangedException(List<OpushUser> users) 
 			throws DaoException, CollectionNotFoundException, UnexpectedObmSyncServerException,
 			ConversionException, HierarchyChangedException {
-		CalendarBackend calendarBackend = classToInstanceMap.get(CalendarBackend.class);
-		CollectionDao collectionDao = classToInstanceMap.get(CollectionDao.class);
-
-		mockCollectionDaoHasChange(collectionDao, 1, users);
-		mockCalendarBackendHierarchyChangedException(calendarBackend);
+		mockCollectionDaoHasChange(1, users);
+		mockCalendarBackendHierarchyChangedException();
 	}
 
-	private void mockCollectionDaoHasChange(CollectionDao collectionDao, int noChangeIterationCount, List<OpushUser> users) 
+	private void mockCollectionDaoHasChange(int noChangeIterationCount, List<OpushUser> users) 
 			throws DaoException, CollectionNotFoundException {
 		Date dateFirstSyncFromASSpecs = new Date(0);
 		Date dateWhenChangesAppear = new Date();
 		int collectionNoChangeIterationCount = noChangeIterationCount;
 
-		expectCollectionDaoUnchangeForXIteration(collectionDao, dateFirstSyncFromASSpecs, collectionNoChangeIterationCount);
+		expectCollectionDaoUnchangeForXIteration(dateFirstSyncFromASSpecs, collectionNoChangeIterationCount);
 
 		for (OpushUser user : users) {
 			CollectionId collectionId = CollectionId.of(user.hashCode());
-			String collectionPathWhereChangesAppear = buildCalendarCollectionPath(user);
+			String collectionPathWhereChangesAppear = testUtils.buildCalendarCollectionPath(user);
 			
 			ItemSyncState syncState = ItemSyncState.builder()
 					.syncKey(new SyncKey("sync state"))
@@ -444,7 +433,7 @@ public class PingHandlerTest {
 		}
 	}
 	
-	private void expectCollectionDaoUnchangeForXIteration(CollectionDao collectionDao, Date activeSyncSpecFirstSyncDate, 
+	private void expectCollectionDaoUnchangeForXIteration(Date activeSyncSpecFirstSyncDate, 
 			int noChangeIterationCount) throws DaoException {
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(new SyncKey("sync state"))
@@ -456,11 +445,10 @@ public class PingHandlerTest {
 		expect(collectionDao.getCalendarChangedCollections(activeSyncSpecFirstSyncDate)).andReturn(noChangeCollections).times(noChangeIterationCount);
 	}
 
-	private void mockCalendarBackendHasContentChanges(CalendarBackend calendarBackend)
+	private void mockCalendarBackendHasContentChanges()
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ConversionException, HierarchyChangedException {
 		
-		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR).anyTimes();
 		expect(calendarBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
@@ -469,11 +457,10 @@ public class PingHandlerTest {
 			.andReturn(1).times(2);
 	}
 
-	private void mockCalendarBackendHierarchyChangedException(CalendarBackend calendarBackend)
+	private void mockCalendarBackendHierarchyChangedException()
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ConversionException, HierarchyChangedException {
 		
-		expect(calendarBackend.getPIMDataType()).andReturn(PIMDataType.CALENDAR).anyTimes();
 		expect(calendarBackend.getItemEstimateSize(
 				anyObject(UserDataRequest.class), 
 				anyObject(ItemSyncState.class),
@@ -482,7 +469,7 @@ public class PingHandlerTest {
 			.andThrow(new HierarchyChangedException(new NotAllowedException("Not allowed")));
 	}
 
-	private void mockCalendarBackendHasNoChange(CalendarBackend calendarBackend) 
+	private void mockCalendarBackendHasNoChange() 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ConversionException, HierarchyChangedException {
 		
@@ -505,7 +492,7 @@ public class PingHandlerTest {
 		});
 	}
 
-	private void mockHeartbeatDao(HeartbeatDao heartbeatDao) throws DaoException {
+	private void mockHeartbeatDao() throws DaoException {
 		heartbeatDao.updateLastHeartbeat(anyObject(Device.class), anyLong());
 		expectLastCall().anyTimes();
 	}
