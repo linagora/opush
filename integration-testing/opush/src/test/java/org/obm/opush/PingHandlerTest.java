@@ -302,7 +302,7 @@ public class PingHandlerTest {
 		OPClient opClientJaures = buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		OPClient opClientBlum = buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
 		
-		queriesLock.expectedQueriesBeforeUnlock(1);
+		queriesLock.expectedQueriesCountToBeStarted(1);
 		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, Integer.valueOf(users.jaures.hashCode()).toString(), 1000);
 		queriesLock.waitingStart(3, TimeUnit.SECONDS);
 		queriesLock.waitingClose(3, TimeUnit.SECONDS);
