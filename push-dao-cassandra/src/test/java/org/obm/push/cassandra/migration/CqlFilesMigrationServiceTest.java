@@ -36,7 +36,7 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -138,7 +138,7 @@ public class CqlFilesMigrationServiceTest {
 		String schema = "schema";
 		Version version = Version.of(1);
 		expect(schemaProducer.schema(version)).andReturn(schema);
-		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetSocketAddress, Throwable> of()));
 		logger.debug("CQL: {}", schema);
 		expectLastCall();
 		
@@ -209,7 +209,7 @@ public class CqlFilesMigrationServiceTest {
 		Version toVersion = Version.of(2);
 		String schema = "schema";
 		expect(schemaProducer.schema(fromVersion, toVersion)).andReturn(schema);
-		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		expect(session.execute(schema)).andThrow(new NoHostAvailableException(ImmutableMap.<InetSocketAddress, Throwable> of()));
 		logger.info("Executing CQL migration from version {} to {}", fromVersion.get(), toVersion.get());
 		expectLastCall();
 		logger.debug("CQL: {}", schema);

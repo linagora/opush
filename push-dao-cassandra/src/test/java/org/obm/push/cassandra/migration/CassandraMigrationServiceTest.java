@@ -39,7 +39,7 @@ import static org.obm.DateUtils.dateUTC;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
 import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Set;
 
 import org.easymock.IMocksControl;
@@ -159,7 +159,7 @@ public class CassandraMigrationServiceTest {
 	public void giveRequestErrorWhenNoHostAvailable() {
 		Version minimalVersion = Version.of(1);
 		Version latestVersion = Version.of(3);
-		expect(schemaDao.getCurrentVersion()).andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		expect(schemaDao.getCurrentVersion()).andThrow(new NoHostAvailableException(ImmutableMap.<InetSocketAddress, Throwable> of()));
 		
 		mocks.replay();
 		StatusSummary result = testee(minimalVersion, latestVersion).getStatus();
@@ -266,7 +266,7 @@ public class CassandraMigrationServiceTest {
 	public void installNoHostAvailable() {
 		Version version = Version.of(1);
 		schemaInstaller.install(version);
-		expectLastCall().andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		expectLastCall().andThrow(new NoHostAvailableException(ImmutableMap.<InetSocketAddress, Throwable> of()));
 		
 		mocks.replay();
 		MigrationResult result = testee(null, version).install();
@@ -394,7 +394,7 @@ public class CassandraMigrationServiceTest {
 		VersionUpdate versionUpdate = VersionUpdate.version(currentVersion).date(dateUTC("2013-04-07T12:09:37"));
 		expect(schemaDao.getCurrentVersion()).andReturn(versionUpdate);
 		migrationService.migrate(currentVersion, toVersion);
-		expectLastCall().andThrow(new NoHostAvailableException(ImmutableMap.<InetAddress, Throwable> of()));
+		expectLastCall().andThrow(new NoHostAvailableException(ImmutableMap.<InetSocketAddress, Throwable> of()));
 
 		mocks.replay();
 		MigrationResult result = testee(null, toVersion).update();
