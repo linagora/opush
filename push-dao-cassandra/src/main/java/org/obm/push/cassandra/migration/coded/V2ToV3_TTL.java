@@ -52,9 +52,12 @@ import org.slf4j.Logger;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.WriteType;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
@@ -64,6 +67,7 @@ public class V2ToV3_TTL implements CodedMigration {
 	public static final int MAX_BATCH_SIZE = Objects.firstNonNull(VMArgumentsUtils.integerArgumentValue("MigrationV3BatchSize"), 100);
 	public static final int SELECT_PAGING_SIZE = Objects.firstNonNull(VMArgumentsUtils.integerArgumentValue("MigrationV3PagingSize"), 100);
 	private static final long DEFAULT_TTL = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
+	private static final RetryPolicy ALWAYS_RETRY_POLICY = new AlwaysRetryPolicy();
 	
 	private final Logger logger;
 	private final Provider<Session> sessionProvider;
@@ -110,8 +114,12 @@ public class V2ToV3_TTL implements CodedMigration {
 	}
 	
 	private void reinsertAll(Session session, Table table) {
-		Iterator<Row> rows = session.execute(table.selectStatement().setFetchSize(SELECT_PAGING_SIZE)).iterator();
-		BatchStatement batch = new BatchStatement(Type.UNLOGGED);
+		Iterator<Row> rows = session.execute(table
+				.selectStatement()
+				.setRetryPolicy(ALWAYS_RETRY_POLICY)
+				.setFetchSize(SELECT_PAGING_SIZE)).iterator();
+		
+		BatchStatement batch = newBatchStatement();
 		int batchSize = 0;
 		
 		while (rows.hasNext()) {
@@ -122,7 +130,7 @@ public class V2ToV3_TTL implements CodedMigration {
 				logger.info("Executing batch, size: {}", MAX_BATCH_SIZE);
 				session.execute(batch);
 				batchSize = 0;
-				batch = new BatchStatement(Type.UNLOGGED);
+				batch = newBatchStatement();
 			}
 		}
 		
@@ -130,6 +138,12 @@ public class V2ToV3_TTL implements CodedMigration {
 			logger.info("Executing batch, size: {}", batchSize);
 			session.execute(batch);
 		}
+	}
+
+	private BatchStatement newBatchStatement() {
+		BatchStatement batch = new BatchStatement(Type.UNLOGGED);
+		batch.setRetryPolicy(ALWAYS_RETRY_POLICY);
+		return batch;
 	}
 
 	interface Table {
@@ -350,5 +364,24 @@ public class V2ToV3_TTL implements CodedMigration {
 					.value(SnapshotIndex.Columns.SNAPSHOT_ID, row.getUUID(SnapshotIndex.Columns.SNAPSHOT_ID))
 					.value(SnapshotIndex.Columns.SYNC_KEY, row.getUUID(SnapshotIndex.Columns.SYNC_KEY));
 		}
+	}
+	
+	public static class AlwaysRetryPolicy implements RetryPolicy {
+
+		@Override
+		public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
+			return RetryDecision.retry(cl);
+		}
+
+		@Override
+		public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType, int requiredAcks, int receivedAcks, int nbRetry) {
+			return RetryDecision.retry(cl);
+		}
+
+		@Override
+		public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
+			return RetryDecision.retry(cl);
+		}
+		
 	}
 }
