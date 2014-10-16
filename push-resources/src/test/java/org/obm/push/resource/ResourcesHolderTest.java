@@ -33,11 +33,13 @@ package org.obm.push.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.PriorityQueue;
+
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.bean.Resource;
-import org.obm.push.resource.ResourcesHolder;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 public class ResourcesHolderTest {
@@ -152,7 +154,48 @@ public class ResourcesHolderTest {
 		assertThat(third.closedAt).isLessThan(fourth.closedAt);
 	}
 	
-	static class TestResource implements Resource {
+	@Test
+	public void closeShouldCloseBackendResourceUsingComparator() {
+		OtherResource other = new OtherResource();
+		HttpBackendResource http = new HttpBackendResource();
+		AccessTokenBackendResource accessToken = new AccessTokenBackendResource();
+		
+		testee.put(HttpBackendResource.class, http);
+		assertThat(testee.get(HttpBackendResource.class)).isSameAs(http);
+		testee.put(AccessTokenBackendResource.class, accessToken);
+		assertThat(testee.get(ResourceType1.class)).isNull();
+		testee.remove(OtherResource.class);
+		testee.put(OtherResource.class, other);
+		assertThat(testee.get(AccessTokenBackendResource.class)).isSameAs(accessToken);
+		assertThat(testee.get(HttpBackendResource.class)).isSameAs(http);
+		testee.close();
+
+		assertThat(accessToken.closedAt).isLessThan(http.closedAt);
+	}
+	
+	@Test
+	public void closeShouldCloseAccessTokenBeforeHttpClient() {
+		HttpClientResource clientResource = new HttpClientResource(null);
+		AccessTokenResource accessTokenResource = new AccessTokenResource.Factory(null).create(null, null);
+		
+		PriorityQueue<BackendResource> priorityQueue = new PriorityQueue<>(ImmutableList.of(clientResource, accessTokenResource));
+		assertThat(priorityQueue.poll()).isSameAs(accessTokenResource);
+		assertThat(priorityQueue.poll()).isSameAs(clientResource);
+	}
+	
+	@Test
+	public void closeShouldCloseAccessTokenBeforeHttpClient2() {
+		HttpClientResource clientResource = new HttpClientResource(null);
+		AccessTokenResource accessTokenResource = new AccessTokenResource.Factory(null).create(null, null);
+		OtherResource other = new OtherResource();
+		
+		PriorityQueue<BackendResource> priorityQueue = new PriorityQueue<>(ImmutableList.of(clientResource, other, accessTokenResource));
+		assertThat(priorityQueue.poll()).isSameAs(accessTokenResource);
+		assertThat(priorityQueue.poll()).isSameAs(clientResource);
+		assertThat(priorityQueue.poll()).isSameAs(other);
+	}
+	
+	static class TestResource extends BackendResource {
 
 		int priority;
 		boolean isClosed;
@@ -168,7 +211,8 @@ public class ResourcesHolderTest {
 		}
 		
 		@Override
-		public int compareTo(Resource r) {
+		public int compareTo(BackendResource r) {
+			Preconditions.checkArgument(r instanceof TestResource);
 			if (r instanceof TestResource) {
 				return Ints.compare(priority, ((TestResource)r).priority);
 			}
@@ -223,5 +267,45 @@ public class ResourcesHolderTest {
 			throw new RuntimeException("error");
 		}
 		
+	}
+	
+	static class HttpBackendResource extends BackendResource {
+
+		long closedAt;
+
+		@Override
+		public void close() {
+			closedAt = System.nanoTime();
+		}
+
+		@Override
+		protected ResourceCloseOrder getCloseOrder() {
+			return ResourceCloseOrder.HTTP_CLIENT;
+		}
+	}
+	
+	static class AccessTokenBackendResource extends BackendResource {
+
+		long closedAt;
+
+		@Override
+		public void close() {
+			closedAt = System.nanoTime();
+		}
+
+		@Override
+		protected ResourceCloseOrder getCloseOrder() {
+			return ResourceCloseOrder.ACCESS_TOKEN;
+		}
+	}
+	
+	static class OtherResource extends BackendResource {
+
+		long closedAt;
+		
+		@Override
+		public synchronized void close() {
+			closedAt = System.nanoTime();
+		}
 	}
 }

@@ -31,19 +31,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.resource;
 
-import org.obm.push.bean.Resource;
 
-public abstract class BackendResource implements Resource {
+public abstract class BackendResource implements SortedResource {
 
-	protected abstract ResourceCloseOrder getCloseOrder();
+	protected ResourceCloseOrder getCloseOrder() {
+		return ResourceCloseOrder.OTHER;
+	}
 	
 	@Override
-	public int compareTo(Resource o) {
-		if (o instanceof BackendResource) {
-			BackendResource otherResource = (BackendResource) o;
-			return getCloseOrder().compareTo(otherResource.getCloseOrder());
-		}
-		return 0;
+	public int compareTo(BackendResource o) {
+		return getCloseOrder().compareTo(o.getCloseOrder());
 	}
 	
 }

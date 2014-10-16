@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail.imap;
 
-import org.obm.push.bean.Resource;
 import org.obm.push.exception.ImapTimeoutException;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.minig.imap.StoreClient;
+import org.obm.push.resource.BackendResource;
 import org.obm.push.technicallog.bean.KindToBeLogged;
 import org.obm.push.technicallog.bean.ResourceType;
 import org.obm.push.technicallog.bean.TechnicalLogging;
@@ -42,7 +42,7 @@ import org.obm.push.technicallog.bean.TechnicalLogging;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-public class MinigStoreClientImpl implements MinigStoreClient {
+public class MinigStoreClientImpl extends BackendResource implements MinigStoreClient {
 	
 	@Singleton
 	public static class Factory implements MinigStoreClient.Factory {
@@ -93,8 +93,4 @@ public class MinigStoreClientImpl implements MinigStoreClient {
 		}
 	}
 	
-	@Override
-	public int compareTo(Resource o) {
-		return 0;
-	}
 }

@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail.imap;
 
-import org.obm.push.bean.Resource;
 import org.obm.push.minig.imap.StoreClient;
+import org.obm.push.resource.SortedResource;
 
-public interface MinigStoreClient extends Resource {
+public interface MinigStoreClient extends SortedResource {
 
 	interface Factory {
 		MinigStoreClient create(String hostname, String login, char[] password);

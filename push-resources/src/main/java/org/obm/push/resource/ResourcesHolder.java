@@ -33,7 +33,6 @@ package org.obm.push.resource;
 
 import java.util.PriorityQueue;
 
-import org.obm.push.bean.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,30 +46,30 @@ public class ResourcesHolder {
 	public static final String RESOURCES = "RESOURCES";
 	private final Logger logger = LoggerFactory.getLogger(RESOURCES);
 	
-	private ClassToInstanceMap<Resource> resources;
+	private ClassToInstanceMap<SortedResource> resources;
 
 	public ResourcesHolder() {
 		resources = MutableClassToInstanceMap.create();
 	}
 
-	public void remove(Class<? extends Resource> clazz) {
+	public void remove(Class<? extends SortedResource> clazz) {
 		logger.info("remove {}", clazz.getSimpleName());
-		Resource resource = resources.remove(clazz);
+		SortedResource resource = resources.remove(clazz);
 		if (resource != null) {
 			logger.info("close {}", resource);
 			resource.close();
 		}
 	}
 	
-	public <T extends Resource> void put(Class<T> clazz, T resource) {
+	public <T extends SortedResource> void put(Class<T> clazz, T resource) {
 		logger.info("put {}:{}", clazz.getSimpleName(), resource);
-		Resource previousResource = resources.putInstance(clazz, resource);
+		SortedResource previousResource = resources.putInstance(clazz, resource);
 		if (previousResource != null) {
 			throwAlreadyHeldResourceException(clazz, previousResource);
 		}
 	}
 
-	private <T extends Resource> void throwAlreadyHeldResourceException(Class<T> clazz, Resource previousResource) {
+	private <T extends SortedResource> void throwAlreadyHeldResourceException(Class<T> clazz, SortedResource previousResource) {
 		try {
 			throw new IllegalStateException(String.format(
 				"Resource type already held %s:%s", clazz.getSimpleName(), previousResource));
@@ -79,7 +78,7 @@ public class ResourcesHolder {
 		}
 	}
 
-	public <T extends Resource> T get(Class<T> clazz) {
+	public <T extends SortedResource> T get(Class<T> clazz) {
 		T resource = resources.getInstance(clazz);
 		logger.info("get {}:{}", clazz.getSimpleName(), resource);
 		return resource;
@@ -87,8 +86,8 @@ public class ResourcesHolder {
 	
 	public void close() {
 		
-		PriorityQueue<Resource> queue = new PriorityQueue<Resource>(resources.values());
-		Resource resource = queue.poll();
+		PriorityQueue<SortedResource> queue = new PriorityQueue<SortedResource>(resources.values());
+		SortedResource resource = queue.poll();
 		while (resource != null) {
 			try {
 				logger.info("close {}:{}", resource.getClass().getSimpleName(), resource);

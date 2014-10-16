@@ -40,7 +40,8 @@ public enum ResourceCloseOrder {
 
 	// Enum order is meaningful
 	ACCESS_TOKEN,
-	HTTP_CLIENT;
+	HTTP_CLIENT,
+	OTHER;
 	
 	public static ResourceCloseOrder fromValue(String value){
 		if (valueToEnum.containsKey(value)) {

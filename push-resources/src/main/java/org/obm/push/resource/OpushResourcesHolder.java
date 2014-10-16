@@ -32,7 +32,6 @@
 package org.obm.push.resource;
 
 import org.apache.http.client.HttpClient;
-import org.obm.push.bean.Resource;
 import org.obm.sync.auth.AccessToken;
 
 import com.google.inject.Inject;
@@ -48,7 +47,7 @@ public class OpushResourcesHolder {
 		this.resourcesHolderProvider = resourcesHolderProvider;
 	}
 
-	public <T extends Resource> T get(Class<T> clazz) {
+	public <T extends SortedResource> T get(Class<T> clazz) {
 		return getResourcesHolder().get(clazz);
 	}
 	
@@ -60,7 +59,7 @@ public class OpushResourcesHolder {
 		return getResourcesHolder().get(HttpClientResource.class).getHttpClient();
 	}
 	
-	public <T extends Resource> void put(Class<T> clazz, T resource) {
+	public <T extends SortedResource> void put(Class<T> clazz, T resource) {
 		getResourcesHolder().put(clazz, resource);
 	}
 	
@@ -68,7 +67,7 @@ public class OpushResourcesHolder {
 		getResourcesHolder().close();
 	}
 	
-	public void remove(Class<? extends Resource> clazz) {
+	public void remove(Class<? extends SortedResource> clazz) {
 		getResourcesHolder().remove(clazz);
 	}
 
