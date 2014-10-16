@@ -98,8 +98,6 @@ public class AuthenticationFilter implements Filter {
 		}  catch (Exception e) {
 			logger.info(e.getMessage());
 			httpErrorResponder.returnHttpServerError(httpRequest, httpResponse);
-		} finally {
-			loggerService.closeSession();
 		}
 	}
 

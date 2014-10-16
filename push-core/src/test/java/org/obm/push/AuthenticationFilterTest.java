@@ -70,7 +70,7 @@ public class AuthenticationFilterTest {
 	}
 	
 	@Test
-	public void postCallCloseSession() throws Exception {
+	public void postCallDoFilterChain() throws Exception {
 		HttpServletRequest request = control.createMock(HttpServletRequest.class);
 		HttpServletResponse response = control.createMock(HttpServletResponse.class);
 		FilterChain chain = control.createMock(FilterChain.class);
@@ -78,63 +78,6 @@ public class AuthenticationFilterTest {
 		expectAuthentication(request);
 		expect(request.getMethod()).andReturn("POST");
 		chain.doFilter(request, response);
-		expectLastCall();
-		loggerService.closeSession();
-		expectLastCall();
-		
-		control.replay();
-		testee.doFilter(request, response, chain);
-		control.verify();
-	}
-	
-	@Test
-	public void postCallCloseSessionWhenExceptionByChain() throws Exception {
-		HttpServletRequest request = control.createMock(HttpServletRequest.class);
-		HttpServletResponse response = control.createMock(HttpServletResponse.class);
-		FilterChain chain = control.createMock(FilterChain.class);
-		
-		expectAuthentication(request);
-		expect(request.getMethod()).andReturn("POST");
-		chain.doFilter(request, response);
-		expectLastCall().andThrow(new RuntimeException("Might be exception"));
-		errorResponder.returnHttpServerError(request, response);
-		expectLastCall();
-		loggerService.closeSession();
-		expectLastCall();
-
-		control.replay();
-		testee.doFilter(request, response, chain);
-		control.verify();
-	}
-
-	@Test
-	public void postCallCloseSessionWhenExceptionByAuth() throws Exception {
-		HttpServletRequest request = control.createMock(HttpServletRequest.class);
-		HttpServletResponse response = control.createMock(HttpServletResponse.class);
-		FilterChain chain = control.createMock(FilterChain.class);
-
-		expect(request.getHeader("Authorization")).andReturn(null);
-		errorResponder.returnHttpUnauthorized(request, response);
-		expectLastCall();
-		expect(request.getMethod()).andReturn("POST");
-		loggerService.closeSession();
-		expectLastCall();
-
-		control.replay();
-		testee.doFilter(request, response, chain);
-		control.verify();
-	}
-
-	@Test
-	public void getCallCloseSession() throws Exception {
-		HttpServletRequest request = control.createMock(HttpServletRequest.class);
-		HttpServletResponse response = control.createMock(HttpServletResponse.class);
-		FilterChain chain = control.createMock(FilterChain.class);
-		
-		expect(request.getMethod()).andReturn("GET");
-		chain.doFilter(request, response);
-		expectLastCall();
-		loggerService.closeSession();
 		expectLastCall();
 		
 		control.replay();
@@ -163,8 +106,6 @@ public class AuthenticationFilterTest {
 		errorResponder.returnHttpServerError(request, response);
 		expectLastCall();
 		expect(request.getMethod()).andReturn("POST");
-		loggerService.closeSession();
-		expectLastCall();
 
 		control.replay();
 		testee.doFilter(request, response, chain);
@@ -181,8 +122,6 @@ public class AuthenticationFilterTest {
 		errorResponder.returnHttpUnauthorized(request, response);
 		expectLastCall();
 		expect(request.getMethod()).andReturn("POST");
-		loggerService.closeSession();
-		expectLastCall();
 
 		control.replay();
 		testee.doFilter(request, response, chain);

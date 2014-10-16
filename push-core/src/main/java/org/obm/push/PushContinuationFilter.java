@@ -43,6 +43,7 @@ import javax.servlet.ServletResponse;
 import org.obm.push.impl.PushContinuation;
 import org.obm.push.impl.PushContinuation.Factory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -53,7 +54,7 @@ public class PushContinuationFilter implements Filter {
 	private final Factory factory;
 
 	@Inject
-	private PushContinuationFilter(LoggerService loggerService, PushContinuation.Factory factory) {
+	@VisibleForTesting PushContinuationFilter(LoggerService loggerService, PushContinuation.Factory factory) {
 		this.loggerService = loggerService;
 		this.factory = factory;
 	}
@@ -63,14 +64,16 @@ public class PushContinuationFilter implements Filter {
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response,
-			FilterChain chain) throws IOException, ServletException {
-
-		PushContinuation pushContinuation = factory.createContinuation(request);
-		loggerService.startSession();
-		loggerService.defineRequestId(pushContinuation.getReqId());
-		request.setAttribute(RequestProperties.CONTINUATION, pushContinuation);
-		chain.doFilter(request, response);
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		try {
+			PushContinuation pushContinuation = factory.createContinuation(request);
+			loggerService.startSession();
+			loggerService.defineRequestId(pushContinuation.getReqId());
+			request.setAttribute(RequestProperties.CONTINUATION, pushContinuation);
+			chain.doFilter(request, response);
+		} finally {
+			loggerService.closeSession();
+		}
 	}
 
 	@Override
