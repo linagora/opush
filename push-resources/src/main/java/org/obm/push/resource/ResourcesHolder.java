@@ -94,7 +94,7 @@ public class ResourcesHolder {
 				logger.info("close {}:{}", resource.getClass().getSimpleName(), resource);
 				resource.close();
 			} catch (RuntimeException exception) {
-				logger.error("fail to close resource {}, exception occured {}", resource, exception);
+				logger.error("fail to close resource " + resource + ", an exception occured", exception);
 			}
 			resource = queue.poll();
 		}
