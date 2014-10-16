@@ -39,7 +39,6 @@ import java.util.Arrays;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -50,9 +49,6 @@ import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.state.FolderSyncKey;
-import org.obm.push.state.FolderSyncKeyFactory;
-import org.obm.push.state.SyncKeyFactory;
 import org.obm.push.task.TaskBackend;
 
 import com.google.inject.Inject;
@@ -63,9 +59,7 @@ public class HierarchyChangesTestUtils {
 	@Inject TaskBackend taskBackend;
 	@Inject ContactsBackend contactsBackend;
 	@Inject MailBackend mailBackend;
-	@Inject SyncKeyFactory syncKeyFactory;
-	@Inject FolderSyncKeyFactory folderSyncKeyFactory;
-	
+
 	public void mockHierarchyChangesOnlyInbox()
 			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
 		
@@ -124,16 +118,5 @@ public class HierarchyChangesTestUtils {
 		return HierarchyCollectionChanges.builder().build();
 	}
 	
-	public void mockNextGeneratedSyncKey(SyncKey... nextSyncKeys) {
-		for (SyncKey nextSyncKey : nextSyncKeys) {
-			expect(syncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
-		}
-	}
-	
-	public void mockNextGeneratedSyncKey(FolderSyncKey... newGeneratedSyncKey) {
-		for (FolderSyncKey nextSyncKey : newGeneratedSyncKey) {
-			expect(folderSyncKeyFactory.randomSyncKey()).andReturn(nextSyncKey).once();
-		}
-	}
 
 }

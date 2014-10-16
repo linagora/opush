@@ -110,7 +110,7 @@ public class MailBackendGetChangedTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
 	@Inject private DateService dateService;
@@ -170,7 +170,7 @@ public class MailBackendGetChangedTest {
 		int allocatedStateId2 = 4;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -236,7 +236,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -300,7 +300,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -374,7 +374,7 @@ public class MailBackendGetChangedTest {
 		int allocatedStateId2 = 4;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -435,7 +435,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -504,7 +504,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -560,7 +560,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -621,7 +621,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -690,7 +690,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -754,7 +754,7 @@ public class MailBackendGetChangedTest {
 		int allocatedStateId4 = 6;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey,
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey,
 				thirdAllocatedSyncKey, firstAllocatedSyncKeyTrash, secondAllocatedSyncKeyTrash);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
@@ -830,7 +830,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -903,7 +903,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -976,7 +976,7 @@ public class MailBackendGetChangedTest {
 		int numberOfEmails = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1054,7 +1054,7 @@ public class MailBackendGetChangedTest {
 		int newAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1124,7 +1124,7 @@ public class MailBackendGetChangedTest {
 		int lastAllocatedStateId = 6;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, lastAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, lastAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()

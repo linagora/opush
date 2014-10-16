@@ -69,10 +69,10 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
-import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.PendingQueriesLock;
+import org.obm.opush.SyncKeyTestUtils;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
@@ -169,7 +169,7 @@ public class SyncHandlerWithBackendTest {
 	@Inject private BookClient bookClient;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private LoginClient loginClient;
 	@Inject private DeviceDao deviceDao;
 	@Inject private SyncTestUtils syncTestUtils;
@@ -242,7 +242,7 @@ public class SyncHandlerWithBackendTest {
 		int newFourthAllocatedStateId = 8;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -365,7 +365,7 @@ public class SyncHandlerWithBackendTest {
 		int newFourthAllocatedStateId = 8;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -545,7 +545,7 @@ public class SyncHandlerWithBackendTest {
 		int newFourthAllocatedStateId = 8;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, newFirstAllocatedSyncKey, 
 				newSecondAllocatedSyncKey, newThirdAllocatedSyncKey,
 				newFourthAllocatedSyncKey);
@@ -712,7 +712,7 @@ public class SyncHandlerWithBackendTest {
 		int thirdAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		initializeEmptySnapshotForSyncKey(firstAllocatedSyncKey);
 		
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -804,7 +804,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
@@ -852,7 +852,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
@@ -895,7 +895,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
@@ -943,7 +943,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
@@ -985,7 +985,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
@@ -1027,7 +1027,7 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall().once();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
 		
 		mocksControl.replay();
@@ -1078,7 +1078,7 @@ public class SyncHandlerWithBackendTest {
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(firstDate)
 			.anyTimes();
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
@@ -1155,7 +1155,7 @@ public class SyncHandlerWithBackendTest {
 			.andReturn(5l).anyTimes();
 		
 		expect(dateService.getEpochPlusOneSecondDate()).andReturn(firstDate).anyTimes();
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
 		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
@@ -1191,7 +1191,7 @@ public class SyncHandlerWithBackendTest {
 		int thirdAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
 				secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
@@ -1335,7 +1335,7 @@ public class SyncHandlerWithBackendTest {
 		int newSecondAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -1406,7 +1406,7 @@ public class SyncHandlerWithBackendTest {
 		int newSecondAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(Arrays.asList(user));
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, newSecondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()

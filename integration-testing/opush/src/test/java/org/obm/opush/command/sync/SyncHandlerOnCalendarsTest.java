@@ -57,9 +57,9 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
+import org.obm.opush.SyncKeyTestUtils;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
@@ -117,7 +117,7 @@ public class SyncHandlerOnCalendarsTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private IntegrationTestUtils testUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
 	@Inject private CalendarDao calendarDao;
@@ -163,7 +163,7 @@ public class SyncHandlerOnCalendarsTest {
 		int thirdAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -282,7 +282,7 @@ public class SyncHandlerOnCalendarsTest {
 		int thirdAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -449,7 +449,7 @@ public class SyncHandlerOnCalendarsTest {
 		int thirdAllocatedStateId = 5;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()

@@ -96,7 +96,7 @@ public class MailBackendGetItemEstimateTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
@@ -303,7 +303,7 @@ public class MailBackendGetItemEstimateTest {
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
 		
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()

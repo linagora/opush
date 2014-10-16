@@ -49,6 +49,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
+import org.obm.opush.SyncKeyTestUtils;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
@@ -81,8 +82,9 @@ public class FolderSyncHandlerTest {
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private HierarchyChangesTestUtils hierarchyChangesTestUtils;
 	@Inject private IntegrationTestUtils testUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private CollectionDao collectionDao;
 	
 	private OpushUser user;
@@ -111,8 +113,8 @@ public class FolderSyncHandlerTest {
 		FolderSyncState newMappingSyncState = FolderSyncState.builder().syncKey(newGeneratedSyncKey).build();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockHierarchyChangesOnlyInbox();
-		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
+		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
 		expectCollectionDaoAllocateFolderSyncState(newGeneratedSyncKey, newMappingSyncState);
 		testUtils.expectCreateFolderMappingState();
 
@@ -147,8 +149,8 @@ public class FolderSyncHandlerTest {
 		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockHierarchyChangesForMailboxes(buildHierarchyItemsChangeEmpty());
-		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(buildHierarchyItemsChangeEmpty());
+		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
 		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
 		testUtils.expectCreateFolderMappingState();
 
@@ -194,8 +196,8 @@ public class FolderSyncHandlerTest {
 //		mockCollectionDao(collectionDao, syncKey, serverId);
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
-		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
 		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
 		testUtils.expectCreateFolderMappingState();
 		
@@ -233,8 +235,8 @@ public class FolderSyncHandlerTest {
 			.build();
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
-		pushTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
+		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
 		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
 		testUtils.expectCreateFolderMappingState();
 		

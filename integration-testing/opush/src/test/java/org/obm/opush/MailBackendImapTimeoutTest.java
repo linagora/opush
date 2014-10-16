@@ -119,7 +119,7 @@ public class MailBackendImapTimeoutTest {
 	@Inject private DateService dateService;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private HierarchyChangesTestUtils pushTestUtils;
+	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
@@ -174,7 +174,7 @@ public class MailBackendImapTimeoutTest {
 		int allocatedStateId2 = 4;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
 		
 		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -211,7 +211,7 @@ public class MailBackendImapTimeoutTest {
 		int stateId2 = 4;
 		
 		userAccessUtils.mockUsersAccess(user);
-		pushTestUtils.mockNextGeneratedSyncKey(syncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(syncKey);
 		
 		FolderSyncState folderSyncState = FolderSyncState.builder()
 				.syncKey(syncKey)
