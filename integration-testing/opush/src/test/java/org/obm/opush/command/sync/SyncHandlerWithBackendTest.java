@@ -69,7 +69,7 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
-import org.obm.opush.IntegrationPushTestUtils;
+import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.PendingQueriesLock;
@@ -169,7 +169,7 @@ public class SyncHandlerWithBackendTest {
 	@Inject private BookClient bookClient;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private HierarchyChangesTestUtils pushTestUtils;
 	@Inject private LoginClient loginClient;
 	@Inject private DeviceDao deviceDao;
 	@Inject private SyncTestUtils syncTestUtils;

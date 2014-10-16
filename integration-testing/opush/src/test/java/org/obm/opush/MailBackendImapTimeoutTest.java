@@ -119,7 +119,7 @@ public class MailBackendImapTimeoutTest {
 	@Inject private DateService dateService;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private HierarchyChangesTestUtils pushTestUtils;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;

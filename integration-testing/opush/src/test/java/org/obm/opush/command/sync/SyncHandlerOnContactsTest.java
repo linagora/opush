@@ -51,7 +51,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
-import org.obm.opush.IntegrationPushTestUtils;
+import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users;
@@ -102,7 +102,7 @@ public class SyncHandlerOnContactsTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private HierarchyChangesTestUtils pushTestUtils;
 	@Inject private SyncTestUtils syncTestUtils;
 	
 	@Inject private ItemTrackingDao itemTrackingDao;

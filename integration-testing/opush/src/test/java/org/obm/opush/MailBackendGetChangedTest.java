@@ -110,7 +110,7 @@ public class MailBackendGetChangedTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private IntegrationPushTestUtils pushTestUtils;
+	@Inject private HierarchyChangesTestUtils pushTestUtils;
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
 	@Inject private DateService dateService;

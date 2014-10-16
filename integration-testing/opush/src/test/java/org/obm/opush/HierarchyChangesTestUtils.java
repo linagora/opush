@@ -34,6 +34,9 @@ package org.obm.opush;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
+import java.util.Arrays;
+
+import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.SyncKey;
@@ -52,10 +55,9 @@ import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.state.SyncKeyFactory;
 import org.obm.push.task.TaskBackend;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class IntegrationPushTestUtils {
+public class HierarchyChangesTestUtils {
 
 	@Inject CalendarBackend calendarBackend;
 	@Inject TaskBackend taskBackend;
@@ -67,50 +69,57 @@ public class IntegrationPushTestUtils {
 	public void mockHierarchyChangesOnlyInbox()
 			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
 		
-		HierarchyCollectionChanges hierarchyItemsChanges = HierarchyCollectionChanges.builder()
-			.changes(Lists.newArrayList(buildInboxFolder()))
-			.build();
-		
-		mockHierarchyChangesForMailboxes(hierarchyItemsChanges);
+		mockHierarchyChangesForMailboxes(
+			HierarchyCollectionChanges.builder()
+				.changes(Arrays.asList(inboxFolder()))
+				.build());
+	}
+	
+	public CollectionChange inboxFolder() {
+		return CollectionChange.builder()
+				.collectionId(CollectionId.of(1))
+				.parentCollectionId(CollectionId.ROOT)
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.isNew(true)
+				.build();
 	}
 
 	public void mockHierarchyChangesForMailboxes(HierarchyCollectionChanges mailboxesChanges)
 			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
 		
-		mockAddressBook();
-		mockTask();
-		mockCalendar();
-		mockMailBackend(mailboxesChanges);
+		mockCalendarHierarchyChangesReturnNoChange();
+		mockTaskHierarchyChangesReturnNoChange();
+		mockContactsHierarchyChangesReturnNoChange();
+		mockMailBackendHierarchyChanges(mailboxesChanges);
 	}
 
-	public void mockCalendar()
-			throws DaoException, UnexpectedObmSyncServerException {
-		expect(calendarBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
-				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
-			.andReturn(emptyChange()).anyTimes();
+	private void mockCalendarHierarchyChangesReturnNoChange() {
+		mockBackendHierarchyChangesReturnNoChange(calendarBackend);
 	}
 	
-	public void mockTask() throws DaoException {
-		expect(taskBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
-				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
-			.andReturn(emptyChange()).anyTimes();
+	private void mockTaskHierarchyChangesReturnNoChange() throws DaoException {
+		mockBackendHierarchyChangesReturnNoChange(taskBackend);
 	}
 	
-	public void mockAddressBook()
-			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
-		expect(contactsBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
-				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
-			.andReturn(emptyChange()).anyTimes();
+	private void mockContactsHierarchyChangesReturnNoChange() {
+		mockBackendHierarchyChangesReturnNoChange(contactsBackend);
 	}
 	
-	public void mockMailBackend(HierarchyCollectionChanges hierarchyMailboxesChanges)
-			throws DaoException, InvalidSyncKeyException {
-		
-		expect(mailBackend.getHierarchyChanges(anyObject(UserDataRequest.class),
-				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
-			.andReturn(hierarchyMailboxesChanges).anyTimes();
+	private void mockBackendHierarchyChangesReturnNoChange(PIMBackend backend) {
+		mockBackendHierarchyChanges(backend, emptyChange());
 	}
 
+	public void mockMailBackendHierarchyChanges(HierarchyCollectionChanges hierarchyMailboxesChanges) {
+		mockBackendHierarchyChanges(mailBackend, hierarchyMailboxesChanges);
+	}
+	
+	private void mockBackendHierarchyChanges(PIMBackend backend, HierarchyCollectionChanges changes) {
+		expect(backend.getHierarchyChanges(anyObject(UserDataRequest.class),
+				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
+			.andReturn(changes);
+	}
+	
 	private HierarchyCollectionChanges emptyChange() {
 		return HierarchyCollectionChanges.builder().build();
 	}
@@ -127,13 +136,4 @@ public class IntegrationPushTestUtils {
 		}
 	}
 
-	public CollectionChange buildInboxFolder() {
-		return CollectionChange.builder()
-				.collectionId(CollectionId.of(1))
-				.parentCollectionId(CollectionId.ROOT)
-				.displayName("INBOX")
-				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.isNew(true)
-				.build();
-	}
 }
