@@ -1,4 +1,4 @@
-= Opush 3.0.1 Administration Guide
+= Opush 3.0.2 Administration Guide
 Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com>; Thomas Hilaire <thilaire@linagora.com>;
 :imagesdir: images
 :numbered:
