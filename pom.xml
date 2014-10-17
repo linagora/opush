@@ -22,7 +22,7 @@
 		<obm.version>3.0.1-alpha3</obm.version>
 		<opush.release>3.0.2</opush.release>
 		<opush.version>${opush.release}-SNAPSHOT</opush.version>
-		<opush.packaging.version>${opush.release}~rc2~git${mvngit.commit.committer.date}.${mvngit.commit.abbrev}</opush.packaging.version>
+		<opush.packaging.version>${opush.release}~rc3~git${mvngit.commit.committer.date}.${mvngit.commit.abbrev}</opush.packaging.version>
 		<opush.packaging.release>1</opush.packaging.release>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
