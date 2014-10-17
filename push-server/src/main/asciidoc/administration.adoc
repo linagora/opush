@@ -380,11 +380,14 @@ You can use the following logger modules:
 * +CONFIGURATION+ for configuration details, printed at application startup
 * +CONTAINER+ for the HTTP Servlet Container information
 * +IMAP.COMMAND+ for imap conversations
+* +MAIL.DATA+ for the content of emails sent through Opush
+* +MIGRATION+ shows the progression of migrations, it is enabled by default
 * +OBM-SYNC+ for data exchanged between opush and obm-sync web services
 * +REQUEST.FULL+ for requests and responses from and to the server,
 	with sensitive data
 * +REQUEST.TRIMMED+ for requests and responses from and to the server,
 	without sensitive data
+* +RESOURCES+ to see how resources like http client, imap connection and others are created, used then closed for each request
 * +SUMMARY.IN+ for a summary of changes contained in an incoming request from the server point of view
 * +SUMMARY.OUT+ for a summary of changes contained in an outgoing request from the server point of view
 
