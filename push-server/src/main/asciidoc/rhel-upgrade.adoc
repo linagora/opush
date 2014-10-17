@@ -15,7 +15,7 @@ In order to add the Opush RPM repository declaration, create the file +/etc/yum.
 ----
 [opush]
 name=opush
-baseurl=http://packages.obm.org/rpm/opush/stable/$releasever
+baseurl=http://rpm.obm.org/opush/stable/$releasever
 enabled=1
 gpgcheck=0
 ----
