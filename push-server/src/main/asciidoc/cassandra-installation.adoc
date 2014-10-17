@@ -2,13 +2,13 @@
 
 === Requirements
 
-  * *Cassandra* 2.0, version >= 2.0.6
+  * *Cassandra* 2.1 or 2.0 (version >= 2.0.6)
   * At least 2GiB of RAM
   * The *Cassandra* cluster must be installed (guides for
-http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installDeb_t.html[Debian]
+http://www.datastax.com/documentation/cassandra/2.1/cassandra/install/installDeb_t.html[Debian]
 and
-http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installRHEL_t.html[RHEL])
-and http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[configured]
+http://www.datastax.com/documentation/cassandra/2.1/cassandra/install/installRHEL_t.html[RHEL])
+and http://www.datastax.com/documentation/cassandra/2.1/cassandra/initialize/initializeSingleDS.html[configured]
 
 WARNING: Despite what datastax documentation says, *Cassandra* works well on OpenJDK 7
 
@@ -23,7 +23,7 @@ you will have to deploy at least 3 nodes to have durability and fault-tolerance.
 
 ==== Three Nodes (recommended)
 
-Official instructions to setup a cluster can be found http://www.datastax.com/documentation/cassandra/2.0/cassandra/initialize/initializeSingleDS.html[here]. +
+Official instructions to setup a cluster can be found http://www.datastax.com/documentation/cassandra/2.1/cassandra/initialize/initializeSingleDS.html[here]. +
 You can find below an example for a three nodes cluster, only +cluster_name+, +seeds+ and +rpc_address+ fields have to be modified to get your cluster working. We will not cover advanced configuration in this documentation.
 
 Assuming that you have three servers with IPs +192.168.56.1+, +192.168.56.2+ & +192.168.56.3+ and you want only one +seed+.
@@ -152,7 +152,7 @@ First of all, you have to create a keyspace, this must be done in the +cqlsh+ sh
 $ cqlsh -u cassandra -p cassandra NODE_RPC_ADDRESS
 ---- 
 
-A keyspace is created with a data replication configuration, to understand it please read this http://www.datastax.com/documentation/cassandra/2.0/cassandra/architecture/architectureDataDistributeReplication_c.html[page]. +
+A keyspace is created with a data replication configuration, to understand it please read this http://www.datastax.com/documentation/cassandra/2.1/cassandra/architecture/architectureDataDistributeReplication_c.html[page]. +
 Create it with the following command in the +cqlsh+ shell:
 
 [source]
