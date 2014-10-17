@@ -27,3 +27,32 @@ $ cqlsh -u cassandra -p cassandra NODE_RPC_ADDRESS
 cqlsh> TRUNCATE OPUSH_KEYSPACE.monitored_collection;
 cqlsh> TRUNCATE OPUSH_KEYSPACE.synced_collection;
 ----
+
+
+=== 3.0.1 to 3.0.2
+
+.Changelog (partial)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-105[OP-105]|Render the cassandra client read timeout configurable
+|http://ci-obm.linagora.com/jira/browse/OP-104[OP-104]|Support Cassandra 2.1
+|http://ci-obm.linagora.com/jira/browse/OP-100[OP-100]|Passwords should be logged as *** in all logs
+|http://ci-obm.linagora.com/jira/browse/OP-97[OP-97]|A allday event created on iOS is created the day before
+|http://ci-obm.linagora.com/jira/browse/OP-85[OP-85]|Return HTTP 401 only when there really is an auth issue
+|http://ci-obm.linagora.com/jira/browse/OP-84[OP-84]|Ensure that data inserted into cassandra expire
+|http://ci-obm.linagora.com/jira/browse/OP-83[OP-83]|ItemOperation supports email deletion
+|http://ci-obm.linagora.com/jira/browse/OP-82[OP-82]|Support for attachments of attached emails
+|http://ci-obm.linagora.com/jira/browse/OP-80[OP-82]|Support for attachments of attached emails
+|http://ci-obm.linagora.com/jira/browse/OP-76[OP-76]|Add SQL indexes for faster device deletion
+|http://ci-obm.linagora.com/jira/browse/OP-75[OP-75]|Fix a file-descriptor leak in the CRaSH console
+|http://ci-obm.linagora.com/jira/browse/OP-74[OP-74]|Fix a file-descriptor leak in spushnik
+|http://ci-obm.linagora.com/jira/browse/OP-73[OP-73]|Fix a file-descriptor leak in a Opush servlet
+|http://ci-obm.linagora.com/jira/browse/OP-66[OP-66]|Avoid global status error
+|http://ci-obm.linagora.com/jira/browse/OP-64[OP-64]|Client side max number of results returned by a LDAP search
+|=====================================
+
+.Make the upgrade
+. Upgrade Opush, the service will be not be available at the restart as it requires a schema update
+. Connect the <<_administration_with_the_strong_crash_strong_console, *CRaSH* console>>
+. <<crash-usage.adoc##_co
