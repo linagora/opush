@@ -38,23 +38,22 @@ import org.junit.Test;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.CassandraStructure;
 import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
-import org.obm.push.cassandra.dao.SchemaCQLDataSet;
+import org.obm.push.cassandra.dao.OpushCassandraCQLUnit;
 import org.obm.push.cassandra.dao.SessionProvider;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.configuration.CassandraConfiguration;
 
 public class CassandraServiceTest {
 
-	private static final String KEYSPACE = "my_keyspace";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(CassandraSchemaDao.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
 	private CassandraService testee;
 	
 	@Before
 	public void init() {
 		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
-		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
+		CassandraConfiguration configuration = new TestCassandraConfiguration(OpushCassandraCQLUnit.KEYSPACE);
 		testee = new CassandraService(sessionProvider, configuration);
 	}
 

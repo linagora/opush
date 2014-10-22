@@ -40,9 +40,8 @@ import org.slf4j.LoggerFactory;
 
 public class SnapshotDaoCassandraImplTest extends SnapshotDaoTest {
 
-	private static final String KEYSPACE = "opush";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(SnapshotDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
 	private Logger logger = LoggerFactory.getLogger(SnapshotDaoCassandraImplTest.class);
 	

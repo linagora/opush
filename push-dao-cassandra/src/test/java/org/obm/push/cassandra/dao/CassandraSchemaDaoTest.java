@@ -55,9 +55,8 @@ import org.slf4j.LoggerFactory;
 
 public class CassandraSchemaDaoTest {
 
-	private static final String KEYSPACE = "opush";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(CassandraSchemaDao.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
 	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoTest.class);
 
@@ -70,7 +69,7 @@ public class CassandraSchemaDaoTest {
 	public void init() {
 		control = createControl();
 		dateProvider = control.createMock(DateProvider.class);
-		CassandraConfiguration configuration = new TestCassandraConfiguration(KEYSPACE);
+		CassandraConfiguration configuration = new TestCassandraConfiguration(OpushCassandraCQLUnit.KEYSPACE);
 		
 		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
 		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 

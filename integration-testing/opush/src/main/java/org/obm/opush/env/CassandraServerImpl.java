@@ -30,20 +30,28 @@
 package org.obm.opush.env;
 
 import org.cassandraunit.CassandraCQLUnit;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.EmptyKeyspaceDataset;
 import org.obm.push.cassandra.migration.CassandraMigrationService;
 
 import com.datastax.driver.core.Session;
+import com.google.common.base.Objects;
+import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 
 public class CassandraServerImpl extends CassandraCQLUnit implements CassandraServer {
 
 	private static final String KEYSPACE = "opush";
+	private static final long STARTUP_TIMEOUT = Objects.firstNonNull(
+			VMArgumentsUtils.integerArgumentValue("cassandraStartupTime"),
+			Ints.checkedCast(EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT));
+
 	private CassandraMigrationService cassandraSchemaService;
 
 	@Inject
 	private CassandraServerImpl(CassandraMigrationService cassandraSchemaService) {
-		super(new EmptyKeyspaceDataset(KEYSPACE), "cassandra.yaml", "localhost", 9042);
+		super(new EmptyKeyspaceDataset(KEYSPACE), "cassandra.yaml", "localhost", 9042, STARTUP_TIMEOUT);
 		this.cassandraSchemaService = cassandraSchemaService;
 	}
 	

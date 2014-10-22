@@ -53,7 +53,7 @@ import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
-import org.obm.push.cassandra.dao.SchemaCQLDataSet;
+import org.obm.push.cassandra.dao.OpushCassandraCQLUnit;
 import org.obm.push.cassandra.dao.SessionProvider;
 import org.obm.push.cassandra.schema.Version;
 import org.slf4j.Logger;
@@ -69,9 +69,8 @@ public class V2ToV3_TTLTest {
 
 
 	private static final int MIN_EXPECTED_TTL = Ints.checkedCast(TimeUnit.SECONDS.convert(29, TimeUnit.DAYS));
-	private static final String KEYSPACE = "opush";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schema(Version.of(2));
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 
 	V2ToV3_TTL testee;
 	Session session;

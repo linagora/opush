@@ -31,51 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
-import static org.easymock.EasyMock.createMock;
-
 import org.cassandraunit.CassandraCQLUnit;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.obm.push.cassandra.PublicCassandraService;
-import org.obm.push.cassandra.TestCassandraConfiguration;
-import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.schema.Version;
-import org.obm.push.configuration.CassandraConfiguration;
-import org.obm.sync.date.DateProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.obm.configuration.VMArgumentsUtils;
 
-public class CassandraSchemaDaoNoTableTest {
+import com.google.common.base.Objects;
+import com.google.common.primitives.Ints;
 
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit("empty.cql");
-	
-	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoNoTableTest.class);
-	
-	private CassandraSchemaDao schemaDao;
-	
-	@Before
-	public void init() {
-		DateProvider dateProvider = createMock(DateProvider.class);
+public class OpushCassandraCQLUnit extends CassandraCQLUnit {
 
-		CassandraConfiguration configuration = new TestCassandraConfiguration(OpushCassandraCQLUnit.KEYSPACE);
-		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
-		schemaDao = new CassandraSchemaDao(sessionProvider, new PublicJSONService(), logger, 
-				new PublicCassandraService(sessionProvider, configuration), dateProvider);
-	}
+	public static final String KEYSPACE = "opush";
+	public static final String YAML = "cassandra.yaml";
+	public static final String HOST = "localhost";
+	public static final int PORT = 9042;
+	public static final long STARTUP_TIMEOUT = Objects.firstNonNull(
+			VMArgumentsUtils.integerArgumentValue("cassandraStartupTime"),
+			Ints.checkedCast(EmbeddedCassandraServerHelper.DEFAULT_STARTUP_TIMEOUT));
 
-	@Test(expected=NoTableException.class)
-	public void getCurrentVersionWhenNoTable() {
-		schemaDao.getCurrentVersion();
-	}
-	
-	@Test(expected=NoTableException.class)
-	public void getHistoryWhenNoTable() {
-		schemaDao.getHistory();
-	}
-	
-	@Test(expected=NoTableException.class)
-	public void updateVersionWhenNoTable() {
-		schemaDao.updateVersion(Version.of(5));
+	public OpushCassandraCQLUnit(String schema) {
+		super(new SchemaCQLDataSet(schema, KEYSPACE), YAML, HOST, PORT, STARTUP_TIMEOUT);
 	}
 }

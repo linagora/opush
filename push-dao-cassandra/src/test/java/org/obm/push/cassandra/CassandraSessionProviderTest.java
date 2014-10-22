@@ -34,10 +34,10 @@ package org.obm.push.cassandra;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.cassandra.dao.OpushCassandraCQLUnit;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
@@ -46,12 +46,10 @@ import com.datastax.driver.core.querybuilder.Select;
 
 public class CassandraSessionProviderTest {
 
-	private static final String KEYSPACE = "opush";
-
 	// In this test, we want to connect to EmbeddedCassandra without cassandraCQLUnit.session;
 	// but the default port in com.datastax.driver.core.ProtocolOptions (9042) doesn't match the default port in cu-cassandra.yaml
 	// so we have to give a working configuration.
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet("empty.cql", KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit("empty.cql");
 
 	private CassandraSessionProvider cassandraSessionProvider;
 	
@@ -70,7 +68,7 @@ public class CassandraSessionProviderTest {
 		Select query = QueryBuilder.select("keyspace_name").from("system", "schema_keyspaces");
 		ResultSet resultSet = session.execute(query);
 		assertThat(resultSet.isExhausted()).isFalse();
-		assertThat(resultSet.one().getString("keyspace_name")).isEqualTo(KEYSPACE);
+		assertThat(resultSet.one().getString("keyspace_name")).isEqualTo(OpushCassandraCQLUnit.KEYSPACE);
 	}
 	
 	private final class CassandraSessionSupplierImpl implements CassandraSessionSupplier {

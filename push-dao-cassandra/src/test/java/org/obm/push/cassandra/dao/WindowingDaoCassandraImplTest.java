@@ -56,9 +56,8 @@ import com.google.common.collect.ImmutableList;
 
 public class WindowingDaoCassandraImplTest extends WindowingDaoTest {
 
-	private static final String KEYSPACE = "opush";
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(WindowingDaoCassandraImpl.class);
-	@Rule public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new SchemaCQLDataSet(DAO_SCHEMA, KEYSPACE), "cassandra.yaml", "localhost", 9042);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
 	private Logger logger = LoggerFactory.getLogger(SyncedCollectionDaoCassandraImplTest.class);
 	private WindowingDaoCassandraImpl testeeImpl;
