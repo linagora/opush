@@ -85,12 +85,9 @@ public abstract class BodyPreferencePolicy {
 	protected static Comparator<FetchInstruction> betterFitComparator(final List<BodyPreference> bodyPreferences) {
 		final List<MSEmailBodyType> preferences = FluentIterable
 				.from(Iterables.concat(bodyPreferences, DEFAULT_BODY_PREFERENCES))
-				.transform(new Function<BodyPreference, MSEmailBodyType>() {
-					@Override
-					public MSEmailBodyType apply(BodyPreference input) {
-						return input.getType();
-					}
-				}).toList();
+				.transform(bodyPreferenceToMSEmailBodyType()).toList();
+		final List<MSEmailBodyType> clientPreferences = FluentIterable.from(bodyPreferences)
+				.transform(bodyPreferenceToMSEmailBodyType()).toList();
 		
 		return new Comparator<FetchInstruction>() {
 			
@@ -109,9 +106,22 @@ public abstract class BodyPreferencePolicy {
 					return 1;
 				} else if (o2.getBodyType() == MSEmailBodyType.MIME) {
 					return -1;
+				} else if (clientPreferences.contains(o1.getBodyType()) && !clientPreferences.contains(o2.getBodyType())) {
+					return -1;
+				} else if (!clientPreferences.contains(o1.getBodyType()) && clientPreferences.contains(o2.getBodyType())) {
+					return 1;
 				} else {
 					return computeWeight(o1) - computeWeight(o2);
 				}
+			}
+		};
+	}
+
+	private static Function<BodyPreference, MSEmailBodyType> bodyPreferenceToMSEmailBodyType() {
+		return new Function<BodyPreference, MSEmailBodyType>() {
+			@Override
+			public MSEmailBodyType apply(BodyPreference input) {
+				return input.getType();
 			}
 		};
 	}

@@ -74,6 +74,13 @@ public class AnyMatchBodyPreferencePolicy extends BodyPreferencePolicy {
 								.instruction(FetchInstruction.builder().mailTransformation(MailTransformation.TEXT_PLAIN_TO_TEXT_HTML))
 								.build());
 			case PlainText:
+				return Arrays.asList(
+						FetchHints.builder()
+							.contentType(toContentType(MSEmailBodyType.PlainText)).build(),
+						FetchHints.builder()
+							.contentType(toContentType(MSEmailBodyType.HTML))
+							.instruction(FetchInstruction.builder().mailTransformation(MailTransformation.TEXT_HTML_TO_TEXT_PLAIN))
+							.build());
 			case RTF:
 			default:
 				return super.listContentTypes(bodyType);

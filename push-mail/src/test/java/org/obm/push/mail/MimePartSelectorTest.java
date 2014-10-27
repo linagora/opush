@@ -70,6 +70,7 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
 	
 		control.replay();
 		FetchInstruction mimePartSelector = mimeMessageSelector.select(new AnyMatchBodyPreferencePolicy(),
@@ -133,7 +134,7 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(mimePart).anyTimes();
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(mimePart);
-		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null).times(2);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(mimePart);
 	
 		control.replay();
@@ -149,7 +150,7 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(mimePart).anyTimes();
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
-		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart).times(2);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
 	
 		control.replay();
@@ -165,7 +166,7 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(mimePart).anyTimes();
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
-		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart).times(2);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
 	
 		control.replay();
@@ -181,7 +182,7 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(mimePart).anyTimes();
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
-		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null).times(2);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(null);
 		
 		control.replay();
@@ -251,7 +252,7 @@ public class MimePartSelectorTest {
 
 	@Test
 	public void testSelectLargerThanQueryPreferencesWithAllOrNone() {
-		MimePart mimePart = MimePartImpl.builder().contentType("text/html").build();
+		MimePart mimePart = MimePartImpl.builder().contentType("text/html").size(50).build();
 	
 		MimePart expectedMimePart = control.createMock(MimePart.class);
 	
@@ -259,8 +260,9 @@ public class MimePartSelectorTest {
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
 		expect(expectedMimePart.getSize()).andReturn(50);
-		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
 		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(mimePart).times(2);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
 	
 		BodyPreference bodyPreference = BodyPreference.builder().
@@ -281,6 +283,7 @@ public class MimePartSelectorTest {
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
 		expect(expectedMimePart.getSize()).andReturn(10);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
 	
 		BodyPreference bodyPreference = BodyPreference.builder().
 				bodyType(MSEmailBodyType.PlainText).truncationSize(50).allOrNone(true).build();
@@ -300,7 +303,8 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
-	
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
+		
 		BodyPreference bodyPreference = BodyPreference.builder().
 				bodyType(MSEmailBodyType.PlainText).allOrNone(true).build();
 	
@@ -319,7 +323,8 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
-	
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
+		
 		BodyPreference bodyPreference = BodyPreference.builder().
 				bodyType(MSEmailBodyType.PlainText).allOrNone(false).build();
 	
@@ -338,7 +343,8 @@ public class MimePartSelectorTest {
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(expectedMimePart);
-	
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(null);
+		
 		BodyPreference bodyPreference = BodyPreference.builder().
 				bodyType(MSEmailBodyType.PlainText).truncationSize(10).allOrNone(false).build();
 	
@@ -361,6 +367,8 @@ public class MimePartSelectorTest {
 		expect(mimeMessage.findMainMessage(contentType("text/rtf"))).andReturn(null);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(plainTextMimePart);
 		expect(plainTextMimePart.getSize()).andReturn(50);
+		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(expectedMimePart);
+		expect(expectedMimePart.getSize()).andReturn(10);
 		expect(mimeMessage.findMainMessage(contentType("text/html"))).andReturn(expectedMimePart);
 		expect(expectedMimePart.getSize()).andReturn(10);
 		expect(mimeMessage.findMainMessage(contentType("text/plain"))).andReturn(plainTextMimePart);

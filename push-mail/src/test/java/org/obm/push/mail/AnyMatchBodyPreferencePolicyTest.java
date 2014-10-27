@@ -99,7 +99,7 @@ public class AnyMatchBodyPreferencePolicyTest {
 	}
 	
 	@Test
-	public void selectBetterFitTransformationIsNotTheBestFit() {
+	public void selectHtmlWithHtmlOrTransformedHtmlShouldReturnHtml() {
 		MimePart mimePart = EasyMock.createNiceMock(MimePart.class);
 		FetchInstruction transformedHtmlFetchInstruction = FetchInstruction.builder()
 				.bodyType(MSEmailBodyType.HTML).mailTransformation(MailTransformation.TEXT_PLAIN_TO_TEXT_HTML).mimePart(mimePart).build();
@@ -113,7 +113,7 @@ public class AnyMatchBodyPreferencePolicyTest {
 	}
 	
 	@Test
-	public void selectBetterFitTransformationIsBetterThanFollowingPreferences() {
+	public void selectHtmlThenTextWhenTextOrTransformedHtmlShouldReturnHtml() {
 		MimePart mimePart = EasyMock.createNiceMock(MimePart.class);
 		FetchInstruction transformedHtmlFetchInstruction = FetchInstruction.builder()
 				.bodyType(MSEmailBodyType.HTML).mailTransformation(MailTransformation.TEXT_PLAIN_TO_TEXT_HTML).mimePart(mimePart).build();
@@ -125,4 +125,46 @@ public class AnyMatchBodyPreferencePolicyTest {
 				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.HTML, MSEmailBodyType.PlainText));
 		assertThat(actual).isSameAs(htmlFetchInstruction);
 	}
+	
+	@Test
+	public void selectTextWhenTextOrTransformedTextShouldReturnText() {
+		MimePart mimePart = EasyMock.createNiceMock(MimePart.class);
+		FetchInstruction transformedTextFetchInstruction = FetchInstruction.builder()
+				.bodyType(MSEmailBodyType.PlainText).mailTransformation(MailTransformation.TEXT_HTML_TO_TEXT_PLAIN).mimePart(mimePart).build();
+		FetchInstruction textFetchInstruction = FetchInstruction.builder().bodyType(MSEmailBodyType.PlainText).mimePart(mimePart).build();
+
+		FetchInstruction actual =
+			new AnyMatchBodyPreferencePolicy().selectBetterFit(
+				ImmutableList.of(transformedTextFetchInstruction, textFetchInstruction),
+				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.PlainText));
+		assertThat(actual).isSameAs(textFetchInstruction);
+	}
+	
+	@Test
+	public void selectTextWhenTransformedTextShouldReturnTransformedText() {
+		MimePart mimePart = EasyMock.createNiceMock(MimePart.class);
+		FetchInstruction transformedTextFetchInstruction = FetchInstruction.builder()
+				.bodyType(MSEmailBodyType.PlainText).mailTransformation(MailTransformation.TEXT_HTML_TO_TEXT_PLAIN).mimePart(mimePart).build();
+
+		FetchInstruction actual =
+			new AnyMatchBodyPreferencePolicy().selectBetterFit(
+				ImmutableList.of(transformedTextFetchInstruction),
+				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.PlainText));
+		assertThat(actual).isSameAs(transformedTextFetchInstruction);
+	}
+	
+	@Test
+	public void selectTextWhenTransformedTextOrHtmlShouldReturnTransformedText() {
+		MimePart mimePart = EasyMock.createNiceMock(MimePart.class);
+		FetchInstruction transformedTextFetchInstruction = FetchInstruction.builder()
+				.bodyType(MSEmailBodyType.PlainText).mailTransformation(MailTransformation.TEXT_HTML_TO_TEXT_PLAIN).mimePart(mimePart).build();
+		FetchInstruction htmlFetchInstruction = FetchInstruction.builder().bodyType(MSEmailBodyType.HTML).mimePart(mimePart).build();
+		
+		FetchInstruction actual =
+			new AnyMatchBodyPreferencePolicy().selectBetterFit(
+				ImmutableList.of(transformedTextFetchInstruction, htmlFetchInstruction),
+				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.PlainText));
+		assertThat(actual).isSameAs(transformedTextFetchInstruction);
+	}
+	
 }
