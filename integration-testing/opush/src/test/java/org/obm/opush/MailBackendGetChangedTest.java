@@ -84,6 +84,7 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.push.client.OPClient;
+import org.obm.sync.push.client.commands.SyncWithCommand;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -1094,8 +1095,9 @@ public class MailBackendGetChangedTest {
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 
 		ServerId serverId = inboxCollectionId.serverId(1);
-		SyncResponse syncResponseWithFetch = opClient.syncWithCommand(
-				decoder, secondAllocatedSyncKey, inboxCollectionId, SyncCommand.FETCH, serverId);
+		SyncResponse syncResponseWithFetch = opClient.run(
+				SyncWithCommand.builder(decoder).syncKey(secondAllocatedSyncKey)
+					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
 
@@ -1173,7 +1175,9 @@ public class MailBackendGetChangedTest {
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		
-		SyncResponse response = opClient.syncWithCommand(decoder, secondAllocatedSyncKey, inboxCollectionId, SyncCommand.FETCH, serverId);
+		SyncResponse response = opClient.run(
+				SyncWithCommand.builder(decoder).syncKey(secondAllocatedSyncKey)
+					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();

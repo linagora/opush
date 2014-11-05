@@ -83,6 +83,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
+import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
 import org.obm.push.store.CalendarDao;
@@ -97,7 +98,7 @@ import org.obm.sync.client.calendar.CalendarClient;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithDataCommand;
+import org.obm.sync.push.client.commands.SyncWithCommand;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -112,7 +113,7 @@ public class SyncHandlerOnCalendarsTest {
 	@Inject private IMocksControl mocksControl;
 	@Inject private Configuration configuration;
 	@Inject private SyncDecoder decoder;
-	@Inject private SyncWithDataCommand.Factory syncWithDataCommandFactory;
+	@Inject private EncoderFactory encoderFactory;
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
@@ -406,8 +407,10 @@ public class SyncHandlerOnCalendarsTest {
 		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionId.asString()));
 		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionId, SyncCommand.CHANGE, 
-				serverId, clientId, msEventUpdated);
+		SyncResponse updateSyncResponse = opClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.CHANGE)
+					.serverId(serverId).clientId(clientId).data(msEventUpdated).build());
 		mocksControl.verify();
 
 		SyncCollectionResponse initialCollectionResponse = syncTestUtils.getCollectionWithId(initialSyncResponse, calendarCollectionId);
@@ -537,8 +540,10 @@ public class SyncHandlerOnCalendarsTest {
 		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
-		SyncResponse updateSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, calendarCollectionId, SyncCommand.ADD, 
-				serverId, clientId, createdMSEvent);
+		SyncResponse updateSyncResponse = opClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.ADD)
+					.serverId(serverId).clientId(clientId).data(createdMSEvent).build());
 		mocksControl.verify();
 
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);

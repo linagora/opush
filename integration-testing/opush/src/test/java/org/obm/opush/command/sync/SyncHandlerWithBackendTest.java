@@ -103,6 +103,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
+import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
 import org.obm.push.store.CalendarDao;
@@ -126,7 +127,7 @@ import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithDataCommand;
+import org.obm.sync.push.client.commands.SyncWithCommand;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -161,7 +162,7 @@ public class SyncHandlerWithBackendTest {
 	@Inject private IMocksControl mocksControl;
 	@Inject private Configuration configuration;
 	@Inject private SyncDecoder decoder;
-	@Inject private SyncWithDataCommand.Factory syncWithDataCommandFactory;
+	@Inject private EncoderFactory encoderFactory;
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private TransactionProvider transactionProvider;
 	@Inject private CassandraServer cassandraServer;
@@ -178,7 +179,6 @@ public class SyncHandlerWithBackendTest {
 	@Inject private LoginClient loginClient;
 	@Inject private DeviceDao deviceDao;
 	@Inject private SyncTestUtils syncTestUtils;
-	
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
@@ -752,7 +752,9 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
-		SyncResponse secondSyncResponse = opClient.syncWithCommand(decoder, secondAllocatedSyncKey, inboxCollectionId, SyncCommand.FETCH, serverId);
+		SyncResponse secondSyncResponse = opClient.run(
+				SyncWithCommand.builder(decoder).syncKey(secondAllocatedSyncKey)
+					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
 
@@ -1288,8 +1290,10 @@ public class SyncHandlerWithBackendTest {
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, calendarCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		
 		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
-		SyncResponse updatedSyncResponse = opClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, 
-				calendarCollectionId, SyncCommand.CHANGE, serverId, clientId, msEvent);
+		SyncResponse updatedSyncResponse = opClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.CHANGE)
+					.serverId(serverId).clientId(clientId).data(msEvent).build());
 		
 		mocksControl.verify();
 

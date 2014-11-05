@@ -46,15 +46,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
@@ -87,8 +84,6 @@ import org.obm.sync.push.client.commands.SimpleSyncCommand;
 import org.obm.sync.push.client.commands.SmartEmailCommand.SmartForward;
 import org.obm.sync.push.client.commands.SmartEmailCommand.SmartReply;
 import org.obm.sync.push.client.commands.Sync;
-import org.obm.sync.push.client.commands.SyncWithCommand;
-import org.obm.sync.push.client.commands.SyncWithDataCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -115,7 +110,7 @@ public abstract class OPClient implements AutoCloseable {
 		this.hc = httpClient;
 	}
 
-	private <T> T run(IEasCommand<T> cmd) throws Exception {
+	public <T> T run(IEasCommand<T> cmd) throws Exception {
 		return cmd.run(ai, this, hc);
 	}
 
@@ -159,18 +154,6 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new EmailSyncCommandWithWait(decoder, key, collectionId, filterType, windowSize));
 	}
 	
-	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, CollectionId collectionId, SyncCommand command, ServerId serverId) throws Exception {
-		return syncWithCommand(decoder, key, collectionId, command, serverId, null);
-	}
-	
-	public SyncResponse syncWithCommand(SyncDecoder decoder, SyncKey key, CollectionId collectionId, SyncCommand command, ServerId serverId, String clientId) throws Exception {
-		return run(new SyncWithCommand(decoder, key, collectionId, command, serverId, clientId));
-	}
-	
-	public SyncResponse syncWithCommand(SyncWithDataCommand.Factory factory, Device device, SyncKey key,
-			CollectionId collectionId, SyncCommand command, ServerId serverId, String clientId, IApplicationData data) throws Exception {
-		return run(factory.create(key, collectionId, command, serverId, clientId, data, device));
-	}
 
 	public SyncResponse syncWithoutOptions(SyncDecoder decoder, SyncKey key, CollectionId collectionId) throws Exception {
 		return run(new EmailSyncNoOptionsCommand(decoder, key, collectionId));

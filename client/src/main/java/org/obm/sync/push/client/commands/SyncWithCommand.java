@@ -33,10 +33,13 @@ package org.obm.sync.push.client.commands;
 
 import java.io.IOException;
 
+import org.obm.push.bean.Device;
+import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.protocol.data.SyncRequestFields;
 import org.obm.push.utils.DOMUtils;
@@ -46,12 +49,79 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 
 public class SyncWithCommand extends Sync {
+
+	public static Builder builder(SyncDecoder decoder) {
+		return new Builder(decoder);
+	}
 	
-	public SyncWithCommand(SyncDecoder decoder, SyncKey syncKey, CollectionId collectionId, SyncCommand command,
-			ServerId serverId, String clientId) throws SAXException, IOException {
-		this(decoder, new SyncWithCommandTemplate(syncKey, collectionId, command, serverId, clientId));
+	public static class Builder {
+		
+		private final SyncDecoder decoder;
+		private EncoderFactory encoderFactory;
+		
+		private SyncKey syncKey;
+		private CollectionId collectionId;
+		private SyncCommand command;
+		private ServerId serverId;
+		private String clientId;
+		private IApplicationData data;
+
+		private Device device;
+
+		private Builder(SyncDecoder decoder) {
+			this.decoder = decoder;
+		}
+		
+		public Builder encoder(EncoderFactory encoderFactory) {
+			this.encoderFactory = encoderFactory;
+			return this;
+		}
+		
+		public Builder syncKey(SyncKey syncKey) {
+			this.syncKey = syncKey;
+			return this;
+		}
+		
+		public Builder collectionId(CollectionId collectionId) {
+			this.collectionId = collectionId;
+			return this;
+		}
+		
+		public Builder command(SyncCommand command) {
+			this.command = command;
+			return this;
+		}
+		
+		public Builder serverId(ServerId serverId) {
+			this.serverId = serverId;
+			return this;
+		}
+		
+		public Builder clientId(String clientId) {
+			this.clientId = clientId;
+			return this;
+		}
+		
+		public Builder data(IApplicationData data) {
+			this.data = data;
+			return this;
+		}
+		
+		public Builder device(Device device) {
+			this.device = device;
+			return this;
+		}
+		
+		public SyncWithCommand build() throws SAXException, IOException {
+			if (data != null) {
+				return new SyncWithCommand(decoder, new SyncWithCommandDataTemplate(syncKey, collectionId, command, serverId, clientId, data, encoderFactory, device));
+			} else {
+				return new SyncWithCommand(decoder, new SyncWithCommandTemplate(syncKey, collectionId, command, serverId, clientId));
+			}
+		}
 	}
 	
 	protected SyncWithCommand(SyncDecoder decoder, TemplateDocument template) {
@@ -90,6 +160,35 @@ public class SyncWithCommand extends Sync {
 			}
 			if (!Strings.isNullOrEmpty(clientId)) {
 				DOMUtils.createElementAndText(commandEl, SyncRequestFields.CLIENT_ID.getName(), clientId);
+			}
+		}
+	}
+	
+	public static class SyncWithCommandDataTemplate extends SyncWithCommandTemplate {
+
+		private final IApplicationData data;
+		private final EncoderFactory encoders;
+		private final Device device;
+
+		protected SyncWithCommandDataTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
+				ServerId serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
+				throws SAXException, IOException {
+			super(syncKey, collectionId, command, serverId, clientId);
+			this.data = data;
+			this.encoders = encoders;
+			this.device = device;
+		}
+
+		@Override
+		protected void customize(Document document, AccountInfos accountInfos) {
+			try {
+				super.customize(document, accountInfos);
+				Element commandsEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COMMANDS.getName());
+				Element commandEl = DOMUtils.getUniqueElement(commandsEl, command.asSpecificationValue());
+				Element applicationDataEl = DOMUtils.createElement(commandEl, SyncRequestFields.APPLICATION_DATA.getName());
+				encoders.encode(device, applicationDataEl, data, false);
+			} catch (IOException e) {
+				Throwables.propagate(e);
 			}
 		}
 	}

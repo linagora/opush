@@ -68,6 +68,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
+import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
 import org.obm.push.store.CollectionDao;
@@ -80,7 +81,7 @@ import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.push.client.WBXMLOPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithDataCommand;
+import org.obm.sync.push.client.commands.SyncWithCommand;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -97,14 +98,13 @@ public class SyncHandlerOnContactsTest {
 	@Inject private IMocksControl mocksControl;
 	@Inject private Configuration configuration;
 	@Inject private SyncDecoder decoder;
-	@Inject private SyncWithDataCommand.Factory syncWithDataCommandFactory;
+	@Inject private EncoderFactory encoderFactory;
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private SyncTestUtils syncTestUtils;
-	
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
 	@Inject private BookClient bookClient;
@@ -330,9 +330,10 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = 
-				opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.ADD, 
-				null, clientId, createdMSContact);
+		SyncResponse updateSyncResponse = opushClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.ADD)
+					.clientId(clientId).data(createdMSContact).build());
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -446,8 +447,10 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
-				serverId, clientId, modifiedMSContact);
+		SyncResponse updateSyncResponse = opushClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.CHANGE)
+					.serverId(serverId).clientId(clientId).data(modifiedMSContact).build());
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -559,8 +562,10 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
-		SyncResponse updateSyncResponse = opushClient.syncWithCommand(syncWithDataCommandFactory, user.device, secondAllocatedSyncKey, contactCollectionId, SyncCommand.CHANGE, 
-				serverId, clientId, modifiedMSContact);
+		SyncResponse updateSyncResponse = opushClient.run(
+				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.CHANGE)
+					.serverId(serverId).clientId(clientId).data(modifiedMSContact).build());
 		
 		mocksControl.verify();
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
