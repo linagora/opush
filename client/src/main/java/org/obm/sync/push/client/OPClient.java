@@ -62,7 +62,6 @@ import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.wbxml.WBXmlException;
 import org.obm.sync.push.client.beans.AccountInfos;
-import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 import org.obm.sync.push.client.commands.DocumentProvider;
 import org.obm.sync.push.client.commands.EmailDeleteSyncRequest;
@@ -134,16 +133,8 @@ public abstract class OPClient implements AutoCloseable {
 		return run(new FolderSync(key));
 	}
 
-	public SyncResponse initialSync(SyncDecoder decoder, Folder... folders) throws Exception {
-		return run(new Sync(decoder, folders));
-	}
-	
 	public SyncResponse partialSync(SyncDecoder decoder) throws Exception {
 		return run(new PartialSyncCommand(decoder));
-	}
-
-	public SyncResponse sync(SyncDecoder decoder, SyncKey syncKey, Folder... folders) throws Exception {
-		return run(new Sync(decoder, syncKey, folders));
 	}
 	
 	public SyncResponse syncEmail(SyncDecoder decoder, SyncKey key, CollectionId collectionId, FilterType filterType, int windowSize) throws Exception {

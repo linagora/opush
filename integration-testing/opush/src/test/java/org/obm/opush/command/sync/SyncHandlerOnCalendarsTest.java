@@ -97,7 +97,6 @@ import org.obm.sync.calendar.EventRecurrence;
 import org.obm.sync.client.calendar.CalendarClient;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
-import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.collect.ImmutableList;
@@ -246,9 +245,12 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionId.asString()));
-		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
-		SyncResponse sameSyncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
+		SyncResponse initialSyncResponse = opClient.run(
+				Sync.builder(decoder).syncKey(initialSyncKey).collectionId(calendarCollectionId).build());
+		SyncResponse syncResponse = opClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(calendarCollectionId).build());
+		SyncResponse sameSyncResponse = opClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(calendarCollectionId).build());
 		
 		mocksControl.verify();
 
@@ -403,9 +405,12 @@ public class SyncHandlerOnCalendarsTest {
 		
 		mocksControl.replay();
 		opushServer.start();
+		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.sync(decoder, initialSyncKey, new Folder(calendarCollectionId.asString()));
-		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
+		SyncResponse initialSyncResponse = opClient.run(
+				Sync.builder(decoder).syncKey(initialSyncKey).collectionId(calendarCollectionId).build());
+		SyncResponse syncResponse = opClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(calendarCollectionId).build());
 		
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
@@ -537,7 +542,7 @@ public class SyncHandlerOnCalendarsTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
+		opClient.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(calendarCollectionId).build());
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.run(

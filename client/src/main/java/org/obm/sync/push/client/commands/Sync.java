@@ -32,6 +32,7 @@
 package org.obm.sync.push.client.commands;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
@@ -46,14 +47,16 @@ import org.obm.push.protocol.data.SyncRequestFields;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ResponseTransformer;
 import org.obm.sync.push.client.beans.AccountInfos;
-import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.beans.NS;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * Performs a Sync AS command for the given folders with 0 as syncKey
@@ -70,7 +73,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		private EncoderFactory encoderFactory;
 		
 		private SyncKey syncKey;
-		private CollectionId collectionId;
+		private ImmutableList.Builder<CollectionId> collectionIds;
 		private SyncCommand command;
 		private ServerId serverId;
 		private String clientId;
@@ -80,6 +83,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 
 		private Builder(SyncDecoder decoder) {
 			this.decoder = decoder;
+			this.collectionIds = ImmutableList.builder();
 		}
 		
 		public Builder encoder(EncoderFactory encoderFactory) {
@@ -93,7 +97,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		}
 		
 		public Builder collectionId(CollectionId collectionId) {
-			this.collectionId = collectionId;
+			this.collectionIds.add(collectionId);
 			return this;
 		}
 		
@@ -123,24 +127,20 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		}
 		
 		public Sync build() throws SAXException, IOException {
+			ImmutableList<CollectionId> collectionIds = this.collectionIds.build();
+			if (command == null) {
+				return new Sync(decoder, new SimpleSyncTemplate(syncKey, collectionIds));
+			}
+			Preconditions.checkState(collectionIds.size() == 1);
 			if (data != null) {
-				return new Sync(decoder, new SyncWithCommandDataTemplate(syncKey, collectionId, command, serverId, clientId, data, encoderFactory, device));
+				return new Sync(decoder, new SyncWithCommandDataTemplate(syncKey, Iterables.getOnlyElement(collectionIds), command, serverId, clientId, data, encoderFactory, device));
 			} else {
-				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, collectionId, command, serverId, clientId));
+				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, Iterables.getOnlyElement(collectionIds), command, serverId, clientId));
 			}
 		}
 	}
 
-	
 	private final SyncDecoder decoder;
-
-	public Sync(final SyncDecoder decoder, final Folder... folders) throws SAXException, IOException {
-		this(decoder, SyncKey.INITIAL_SYNC_KEY, folders);
-	}
-
-	public Sync(final SyncDecoder decoder, final SyncKey syncKey, final Folder... folders) throws SAXException, IOException {
-		this(decoder, new SimpleSyncTemplate(syncKey, folders));
-	}
 
 	public Sync(SyncDecoder decoder, DocumentProvider documentProvider) {
 		super(NS.AirSync, "Sync", documentProvider);
@@ -158,22 +158,23 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	}
 	
 	private static class SimpleSyncTemplate extends TemplateDocument {
-		private final SyncKey syncKey;
-		private final Folder[] folders;
 
-		private SimpleSyncTemplate(SyncKey syncKey, Folder... folders) throws SAXException, IOException {
+		private final SyncKey syncKey;
+		private final List<CollectionId> collectionIds;
+
+		private SimpleSyncTemplate(SyncKey syncKey, List<CollectionId> collectionIds) throws SAXException, IOException {
 			super("SyncRequest.xml");
 			this.syncKey = syncKey;
-			this.folders = folders;
+			this.collectionIds = collectionIds;
 		}
 
 		@Override
 		protected void customize(Document document, AccountInfos accountInfos) {
 			Element cols = DOMUtils.getUniqueElement(document.getDocumentElement(), "Collections");
-			for (Folder folder : folders) {
+			for (CollectionId collectionId : collectionIds) {
 				Element col = DOMUtils.createElement(cols, "Collection");
 				DOMUtils.createElementAndText(col, "SyncKey", syncKey.getSyncKey());
-				DOMUtils.createElementAndText(col, "CollectionId", folder.getServerId());
+				DOMUtils.createElementAndText(col, "CollectionId", collectionId.asString());
 			}				
 		}
 	}

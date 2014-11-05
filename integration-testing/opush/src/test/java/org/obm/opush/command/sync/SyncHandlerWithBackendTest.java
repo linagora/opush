@@ -126,7 +126,6 @@ import org.obm.sync.client.login.LoginClient;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
-import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.base.Charsets;
@@ -1116,9 +1115,9 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
-				.sync(decoder, firstAllocatedSyncKey,
-					new Folder(calendarCollectionId.asString()),
-					new Folder(contactCollectionId.asString()));
+				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
+						.collectionId(calendarCollectionId)
+						.collectionId(contactCollectionId).build());
 		
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -1177,9 +1176,9 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 		
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
-				.sync(decoder, firstAllocatedSyncKey,
-					new Folder(calendarCollectionId.asString()),
-					new Folder(inboxCollectionId.asString()));
+				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
+						.collectionId(calendarCollectionId)
+						.collectionId(inboxCollectionId).build());
 		
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);

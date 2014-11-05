@@ -80,7 +80,6 @@ import org.obm.sync.book.Phone;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.push.client.WBXMLOPClient;
-import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.collect.FluentIterable;
@@ -202,7 +201,9 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		SyncResponse syncResponse = opushClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
+					.collectionId(contactCollectionId).build());
 		
 		mocksControl.verify();
 		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
@@ -328,7 +329,8 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		opushClient.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
+					.collectionId(contactCollectionId).build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
@@ -445,7 +447,8 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		opushClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(contactCollectionId).build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
@@ -560,7 +563,7 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		opushClient.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(contactCollectionId).build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
@@ -645,8 +648,10 @@ public class SyncHandlerOnContactsTest {
 		opushServer.start();
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
-		SyncResponse sameSyncResponse = opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
+		SyncResponse syncResponse = opushClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(contactCollectionId).build());
+		SyncResponse sameSyncResponse = opushClient.run(
+				Sync.builder(decoder).syncKey(firstAllocatedSyncKey).collectionId(contactCollectionId).build());
 		
 		mocksControl.verify();
 		
