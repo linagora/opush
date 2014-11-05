@@ -64,11 +64,15 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.io.CharStreams;
 
 public class ReplyEmail extends SendEmail {
+
+	private static final Charset DEFAULT_CHARSET = Charsets.US_ASCII;
 
 	protected final static String EMAIL_LINEBREAKER = "\r\n";
 
@@ -129,10 +133,11 @@ public class ReplyEmail extends SendEmail {
 		return message;
 	}
 	
-	private String getBodyValue(MSEmailBodyType bodyType, Map<MSEmailBodyType, EmailView> originMails) throws UnsupportedEncodingException, IOException {
+	@VisibleForTesting String getBodyValue(MSEmailBodyType bodyType, Map<MSEmailBodyType, EmailView> originMails) throws UnsupportedEncodingException, IOException {
 		EmailView originalPlainTextEmail = originMails.get(bodyType);
 		if (originalPlainTextEmail != null) {
-			return CharStreams.toString(new InputStreamReader(originalPlainTextEmail.getBodyMimePartData(), originalPlainTextEmail.getCharset()));
+			String charset = Objects.firstNonNull(originalPlainTextEmail.getCharset(), DEFAULT_CHARSET.name());
+			return CharStreams.toString(new InputStreamReader(originalPlainTextEmail.getBodyMimePartData(), charset));
 		}
 		return null;
 	}

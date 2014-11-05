@@ -416,4 +416,17 @@ public class ReplyEmailTest {
 		Message message = replyEmail.getMimeMessage();
 		assertThat(message.getReplyTo()).isEqualTo(expectedReplyTo);
 	}
+	
+	@Test
+	public void replyEmailShouldFallbackOnDefaultCharset() throws IOException, MimeException, NotQuotableEmailException {
+		Message notUsedReply = loadMimeMessage("plainText.eml");
+		Map<MSEmailBodyType, EmailView> notUsedOriginals = EmailViewTestsUtils.createPlainTextMapNoCharset("origin");
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", notUsedOriginals, notUsedReply,
+				ImmutableMap.<String, MSAttachementData>of());
+
+		Map<MSEmailBodyType, EmailView> originMails = EmailViewTestsUtils.createPlainTextMapNoCharset("original content");
+		String bodyValue = replyEmail.getBodyValue(MSEmailBodyType.PlainText, originMails);
+		
+		assertThat(bodyValue).isEqualTo("original content");
+	}
 }
