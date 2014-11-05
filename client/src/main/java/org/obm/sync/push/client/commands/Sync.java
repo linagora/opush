@@ -129,7 +129,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		public Sync build() throws SAXException, IOException {
 			ImmutableList<CollectionId> collectionIds = this.collectionIds.build();
 			if (command == null) {
-				return new Sync(decoder, new SimpleSyncTemplate(syncKey, collectionIds));
+				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, collectionIds));
 			}
 			Preconditions.checkState(collectionIds.size() == 1);
 			if (data != null) {
@@ -157,25 +157,28 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		return new SyncResponseTransformer();
 	}
 	
-	private static class SimpleSyncTemplate extends TemplateDocument {
+	private static class SimpleSyncDocumentProvider implements DocumentProvider {
 
 		private final SyncKey syncKey;
 		private final List<CollectionId> collectionIds;
 
-		private SimpleSyncTemplate(SyncKey syncKey, List<CollectionId> collectionIds) throws SAXException, IOException {
-			super("SyncRequest.xml");
+		private SimpleSyncDocumentProvider(SyncKey syncKey, List<CollectionId> collectionIds) {
 			this.syncKey = syncKey;
 			this.collectionIds = collectionIds;
 		}
 
 		@Override
-		protected void customize(Document document, AccountInfos accountInfos) {
-			Element cols = DOMUtils.getUniqueElement(document.getDocumentElement(), "Collections");
-			for (CollectionId collectionId : collectionIds) {
+		public Document get(AccountInfos accountInfos) {
+			Document document = DOMUtils.createDoc(null, "Sync");
+			Element root = document.getDocumentElement();
+
+			final Element cols = DOMUtils.createElement(root, "Collections");
+			for (CollectionId collectionId: collectionIds) {
 				Element col = DOMUtils.createElement(cols, "Collection");
 				DOMUtils.createElementAndText(col, "SyncKey", syncKey.getSyncKey());
 				DOMUtils.createElementAndText(col, "CollectionId", collectionId.asString());
-			}				
+			}
+			return document;
 		}
 	}
 
