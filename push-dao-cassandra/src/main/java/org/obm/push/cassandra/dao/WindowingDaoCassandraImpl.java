@@ -48,6 +48,7 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_KIND;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -86,6 +87,7 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	private static final int NO_PENDING_CHANGES = 0;
 	private static final int ONLY_ONE_ITEM = 1;
 	private static final int STARTING_WINDOWING_INDEX = 0;
+	private static final int MAX_BATCH_SIZE = 50;
 	
 	@Inject  
 	@VisibleForTesting WindowingDaoCassandraImpl(Provider<Session> sessionProvider, JSONService jsonService,
@@ -238,23 +240,44 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 	}
 
 	private UUID insertWindowingChanges(WindowingChanges<?> changes) {
-		BatchStatement batch = new BatchStatement(Type.LOGGED);
+		BatchStatement batch = newBatch();
 		UUID windowingUUID = UUID.randomUUID();
 		int index = STARTING_WINDOWING_INDEX;
 		
-		for (WindowingItem item : changes.additions()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.ADD);
-		}
-		for (WindowingItem item : changes.changes()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.CHANGE);
-		}
-		for (WindowingItem item : changes.deletions()) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.DELETE);
-		}
-		getSession().execute(batch);
+		batch = pushWindowingChanges(batch, windowingUUID, index, changes.additions(), ChangeType.ADD);
+		batch = pushWindowingChanges(batch, windowingUUID, index, changes.changes(), ChangeType.CHANGE);
+		batch = pushWindowingChanges(batch, windowingUUID, index, changes.deletions(), ChangeType.DELETE);
+		commitBatch(batch);
+		
 		return windowingUUID;
 	}
 
+	private BatchStatement newBatch() {
+		return new BatchStatement(Type.LOGGED);
+	}
+	
+	private BatchStatement pushWindowingChanges(BatchStatement batch, UUID windowingUUID, int index, Set<? extends WindowingItem> changes, ChangeType type) {
+		for (WindowingItem item : changes) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, type);
+			batch = commitBatchIfNeeded(batch);
+		}
+		return batch;
+	}
+	
+	private BatchStatement commitBatchIfNeeded(BatchStatement batch) {
+		if (batch.size() >= MAX_BATCH_SIZE) {
+			commitBatch(batch);
+			return newBatch();
+		}
+		return batch;
+	}
+
+	private void commitBatch(BatchStatement batch) {
+		if (batch.size() > 0) {
+			getSession().execute(batch);
+		}
+	}
+	
 	private void addInsertStatementInBatch(BatchStatement batch, UUID windowingUUID, int changeIndex, WindowingItem item, ChangeType changeType) {
 		Insert statement = insertInto(Windowing.TABLE.get())
 			.value(ID, windowingUUID)

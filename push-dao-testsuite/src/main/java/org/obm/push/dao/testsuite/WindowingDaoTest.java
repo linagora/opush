@@ -306,4 +306,15 @@ public abstract class WindowingDaoTest {
 		
 		assertThat(testee.countPendingChanges(key)).isEqualTo(numberOfElements);
 	}
+	
+	@Test
+	public void inserting70000EmailsShouldNotTriggerAnyCassandraLimit() {
+		int numberOfElements = 70000;
+		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
+		EmailChanges emailChanges = generateEmails(numberOfElements);
+		testee.pushPendingChanges(key, emailChanges, PIMDataType.EMAIL, numberOfElements);
+		
+		assertThat(testee.countPendingChanges(key)).isEqualTo(numberOfElements);
+	}
 }
