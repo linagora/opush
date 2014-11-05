@@ -41,6 +41,7 @@ import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.ProtocolException;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -83,19 +84,21 @@ public class Snapshot implements Serializable {
 		
 		public Snapshot build() {
 			Preconditions.checkState(filterType != null, "filterType can't be null or empty");
-			Preconditions.checkState(uidNext != null, "uidNext can't be null");
-			return new Snapshot(filterType, uidNext, emails);
+			return new Snapshot(
+					filterType, 
+					Optional.fromNullable(uidNext), 
+					emails);
 		}
 	}
 	
 	private static final long serialVersionUID = -8674207692296869251L;
 	
 	private final FilterType filterType;
-	private final long uidNext;
+	private final Optional<Long> uidNext;
 	private final Collection<Email> emails;
 	private final MessageSet messageSet;
 	
-	protected Snapshot(FilterType filterType, long uidNext, Collection<Email> emails) {
+	protected Snapshot(FilterType filterType, Optional<Long> uidNext, Collection<Email> emails) {
 		this.filterType = filterType;
 		this.uidNext = uidNext;
 		this.emails = emails;
@@ -128,7 +131,7 @@ public class Snapshot implements Serializable {
 		return filterType;
 	}
 
-	public long getUidNext() {
+	public Optional<Long> getUidNext() {
 		return uidNext;
 	}
 

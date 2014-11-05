@@ -39,6 +39,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.reportMatcher;
 import static org.obm.DateUtils.date;
 
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -47,6 +48,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import javax.mail.internet.MimeMessage;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -126,18 +128,21 @@ import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.Folder;
 import org.obm.sync.push.client.commands.SyncWithDataCommand;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
 
 import fr.aliacom.obm.common.user.UserPassword;
 
@@ -1476,5 +1481,57 @@ public class SyncHandlerWithBackendTest {
 						.serverId(inboxCollectionId.serverId(2))
 						.isNew(true)
 						.build()));
+	}
+
+	@Test
+	public void syncShouldRespectFilterTypeDate() throws Exception {
+		ServerSetup smtpServerSetup = greenMail.getSmtp().getServerSetup();
+		MimeMessage oldMessage = GreenMailUtil.buildSimpleMessage(mailbox, "subject", "old message", smtpServerSetup);
+		MimeMessage newMessage = GreenMailUtil.buildSimpleMessage(mailbox, "subject", "new message", smtpServerSetup);
+		greenMailUser.deliver(oldMessage, date("2012-08-10T16:22:53"));
+		greenMailUser.deliver(newMessage, date("2012-10-01T16:22:53"));
+		
+		SyncKey firstAllocatedSyncKey = new SyncKey("a181b4e9-7b87-42cf-9e8b-6de8184bed55");
+		SyncKey secondAllocatedSyncKey = new SyncKey("6710d6e4-6101-4054-9566-086d6ecf3202");
+		
+		mockUsersAccess(classToInstanceMap, Arrays.asList(user));
+		mockNextGeneratedSyncKey(classToInstanceMap, firstAllocatedSyncKey, secondAllocatedSyncKey);
+		
+		Date epochPlusOneSecond = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(epochPlusOneSecond)
+				.syncKey(firstAllocatedSyncKey)
+				.id(3)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(4)
+				.build();
+		
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(epochPlusOneSecond);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		mockCollectionDaoPerformSync(collectionDao, user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+
+		String serverId = inboxCollectionIdAsString + ":" + 2;
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, new ServerId(serverId))).andReturn(false);
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(new ServerId(serverId)));
+		expectLastCall().once();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		
+		opClient.syncEmail(decoder, SyncKey.INITIAL_FOLDER_SYNC_KEY, inboxCollectionIdAsString, FilterType.ONE_MONTHS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionIdAsString, FilterType.ONE_MONTHS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
+		
+		mocksControl.verify();
+
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse firstCollectionResponse = getCollectionWithId(syncResponse, inboxCollectionIdAsString);
+		assertThat(firstCollectionResponse.getItemChanges()).hasSize(1);
+		MSEmail email = (MSEmail) firstCollectionResponse.getItemChanges().get(0).getData();
+		assertThat(CharStreams.toString(new InputStreamReader(email.getBody().getMimeData(), Charsets.UTF_8))).isEqualTo("new message");
 	}
 }
