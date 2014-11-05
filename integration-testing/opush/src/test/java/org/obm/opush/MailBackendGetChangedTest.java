@@ -77,6 +77,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
@@ -1097,7 +1098,8 @@ public class MailBackendGetChangedTest {
 		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.run(
 				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+					.command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
 
@@ -1177,7 +1179,8 @@ public class MailBackendGetChangedTest {
 		
 		SyncResponse response = opClient.run(
 				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+					.command(SyncCommand.FETCH).serverId(serverId).build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();

@@ -102,6 +102,7 @@ import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -753,7 +754,8 @@ public class SyncHandlerWithBackendTest {
 		greenMail.expungeInbox(greenMailUser);
 		SyncResponse secondSyncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+					.command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
 
@@ -1116,8 +1118,9 @@ public class SyncHandlerWithBackendTest {
 
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-						.collectionId(calendarCollectionId)
-						.collectionId(contactCollectionId).build());
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).build())
+						.collection(SyncCollection.builder().collectionId(contactCollectionId).build())
+						.build());
 		
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -1177,8 +1180,9 @@ public class SyncHandlerWithBackendTest {
 		
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-						.collectionId(calendarCollectionId)
-						.collectionId(inboxCollectionId).build());
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).build())
+						.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+						.build());
 		
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -1291,7 +1295,8 @@ public class SyncHandlerWithBackendTest {
 		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
 		SyncResponse updatedSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.CHANGE)
+					.syncKey(secondAllocatedSyncKey)
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(msEvent).build());
 		
 		mocksControl.verify();

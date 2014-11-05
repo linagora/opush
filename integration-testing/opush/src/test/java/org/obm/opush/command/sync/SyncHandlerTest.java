@@ -100,6 +100,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -450,7 +451,8 @@ public class SyncHandlerTest {
 		
 		CollectionChange inbox = syncTestUtils.lookupInbox(folderSyncResponse.getCollectionsAddedAndUpdated());
 		SyncResponse syncEmailResponse = opClient.run(Sync.builder(decoder)
-				.syncKey(syncEmailSyncKey).collectionId(inbox.getCollectionId())
+				.syncKey(syncEmailSyncKey)
+				.collection(SyncCollection.builder().collectionId(inbox.getCollectionId()).build())
 				.command(SyncCommand.FETCH).serverId(serverId).build());
 
 		syncTestUtils.checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), syncEmailCollectionId.serverId(123));
@@ -748,7 +750,7 @@ public class SyncHandlerTest {
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
-				.syncKey(syncKey).collectionId(collectionId).command(command).serverId(collectionId.serverId(51)).build());
+				.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(command).serverId(collectionId.serverId(51)).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
 	}
@@ -792,7 +794,7 @@ public class SyncHandlerTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
-					.syncKey(syncKey).collectionId(collectionId).command(SyncCommand.ADD)
+					.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(clientData).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -839,7 +841,7 @@ public class SyncHandlerTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
-					.syncKey(syncKey).collectionId(collectionId).command(SyncCommand.ADD)
+					.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(clientData).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);

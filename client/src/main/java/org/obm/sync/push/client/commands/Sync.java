@@ -53,13 +53,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 /**
  * Performs a Sync AS command for the given folders with 0 as syncKey
@@ -76,7 +74,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		private EncoderFactory encoderFactory;
 		
 		private SyncKey syncKey;
-		private ImmutableList.Builder<CollectionId> collectionIds;
+		private ImmutableList.Builder<SyncCollection> collections;
 		private SyncCommand command;
 		private ServerId serverId;
 		private String clientId;
@@ -86,7 +84,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 
 		private Builder(SyncDecoder decoder) {
 			this.decoder = decoder;
-			this.collectionIds = ImmutableList.builder();
+			this.collections = ImmutableList.builder();
 		}
 		
 		public Builder encoder(EncoderFactory encoderFactory) {
@@ -99,8 +97,8 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			return this;
 		}
 		
-		public Builder collectionId(CollectionId collectionId) {
-			this.collectionIds.add(collectionId);
+		public Builder collection(SyncCollection collection) {
+			this.collections.add(collection);
 			return this;
 		}
 		
@@ -130,20 +128,15 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		}
 		
 		public Sync build() throws SAXException, IOException {
-			ImmutableList<CollectionId> collectionIds = this.collectionIds.build();
+			ImmutableList<SyncCollection> collections = this.collections.build();
 			if (command == null) {
-				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, Lists.transform(collectionIds, new Function<CollectionId, SyncCollection>() {
-					@Override
-					public SyncCollection apply(CollectionId input) {
-						return SyncCollection.builder().collectionId(input).build();
-					}
-				})));
+				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, collections));
 			}
-			Preconditions.checkState(collectionIds.size() == 1);
+			Preconditions.checkState(collections.size() == 1);
 			if (data != null) {
-				return new Sync(decoder, new SyncWithCommandDataTemplate(syncKey, Iterables.getOnlyElement(collectionIds), command, serverId, clientId, data, encoderFactory, device));
+				return new Sync(decoder, new SyncWithCommandDataTemplate(syncKey, Iterables.getOnlyElement(collections).getCollectionId(), command, serverId, clientId, data, encoderFactory, device));
 			} else {
-				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, Iterables.getOnlyElement(collectionIds), command, serverId, clientId));
+				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, Iterables.getOnlyElement(collections).getCollectionId(), command, serverId, clientId));
 			}
 		}
 	}
