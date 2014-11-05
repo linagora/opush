@@ -942,7 +942,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				Snapshot.builder()
 					.emails(ImmutableList.<Email> of())
 					.filterType(filterType)
-					.uidNext(INITIAL_UID_NEXT)
 					.build());
 	}
 }

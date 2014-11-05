@@ -42,9 +42,10 @@ public final class MessageSetUtils {
 	
 	public static MessageSet computeEmailsUID(Snapshot snapshot, long currentUIDNext) {
 		Preconditions.checkNotNull(snapshot, "snapshot can't be null");
+		Preconditions.checkArgument(snapshot.getUidNext().isPresent(), "Cannot build range without UIDNEXT");
 		
 		return MessageSet.from(snapshot.getMessageSet())
-			.add(Range.closedOpen(snapshot.getUidNext(), currentUIDNext))
+			.add(Range.closedOpen(snapshot.getUidNext().get(), currentUIDNext))
 			.build();
 	}
 }

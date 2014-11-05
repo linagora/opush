@@ -32,6 +32,7 @@
 package org.obm.push.mail.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.FilterType;
@@ -49,9 +50,13 @@ public class SnapshotTest {
 		Snapshot.builder().uidNext(15).build();
 	}
 	
-	@Test (expected=IllegalStateException.class)
-	public void testNullUidNext() {
-		Snapshot.builder().filterType(FilterType.ALL_ITEMS).build();
+	@Test
+	public void getUidNextShouldBeAbsentWhenNoneGiven() {
+		Snapshot snapshot = Snapshot.builder()
+			.filterType(FilterType.ALL_ITEMS)
+			.build();
+		
+		assertThat(snapshot.getUidNext()).isAbsent();
 	}
 	
 	@Test
@@ -80,7 +85,7 @@ public class SnapshotTest {
 			.build();
 		
 		assertThat(snapshot.getFilterType()).isEqualTo(filterType);
-		assertThat(snapshot.getUidNext()).isEqualTo(uidNext);
+		assertThat(snapshot.getUidNext()).contains(uidNext);
 		assertThat(snapshot.getEmails()).containsExactly(email, email2);
 		assertThat(snapshot.getMessageSet().asDiscreteValues()).containsOnly(emailUID, emailUID2);
 	}
