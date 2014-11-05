@@ -53,18 +53,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	private final SyncDecoder decoder;
 
 	public Sync(final SyncDecoder decoder, final Folder... folders) throws SAXException, IOException {
-		this(decoder, new TemplateDocument("SyncRequest.xml") {
-			
-			@Override
-			protected void customize(Document document, AccountInfos accountInfos) {
-				Element cols = DOMUtils.getUniqueElement(document.getDocumentElement(), "Collections");
-				for (Folder folder : folders) {
-					Element col = DOMUtils.createElement(cols, "Collection");
-					DOMUtils.createElementAndText(col, "SyncKey", "0");
-					DOMUtils.createElementAndText(col, "CollectionId", folder.getServerId());
-				}				
-			}
-		});
+		this(decoder, SyncKey.INITIAL_FOLDER_SYNC_KEY, folders);
 	}
 
 	public Sync(final SyncDecoder decoder, final SyncKey syncKey, final Folder... folders) throws SAXException, IOException {
