@@ -98,7 +98,7 @@ import org.obm.sync.client.calendar.CalendarClient;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithCommand;
+import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -408,7 +408,7 @@ public class SyncHandlerOnCalendarsTest {
 		SyncResponse syncResponse = opClient.sync(decoder, firstAllocatedSyncKey, new Folder(calendarCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(msEventUpdated).build());
 		mocksControl.verify();
@@ -541,7 +541,7 @@ public class SyncHandlerOnCalendarsTest {
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(createdMSEvent).build());
 		mocksControl.verify();

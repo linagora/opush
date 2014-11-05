@@ -127,7 +127,7 @@ import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithCommand;
+import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -753,7 +753,7 @@ public class SyncHandlerWithBackendTest {
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		SyncResponse secondSyncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).syncKey(secondAllocatedSyncKey)
+				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
 					.collectionId(inboxCollectionId).command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
@@ -1291,7 +1291,7 @@ public class SyncHandlerWithBackendTest {
 		
 		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
 		SyncResponse updatedSyncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(calendarCollectionId).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(msEvent).build());
 		

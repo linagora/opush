@@ -81,7 +81,7 @@ import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.push.client.WBXMLOPClient;
 import org.obm.sync.push.client.beans.Folder;
-import org.obm.sync.push.client.commands.SyncWithCommand;
+import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -331,7 +331,7 @@ public class SyncHandlerOnContactsTest {
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.ADD)
 					.clientId(clientId).data(createdMSContact).build());
 		
@@ -448,7 +448,7 @@ public class SyncHandlerOnContactsTest {
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(modifiedMSContact).build());
 		
@@ -563,7 +563,7 @@ public class SyncHandlerOnContactsTest {
 		opushClient.sync(decoder, firstAllocatedSyncKey, new Folder(contactCollectionId.asString()));
 		
 		SyncResponse updateSyncResponse = opushClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(user.device)
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey).collectionId(contactCollectionId).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(modifiedMSContact).build());
 		

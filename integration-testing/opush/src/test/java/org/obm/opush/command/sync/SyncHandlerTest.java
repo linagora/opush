@@ -108,7 +108,7 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.SerializableInputStream;
 import org.obm.sync.push.client.OPClient;
-import org.obm.sync.push.client.commands.SyncWithCommand;
+import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -449,7 +449,7 @@ public class SyncHandlerTest {
 		FolderSyncResponse folderSyncResponse = opClient.folderSync(initialSyncKey);
 		
 		CollectionChange inbox = syncTestUtils.lookupInbox(folderSyncResponse.getCollectionsAddedAndUpdated());
-		SyncResponse syncEmailResponse = opClient.run(SyncWithCommand.builder(decoder)
+		SyncResponse syncEmailResponse = opClient.run(Sync.builder(decoder)
 				.syncKey(syncEmailSyncKey).collectionId(inbox.getCollectionId())
 				.command(SyncCommand.FETCH).serverId(serverId).build());
 
@@ -747,7 +747,7 @@ public class SyncHandlerTest {
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opClient.run(SyncWithCommand.builder(decoder)
+		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
 				.syncKey(syncKey).collectionId(collectionId).command(command).serverId(collectionId.serverId(51)).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
@@ -791,7 +791,7 @@ public class SyncHandlerTest {
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
+				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
 					.syncKey(syncKey).collectionId(collectionId).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(clientData).build());
 
@@ -838,7 +838,7 @@ public class SyncHandlerTest {
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
-				SyncWithCommand.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
+				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
 					.syncKey(syncKey).collectionId(collectionId).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(clientData).build());
 
