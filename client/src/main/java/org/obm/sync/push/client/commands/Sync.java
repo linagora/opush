@@ -40,6 +40,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -52,11 +53,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * Performs a Sync AS command for the given folders with 0 as syncKey
@@ -129,7 +132,12 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		public Sync build() throws SAXException, IOException {
 			ImmutableList<CollectionId> collectionIds = this.collectionIds.build();
 			if (command == null) {
-				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, collectionIds));
+				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, Lists.transform(collectionIds, new Function<CollectionId, SyncCollection>() {
+					@Override
+					public SyncCollection apply(CollectionId input) {
+						return SyncCollection.builder().collectionId(input).build();
+					}
+				})));
 			}
 			Preconditions.checkState(collectionIds.size() == 1);
 			if (data != null) {
@@ -160,11 +168,11 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	private static class SimpleSyncDocumentProvider implements DocumentProvider {
 
 		private final SyncKey syncKey;
-		private final List<CollectionId> collectionIds;
+		private final List<SyncCollection> collections;
 
-		private SimpleSyncDocumentProvider(SyncKey syncKey, List<CollectionId> collectionIds) {
+		private SimpleSyncDocumentProvider(SyncKey syncKey, List<SyncCollection> collections) {
 			this.syncKey = syncKey;
-			this.collectionIds = collectionIds;
+			this.collections = collections;
 		}
 
 		@Override
@@ -173,10 +181,10 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			Element root = document.getDocumentElement();
 
 			final Element cols = DOMUtils.createElement(root, "Collections");
-			for (CollectionId collectionId: collectionIds) {
+			for (SyncCollection collection: collections) {
 				Element col = DOMUtils.createElement(cols, "Collection");
 				DOMUtils.createElementAndText(col, "SyncKey", syncKey.getSyncKey());
-				DOMUtils.createElementAndText(col, "CollectionId", collectionId.asString());
+				DOMUtils.createElementAndText(col, "CollectionId", collection.getCollectionId().asString());
 			}
 			return document;
 		}
