@@ -69,3 +69,12 @@ cqlsh> TRUNCATE OPUSH_KEYSPACE.synced_collection;
 |http://ci-obm.linagora.com/jira/browse/OP-64[OP-64]|Limit the LDAP search results number
 |=====================================
 
+=== 3.0.2 to 3.0.3
+
+.Changelog (highlights)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-128[OP-128]|OPush is now able to synchronize collection containing more than 65535 items
+|http://ci-obm.linagora.com/jira/browse/OP-129[OP-129]|The "days to sync" option is now respected
+|=====================================
