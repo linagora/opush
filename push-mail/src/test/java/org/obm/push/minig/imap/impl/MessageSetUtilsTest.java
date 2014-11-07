@@ -56,12 +56,4 @@ public class MessageSetUtilsTest {
 		Iterable<Long> asDiscreteValues = messageSet.asDiscreteValues();
 		assertThat(asDiscreteValues).containsOnly(1L, 2L);
 	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testComputeWithoutUIDNextInSnapshot() {
-		Snapshot snapshot = Snapshot.builder()
-				.filterType(FilterType.ONE_DAY_BACK)
-				.build();
-		MessageSetUtils.computeEmailsUID(snapshot, 3);
-	}
 }

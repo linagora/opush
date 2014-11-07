@@ -140,7 +140,7 @@ public class MailBackendSyncData {
 		}
 
 		@VisibleForTesting boolean mustSyncByDate(Snapshot previousStateSnapshot) {
-			return snapshotIsAbsent(previousStateSnapshot) || !previousStateSnapshot.getUidNext().isPresent();
+			return snapshotIsAbsent(previousStateSnapshot);
 		}
 
 		private boolean snapshotIsAbsent(Snapshot previousStateSnapshot) {
