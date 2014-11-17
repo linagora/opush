@@ -62,6 +62,11 @@ public abstract class SyncCollectionCommands implements Serializable {
 			return this;
 		}
 		
+		public Builder<C> addCommands(List<SyncCollectionCommand> commands) {
+			commandsBuilder.addAll(commands);
+			return this;
+		}
+		
 		protected C abstractBuild() {
 			commands = this.commandsBuilder.build();
 			commandsByType = commandsByType(commands);

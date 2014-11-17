@@ -55,7 +55,8 @@ public class EmailSyncNoOptionsCommand extends Sync {
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
 				collection.setTextContent(collectionId.asString());
-				
+				Element dataClass = DOMUtils.getUniqueElement(document.getDocumentElement(), "Class");
+				dataClass.setTextContent("Email");
 				Element collectionElement = DOMUtils.getUniqueElement(document.getDocumentElement(), "Collection");
 				collectionElement.removeChild(DOMUtils.getUniqueElement(collectionElement, "Options"));
 			}

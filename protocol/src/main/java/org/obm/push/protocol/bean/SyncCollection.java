@@ -34,6 +34,7 @@ package org.obm.push.protocol.bean;
 import java.util.List;
 
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.CollectionId;
@@ -55,7 +56,7 @@ public class SyncCollection {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private List<SyncCollectionCommandDto> commands;
+		private List<SyncCollectionCommand> commands;
 
 		private Builder() {
 		}
@@ -95,7 +96,7 @@ public class SyncCollection {
 			return this;
 		}
 		
-		public Builder commands(List<SyncCollectionCommandDto> commands) {
+		public Builder commands(List<SyncCollectionCommand> commands) {
 			this.commands = commands;
 			return this;
 		}
@@ -103,7 +104,7 @@ public class SyncCollection {
 		public SyncCollection build() {
 			return new SyncCollection(dataType, syncKey, collectionId, 
 					deletesAsMoves, changes, windowSize, options, 
-					Objects.firstNonNull(commands, ImmutableList.<SyncCollectionCommandDto>of()));
+					Objects.firstNonNull(commands, ImmutableList.<SyncCollectionCommand>of()));
 		}
 	}
 	
@@ -114,11 +115,11 @@ public class SyncCollection {
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
 	private final CollectionId collectionId;
-	private final List<SyncCollectionCommandDto> commands;
+	private final List<SyncCollectionCommand> commands;
 	
 	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, List<SyncCollectionCommandDto> commands) {
+			SyncCollectionOptions options, List<SyncCollectionCommand> commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;
@@ -148,7 +149,7 @@ public class SyncCollection {
 		return syncKey;
 	}
 	
-	public List<SyncCollectionCommandDto> getCommands() {
+	public List<SyncCollectionCommand> getCommands() {
 		return commands;
 	}
 

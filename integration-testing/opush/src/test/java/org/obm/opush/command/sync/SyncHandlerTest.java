@@ -452,7 +452,7 @@ public class SyncHandlerTest {
 		CollectionChange inbox = syncTestUtils.lookupInbox(folderSyncResponse.getCollectionsAddedAndUpdated());
 		SyncResponse syncEmailResponse = opClient.run(Sync.builder(decoder)
 				.syncKey(syncEmailSyncKey)
-				.collection(SyncCollection.builder().collectionId(inbox.getCollectionId()).build())
+				.collection(SyncCollection.builder().collectionId(inbox.getCollectionId()).dataType(PIMDataType.EMAIL).build())
 				.command(SyncCommand.FETCH).serverId(serverId).build());
 
 		syncTestUtils.checkMailFolderHasFetchItems(syncEmailResponse, inbox.getCollectionId(), syncEmailCollectionId.serverId(123));
@@ -750,7 +750,9 @@ public class SyncHandlerTest {
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
-				.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(command).serverId(collectionId.serverId(51)).build());
+				.syncKey(syncKey)
+				.collection(SyncCollection.builder().collectionId(collectionId).dataType(PIMDataType.EMAIL).build())
+				.command(command).serverId(collectionId.serverId(51)).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
 	}
@@ -794,7 +796,9 @@ public class SyncHandlerTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
-					.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(SyncCommand.ADD)
+					.syncKey(syncKey).collection(
+							SyncCollection.builder().collectionId(collectionId).dataType(PIMDataType.EMAIL).build())
+					.command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(clientData).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
@@ -841,8 +845,9 @@ public class SyncHandlerTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
-					.syncKey(syncKey).collection(SyncCollection.builder().collectionId(collectionId).build()).command(SyncCommand.ADD)
-					.serverId(serverId).clientId(clientId).data(clientData).build());
+					.syncKey(syncKey)
+					.collection(SyncCollection.builder().collectionId(collectionId).dataType(PIMDataType.EMAIL).build())
+					.command(SyncCommand.ADD).serverId(serverId).clientId(clientId).data(clientData).build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		syncTestUtils.checkMailFolderHasNoChange(syncResponse, collectionId);

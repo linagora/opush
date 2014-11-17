@@ -4,8 +4,10 @@
 		<Collection>
 			<SyncKey>DEFAULT_INBOX_FOLDER</SyncKey>
 			<CollectionId>DEFAULT_INBOX_FOLDER</CollectionId>
+			<Class>CLASS</Class>
 			<DeletesAsMoves>1</DeletesAsMoves>
 			<GetChanges />
+			<WindowSize>WINDOW_SIZE</WindowSize>
 			<Options>
 				<FilterType>2</FilterType> 
 			</Options>

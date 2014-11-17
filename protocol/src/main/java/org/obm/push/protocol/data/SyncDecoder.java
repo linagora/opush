@@ -51,9 +51,8 @@ import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
-import org.obm.push.protocol.bean.SyncCollection;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.utils.DOMUtils;
@@ -109,14 +108,15 @@ public class SyncDecoder extends ActiveSyncDecoder {
 	}
 
 	@VisibleForTesting SyncCollection getCollection(Element collection) {
+		PIMDataType dataType = PIMDataType.fromSpecificationValue(uniqueStringFieldValue(collection, SyncRequestFields.DATA_CLASS));
 		return SyncCollection.builder()
-			.dataType(PIMDataType.fromSpecificationValue(uniqueStringFieldValue(collection, SyncRequestFields.DATA_CLASS)))
+			.dataType(dataType)
 			.syncKey(syncKey(uniqueStringFieldValue(collection, SyncRequestFields.SYNC_KEY)))
 			.collectionId(getCollectionId(collection))
 			.deletesAsMoves(uniqueBooleanFieldValue(collection, SyncRequestFields.DELETES_AS_MOVES))
 			.windowSize(uniqueIntegerFieldValue(collection, SyncRequestFields.WINDOW_SIZE))
 			.options(getOptions(DOMUtils.getUniqueElement(collection, SyncRequestFields.OPTIONS.getName())))
-			.commands(getCommands(DOMUtils.getUniqueElement(collection, SyncRequestFields.COMMANDS.getName())))
+			.commands(getCommands(DOMUtils.getUniqueElement(collection, SyncRequestFields.COMMANDS.getName()), dataType))
 			.build();
 	}
 
@@ -156,25 +156,17 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return builder.build();
 	}
 
-	@VisibleForTesting List<SyncCollectionCommandDto> getCommands(Element commandsElement) {
-		ImmutableList.Builder<SyncCollectionCommandDto> builder = ImmutableList.builder();
+	@VisibleForTesting List<SyncCollectionCommand> getCommands(Element commandsElement, PIMDataType dataType) {
+		ImmutableList.Builder<SyncCollectionCommand> builder = ImmutableList.builder();
 		if (commandsElement != null) {
 			NodeList collectionNodes = commandsElement.getChildNodes();
 			for (int i = 0; i < collectionNodes.getLength(); i++) {
-				builder.add(getCommand((Element)collectionNodes.item(i)));
+				builder.add(getCommand((Element)collectionNodes.item(i), dataType));
 			}
 		}
 		return builder.build();
 	}
 	
-	@VisibleForTesting SyncCollectionCommandDto getCommand(Element commandElement) {
-		return SyncCollectionCommandDto.builder()
-			.name(commandElement.getNodeName())
- 			.serverId(uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID))
- 			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
- 			.applicationData(DOMUtils.getUniqueElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName()))
- 			.build();
-	}
 
 	private ServerId serverId(Element commandElement) {
 		String stringValue = uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID);

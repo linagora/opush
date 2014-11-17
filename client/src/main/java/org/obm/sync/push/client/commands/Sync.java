@@ -35,7 +35,9 @@ import java.io.IOException;
 import java.util.List;
 
 import org.obm.push.bean.Device;
+import org.obm.push.bean.FilterType;
 import org.obm.push.bean.IApplicationData;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
@@ -78,6 +80,8 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		private SyncCommand command;
 		private ServerId serverId;
 		private String clientId;
+		private Integer windowSize;
+		private FilterType filter;
 		private IApplicationData data;
 
 		private Device device;
@@ -126,19 +130,35 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			this.device = device;
 			return this;
 		}
+
+		public Builder windowSize(int windowSize) {
+			this.windowSize = windowSize;
+			return this;
+		}
+
+		public Builder filter(FilterType filter) {
+			this.filter = filter;
+			return this;
+		}
+
 		
 		public Sync build() throws SAXException, IOException {
 			ImmutableList<SyncCollection> collections = this.collections.build();
 			if (command == null) {
-				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, collections));
+				return new Sync(decoder, new SimpleSyncDocumentProvider(syncKey, windowSize, filter, collections));
 			}
 			Preconditions.checkState(collections.size() == 1);
+			SyncCollection collection = Iterables.getOnlyElement(collections);
 			if (data != null) {
-				return new Sync(decoder, new SyncWithCommandDataTemplate(syncKey, Iterables.getOnlyElement(collections).getCollectionId(), command, serverId, clientId, data, encoderFactory, device));
+				return new Sync(decoder, 
+						new SyncWithCommandDataTemplate(syncKey, windowSize, filter,
+								collection.getCollectionId(), collection.getDataType(), command, serverId, clientId, data, encoderFactory, device));
 			} else {
-				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, Iterables.getOnlyElement(collections).getCollectionId(), command, serverId, clientId));
+				return new Sync(decoder, new SyncWithCommandTemplate(syncKey, windowSize, filter,
+								collection.getCollectionId(), collection.getDataType(), command, serverId, clientId));
 			}
 		}
+
 	}
 
 	private final SyncDecoder decoder;
@@ -162,9 +182,13 @@ public class Sync extends AbstractCommand<SyncResponse> {
 
 		private final SyncKey syncKey;
 		private final List<SyncCollection> collections;
+		private final Integer windowSize;
+		private final FilterType filter;
 
-		private SimpleSyncDocumentProvider(SyncKey syncKey, List<SyncCollection> collections) {
+		private SimpleSyncDocumentProvider(SyncKey syncKey, Integer windowSize, FilterType filter, List<SyncCollection> collections) {
 			this.syncKey = syncKey;
+			this.windowSize = windowSize;
+			this.filter = filter;
 			this.collections = collections;
 		}
 
@@ -173,11 +197,18 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			Document document = DOMUtils.createDoc(null, "Sync");
 			Element root = document.getDocumentElement();
 
-			final Element cols = DOMUtils.createElement(root, "Collections");
+			final Element cols = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
 			for (SyncCollection collection: collections) {
-				Element col = DOMUtils.createElement(cols, "Collection");
-				DOMUtils.createElementAndText(col, "SyncKey", syncKey.getSyncKey());
-				DOMUtils.createElementAndText(col, "CollectionId", collection.getCollectionId().asString());
+				Element col = DOMUtils.createElement(cols, SyncRequestFields.COLLECTION.getName());
+				DOMUtils.createElementAndText(col, SyncRequestFields.SYNC_KEY.getName(), syncKey.getSyncKey());
+				DOMUtils.createElementAndText(col, SyncRequestFields.COLLECTION_ID.getName(), collection.getCollectionId().asInt());
+				if (windowSize != null) {
+					DOMUtils.createElementAndText(col, SyncRequestFields.WINDOW_SIZE.getName(), String.valueOf(windowSize));
+				}
+				if (filter != null) {
+					DOMUtils.createElementAndText(col, SyncRequestFields.FILTER_TYPE.getName(), filter.asSpecificationValue());
+				}
+				DOMUtils.createElementAndText(col, SyncRequestFields.DATA_CLASS.getName(), collection.getDataType().asXmlValue());
 			}
 			return document;
 		}
@@ -190,11 +221,17 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		protected final SyncCommand command;
 		protected final ServerId serverId;
 		protected final String clientId;
+		protected final PIMDataType dataClass;
+		protected final FilterType filter;
+		protected final Integer windowSize;
 
-		protected SyncWithCommandTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
+		protected SyncWithCommandTemplate(SyncKey syncKey, Integer windowSize, FilterType filter, CollectionId collectionId, PIMDataType dataClass, SyncCommand command,
 				ServerId serverId, String clientId) throws SAXException, IOException {
 			super("SyncWithCommandRequest.xml");
 			this.syncKey = syncKey;
+			this.filter = filter;
+			this.windowSize = windowSize;
+			this.dataClass = dataClass;
 			this.collectionId = collectionId;
 			this.command = command;
 			this.serverId = serverId;
@@ -205,8 +242,24 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		protected void customize(Document document, AccountInfos accountInfos) {
 			Element sk = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.SYNC_KEY.getName());
 			sk.setTextContent(syncKey.getSyncKey());
+			
+			Element windowEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.WINDOW_SIZE.getName());
+			if (windowSize != null) {
+				windowEl.setTextContent(String.valueOf(windowSize));
+			} else {
+				windowEl.getParentNode().removeChild(windowEl);
+			}
+			
+			if (filter != null) {
+				Element filterEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.FILTER_TYPE.getName());
+				filterEl.setTextContent(filter.asSpecificationValue());
+			}
+			
 			Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COLLECTION_ID.getName());
 			collection.setTextContent(collectionId.asString());
+			
+			Element dataClassEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.DATA_CLASS.getName());
+			dataClassEl.setTextContent(dataClass.asXmlValue());
 			
 			Element commandsEl = DOMUtils.getUniqueElement(document.getDocumentElement(), SyncRequestFields.COMMANDS.getName());
 			Element commandEl = DOMUtils.createElement(commandsEl, command.asSpecificationValue());
@@ -225,10 +278,10 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		private final EncoderFactory encoders;
 		private final Device device;
 
-		protected SyncWithCommandDataTemplate(SyncKey syncKey, CollectionId collectionId, SyncCommand command,
+		protected SyncWithCommandDataTemplate(SyncKey syncKey, Integer windowSize, FilterType filter, CollectionId collectionId, PIMDataType dataClass, SyncCommand command,
 				ServerId serverId, String clientId, IApplicationData data, EncoderFactory encoders, Device device)
 				throws SAXException, IOException {
-			super(syncKey, collectionId, command, serverId, clientId);
+			super(syncKey, windowSize, filter, collectionId, dataClass, command, serverId, clientId);
 			this.data = data;
 			this.encoders = encoders;
 			this.device = device;

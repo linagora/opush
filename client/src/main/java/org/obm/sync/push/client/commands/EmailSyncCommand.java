@@ -62,6 +62,8 @@ public class EmailSyncCommand extends Sync {
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
 				collection.setTextContent(collectionId.asString());
+				Element dataClass = DOMUtils.getUniqueElement(document.getDocumentElement(), "Class");
+				dataClass.setTextContent("Email");
 				Element filterTypeE = DOMUtils.getUniqueElement(document.getDocumentElement(), "FilterType");
 				filterTypeE.setTextContent(filterType.asSpecificationValue());
 				Element windowSizeE = DOMUtils.getUniqueElement(document.getDocumentElement(), "WindowSize");

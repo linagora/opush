@@ -31,36 +31,42 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.Device;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
+import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class SyncEncoder extends ActiveSyncDecoder {
 
-	@Inject
-	protected SyncEncoder() {}
+	private final EncoderFactory encoderFactory;
 
-	public Document encodeSync(SyncRequest request) {
+	@Inject
+	protected SyncEncoder(EncoderFactory encoderFactory) {
+		this.encoderFactory = encoderFactory;
+	}
+
+	public Document encodeSync(SyncRequest request, Device device) {
 		Document doc = DOMUtils.createDoc(null, "Sync");
 		Element root = doc.getDocumentElement();
 		
 		appendPartial(root, request);
 		appendWait(root, request);
 		appendWindowSize(root, request.getWindowSize());
-		appendCollections(root, request);
+		appendCollections(root, request, device);
 		return doc;
 	}
 
@@ -78,18 +84,18 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		}
 	}
 
-	private void appendCollections(Element root, SyncRequest request) {
+	private void appendCollections(Element root, SyncRequest request, Device device) {
 			
 		Set<SyncCollection> requestCollections = request.getCollections();
 		if (requestCollections != null && !requestCollections.isEmpty()) {
 			Element collections = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
 			for (SyncCollection collection : requestCollections) {
-				appendCollection(collections, collection);
+				appendCollection(collections, collection, device);
 			}
 		}
 	}
 	
-	private void appendCollection(Element collections, SyncCollection collection) {
+	private void appendCollection(Element collections, SyncCollection collection, Device device) {
 			
 		Element collectionEl = DOMUtils.createElement(collections, SyncRequestFields.COLLECTION.getName());
 		appendString(collectionEl, SyncRequestFields.DATA_CLASS, collection.getDataClass());
@@ -97,7 +103,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendInteger(collectionEl, SyncRequestFields.COLLECTION_ID, collection.getCollectionId().asInt());
 		appendWindowSize(collectionEl, collection.getWindowSize());
 		appendOptions(collectionEl, collection.getOptions());
-		appendCommands(collectionEl, collection.getCommands());
+		appendCommands(collectionEl, collection.getCommands(), device);
 	}
 
 	private void appendOptions(Element collectionElement, SyncCollectionOptions options) {
@@ -125,23 +131,27 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendBoolean(bodyPreferenceEl, SyncRequestFields.ALL_OR_NONE, bodyPreference.isAllOrNone());
 	}
 	
-	private void appendCommands(Element collectionElement, List<SyncCollectionCommandDto> commands) {
+	private void appendCommands(Element collectionElement, List<SyncCollectionCommand> commands, Device device) {
 		if (commands.isEmpty()) {
 			return;
 		}
 		Element commandsElement = DOMUtils.createElement(collectionElement, SyncRequestFields.COMMANDS.getName());
-		for (SyncCollectionCommandDto command : commands) {
-			appendCommand(commandsElement, command);
+		for (SyncCollectionCommand command : commands) {
+			appendCommand(commandsElement, command, device);
 		}
 	}
 
-	private void appendCommand(Element commandsElement, SyncCollectionCommandDto command) {
-		Element commandElement = DOMUtils.createElement(commandsElement, command.getName());
-		appendString(commandElement, SyncRequestFields.SERVER_ID, command.getServerId());
+	private void appendCommand(Element commandsElement, SyncCollectionCommand command, Device device) {
+		Element commandElement = DOMUtils.createElement(commandsElement, command.getType().asSpecificationValue());
+		appendString(commandElement, SyncRequestFields.SERVER_ID, command.getServerId().asString());
 		appendString(commandElement, SyncRequestFields.CLIENT_ID, command.getClientId());
 		if (command.getApplicationData() != null) {
-			Node applicationData = commandElement.getOwnerDocument().importNode(command.getApplicationData(), true);
-			commandElement.appendChild(applicationData);
+			try {
+				Element dataEl = DOMUtils.createElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName());
+				encoderFactory.encode(device, dataEl, command.getApplicationData(), true);
+			} catch (IOException e) {
+				Throwables.propagate(e);
+			}
 		}
 	}
 }

@@ -153,22 +153,23 @@ public class ContactEncoder {
 		if(c.getData() != null){
 			dataBody = c.getData().trim();
 		}
-		if (device.getProtocolVersion().compareTo(ProtocolVersion.V120) > 0) {
-			Element body = DOMUtils.createElement(parent, "AirSyncBase:Body");
-			e(body, "AirSyncBase:Type", Type.PLAIN_TEXT.toString());
-			e(body, "AirSyncBase:EstimatedDataSize", ""+dataBody.length());
-			if (dataBody.length() > 0) {
-				// Nokia bug when the body contains only \r\n
-				DOMUtils.createElementAndText(body, "AirSyncBase:Data", dataBody);
-			}
-			e(parent, "AirSyncBase:NativeBodyType", "3");
-		} else {
-			if (dataBody.length() > 0) {
-				e(parent, "Contacts:BodySize", "" + dataBody.length());
-				e(parent, "Contacts:Body", dataBody);
+		if (!dataBody.isEmpty()) {
+			if (device.getProtocolVersion().compareTo(ProtocolVersion.V120) > 0) {
+				Element body = DOMUtils.createElement(parent, "AirSyncBase:Body");
+				e(body, "AirSyncBase:Type", Type.PLAIN_TEXT.toString());
+				e(body, "AirSyncBase:EstimatedDataSize", String.valueOf(dataBody.length()));
+				if (dataBody.length() > 0) {
+					// Nokia bug when the body contains only \r\n
+					DOMUtils.createElementAndText(body, "AirSyncBase:Data", dataBody);
+				}
+				e(parent, "AirSyncBase:NativeBodyType", "3");
+			} else {
+				if (dataBody.length() > 0) {
+					e(parent, "Contacts:BodySize", String.valueOf(dataBody.length()));
+					e(parent, "Contacts:Body", dataBody);
+				}
 			}
 		}
-		// DOMUtils.createElement(parent, "Contacts:Picture");
 	}
 
 	public Element encodedApplicationData(Device device, IApplicationData data) {

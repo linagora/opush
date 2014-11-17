@@ -115,6 +115,7 @@ public class SyncAnalyserTest {
 	@Test
 	public void testRequestOptionsAreStored() throws Exception {
 		Document request = buildRequestWithOptions("0", 
+				"<Class>Email</Class>" +
 				"<Options>" +
 					"<FilterType>2</FilterType>" +
 					"<Conflict>1</Conflict>" +
@@ -167,6 +168,7 @@ public class SyncAnalyserTest {
 	@Test
 	public void testRequestWithOnlyFilterTypeOptionsStoreOthersWithDefaultValue() throws Exception {
 		Document request = buildRequestWithOptions("0", 
+				"<Class>Email</Class>" +
 				"<Options>" +
 					"<FilterType>2</FilterType>" +
 				"</Options>");
@@ -417,8 +419,6 @@ public class SyncAnalyserTest {
 						"</Collections>" +
 					"</Sync>");
 		
-		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
-		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(requestWithoutOptions);
 		try {
@@ -452,6 +452,7 @@ public class SyncAnalyserTest {
 					"<Collection>" +
 						"<SyncKey>" + syncKey +"</SyncKey>" +
 						"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+						"<Class>Email</Class>" +
 						options +
 					"</Collection>" +
 				"</Collections>" +
@@ -482,6 +483,7 @@ public class SyncAnalyserTest {
 						"<Collection>" +
 							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
 							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<Class>Email</Class>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
@@ -507,9 +509,10 @@ public class SyncAnalyserTest {
 					"<WindowSize>150</WindowSize>" +
 					"<Collections>" +
 						"<Collection>" +
-							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
+							"<SyncKey>" + collectionSyncKey + "</SyncKey>" +
 							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
 							"<WindowSize>75</WindowSize>" +
+							"<Class>Email</Class>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
@@ -534,8 +537,9 @@ public class SyncAnalyserTest {
 				"<Sync>" +
 					"<Collections>" +
 						"<Collection>" +
-							"<SyncKey>" + collectionSyncKey  + "</SyncKey>" +
+							"<SyncKey>" + collectionSyncKey + "</SyncKey>" +
 							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<Class>Email</Class>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");
@@ -561,6 +565,7 @@ public class SyncAnalyserTest {
 					"<Collections>" +
 						"<Collection>" +
 							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<Class>Email</Class>" +
 						"</Collection>" +
 					"</Collections>" +
 				"</Sync>");

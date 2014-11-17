@@ -66,6 +66,7 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -1098,7 +1099,7 @@ public class MailBackendGetChangedTest {
 		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.run(
 				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId).dataType(PIMDataType.EMAIL).build())
 					.command(SyncCommand.FETCH).serverId(serverId).build());
 		
 		mocksControl.verify();
@@ -1179,7 +1180,8 @@ public class MailBackendGetChangedTest {
 		
 		SyncResponse response = opClient.run(
 				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(inboxCollectionId).build())
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
+					.dataType(PIMDataType.EMAIL).build())
 					.command(SyncCommand.FETCH).serverId(serverId).build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		

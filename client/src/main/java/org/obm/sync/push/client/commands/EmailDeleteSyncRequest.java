@@ -56,6 +56,8 @@ public class EmailDeleteSyncRequest extends Sync {
 				sk.setTextContent(syncKey.getSyncKey());
 				Element collection = DOMUtils.getUniqueElement(document.getDocumentElement(), "CollectionId");
 				collection.setTextContent(collectionId.asString());
+				Element dataClass = DOMUtils.getUniqueElement(document.getDocumentElement(), "Class");
+				dataClass.setTextContent("Email");
 				Element servId = DOMUtils.getUniqueElement(document.getDocumentElement(), "ServerId");
 				servId.setTextContent(serverId.asString());
 			}

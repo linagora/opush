@@ -34,7 +34,9 @@ package org.obm.push.protocol;
 import java.io.IOException;
 import java.util.List;
 
+import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -62,6 +64,9 @@ import com.google.inject.Inject;
 
 public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncResponse> {
 
+	private final static Device DEVICE = new Device.Factory()
+		.create(1, "BellLabsWiredPhone", "BellLabsWiredPhoneAgent", new DeviceId("blwp123"), ProtocolVersion.V121);
+	
 	private final SyncDecoder syncDecoder;
 	private final SyncEncoder syncEncoder;
 	private final EncoderFactory encoderFactory;
@@ -223,7 +228,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 
 	@Override
 	public Document encodeRequest(SyncRequest request) throws ProtocolException {
-		return syncEncoder.encodeSync(request);
+		return syncEncoder.encodeSync(request, DEVICE);
 	}
 
 	@Override

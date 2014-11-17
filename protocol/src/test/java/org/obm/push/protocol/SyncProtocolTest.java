@@ -64,9 +64,8 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
-import org.obm.push.protocol.bean.SyncCollection;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.ContactDecoder;
@@ -326,7 +325,7 @@ public class SyncProtocolTest {
 			.syncKey(new SyncKey(syncingCollectionSyncKey))
 			.windowSize(windowSize)
 			.deletesAsMoves(true)
-			.commands(ImmutableList.<SyncCollectionCommandDto>of())
+			.commands(ImmutableList.<SyncCollectionCommand>of())
 			.options(null)
 			.build();
 		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
@@ -1152,9 +1151,9 @@ public class SyncProtocolTest {
 									"<ServerId>35</ServerId>" +
 									"<ClientId>350</ClientId>" +
 									"<ApplicationData>" +
-										"<Email1Address>\"opush@obm.org\"&lt;opush@obm.org&gt;</Email1Address>" +
 										"<FileAs>Dobney, JoLynn Julie</FileAs>" +
 										"<FirstName>JoLynn</FirstName>" +
+										"<Email1Address>opush@obm.org</Email1Address>" +
 									"</ApplicationData>" +
 								"</Change>" +
 							"</Commands>" +
@@ -1163,10 +1162,37 @@ public class SyncProtocolTest {
 				"</Sync>";
 		
 		
+		String expectedResult = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Wait>0</Wait>" +
+					"<WindowSize>12</WindowSize>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>1234-5678</SyncKey>" +
+							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<WindowSize>12</WindowSize>" +
+							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
+							"<Commands>" +
+								"<Change>" +
+									"<ServerId>35</ServerId>" +
+									"<ClientId>350</ClientId>" +
+									"<ApplicationData>" +
+										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
+										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
+										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
+									"</ApplicationData>" +
+								"</Change>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+		
 		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
 		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
 		
-		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
+		assertThat(DOMUtils.serialize(encodedRequest)).isXmlEqualTo(expectedResult);
 	}
 
 	@Test
@@ -1210,7 +1236,11 @@ public class SyncProtocolTest {
 		}
 	}
 	
-	static class SyncEncoderTest extends SyncEncoder {}
+	static class SyncEncoderTest extends SyncEncoder {
+		public SyncEncoderTest() {
+			super(new EncoderFactoryTest());
+		}
+	}
 	
 	static class DecoderFactoryTest extends DecoderFactory {
 
@@ -1290,10 +1320,6 @@ public class SyncProtocolTest {
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
 										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
 										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
-										"<AirSyncBase:Body>" + 
-										"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
-										"</AirSyncBase:Body>" +
-										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
 									"</ApplicationData>" +
 								"</Add>" +
 							"</Commands>" +
@@ -1302,7 +1328,7 @@ public class SyncProtocolTest {
 				"</Sync>";
 
 		Document response = testee.encodeResponse(device, syncResponse);
-		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+		assertThat(DOMUtils.serialize(response)).isXmlEqualTo(expectedResponse);
 	}
 
 	@Test
@@ -1400,10 +1426,6 @@ public class SyncProtocolTest {
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
 										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
 										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
-										"<AirSyncBase:Body>" + 
-										"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
-										"</AirSyncBase:Body>" +
-										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
 									"</ApplicationData>" +
 								"</Change>" +
 							"</Commands>" +
@@ -1587,10 +1609,6 @@ public class SyncProtocolTest {
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
 										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
 										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
-										"<AirSyncBase:Body>" + 
-											"<AirSyncBase:Type>1</AirSyncBase:Type><AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>" +
-										"</AirSyncBase:Body>" +
-										"<AirSyncBase:NativeBodyType>3</AirSyncBase:NativeBodyType>" +
 									"</ApplicationData>" +
 								"</Fetch>" +
 							"</Responses>" +

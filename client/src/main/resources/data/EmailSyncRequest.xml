@@ -4,6 +4,7 @@
 		<Collection>
 			<SyncKey>DEFAULT_INBOX_FOLDER</SyncKey>
 			<CollectionId>DEFAULT_INBOX_FOLDER</CollectionId>
+			<Class>CLASS</Class>
 			<DeletesAsMoves>1</DeletesAsMoves>
 			<GetChanges />
 			<WindowSize>100</WindowSize>

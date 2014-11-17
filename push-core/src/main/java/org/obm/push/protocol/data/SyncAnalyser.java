@@ -31,20 +31,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
-import java.util.List;
-
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
@@ -52,24 +48,22 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
-import org.obm.push.protocol.bean.SyncCollection;
-import org.obm.push.protocol.bean.SyncCollectionCommandDto;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class SyncAnalyser {
 
-	private final CollectionDao collectionDao;
 	private final SyncedCollectionDao syncedCollectionStoreService;
+	private final CollectionDao collectionDao;
 	private final ICollectionPathHelper collectionPathHelper;
 	private final DecoderFactory decoderFactory;
 
@@ -77,8 +71,8 @@ public class SyncAnalyser {
 	protected SyncAnalyser(SyncedCollectionDao syncedCollectionStoreService,
 			CollectionDao collectionDao, ICollectionPathHelper collectionPathHelper,
 			DecoderFactory decoderFactory) {
-		this.collectionDao = collectionDao;
 		this.syncedCollectionStoreService = syncedCollectionStoreService;
+		this.collectionDao = collectionDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.decoderFactory = decoderFactory;
 	}
@@ -107,16 +101,27 @@ public class SyncAnalyser {
 		
 		AnalysedSyncCollection.Builder builder = AnalysedSyncCollection.builder();
 		CollectionId collectionId = getCollectionId(collectionRequest);
+		builder
+			.collectionId(collectionId)
+			.syncKey(collectionRequest.getSyncKey());
+		
+		
 		try {
-			builder.collectionId(collectionId)
-				.syncKey(collectionRequest.getSyncKey())
+			String collectionPath = collectionDao.getCollectionPath(collectionId);
+			checkCollectionType(collectionRequest.getDataType(), collectionPath);
+			builder
+				.collectionPath(collectionPath)
+				.dataType(collectionRequest.getDataType())
 				.windowSize(getWindowSize(syncRequest, collectionRequest))
 				.options(getUpdatedOptions(
 						findLastSyncedCollectionOptions(udr, isPartial, collectionId), collectionRequest))
 				.status(SyncStatus.OK);
 			
-			PIMDataType dataType = recognizeCollection(builder, collectionId, collectionRequest.getDataClass());
-			builder.commands(analyseCommands(collectionRequest.getCommands(), dataType));
+			for (SyncCollectionCommand command: collectionRequest.getCommands()) {
+				checkRequiredData(command);
+			}
+			
+			builder.commands(SyncCollectionCommandsResponse.builder().addCommands(collectionRequest.getCommands()).build());
 			
 			AnalysedSyncCollection analysed = builder.build();
 			syncedCollectionStoreService.put(udr.getUser(), udr.getDevice(), analysed);
@@ -127,6 +132,20 @@ public class SyncAnalyser {
 		// TODO sync supported
 		// TODO sync <getchanges/>
 
+	}
+
+	private void checkRequiredData(SyncCollectionCommand command) {
+		if (command.getType().requireApplicationData() && command.getApplicationData() == null) {
+			throw new ProtocolException("No decodable " + command.getType() + " data");
+		}
+	}
+
+	private void checkCollectionType(PIMDataType dataClass, String collectionPath) {
+		PIMDataType collectionDataType = collectionPathHelper.recognizePIMDataType(collectionPath);
+		if (!Objects.equal(dataClass, collectionDataType)) {
+			String msg = "The type of the collection found:{%s} is not the same than received in DataClass:{%s}";
+			throw new ServerErrorException(String.format(msg, collectionDataType , dataClass));
+		}
 	}
 
 	private CollectionId getCollectionId(SyncCollection collectionRequest) {
@@ -150,23 +169,6 @@ public class SyncAnalyser {
 		return lastSyncCollection;
 	}
 
-	private PIMDataType recognizeCollection(AnalysedSyncCollection.Builder builder, CollectionId collectionId, String dataClass) {
-		String collectionPath = collectionDao.getCollectionPath(collectionId);
-		PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-		builder.collectionPath(collectionPath)
-			.dataType(dataType);
-		
-		if (isDifferentClassThanType(dataClass, dataType)) {
-			String msg = "The type of the collection found:{%s} is not the same than received in DataClass:{%s}";
-			throw new ServerErrorException(String.format(msg, dataType.asXmlValue() , dataClass));
-		}
-		return dataType;
-	}
-
-	private boolean isDifferentClassThanType(String dataClass, PIMDataType dataType) {
-		return !Strings.isNullOrEmpty(dataClass) && !dataType.asXmlValue().equals(dataClass);
-	}
-
 	private SyncCollectionOptions getUpdatedOptions(AnalysedSyncCollection lastSyncCollection, SyncCollection requestCollection) {
 		SyncCollectionOptions lastUsedOptions = null;
 		if (lastSyncCollection != null) {
@@ -179,39 +181,6 @@ public class SyncAnalyser {
 			return SyncCollectionOptions.cloneOnlyByExistingFields(requestCollection.getOptions());
 		}
 		return SyncCollectionOptions.defaultOptions();
-	}
-
-	private SyncCollectionCommandsResponse analyseCommands(List<SyncCollectionCommandDto> requestCommands, PIMDataType dataType) {
-		SyncCollectionCommandsResponse.Builder commandsResponseBuilder = SyncCollectionCommandsResponse.builder();
-		for (SyncCollectionCommandDto command : requestCommands) {
-			SyncCommand type = SyncCommand.fromSpecificationValue(command.getName());
-			commandsResponseBuilder.addCommand(
-				SyncCollectionCommand.builder()
-					.type(type)
-					.serverId(serverId(command))
-					.clientId(command.getClientId())
-					.applicationData(decodeApplicationData(command.getApplicationData(), dataType, type))
-					.build());
-		}
-		return commandsResponseBuilder.build();
-	}
-
-	private ServerId serverId(SyncCollectionCommandDto dto) {
-		if (dto.getServerId() != null) {
-			return ServerId.of(dto.getServerId());
-		}
-		return null;
-	}
-	
-	private IApplicationData decodeApplicationData(Element applicationData, PIMDataType dataType, SyncCommand syncCommand) {
-		if (syncCommand.requireApplicationData()) {
-			IApplicationData data = decode(applicationData, dataType);
-			if (data == null) {
-				throw new ProtocolException("No decodable " + dataType + " data for " + applicationData);
-			}
-			return data;
-		}
-		return null;
 	}
 
 	protected IApplicationData decode(Element data, PIMDataType dataType) {

@@ -71,6 +71,7 @@ import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventException;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSRecurrence;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
@@ -248,13 +249,13 @@ public class SyncHandlerOnCalendarsTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(initialSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse sameSyncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		mocksControl.verify();
 
@@ -413,15 +414,15 @@ public class SyncHandlerOnCalendarsTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(initialSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).command(SyncCommand.CHANGE)
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).command(SyncCommand.CHANGE)
 					.serverId(serverId).clientId(clientId).data(msEventUpdated).build());
 		mocksControl.verify();
 
@@ -550,13 +551,13 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).build());
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).build()).command(SyncCommand.ADD)
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).command(SyncCommand.ADD)
 					.serverId(serverId).clientId(clientId).data(createdMSEvent).build());
 		mocksControl.verify();
 
