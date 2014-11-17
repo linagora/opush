@@ -1098,9 +1098,12 @@ public class MailBackendGetChangedTest {
 
 		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.run(
-				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(inboxCollectionId).dataType(PIMDataType.EMAIL).build())
-					.command(SyncCommand.FETCH).serverId(serverId).build());
+				Sync.builder(decoder)
+					.collection(SyncCollection.builder()
+							.collectionId(inboxCollectionId).syncKey(secondAllocatedSyncKey).dataType(PIMDataType.EMAIL)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+							.build())
+					.build());
 		
 		mocksControl.verify();
 
@@ -1179,10 +1182,12 @@ public class MailBackendGetChangedTest {
 		greenMail.expungeInbox(greenMailUser);
 		
 		SyncResponse response = opClient.run(
-				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
+				Sync.builder(decoder)
 					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
-					.dataType(PIMDataType.EMAIL).build())
-					.command(SyncCommand.FETCH).serverId(serverId).build());
+						.dataType(PIMDataType.EMAIL).syncKey(secondAllocatedSyncKey)
+						.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+						.build())
+					.build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();

@@ -293,7 +293,6 @@ public class SyncProtocolTest {
 				.dataType(null)
 				.syncKey(null)
 				.windowSize(null)
-				.commands(null)
 				.options(null)
 				.build());
 	}

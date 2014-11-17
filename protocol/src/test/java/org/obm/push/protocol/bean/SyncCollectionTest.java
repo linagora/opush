@@ -199,11 +199,15 @@ public class SyncCollectionTest {
 		
 		assertThat(syncRequestCollection.hasOptions()).isTrue();
 	}
+
+	@Test(expected=NullPointerException.class)
+	public void nullCommandShouldThrow() {
+		builderWithRequirement().command(null).build();
+	}
 	
 	@Test
 	public void testBuilderCommandsIsNotRequired() {
-		SyncCollection syncRequestCollection = builderWithRequirement().commands(null).build();
-		
+		SyncCollection syncRequestCollection = builderWithRequirement().build();
 		assertThat(syncRequestCollection.getCommands()).isEmpty();
 	}
 

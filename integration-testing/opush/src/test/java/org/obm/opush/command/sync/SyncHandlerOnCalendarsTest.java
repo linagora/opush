@@ -248,14 +248,17 @@ public class SyncHandlerOnCalendarsTest {
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(initialSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+				Sync.builder(decoder)
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+							.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+				Sync.builder(decoder)
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse sameSyncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+				Sync.builder(decoder)
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		mocksControl.verify();
 
@@ -413,17 +416,22 @@ public class SyncHandlerOnCalendarsTest {
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(initialSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+				Sync.builder(decoder)
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+						.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+				Sync.builder(decoder)
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).command(SyncCommand.CHANGE)
-					.serverId(serverId).clientId(clientId).data(msEventUpdated).build());
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
+										.serverId(serverId).clientId(clientId).applicationData(msEventUpdated).build())
+							.build())
+					.build());
 		mocksControl.verify();
 
 		SyncCollectionResponse initialCollectionResponse = syncTestUtils.getCollectionWithId(initialSyncResponse, calendarCollectionId);
@@ -550,15 +558,19 @@ public class SyncHandlerOnCalendarsTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).build());
+		opClient.run(Sync.builder(decoder)
+				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(PIMDataType.CALENDAR).build()).command(SyncCommand.ADD)
-					.serverId(serverId).clientId(clientId).data(createdMSEvent).build());
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD)
+										.serverId(serverId).clientId(clientId).applicationData(createdMSEvent).build())
+							.build())
+					.build());
 		mocksControl.verify();
 
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);

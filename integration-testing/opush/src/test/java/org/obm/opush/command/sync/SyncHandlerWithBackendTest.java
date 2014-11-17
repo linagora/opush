@@ -94,6 +94,7 @@ import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -130,7 +131,6 @@ import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.commands.Sync;
-import org.obm.sync.push.client.commands.Sync.Builder;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -499,18 +499,18 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
-		Builder configuredSyncBuilder = 
-			Sync.builder(decoder)
+		SyncCollection.Builder configuredSyncCollection = SyncCollection.builder()
+				.collectionId(calendarCollectionId)
 				.windowSize(ONE_WINDOWS_SIZE)
-				.filter(FilterType.THREE_DAYS_BACK)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build());
-		opClient.run(configuredSyncBuilder.syncKey(initialSyncKey).build());
-		SyncResponse syncResponse = opClient.run(configuredSyncBuilder.syncKey(firstAllocatedSyncKey).build());
+				.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+				.dataType(CALENDAR);
+		opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(initialSyncKey).build()).build());
+		SyncResponse syncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(firstAllocatedSyncKey).build()).build());
 		
-		opClient.run(configuredSyncBuilder.syncKey(initialSyncKey).build());
-		SyncResponse firstSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newFirstAllocatedSyncKey).build());
-		SyncResponse secondSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newSecondAllocatedSyncKey).build());
-		SyncResponse thirdSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newThirdAllocatedSyncKey).build());
+		opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(initialSyncKey).build()).build());
+		SyncResponse firstSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newFirstAllocatedSyncKey).build()).build());
+		SyncResponse secondSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newSecondAllocatedSyncKey).build()).build());
+		SyncResponse thirdSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newThirdAllocatedSyncKey).build()).build());
 		mocksControl.verify();
 
 		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, calendarCollectionId);
@@ -654,19 +654,18 @@ public class SyncHandlerWithBackendTest {
 		
 		mocksControl.replay();
 		opushServer.start();
-		Builder configuredSyncBuilder = 
-				Sync.builder(decoder)
-					.windowSize(ONE_WINDOWS_SIZE)
-					.filter(FilterType.THREE_DAYS_BACK)
-					.collection(SyncCollection.builder().collectionId(contactCollectionId).dataType(CONTACTS).build());
+		SyncCollection.Builder configuredSyncCollection = SyncCollection.builder().collectionId(contactCollectionId)
+				.windowSize(ONE_WINDOWS_SIZE)
+				.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+				.dataType(CONTACTS);
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.run(configuredSyncBuilder.syncKey(initialSyncKey).build());
-		SyncResponse syncResponse = opClient.run(configuredSyncBuilder.syncKey(firstAllocatedSyncKey).build());
+		opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(initialSyncKey).build()).build());
+		SyncResponse syncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(firstAllocatedSyncKey).build()).build());
 		
-		opClient.run(configuredSyncBuilder.syncKey(initialSyncKey).build());
-		SyncResponse firstSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newFirstAllocatedSyncKey).build());
-		SyncResponse secondSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newSecondAllocatedSyncKey).build());
-		SyncResponse thirdSyncResponse = opClient.run(configuredSyncBuilder.syncKey(newThirdAllocatedSyncKey).build());
+		opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(initialSyncKey).build()).build());
+		SyncResponse firstSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newFirstAllocatedSyncKey).build()).build());
+		SyncResponse secondSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newSecondAllocatedSyncKey).build()).build());
+		SyncResponse thirdSyncResponse = opClient.run(Sync.builder(decoder).collection(configuredSyncCollection.syncKey(newThirdAllocatedSyncKey).build()).build());
 		mocksControl.verify();
 
 		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
@@ -766,9 +765,12 @@ public class SyncHandlerWithBackendTest {
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		SyncResponse secondSyncResponse = opClient.run(
-				Sync.builder(decoder).syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(inboxCollectionId).dataType(EMAIL).build())
-					.command(SyncCommand.FETCH).serverId(serverId).build());
+				Sync.builder(decoder)
+					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
+							.syncKey(secondAllocatedSyncKey).dataType(EMAIL)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+							.build())
+					.build());
 		
 		mocksControl.verify();
 
@@ -1130,9 +1132,9 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
-				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build())
-						.collection(SyncCollection.builder().collectionId(contactCollectionId).dataType(CONTACTS).build())
+				.run(Sync.builder(decoder)
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR).build())
+						.collection(SyncCollection.builder().collectionId(contactCollectionId).syncKey(firstAllocatedSyncKey).dataType(CONTACTS).build())
 						.build());
 		
 		mocksControl.verify();
@@ -1192,9 +1194,9 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 		
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
-				.run(Sync.builder(decoder).syncKey(firstAllocatedSyncKey)
-						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build())
-						.collection(SyncCollection.builder().collectionId(inboxCollectionId).dataType(EMAIL).build())
+				.run(Sync.builder(decoder)
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR).build())
+						.collection(SyncCollection.builder().collectionId(inboxCollectionId).syncKey(firstAllocatedSyncKey).dataType(EMAIL).build())
 						.build());
 		
 		mocksControl.verify();
@@ -1303,22 +1305,29 @@ public class SyncHandlerWithBackendTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		sendTwoEmailsToImapServer();
 		opClient.run(Sync.builder(decoder)
-						.windowSize(ONE_WINDOWS_SIZE)
-						.filter(FilterType.THREE_DAYS_BACK)
-						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build())
-						.syncKey(initialSyncKey).build());
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR)
+								.syncKey(initialSyncKey)		
+								.windowSize(ONE_WINDOWS_SIZE)
+								.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+								.build())
+						.build());
 		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
-						.windowSize(ONE_WINDOWS_SIZE)
-						.filter(FilterType.THREE_DAYS_BACK)
-						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build())
-						.syncKey(firstAllocatedSyncKey).build());
+						.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR)
+								.syncKey(firstAllocatedSyncKey)
+								.windowSize(ONE_WINDOWS_SIZE)
+								.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+								.build())
+						.build());
 		
 		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
 		SyncResponse updatedSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.syncKey(secondAllocatedSyncKey)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR).build()).command(SyncCommand.CHANGE)
-					.serverId(serverId).clientId(clientId).data(msEvent).build());
+					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+							.syncKey(secondAllocatedSyncKey).dataType(CALENDAR)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
+									.serverId(serverId).clientId(clientId).applicationData(msEvent).build())									
+							.build())
+					.build());
 		
 		mocksControl.verify();
 

@@ -40,6 +40,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 public class SyncCollection {
@@ -56,9 +57,10 @@ public class SyncCollection {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private List<SyncCollectionCommand> commands;
+		private ImmutableList.Builder<SyncCollectionCommand> commands;
 
 		private Builder() {
+			commands = ImmutableList.builder();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {
@@ -95,17 +97,24 @@ public class SyncCollection {
 			this.options = options;
 			return this;
 		}
+
+		public Builder command(SyncCollectionCommand command) {
+			Preconditions.checkNotNull(command);
+			this.commands.add(command);
+			return this;
+		}
 		
 		public Builder commands(List<SyncCollectionCommand> commands) {
-			this.commands = commands;
+			this.commands.addAll(commands);
 			return this;
 		}
 
 		public SyncCollection build() {
 			return new SyncCollection(dataType, syncKey, collectionId, 
 					deletesAsMoves, changes, windowSize, options, 
-					Objects.firstNonNull(commands, ImmutableList.<SyncCollectionCommand>of()));
+					commands.build());
 		}
+
 	}
 	
 	private final Boolean deletesAsMoves;
