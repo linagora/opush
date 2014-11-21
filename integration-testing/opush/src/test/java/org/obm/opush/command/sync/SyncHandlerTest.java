@@ -417,7 +417,7 @@ public class SyncHandlerTest {
 	public void testSyncInboxFetchIdsNotEmpty() throws Exception {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		CollectionId syncEmailCollectionId = CollectionId.of(432);
+		CollectionId syncEmailCollectionId = CollectionId.of(1);
 		ServerId serverId = syncEmailCollectionId.serverId(123);
 		MSEmail applicationData = applicationData("text", MSEmailBodyType.PlainText);
 		ItemChange itemChange = ItemChange.builder().serverId(serverId)
@@ -863,5 +863,103 @@ public class SyncHandlerTest {
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		syncTestUtils.checkMailFolderHasNoChange(syncResponse, collectionId);
 		TimeZone.setDefault(defaultTimeZone);
+	}
+	
+	@Test
+	public void deleteWithZeroServerIdShouldBeIgnored() throws Exception {
+		SyncKey syncKey = new SyncKey("13424");
+		CollectionId collectionId = CollectionId.of(1);
+		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
+		ServerId serverId = collectionId.serverId(1456);
+		String clientId = "94953";
+
+		DataDelta serverDataDelta = DataDelta.newEmptyDelta(date("2012-10-10T16:22:53"), syncKey);
+		
+		MSEmail clientData = MSEmail.builder()
+			.header(MSEmailHeader.builder().build())
+			.body(MSEmailBody.builder()
+					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.bodyType(MSEmailBodyType.PlainText)
+					.estimatedDataSize(0)
+					.charset(Charsets.UTF_8)
+					.truncated(false)
+					.build())
+			.build();
+		
+		
+		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
+		testUtils.expectCreateFolderMappingState();
+		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
+		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		
+		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
+		expect(contentsImporter.importMessageChange(udr, collectionId, null, clientId, clientData))
+			.andReturn(serverId);
+		
+		mocksControl.replay();
+		opushServer.start();
+
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		SyncResponse syncResponse = opClient.run(
+				Sync.builder(decoder).encoder(encoderFactory).collection(
+						SyncCollection.builder()
+							.dataType(PIMDataType.EMAIL).collectionId(collectionId).syncKey(syncKey)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
+							.command(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(ServerId.of("0")).build())
+						.build())
+				.build());
+
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, collectionId);
+		assertThat(collectionResponse.getResponses().adds()).containsExactly(serverId);
+	}
+	
+	@Test
+	public void deleteWithItemBelongingToAnotherCollectionShouldBeIgnored() throws Exception {
+		SyncKey syncKey = new SyncKey("13424");
+		CollectionId collectionId = CollectionId.of(1);
+		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
+		ServerId serverId = collectionId.serverId(1456);
+		String clientId = "94953";
+
+		DataDelta serverDataDelta = DataDelta.newEmptyDelta(date("2012-10-10T16:22:53"), syncKey);
+		
+		MSEmail clientData = MSEmail.builder()
+			.header(MSEmailHeader.builder().build())
+			.body(MSEmailBody.builder()
+					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.bodyType(MSEmailBodyType.PlainText)
+					.estimatedDataSize(0)
+					.charset(Charsets.UTF_8)
+					.truncated(false)
+					.build())
+			.build();
+		
+		
+		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
+		testUtils.expectCreateFolderMappingState();
+		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
+		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		
+		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
+		expect(contentsImporter.importMessageChange(udr, collectionId, null, clientId, clientData))
+			.andReturn(serverId);
+		
+		mocksControl.replay();
+		opushServer.start();
+
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		SyncResponse syncResponse = opClient.run(
+				Sync.builder(decoder).encoder(encoderFactory).collection(
+						SyncCollection.builder()
+							.dataType(PIMDataType.EMAIL).collectionId(collectionId).syncKey(syncKey)
+							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
+							.command(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(2).serverId(2)).build())
+						.build())
+				.build());
+
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, collectionId);
+		assertThat(collectionResponse.getResponses().adds()).containsExactly(serverId);
 	}
 }

@@ -35,9 +35,11 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
+import org.obm.push.bean.SyncCollectionCommandsResponse.Builder;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
@@ -45,6 +47,7 @@ import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
@@ -53,6 +56,8 @@ import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.SyncedCollectionDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Objects;
@@ -62,6 +67,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class SyncAnalyser {
 
+	private static final Logger logger = LoggerFactory.getLogger(SyncAnalyser.class);
+	
 	private final SyncedCollectionDao syncedCollectionStoreService;
 	private final CollectionDao collectionDao;
 	private final ICollectionPathHelper collectionPathHelper;
@@ -117,11 +124,18 @@ public class SyncAnalyser {
 						findLastSyncedCollectionOptions(udr, isPartial, collectionId), collectionRequest))
 				.status(SyncStatus.OK);
 			
+			
+			Builder commands = SyncCollectionCommandsResponse.builder();
 			for (SyncCollectionCommand command: collectionRequest.getCommands()) {
 				checkRequiredData(command);
+				try {
+					checkServerId(command, collectionId);
+					commands.addCommand(command);
+				} catch (InvalidServerId e) {
+					logger.warn("Error with a command", e);
+				}
 			}
-			
-			builder.commands(SyncCollectionCommandsResponse.builder().addCommands(collectionRequest.getCommands()).build());
+			builder.commands(commands.build());
 			
 			AnalysedSyncCollection analysed = builder.build();
 			syncedCollectionStoreService.put(udr.getUser(), udr.getDevice(), analysed);
@@ -137,6 +151,18 @@ public class SyncAnalyser {
 	private void checkRequiredData(SyncCollectionCommand command) {
 		if (command.getType().requireApplicationData() && command.getApplicationData() == null) {
 			throw new ProtocolException("No decodable " + command.getType() + " data");
+		}
+	}
+	
+	private void checkServerId(SyncCollectionCommand command, CollectionId collectionId) throws InvalidServerId {
+		ServerId serverId = command.getServerId();
+		if (serverId != null) {
+			if (!serverId.isItem() || serverId.getItemId() < 1) {
+				throw new InvalidServerId("item " + serverId.toString() + " must have an Id greater than O");
+			}
+			if (!serverId.belongsTo(collectionId)) {
+				throw new InvalidServerId("item " + serverId.toString() + " doesn't belong to collection " + collectionId);
+			}
 		}
 	}
 

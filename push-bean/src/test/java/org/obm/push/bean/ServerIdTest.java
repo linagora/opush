@@ -158,4 +158,19 @@ public class ServerIdTest {
 		assertThat(actual.getItemId()).isEqualTo(2);
 		assertThat(actual.isItem()).isTrue();
 	}
+	
+	@Test(expected=NullPointerException.class)
+	public void belongsToThrowOnNullPointer() {
+		ServerId.of(CollectionId.of(1), 2).belongsTo(null);
+	}
+	
+	@Test
+	public void belongsToIsTrueOnSameCollection() {
+		assertThat(ServerId.of(CollectionId.of(1), 2).belongsTo(CollectionId.of(1))).isTrue();
+	}
+	
+	@Test
+	public void belongsToIsFalseOnDifferentCollection() {
+		assertThat(ServerId.of(CollectionId.of(1), 2).belongsTo(CollectionId.of(2))).isFalse();
+	}
 }

@@ -39,6 +39,7 @@ import org.obm.push.exception.activesync.InvalidServerId;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
@@ -102,6 +103,11 @@ public class ServerId implements Serializable {
 
 	public boolean isItem() {
 		return itemId != null;
+	}
+
+	public boolean belongsTo(CollectionId collectionId) {
+		Preconditions.checkNotNull(collectionId);
+		return this.collectionId.equals(collectionId);
 	}
 	
 	@Override
