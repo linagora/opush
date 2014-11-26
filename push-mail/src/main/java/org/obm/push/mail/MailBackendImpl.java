@@ -146,8 +146,6 @@ import com.sun.mail.util.QPDecoderStream;
 @Watch(BreakdownGroups.EMAIL)
 public class MailBackendImpl extends OpushBackend implements MailBackend {
 
-	private static final long INITIAL_UID_NEXT = 1l;
-
 	private static final ImmutableList<String> SPECIAL_FOLDERS = 
 			ImmutableList.of(EmailConfiguration.IMAP_INBOX_NAME,
 							EmailConfiguration.IMAP_DRAFTS_NAME,
