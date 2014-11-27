@@ -217,6 +217,20 @@ public class SmartReplyHandlerTest {
 		SimpleStoredMessage inboxMessage = inboxFolder.getMessages().get(1);
 		assertThat(inboxMessage.getMimeMessage().getSentDate()).isEqualTo(expectedDate);
 	}
+	
+	@Test
+	public void smartReplyShouldNotFailWhenNoSentFolder() throws Exception {
+		greenMail.getManagers().getImapHostManager().deleteMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		
+		mocksControl.replay();
+		opushServer.start();
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		mocksControl.verify();
+		
+		assertThat(success).isTrue();
+		assertThat(inboxFolder.getMessages().size()).isEqualTo(2);
+	}
 
 	private OPClient opClient() {
 		return testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);

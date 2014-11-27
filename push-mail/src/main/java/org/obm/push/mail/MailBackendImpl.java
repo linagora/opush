@@ -714,8 +714,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		try (InputStream emailStream = loadEmailInMemory(email)) {
 			smtpSender.sendEmail(udr, validateFrom(email.getFrom()), email.getTo(), email.getCc(), email.getCci(), emailStream);
 			if (saveInSent) {
-				emailStream.reset();
-				mailboxService.storeInSent(udr, multipleTimesReadable(emailStream, email.getMimeMessage().getCharset()));
+				tryToStoreInSent(udr, email, emailStream);
 			} else {
 				logger.info("The email mustn't be stored in Sent folder.{saveInSent=false}");
 			}
@@ -729,6 +728,17 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throw new ProcessingEmailException(e);
 		} catch (IllegalCharsetNameException e) {
 			throw new ProcessingEmailException(e);
+		}
+	}
+
+	private void tryToStoreInSent(UserDataRequest udr, SendEmail email, InputStream emailStream) {
+		try {
+			emailStream.reset();
+			mailboxService.storeInSent(udr, multipleTimesReadable(emailStream, email.getMimeMessage().getCharset()));
+		} catch (CollectionNotFoundException e) {
+			logger.warn("Cannot store an email in the Sent folder, the collection was not found: {}", e.getMessage());
+		} catch (Throwable t) {
+			logger.error("Cannot store an email in the Sent folder", t);
 		}
 	}
 

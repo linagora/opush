@@ -935,8 +935,8 @@ public class MailBackendImplTest {
 		control.verify();
 	}
 	
-	@Test(expected=ProcessingEmailException.class)
-	public void testSendEmailWithBigInputStreamSaveInSentUnknownCharset() throws Exception {
+	@Test
+	public void sendEmailShouldNotTriggerExceptionWhenSaveInSentAndUnknownCharset() throws Exception {
 		boolean saveInSent = true;
 		
 		Set<Address> addrs = Sets.newHashSet();
@@ -957,12 +957,8 @@ public class MailBackendImplTest {
 		expect(sendEmail.getMessage()).andReturn(loadEmail("bigEml.eml"));
 		
 		control.replay();
-		try {
-			testee.sendEmail(udr, sendEmail, saveInSent);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
+		testee.sendEmail(udr, sendEmail, saveInSent);
+		control.verify();
 	}
 
 	@SuppressWarnings("unchecked")
