@@ -53,7 +53,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 
 public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstimateRequest, GetItemEstimateResponse> {
 
@@ -171,10 +170,7 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 
 		for (AnalysedSyncCollection syncCollection : request.getSyncCollections()) {
 			Element collection = DOMUtils.createElement(giee, "Collection");
-			if (!Strings.isNullOrEmpty(syncCollection.getDataClass())) {
-				DOMUtils.createElementAndText(collection, "Class", syncCollection.getDataClass());
-			}
-			
+			appendDataClass(collection, syncCollection);
 			SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
 			if (syncCollectionOptions != null && syncCollectionOptions.getFilterType() != null) {
 				DOMUtils.createElementAndText(collection, "FilterType", syncCollectionOptions.getFilterType().asSpecificationValue());
@@ -186,6 +182,16 @@ public class GetItemEstimateProtocol implements ActiveSyncProtocol<GetItemEstima
 		
 		return ret;
 	}
+	
+	private void appendDataClass(Element collection, AnalysedSyncCollection syncCollection) {
+		if (syncCollection.getDataType() != null) {
+			String xmlValue = syncCollection.getDataType().asXmlValue();
+			if (xmlValue != null) {
+				DOMUtils.createElementAndText(collection, "Class", xmlValue);
+			}
+		}
+	}
+
 	
 	public Document buildError(GetItemEstimateStatus status, CollectionId collectionId) {
 		Document document = createDocument();

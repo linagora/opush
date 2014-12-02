@@ -60,6 +60,9 @@ public enum PIMDataType implements DBEnum {
 	}
 	
 	public String asXmlValue() {
+		if (this == UNKNOWN) {
+			return null;
+		}
 		return xmlValue;
 	}
 	
@@ -90,7 +93,7 @@ public enum PIMDataType implements DBEnum {
     static {
     	Builder<String, PIMDataType> builder = ImmutableMap.builder();
     	for (PIMDataType status : PIMDataType.values()) {
-    		builder.put(status.asXmlValue(), status);
+    		builder.put(status.xmlValue, status);
     	}
     	specValueToEnum = builder.build();
     }

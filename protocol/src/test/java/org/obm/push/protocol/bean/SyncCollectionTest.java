@@ -46,70 +46,6 @@ import com.google.common.collect.ImmutableList;
 public class SyncCollectionTest {
 
 	@Test
-	public void testDataClassForNullDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isNull();
-	}
-
-	@Test
-	public void testDataClassForUnknownDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.dataType(PIMDataType.UNKNOWN)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isNull();
-	}
-
-	@Test
-	public void testDataClassForEmailDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.dataType(PIMDataType.EMAIL)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isEqualTo("Email");
-	}
-
-	@Test
-	public void testDataClassForCalendarDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.dataType(PIMDataType.CALENDAR)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isEqualTo("Calendar");
-	}
-
-	@Test
-	public void testDataClassForContactDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.dataType(PIMDataType.CONTACTS)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isEqualTo("Contacts");
-	}
-
-	@Test
-	public void testDataClassForDefaultDataType() {
-		SyncCollection syncCollection = SyncCollection.builder()
-				.collectionId(CollectionId.of(1))
-				.syncKey(SyncKey.INITIAL_SYNC_KEY)
-				.build();
-		
-		assertThat(syncCollection.getDataClass()).isNull();
-	}
-
-	@Test
 	public void testBuilderIdIsNotRequired() {
 		SyncCollection syncRequestCollection = builderWithRequirement().collectionId(null).build();
 		
@@ -141,14 +77,14 @@ public class SyncCollectionTest {
 	public void testBuilderDataClassIsNotRequired() {
 		SyncCollection syncRequestCollection = builderWithRequirement().dataType(null).build();
 		
-		assertThat(syncRequestCollection.getDataClass()).isNull();
+		assertThat(syncRequestCollection.getDataType()).isNull();
 	}
 
 	@Test
 	public void testBuilderDataClassValid() {
 		SyncCollection syncRequestCollection = builderWithRequirement().dataType(PIMDataType.EMAIL).build();
 		
-		assertThat(syncRequestCollection.getDataClass()).isEqualTo("Email");
+		assertThat(syncRequestCollection.getDataType()).isEqualTo(PIMDataType.EMAIL);
 	}
 	
 	@Test

@@ -402,7 +402,6 @@ public class SyncAnalyserTest {
 		SyncRequest syncRequest = syncDecoder.decodeSync(requestWithoutOptions);
 		Sync analysed = syncAnalyser.analyseSync(udr, syncRequest);
 		
-		assertThat(analysed.getCollection(collectionId).getDataClass()).isEqualTo("Email");
 		assertThat(analysed.getCollection(collectionId).getDataType()).isEqualTo(PIMDataType.EMAIL);
 	}
 	

@@ -125,7 +125,6 @@ public class GetItemEstimateProtocolTest {
 
 		AnalysedSyncCollection syncCollection = Iterables.getOnlyElement(request.getSyncCollections());
 		assertThat(syncCollection.getDataType()).isNull();
-		assertThat(syncCollection.getDataClass()).isNull();
 	}
 	
 	@Test
@@ -143,7 +142,6 @@ public class GetItemEstimateProtocolTest {
 
 		AnalysedSyncCollection syncCollection = Iterables.getOnlyElement(request.getSyncCollections());
 		assertThat(syncCollection.getDataType()).isEqualTo(PIMDataType.UNKNOWN);
-		assertThat(syncCollection.getDataClass()).isNull();
 	}
 	
 	@Test
@@ -161,6 +159,5 @@ public class GetItemEstimateProtocolTest {
 
 		AnalysedSyncCollection syncCollection = Iterables.getOnlyElement(request.getSyncCollections());
 		assertThat(syncCollection.getDataType()).isEqualTo(PIMDataType.EMAIL);
-		assertThat(syncCollection.getDataClass()).isEqualTo("Email");
 	}
 }

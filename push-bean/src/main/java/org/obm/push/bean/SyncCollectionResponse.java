@@ -46,13 +46,14 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectionCommandsResponse> implements Serializable {
+public class SyncCollectionResponse implements Serializable {
 
 	public static Builder builder() {
 		return new Builder();
 	}
 	
 	public static class Builder {
+		
 		private PIMDataType dataType;
 		private SyncKey syncKey;
 		private CollectionId collectionId;
@@ -117,22 +118,49 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 
 	}
 	
+	private final PIMDataType dataType;
+	private final SyncKey syncKey;
+	private final CollectionId collectionId;
 	private final SyncStatus status;
 	private final boolean moreAvailable;
+	private final SyncCollectionCommandsResponse commands;
 	private final SyncCollectionResponsesResponse responses;
 	
 	private SyncCollectionResponse(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			SyncStatus status, boolean moreAvailable, SyncCollectionCommandsResponse commands, SyncCollectionResponsesResponse responses) {
-		super(dataType, syncKey, collectionId, commands);
+		this.dataType = dataType;
+		this.syncKey = syncKey;
+		this.collectionId = collectionId;
 		this.status = status;
 		this.moreAvailable = moreAvailable;
+		this.commands = commands;
 		this.responses = responses;
+	}
+	
+	public SyncCollectionCommandsResponse getCommands() {
+		return commands;
+	}
+	
+	public CollectionId getCollectionId() {
+		return collectionId;
+	}
+
+	public PIMDataType getDataType() {
+		return dataType;
+	}
+	
+	public List<ServerId> getFetchIds() {
+		return commands.getFetchIds();
 	}
 	
 	public SyncStatus getStatus() {
 		return status;
 	}
 
+	public SyncKey getSyncKey() {
+		return syncKey;
+	}
+	
 	public boolean isMoreAvailable() {
 		return moreAvailable;
 	}
@@ -153,7 +181,6 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	public List<ItemDeletion> getItemDeletions() {
-		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
 			return FluentIterable.from(
 					commands.getCommandsForType(SyncCommand.DELETE))
@@ -215,9 +242,9 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	private Iterable<SyncCollectionCommand> getChanges() {
-		SyncCollectionCommandsResponse commands = getCommands();
 		if (commands != null) {
-			return Iterables.concat(commands.getCommandsForType(SyncCommand.ADD),
+			return Iterables.concat(
+					commands.getCommandsForType(SyncCommand.ADD),
 					commands.getCommandsForType(SyncCommand.CHANGE),
 					commands.getCommandsForType(SyncCommand.MODIFY));
 		}
@@ -225,26 +252,34 @@ public class SyncCollectionResponse extends AbstractSyncCollection<SyncCollectio
 	}
 
 	@Override
-	protected int hashCodeImpl() {
-		return Objects.hashCode(status, moreAvailable);
+	public int hashCode() {
+		return Objects.hashCode(dataType, syncKey, collectionId, commands, status, moreAvailable);
 	}
 	
 	@Override
-	protected boolean equalsImpl(AbstractSyncCollection<?> object) {
+	public boolean equals(Object object) {
 		if (object instanceof SyncCollectionResponse) {
 			SyncCollectionResponse that = (SyncCollectionResponse) object;
-			return Objects.equal(this.status, that.status)
-				&& Objects.equal(this.moreAvailable, that.moreAvailable);
+			return Objects.equal(this.dataType, that.dataType)
+					&& Objects.equal(this.syncKey, that.syncKey)
+					&& Objects.equal(this.collectionId, that.collectionId)
+					&& Objects.equal(this.commands, that.commands)
+					&& Objects.equal(this.status, that.status)
+					&& Objects.equal(this.moreAvailable, that.moreAvailable);
 		}
 		return false;
 	}
 
-
 	@Override
-	protected String toStringImpl() {
+	public String toString() {
 		return Objects.toStringHelper(this)
+				.add("dataType", dataType)
+				.add("syncKey", syncKey)
+				.add("collectionId", collectionId)
+				.add("commands", commands)
 				.add("status", status)
 				.add("moreAvailable", moreAvailable)
 			.toString();
 	}
-	}
+
+}

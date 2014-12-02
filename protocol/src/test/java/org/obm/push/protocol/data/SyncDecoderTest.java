@@ -367,7 +367,7 @@ public class SyncDecoderTest {
 
 		assertThat(collection.getSyncKey()).isEqualTo(new SyncKey("ddcf2e35-9834-49de-96ff-09979c7e2aa0"));
 		assertThat(collection.getCollectionId()).isEqualTo(CollectionId.of(2));
-		assertThat(collection.getDataClass()).isEqualTo("Email");
+		assertThat(collection.getDataType()).isEqualTo(PIMDataType.EMAIL);
 		assertThat(collection.getWindowSize()).isEqualTo(150);
 	}
 
@@ -382,7 +382,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
-		assertThat(collection.getDataClass()).isNull();
+		assertThat(collection.getDataType()).isNull();
 	}
 
 	@Test
@@ -397,7 +397,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 		
-		assertThat(collection.getDataClass()).isNull();
+		assertThat(collection.getDataType()).isNull();
 	}
 
 	@Test
@@ -412,7 +412,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 		
-		assertThat(collection.getDataClass()).isEqualTo("Email");
+		assertThat(collection.getDataType()).isEqualTo(PIMDataType.EMAIL);
 	}
 
 	@Test
@@ -431,7 +431,6 @@ public class SyncDecoderTest {
 		SyncResponse response = new SyncDecoder(null).decodeSyncResponse(request);
 		
 		SyncCollectionResponse collectionResponse = Iterables.getOnlyElement(response.getCollectionResponses());
-		assertThat(collectionResponse.getDataClass()).isNull();
 		assertThat(collectionResponse.getDataType()).isNull();
 	}
 
@@ -452,7 +451,6 @@ public class SyncDecoderTest {
 		SyncResponse response = new SyncDecoder(null).decodeSyncResponse(request);
 		
 		SyncCollectionResponse collectionResponse = Iterables.getOnlyElement(response.getCollectionResponses());
-		assertThat(collectionResponse.getDataClass()).isNull();
 		assertThat(collectionResponse.getDataType()).isEqualTo(PIMDataType.UNKNOWN);
 	}
 
@@ -473,7 +471,6 @@ public class SyncDecoderTest {
 		SyncResponse response = new SyncDecoder(null).decodeSyncResponse(request);
 		
 		SyncCollectionResponse collectionResponse = Iterables.getOnlyElement(response.getCollectionResponses());
-		assertThat(collectionResponse.getDataClass()).isEqualTo("Email");
 		assertThat(collectionResponse.getDataType()).isEqualTo(PIMDataType.EMAIL);
 	}
 

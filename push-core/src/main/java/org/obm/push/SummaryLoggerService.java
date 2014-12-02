@@ -31,9 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
-import org.obm.push.bean.AbstractSyncCollection;
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Summary;
 import org.obm.push.bean.Sync;
+import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.MoveItemsRequest;
@@ -61,11 +62,25 @@ public class SummaryLoggerService {
 	}
 	
 	public void logIncomingSync(Sync analyseSync) {
-		logSummary(loggerIn, analyseSync.getCollections());
+		if (!loggerIn.isInfoEnabled()) {
+			return;
+		}
+		Summary summary = Summary.empty();
+		for (AnalysedSyncCollection collection : analyseSync.getCollections()) {
+			summary = summary.merge(collection.getCommands().getSummary());
+		}
+		loggerIn.info(summary.summary());
 	}
-	
+
 	public void logOutgoingSync(SyncResponse response) {
-		logSummary(loggerOut, response.getCollectionResponses());
+		if (!loggerOut.isInfoEnabled()) {
+			return;
+		}
+		Summary summary = Summary.empty();
+		for (SyncCollectionResponse collection : response.getCollectionResponses()) {
+			summary = summary.merge(collection.getCommands().getSummary());
+		}
+		loggerOut.info(summary.summary());
 	}
 
 	public void logOutgoingFolderSync(FolderSyncResponse folderSyncResponse) {
@@ -79,17 +94,5 @@ public class SummaryLoggerService {
 	public void logOutgoingMoveItem(MoveItemsResponse moveItemsResponse) {
 		loggerOut.info(moveItemsResponse.getSummary().summary());
 	}
-	
-	private static <TYPE extends AbstractSyncCollection<?>> 
-			void logSummary(Logger logger, Iterable<TYPE> collections) {
-		
-		if (!logger.isInfoEnabled()) {
-			return;
-		}
-		Summary summary = Summary.empty();
-		for (AbstractSyncCollection<?> collection : collections) {
-			summary = summary.merge(collection.getCommands().getSummary());
-		}
-		logger.info(summary.summary());
-	}
+
 }

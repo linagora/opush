@@ -33,6 +33,7 @@ package org.obm.push.json.mixin;
 
 import java.util.List;
 
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Summary;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
@@ -48,4 +49,7 @@ public interface SyncCollectionCommandsResponseMixIn {
 	
 	@JsonIgnore
 	Summary getSummary();
+	
+	@JsonIgnore
+	List<ServerId> getFetchIds();
 }

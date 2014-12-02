@@ -32,14 +32,18 @@
 package org.obm.push.bean;
 
 import java.io.Serializable;
+import java.util.List;
 
+import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 import org.obm.push.protocol.bean.CollectionId;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.FluentIterable;
 
-public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectionCommandsResponse> implements SyncDefaultValues, Serializable {
+public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	
 	private static final long serialVersionUID = 348968178554764052L;
 
@@ -133,6 +137,11 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 
 	}
 	
+	
+	private final PIMDataType dataType;
+	private final SyncKey syncKey;
+	private final CollectionId collectionId;
+	private final SyncCollectionCommandsResponse commands;
 	private final String collectionPath;
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
@@ -143,23 +152,54 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
 			SyncCollectionOptions options, SyncCollectionCommandsResponse commands, SyncStatus status) {
-		super(dataType, syncKey, collectionId, commands);
+		
+		this.dataType = dataType;
+		this.syncKey = syncKey;
+		this.collectionId = collectionId;
 		this.collectionPath = collectionPath;
 		this.deletesAsMoves = deletesAsMoves;
 		this.changes = changes;
 		this.windowSize = windowSize;
 		this.options = options;
+		this.commands = commands;
 		this.status = status;
+	}
+
+	public SyncCollectionCommandsResponse getCommands() {
+		return commands;
+	}
+
+	public CollectionId getCollectionId() {
+		return collectionId;
 	}
 	
 	public String getCollectionPath() {
 		return collectionPath;
 	}
 	
+	public PIMDataType getDataType() {
+		return dataType;
+	}
+	
 	public Boolean getDeletesAsMoves() {
 		return deletesAsMoves;
 	}
-
+	
+	public List<ServerId> getFetchIds() {
+		return FluentIterable.from(
+				commands.getCommandsForType(SyncCommand.FETCH))
+				.transform(new Function<SyncCollectionCommand, ServerId>() {
+					@Override
+					public ServerId apply(SyncCollectionCommand input) {
+						return input.getServerId();
+					}
+				}).toList();
+	}
+	
+	public SyncKey getSyncKey() {
+		return syncKey;
+	}
+	
 	public Boolean isChanges() {
 		return changes;
 	}
@@ -181,34 +221,43 @@ public class AnalysedSyncCollection extends AbstractSyncCollection<SyncCollectio
 	}
 	
 	@Override
-	protected int hashCodeImpl() {
-		return Objects.hashCode(collectionPath, deletesAsMoves, changes, windowSize, options, status);
+	public int hashCode() {
+		return Objects.hashCode(dataType, syncKey, collectionId, commands, collectionPath, deletesAsMoves, changes, windowSize, options, status);
 	}
 	
 	@Override
-	protected boolean equalsImpl(AbstractSyncCollection<?> object) {
+	public boolean equals(Object object) {
 		if (object instanceof AnalysedSyncCollection) {
 			AnalysedSyncCollection that = (AnalysedSyncCollection) object;
-			return Objects.equal(this.collectionPath, that.collectionPath)
-				&& Objects.equal(this.deletesAsMoves, that.deletesAsMoves)
-				&& Objects.equal(this.changes, that.changes)
-				&& Objects.equal(this.windowSize, that.windowSize)
-				&& Objects.equal(this.options, that.options)
-				&& Objects.equal(this.status, that.status);
+			return Objects.equal(this.dataType, that.dataType)
+					&& Objects.equal(this.syncKey, that.syncKey)
+					&& Objects.equal(this.collectionId, that.collectionId)
+					&& Objects.equal(this.commands, that.commands)
+					&& Objects.equal(this.collectionPath, that.collectionPath)
+					&& Objects.equal(this.deletesAsMoves, that.deletesAsMoves)
+					&& Objects.equal(this.changes, that.changes)
+					&& Objects.equal(this.windowSize, that.windowSize)
+					&& Objects.equal(this.options, that.options)
+					&& Objects.equal(this.status, that.status);
 		}
 		return false;
 	}
 
 
 	@Override
-	protected String toStringImpl() {
+	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("collectionPath", collectionPath)
-			.add("deletesAsMoves", deletesAsMoves)
-			.add("changes", changes)
-			.add("windowSize", windowSize)
-			.add("options", options)
-			.add("status", status)
+				.add("dataType", dataType)
+				.add("syncKey", syncKey)
+				.add("collectionId", collectionId)
+				.add("commands", commands)
+				.add("collectionPath", collectionPath)
+				.add("deletesAsMoves", deletesAsMoves)
+				.add("changes", changes)
+				.add("windowSize", windowSize)
+				.add("options", options)
+				.add("status", status)
 			.toString();
 	}
+
 }

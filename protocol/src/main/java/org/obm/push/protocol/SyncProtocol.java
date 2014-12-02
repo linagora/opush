@@ -98,9 +98,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 			for (SyncCollectionResponse collectionResponse: syncResponse.getCollectionResponses()) {
 
 				final Element ce = DOMUtils.createElement(cols, "Collection");
-				if (collectionResponse.getDataClass() != null) {
-					DOMUtils.createElementAndText(ce, "Class", collectionResponse.getDataClass());
-				}
+				appendDataClass(ce, collectionResponse);
 				
 				SyncStatus status = collectionResponse.getStatus();
 				if (status != SyncStatus.OK) {
@@ -133,6 +131,15 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 		}
 	}
 
+	private void appendDataClass(Element folder, SyncCollectionResponse collection) {
+		if (collection.getDataType() != null) {
+			String xmlValue = collection.getDataType().asXmlValue();
+			if (xmlValue != null) {
+				DOMUtils.createElementAndText(folder, "Class", xmlValue);
+			}
+		}
+	}
+	
 	public Document encodeResponse() {
 		Document reply = DOMUtils.createDoc(null, "Sync");
 		Element root = reply.getDocumentElement();

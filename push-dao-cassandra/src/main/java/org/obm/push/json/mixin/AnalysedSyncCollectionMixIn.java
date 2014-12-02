@@ -31,9 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.json.mixin;
 
-import org.obm.push.bean.AnalysedSyncCollection;
+import java.util.List;
 
+import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.ServerId;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder=AnalysedSyncCollection.Builder.class)
-public interface AnalysedSyncCollectionMixIn {}
+public interface AnalysedSyncCollectionMixIn {
+	
+	@JsonIgnore
+	List<ServerId> getFetchIds();
+}

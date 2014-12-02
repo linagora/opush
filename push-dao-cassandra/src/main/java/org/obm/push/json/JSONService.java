@@ -38,7 +38,6 @@ import java.util.Set;
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingEvent;
-import org.obm.push.bean.AbstractSyncCollection;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
@@ -64,7 +63,6 @@ import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestCategory;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
-import org.obm.push.json.mixin.AbstractSyncCollectionMixIn;
 import org.obm.push.json.mixin.AnalysedSyncCollectionMixIn;
 import org.obm.push.json.mixin.BodyPreferenceMixIn;
 import org.obm.push.json.mixin.CollectionIdMixIn;
@@ -202,7 +200,6 @@ public class JSONService {
 			.setMixInAnnotation(Credentials.class, CredentialsMixIn.class)
 			.setMixInAnnotation(Device.class, DeviceMixIn.class)
 			.setMixInAnnotation(DeviceId.class, DeviceIdMixIn.class)
-			.setMixInAnnotation(AbstractSyncCollection.class, AbstractSyncCollectionMixIn.class)
 			.setMixInAnnotation(AnalysedSyncCollection.class, AnalysedSyncCollectionMixIn.class)
 			.setMixInAnnotation(BodyPreference.class, BodyPreferenceMixIn.class)
 			.setMixInAnnotation(Email.class, EmailMixIn.class)

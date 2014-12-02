@@ -116,6 +116,9 @@ public class SyncCollectionCommandsResponse implements Serializable, SyncCollect
 		this.commands = commands;
 	}
 
+	public List<ServerId> getFetchIds() {
+		return commands.getFetchIds();
+	}
 	
 	public boolean hasFetch() {
 		return FluentIterable.from(commands.getCommands())

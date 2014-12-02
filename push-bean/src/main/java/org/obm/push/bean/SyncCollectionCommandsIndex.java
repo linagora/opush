@@ -119,6 +119,17 @@ public final class SyncCollectionCommandsIndex implements Serializable {
 		return getCommandsForType(SyncCommand.FETCH).size();
 	}
 
+	public List<ServerId> getFetchIds() {
+		return FluentIterable.from(
+				getCommandsForType(SyncCommand.FETCH))
+				.transform(new Function<SyncCollectionCommand, ServerId>() {
+					@Override
+					public ServerId apply(SyncCollectionCommand input) {
+						return input.getServerId();
+					}
+				}).toList();
+	}
+	
 	public Summary getSummary() {
 		return Summary.builder()
 				.changeCount(countChanges())

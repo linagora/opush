@@ -40,6 +40,7 @@ import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IListenerRegistration;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.UserDataRequest;
@@ -140,7 +141,7 @@ public class PingHandler extends WbxmlRequestHandler implements IContinuationHan
 			throws CollectionNotFoundException, DaoException {
 		
 		for (AnalysedSyncCollection syncCollection: pingRequest.getSyncCollections()) {
-			if ("email".equalsIgnoreCase(syncCollection.getDataClass())) {
+			if (PIMDataType.EMAIL == syncCollection.getDataType()) {
 				backend.startEmailMonitoring(udr, syncCollection.getCollectionId());
 			}
 		}

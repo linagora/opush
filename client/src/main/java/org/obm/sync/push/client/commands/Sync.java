@@ -149,7 +149,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 							DOMUtils.createElementAndText(col, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
 						}
 					}
-					DOMUtils.createElementAndText(col, SyncRequestFields.DATA_CLASS.getName(), collection.getDataType().asXmlValue());
+					appendDataClass(col, collection);
 
 					Element commandsEl = DOMUtils.createElement(col, SyncRequestFields.COMMANDS.getName());
 					for (SyncCollectionCommand command: collection.getCommands()) {
@@ -170,6 +170,15 @@ public class Sync extends AbstractCommand<SyncResponse> {
 				Throwables.propagate(e);
 			}
 			return document;
+		}
+		
+		private void appendDataClass(Element collectionEl, SyncCollection collection) {
+			if (collection.getDataType() != null) {
+				String xmlValue = collection.getDataType().asXmlValue();
+				if (xmlValue != null) {
+					DOMUtils.createElementAndText(collectionEl, "Class", xmlValue);
+				}
+			}
 		}
 	}
 

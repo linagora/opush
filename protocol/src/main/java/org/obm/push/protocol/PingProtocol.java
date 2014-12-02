@@ -146,9 +146,18 @@ public class PingProtocol implements ActiveSyncProtocol<PingRequest, PingRespons
 		for (SyncCollection syncCollection : pingRequest.getSyncCollections()) {
 			Element folder = DOMUtils.createElement(folders, "Folder");
 			DOMUtils.createElementAndText(folder, "Id", syncCollection.getCollectionId().asString());
-			DOMUtils.createElementAndText(folder, "Class", syncCollection.getDataClass());
+			appendDataClass(folder, syncCollection);
 		}
 		return document;
+	}
+	
+	private void appendDataClass(Element folder, SyncCollection syncCollection) {
+		if (syncCollection.getDataType() != null) {
+			String xmlValue = syncCollection.getDataType().asXmlValue();
+			if (xmlValue != null) {
+				DOMUtils.createElementAndText(folder, "Class", xmlValue);
+			}
+		}
 	}
 	
 	public Document buildError(String errorStatus) {

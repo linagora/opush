@@ -143,13 +143,6 @@ public class SyncCollection {
 		return dataType;
 	}
 	
-	public String getDataClass() {
-		if (dataType != null && dataType != PIMDataType.UNKNOWN) {
-			return dataType.asXmlValue();
-		}
-		return null;
-	}
-
 	public CollectionId getCollectionId() {
 		return collectionId;
 	}
