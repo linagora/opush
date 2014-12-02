@@ -142,7 +142,7 @@ public class BeansTest {
 		equalsVerifierUtilsTest.test(list);
 		
 		EqualsVerifierBuilder.builder()
-			.equalsVerifiers(ImmutableList.<Class<?>>of(SyncCollectionCommands.class))
+			.equalsVerifiers(ImmutableList.<Class<?>>of(SyncCollectionCommandsIndex.class))
 			.prefabValue(ImmutableListMultimap.class, 
 					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
 							SyncCommand.ADD,

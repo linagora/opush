@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,127 +31,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
-import java.io.Serializable;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
+public interface SyncCollectionCommands {
 
-public abstract class SyncCollectionCommands implements Serializable {
+	List<SyncCollectionCommand> getCommands();
 
-	private static final long serialVersionUID = 5403154747427044879L;
+	List<SyncCollectionCommand> getCommandsForType(SyncCommand type);
 
-	public abstract static class Builder<C extends SyncCollectionCommands> {
-		
-		private final ImmutableList.Builder<SyncCollectionCommand> commandsBuilder;
-		private ImmutableList<SyncCollectionCommand> commands;
- 		private ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType;
+	Summary getSummary();
 
-		protected Builder() {
-			super();
-			commandsBuilder = ImmutableList.builder();
-		}
-		
-		public Builder<C> addCommand(SyncCollectionCommand command) {
-			commandsBuilder.add(command);
-			return this;
-		}
-		
-		public Builder<C> addCommands(List<SyncCollectionCommand> commands) {
-			commandsBuilder.addAll(commands);
-			return this;
-		}
-		
-		protected C abstractBuild() {
-			commands = this.commandsBuilder.build();
-			commandsByType = commandsByType(commands);
-			return buildImpl(commandsByType, commands);
-		}
-		
-		public abstract C build();
-		
-		protected abstract C buildImpl(
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-			List<SyncCollectionCommand> commands);
-		
-		private ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType(List<SyncCollectionCommand> commands) {
-			return FluentIterable.from(commands)
-						.index(new Function<SyncCollectionCommand, SyncCommand>() {
-
-					@Override
-					public SyncCommand apply(SyncCollectionCommand input) {
-						return input.getType();
-					}
-				});
-		}
-	}
-	
-	private final ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType;
-	private final List<SyncCollectionCommand> commands;
-	
-	protected SyncCollectionCommands(
-		ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-		List<SyncCollectionCommand> commands) {
-		
-		this.commandsByType = commandsByType;
-		this.commands = commands;
-	}
-
-	public List<SyncCollectionCommand> getCommandsForType(SyncCommand type) {
-		return Objects.firstNonNull(commandsByType.get(type), ImmutableList.<SyncCollectionCommand>of());
-	}
-	
-	public List<SyncCollectionCommand> getCommands() {
-		return commands;
-	}
-
-	private int countChanges() {
-		return getCommandsForType(SyncCommand.ADD).size() 
-				+ getCommandsForType(SyncCommand.CHANGE).size() 
-				+ getCommandsForType(SyncCommand.MODIFY).size();
-	}
-	
-	private int countDeletions() {
-		return getCommandsForType(SyncCommand.DELETE).size();
-	}
-
-	private int countFetchs() {
-		return getCommandsForType(SyncCommand.FETCH).size();
-	}
-
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(commandsByType, commands);
-	}
-
-	public Summary getSummary() {
-		return Summary.builder()
-				.changeCount(countChanges())
-				.deletionCount(countDeletions())
-				.fetchCount(countFetchs())
-				.build();
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommands) {
-			SyncCollectionCommands that = (SyncCollectionCommands) object;
-			return Objects.equal(this.commandsByType, that.commandsByType)
-				&& Objects.equal(this.commands, that.commands);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("commandsByType", commandsByType)
-			.toString();
-	}
-	
 }

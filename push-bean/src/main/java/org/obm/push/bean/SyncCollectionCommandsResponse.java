@@ -31,25 +31,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableListMultimap;
 
-public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
+public class SyncCollectionCommandsResponse implements Serializable, SyncCollectionCommands {
 
 	private static final long serialVersionUID = -6871877347639563687L;
-
-	private SyncCollectionCommandsResponse(
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-			List<SyncCollectionCommand> commands) {
-		super(commandsByType, commands);
-	}
 	
 	public static SyncCollectionCommandsResponse empty() {
 		return builder().build();
@@ -59,22 +54,17 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
 		return new Builder();
 	}
 	
-	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionCommandsResponse> {
+	public static class Builder {
 		
-		private Builder() {
-			super();
-		}
-		
-		@Override
-		protected SyncCollectionCommandsResponse buildImpl(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-				List<SyncCollectionCommand> commands) {
-			return new SyncCollectionCommandsResponse(commandsByType, commands);
-		}
+		private SyncCollectionCommandsIndex.Builder commandsBuilder;
 
-		@Override
-		public SyncCollectionCommandsResponse build() {
-			return abstractBuild();
+		private Builder() {
+			commandsBuilder = SyncCollectionCommandsIndex.builder();
+		}
+		
+		public Builder addCommand(SyncCollectionCommand command) {
+			commandsBuilder.addCommand(command);
+			return this;
 		}
 		
 		public Builder changes(List<ItemChange> changes) {
@@ -114,10 +104,21 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
 			}
 			return this;
 		}
+
+		public SyncCollectionCommandsResponse build() {
+			return new SyncCollectionCommandsResponse(commandsBuilder.build());
+		}
 	}
 	
+	private final SyncCollectionCommandsIndex commands;
+
+	private SyncCollectionCommandsResponse(SyncCollectionCommandsIndex commands) {
+		this.commands = commands;
+	}
+
+	
 	public boolean hasFetch() {
-		return FluentIterable.from(getCommands())
+		return FluentIterable.from(commands.getCommands())
 			.anyMatch(new Predicate<SyncCollectionCommand>() {
 
 				@Override
@@ -126,4 +127,41 @@ public class SyncCollectionCommandsResponse extends SyncCollectionCommands {
 				}
 			});
 	}
+
+	@Override
+	public List<SyncCollectionCommand> getCommands() {
+		return commands.getCommands();
+	}
+
+	@Override
+	public List<SyncCollectionCommand> getCommandsForType(SyncCommand type) {
+		return commands.getCommandsForType(type);
+	}
+
+	@Override
+	public Summary getSummary() {
+		return commands.getSummary();
+	}
+
+	@Override
+	public final int hashCode(){
+		return Objects.hashCode(commands);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
+		if (object instanceof SyncCollectionCommandsResponse) {
+			SyncCollectionCommandsResponse that = (SyncCollectionCommandsResponse) object;
+			return Objects.equal(this.commands, that.commands);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("commands", commands)
+			.toString();
+	}
+
 }

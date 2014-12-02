@@ -31,9 +31,21 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.json.mixin;
 
+import java.util.List;
+
+import org.obm.push.bean.Summary;
+import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder=SyncCollectionCommandsResponse.Builder.class)
-public interface SyncCollectionCommandsResponseMixIn {}
+public interface SyncCollectionCommandsResponseMixIn {
+	
+	@JsonIgnore
+	List<SyncCollectionCommand> getCommands();
+	
+	@JsonIgnore
+	Summary getSummary();
+}

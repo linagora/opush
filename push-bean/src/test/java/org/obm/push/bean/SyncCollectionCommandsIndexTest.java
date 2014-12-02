@@ -42,7 +42,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import com.google.common.collect.ImmutableList;
 
 
-public class SyncCollectionCommandsTest {
+public class SyncCollectionCommandsIndexTest {
 
 	@Test
 	public void testBuilderCommandsIsNotRequired() {

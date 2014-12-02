@@ -50,9 +50,9 @@ import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
-import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommands;
+import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandsIndex;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -219,8 +219,7 @@ public class JSONService {
 			.setMixInAnnotation(ServerId.class, ServerIdMixIn.class)
 			.setMixInAnnotation(Snapshot.class, SnapshotMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommand.class, SyncCollectionCommandMixIn.class)
-			.setMixInAnnotation(SyncCollectionCommands.class, SyncCollectionCommandsMixIn.class)
-			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
+			.setMixInAnnotation(SyncCollectionCommandsIndex.class, SyncCollectionCommandsMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionOptions.class, SyncCollectionOptionsMixIn.class)
 			.setMixInAnnotation(SyncKey.class, SyncKeyMixIn.class)

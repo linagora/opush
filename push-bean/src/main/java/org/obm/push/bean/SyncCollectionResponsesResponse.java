@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
@@ -41,20 +42,14 @@ import org.obm.push.bean.change.client.SyncClientCommands.Fetch;
 import org.obm.push.bean.change.client.SyncClientCommands.Update;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 
-public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
+public class SyncCollectionResponsesResponse implements Serializable {
 
 	private static final long serialVersionUID = -6871877347639563687L;
 
-	private SyncCollectionResponsesResponse(
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-			List<SyncCollectionCommand> commands) {
-		super(commandsByType, commands);
-	}
-	
 	public static SyncCollectionResponsesResponse empty() {
 		return builder().build();
 	}
@@ -72,24 +67,19 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 		return new Builder();
 	}
 	
-	public static class Builder extends SyncCollectionCommands.Builder<SyncCollectionResponsesResponse> {
+	public static class Builder {
 		
+		private SyncCollectionCommandsIndex.Builder commandsBuilder;
+
 		private Builder() {
-			super();
+			commandsBuilder = SyncCollectionCommandsIndex.builder();
 		}
 		
-		@Override
-		protected SyncCollectionResponsesResponse buildImpl(
-				ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-				List<SyncCollectionCommand> commands) {
-			return new SyncCollectionResponsesResponse(commandsByType, commands);
+		public Builder addCommand(SyncCollectionCommand command) {
+			commandsBuilder.addCommand(command);
+			return this;
 		}
-
-		@Override
-		public SyncCollectionResponsesResponse build() {
-			return abstractBuild();
-		}
-
+		
 		public Builder adds(List<Add> adds) {
 			for (Add add: adds) {
 				addCommand(
@@ -139,6 +129,16 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 			}
 			return this;
 		}
+		
+		public SyncCollectionResponsesResponse build() {
+			return new SyncCollectionResponsesResponse(commandsBuilder.build());
+		}
+	}
+	
+	private final SyncCollectionCommandsIndex commandsIndex;
+	
+	private SyncCollectionResponsesResponse(SyncCollectionCommandsIndex commandsIndex) {
+		this.commandsIndex = commandsIndex;
 	}
 	
 	public List<ServerId> adds() {
@@ -160,9 +160,17 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 		return serverIdsOfCommandType(SyncCommand.FETCH);
 	}
 
+	public List<SyncCollectionCommand> getCommands() {
+		return commandsIndex.getCommands();
+	}
+
+	public List<SyncCollectionCommand> getCommandsForType(SyncCommand fetch) {
+		return commandsIndex.getCommandsForType(fetch);
+	}
+	
 	private List<ServerId> serverIdsOfCommandType(SyncCommand syncCommand) {
 		return FluentIterable
-				.from(getCommandsForType(syncCommand))
+				.from(commandsIndex.getCommandsForType(syncCommand))
 				.transform(new Function<SyncCollectionCommand, ServerId>() {
 
 					@Override
@@ -171,4 +179,26 @@ public class SyncCollectionResponsesResponse extends SyncCollectionCommands {
 					}
 				}).toList();
 	}
+
+	@Override
+	public final int hashCode(){
+		return Objects.hashCode(commandsIndex);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
+		if (object instanceof SyncCollectionResponsesResponse) {
+			SyncCollectionResponsesResponse that = (SyncCollectionResponsesResponse) object;
+			return Objects.equal(this.commandsIndex, that.commandsIndex);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("commands", commandsIndex)
+			.toString();
+	}
+	
 }
