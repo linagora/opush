@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -34,16 +34,12 @@ package org.obm.push.bean;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.bean.change.item.ItemChange;
-import org.obm.push.bean.change.item.ItemDeletion;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
-public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
-
-	public static SyncCollectionCommandsResponse empty() {
+public class SyncCollectionCommandsRequest implements SyncCollectionCommands {
+	
+	public static SyncCollectionCommandsRequest empty() {
 		return builder().build();
 	}
 	
@@ -63,69 +59,16 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 			commandsBuilder.addCommand(command);
 			return this;
 		}
-		
-		public Builder changes(List<ItemChange> changes) {
-			for (ItemChange change: changes) {
-				addCommand(SyncCollectionCommand.builder()
-					.applicationData(change.getData())
-					.type(retrieveCommandType(change))
-					.serverId(change.getServerId())
-					.build());
-			}
-			return this;
-		}
 
-		public Builder fetchs(List<ItemChange> fetchs) {
-			for (ItemChange fetch: fetchs) {
-				addCommand(
-						SyncCollectionCommand.builder()
-							.applicationData(fetch.getData())
-							.type(SyncCommand.FETCH)
-							.serverId(fetch.getServerId())
-							.build());
-			}
-			return this;
-		}
-
-		private SyncCommand retrieveCommandType(ItemChange change) {
-			return change.isNew() ? SyncCommand.ADD : SyncCommand.CHANGE;
-		}
-
-		public Builder deletions(List<ItemDeletion> deletions) {
-			for (ItemDeletion deletion: deletions) {
-				addCommand(
-						SyncCollectionCommand.builder()
-							.type(SyncCommand.DELETE)
-							.serverId(deletion.getServerId())
-							.build());
-			}
-			return this;
-		}
-
-		public SyncCollectionCommandsResponse build() {
-			return new SyncCollectionCommandsResponse(commandsBuilder.build());
+		public SyncCollectionCommandsRequest build() {
+			return new SyncCollectionCommandsRequest(commandsBuilder.build());
 		}
 	}
 	
 	private final SyncCollectionCommandsIndex commands;
 
-	private SyncCollectionCommandsResponse(SyncCollectionCommandsIndex commands) {
+	private SyncCollectionCommandsRequest(SyncCollectionCommandsIndex commands) {
 		this.commands = commands;
-	}
-
-	public List<ServerId> getFetchIds() {
-		return commands.getFetchIds();
-	}
-	
-	public boolean hasFetch() {
-		return FluentIterable.from(commands.getCommands())
-			.anyMatch(new Predicate<SyncCollectionCommand>() {
-
-				@Override
-				public boolean apply(SyncCollectionCommand response) {
-					return response.getType().equals(SyncCommand.FETCH);
-				}
-			});
 	}
 
 	@Override
@@ -150,8 +93,8 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommandsResponse) {
-			SyncCollectionCommandsResponse that = (SyncCollectionCommandsResponse) object;
+		if (object instanceof SyncCollectionCommandsRequest) {
+			SyncCollectionCommandsRequest that = (SyncCollectionCommandsRequest) object;
 			return Objects.equal(this.commands, that.commands);
 		}
 		return false;

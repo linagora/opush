@@ -38,8 +38,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommandsResponse;
-import org.obm.push.bean.SyncCollectionCommandsResponse.Builder;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
@@ -125,7 +124,7 @@ public class SyncAnalyser {
 				.status(SyncStatus.OK);
 			
 			
-			Builder commands = SyncCollectionCommandsResponse.builder();
+			SyncCollectionCommandsRequest.Builder commands = SyncCollectionCommandsRequest.builder();
 			for (SyncCollectionCommand command: collectionRequest.getCommands()) {
 				checkRequiredData(command);
 				try {

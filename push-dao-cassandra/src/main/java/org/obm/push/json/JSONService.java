@@ -52,6 +52,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsIndex;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -87,6 +88,7 @@ import org.obm.push.json.mixin.ServerIdMixIn;
 import org.obm.push.json.mixin.SnapshotMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsMixIn;
+import org.obm.push.json.mixin.SyncCollectionCommandsRequestMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsResponseMixIn;
 import org.obm.push.json.mixin.SyncCollectionOptionsMixIn;
 import org.obm.push.json.mixin.SyncKeyMixIn;
@@ -217,6 +219,7 @@ public class JSONService {
 			.setMixInAnnotation(Snapshot.class, SnapshotMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommand.class, SyncCollectionCommandMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsIndex.class, SyncCollectionCommandsMixIn.class)
+			.setMixInAnnotation(SyncCollectionCommandsRequest.class, SyncCollectionCommandsRequestMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionOptions.class, SyncCollectionOptionsMixIn.class)
 			.setMixInAnnotation(SyncKey.class, SyncKeyMixIn.class)

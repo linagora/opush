@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,54 +29,27 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.mixin;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
 
-import org.junit.Test;
-import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.bean.ServerId;
+import org.obm.push.bean.Summary;
+import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 
-public class AnalysedSyncCollectionTest {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-	@Test
-	public void testBuildNoCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsRequest.empty());
-	}
-
-	@Test
-	public void testBuildNullCommandGiveEmptyCommand() {
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(5))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(null)
-			.build();
-		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsRequest.empty());
-	}
-
-	@Test
-	public void testBuildCommandGiveNotEmptyCommand() {
-		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
-				.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build())
-				.build();
-		
-		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
-			.collectionId(CollectionId.of(1))
-			.syncKey(SyncKey.INITIAL_SYNC_KEY)
-			.dataType(PIMDataType.EMAIL)
-			.commands(commands)
-			.build();
-		
-		assertThat(collection.getCommands()).isEqualTo(commands);
-	}
+@JsonDeserialize(builder=SyncCollectionCommandsRequest.Builder.class)
+public interface SyncCollectionCommandsRequestMixIn {
+	
+	@JsonIgnore
+	List<SyncCollectionCommand> getCommands();
+	
+	@JsonIgnore
+	Summary getSummary();
+	
+	@JsonIgnore
+	List<ServerId> getFetchIds();
 }

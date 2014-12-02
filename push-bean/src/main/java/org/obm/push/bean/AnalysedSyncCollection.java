@@ -60,7 +60,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private SyncCollectionCommandsResponse commands;
+		private SyncCollectionCommandsRequest commands;
 		private SyncStatus status;
 
 		private Builder() {
@@ -106,7 +106,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 			return this;
 		}
 		
-		public Builder commands(SyncCollectionCommandsResponse commands) {
+		public Builder commands(SyncCollectionCommandsRequest commands) {
 			this.commands = commands;
 			return this;
 		}
@@ -131,7 +131,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 					collectionPath, deletesAsMoves, changes, 
 					Objects.firstNonNull(windowSize, DEFAULT_WINDOW_SIZE), 
 					Objects.firstNonNull(options, SyncCollectionOptions.defaultOptions()), 
-					Objects.firstNonNull(commands, SyncCollectionCommandsResponse.empty()),
+					Objects.firstNonNull(commands, SyncCollectionCommandsRequest.empty()),
 					status);
 		}
 
@@ -141,7 +141,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
 	private final CollectionId collectionId;
-	private final SyncCollectionCommandsResponse commands;
+	private final SyncCollectionCommandsRequest commands;
 	private final String collectionPath;
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
@@ -151,7 +151,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	
 	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, SyncCollectionCommandsResponse commands, SyncStatus status) {
+			SyncCollectionOptions options, SyncCollectionCommandsRequest commands, SyncStatus status) {
 		
 		this.dataType = dataType;
 		this.syncKey = syncKey;
@@ -165,7 +165,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		this.status = status;
 	}
 
-	public SyncCollectionCommandsResponse getCommands() {
+	public SyncCollectionCommandsRequest getCommands() {
 		return commands;
 	}
 

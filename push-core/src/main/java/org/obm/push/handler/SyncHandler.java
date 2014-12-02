@@ -55,6 +55,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
@@ -323,7 +324,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 				ProcessingEmailException, UnsupportedBackendFunctionException, ConversionException, HierarchyChangedException {
 
 		SyncClientCommands.Builder clientCommandsBuilder = SyncClientCommands.builder();
-		SyncCollectionCommandsResponse commands = collection.getCommands();
+		SyncCollectionCommandsRequest commands = collection.getCommands();
 		
 		for (SyncCollectionCommand change: commands.getCommands()) {
 			try {

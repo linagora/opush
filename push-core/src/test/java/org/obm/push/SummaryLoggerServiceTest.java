@@ -45,11 +45,14 @@ import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
+import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
+import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -120,16 +123,16 @@ public class SummaryLoggerServiceTest {
 				.collectionId(CollectionId.of(1))
 				.syncKey(new SyncKey("123"))
 				.dataType(PIMDataType.EMAIL)
-				.commands(SyncCollectionCommandsResponse.builder()
-					.fetchs(ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(2)).build()))
+				.commands(SyncCollectionCommandsRequest.builder()
+					.addCommand(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(CollectionId.of(1).serverId(2)).build())
 					.build())
 				.build())
 			.addCollection(AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(3))
 				.syncKey(new SyncKey("456"))
 				.dataType(PIMDataType.CALENDAR)
-				.commands(SyncCollectionCommandsResponse.builder()
-					.changes(ImmutableList.of(ItemChange.builder().serverId(CollectionId.of(1).serverId(3)).build()))
+				.commands(SyncCollectionCommandsRequest.builder()
+					.addCommand(SyncCollectionCommand.builder().type(SyncCommand.CHANGE).serverId(CollectionId.of(1).serverId(3)).build())
 					.build())
 				.build())
 			.build();

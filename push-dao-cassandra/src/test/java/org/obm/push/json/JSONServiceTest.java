@@ -71,6 +71,7 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -1388,7 +1389,7 @@ public class JSONServiceTest {
 									))
 							.build())
 				.build();
-		SyncCollectionCommandsResponse syncCollectionCommands = SyncCollectionCommandsResponse.builder()
+		SyncCollectionCommandsRequest syncCollectionCommands = SyncCollectionCommandsRequest.builder()
 				.addCommand(SyncCollectionCommand.builder()
 						.serverId(CollectionId.of(1).serverId(3))
 						.clientId("clientId")
