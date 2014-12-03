@@ -67,7 +67,7 @@ public class AnalysedSyncCollectionTest {
 	@Test
 	public void testBuildCommandGiveNotEmptyCommand() {
 		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
-				.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build())
+				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build())
 				.build();
 		
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()

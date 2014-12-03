@@ -42,66 +42,65 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 
-public final class SyncCollectionCommandsIndex implements Serializable {
+public final class TypedCommandsIndex<T extends TypedCommand> implements Serializable {
 
 	private static final long serialVersionUID = 5403154747427044879L;
 
-	public static Builder builder() {
-		return new Builder();
+	public static <T extends TypedCommand> Builder<T> builder() {
+		return new Builder<T>();
 	}
 	
-	public final static class Builder {
+	public final static class Builder<T extends TypedCommand> {
 		
-		private final ImmutableList.Builder<SyncCollectionCommand> commandsBuilder;
+		private final ImmutableList.Builder<T> commandsBuilder;
 
 		private Builder() {
 			commandsBuilder = ImmutableList.builder();
 		}
 		
-		public Builder addCommand(SyncCollectionCommand command) {
+		public Builder<T> addCommand(T command) {
 			commandsBuilder.add(command);
 			return this;
 		}
 		
-		public Builder addCommands(List<SyncCollectionCommand> commands) {
+		public Builder<T> addCommands(List<T> commands) {
 			commandsBuilder.addAll(commands);
 			return this;
 		}
 		
-		public SyncCollectionCommandsIndex build() {
-			ImmutableList<SyncCollectionCommand> commands = this.commandsBuilder.build();
-			ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType = commandsByType(commands);
-			return new SyncCollectionCommandsIndex(commandsByType, commands);
+		public TypedCommandsIndex<T> build() {
+			ImmutableList<T> commands = this.commandsBuilder.build();
+			ImmutableListMultimap<SyncCommand, T> commandsByType = commandsByType(commands);
+			return new TypedCommandsIndex<T>(commandsByType, commands);
 		}
 		
-		private ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType(List<SyncCollectionCommand> commands) {
+		private ImmutableListMultimap<SyncCommand, T> commandsByType(List<T> commands) {
 			return FluentIterable.from(commands)
-						.index(new Function<SyncCollectionCommand, SyncCommand>() {
-
-					@Override
-					public SyncCommand apply(SyncCollectionCommand input) {
-						return input.getType();
-					}
+						.index(new Function<T, SyncCommand>() {
+									@Override
+									public SyncCommand apply(T input) {
+										return input.getType();
+									}
 				});
 		}
 	}
 	
-	private final ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType;
-	private final List<SyncCollectionCommand> commands;
+	private final ImmutableListMultimap<SyncCommand, T> commandsByType;
+	private final List<T> commands;
 	
-	private SyncCollectionCommandsIndex(
-		ImmutableListMultimap<SyncCommand, SyncCollectionCommand> commandsByType, 
-		List<SyncCollectionCommand> commands) {
+	private TypedCommandsIndex(
+		ImmutableListMultimap<SyncCommand, T> commandsByType, 
+		List<T> commands) {
 		
 		this.commandsByType = commandsByType;
 		this.commands = commands;
 	}
 
-	public List<SyncCollectionCommand> getCommandsForType(SyncCommand type) {
-		return Objects.firstNonNull(commandsByType.get(type), ImmutableList.<SyncCollectionCommand>of());
+	public List<T> getCommandsForType(SyncCommand type) {
+		return Objects.firstNonNull(commandsByType.get(type), ImmutableList.<T>of());
 	}
 	
-	public List<SyncCollectionCommand> getCommands() {
+	public List<T> getCommands() {
 		return commands;
 	}
 
@@ -122,9 +121,9 @@ public final class SyncCollectionCommandsIndex implements Serializable {
 	public List<ServerId> getFetchIds() {
 		return FluentIterable.from(
 				getCommandsForType(SyncCommand.FETCH))
-				.transform(new Function<SyncCollectionCommand, ServerId>() {
+				.transform(new Function<T, ServerId>() {
 					@Override
-					public ServerId apply(SyncCollectionCommand input) {
+					public ServerId apply(T input) {
 						return input.getServerId();
 					}
 				}).toList();
@@ -145,8 +144,9 @@ public final class SyncCollectionCommandsIndex implements Serializable {
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommandsIndex) {
-			SyncCollectionCommandsIndex that = (SyncCollectionCommandsIndex) object;
+		if (object instanceof TypedCommandsIndex) {
+			@SuppressWarnings("unchecked")
+			TypedCommandsIndex<T> that = (TypedCommandsIndex<T>) object;
 			return Objects.equal(this.commandsByType, that.commandsByType)
 				&& Objects.equal(this.commands, that.commands);
 		}

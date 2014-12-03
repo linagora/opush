@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,77 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
-import java.util.List;
-
 import org.obm.push.bean.change.SyncCommand;
 
-import com.google.common.base.Objects;
+public interface TypedCommand {
 
-public class SyncCollectionCommandsRequest {
-
-	public static SyncCollectionCommandsRequest empty() {
-		return builder().build();
-	}
+	SyncCommand getType();
 	
-	public static Builder builder() {
-		return new Builder();
-	}
-	
-	public static class Builder {
-		
-		private TypedCommandsIndex.Builder<SyncCollectionCommandRequest> commandsBuilder;
-
-		private Builder() {
-			commandsBuilder = TypedCommandsIndex.builder();
-		}
-		
-		public Builder addCommand(SyncCollectionCommandRequest command) {
-			commandsBuilder.addCommand(command);
-			return this;
-		}
-
-		public SyncCollectionCommandsRequest build() {
-			return new SyncCollectionCommandsRequest(commandsBuilder.build());
-		}
-	}
-	
-	private final TypedCommandsIndex<SyncCollectionCommandRequest> commands;
-
-	private SyncCollectionCommandsRequest(TypedCommandsIndex<SyncCollectionCommandRequest> commands) {
-		this.commands = commands;
-	}
-
-	public List<SyncCollectionCommandRequest> getCommands() {
-		return commands.getCommands();
-	}
-
-	public List<SyncCollectionCommandRequest> getCommandsForType(SyncCommand type) {
-		return commands.getCommandsForType(type);
-	}
-
-	public Summary getSummary() {
-		return commands.getSummary();
-	}
-
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(commands);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommandsRequest) {
-			SyncCollectionCommandsRequest that = (SyncCollectionCommandsRequest) object;
-			return Objects.equal(this.commands, that.commands);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("commands", commands)
-			.toString();
-	}
+	ServerId getServerId();
 
 }

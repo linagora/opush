@@ -41,7 +41,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
-public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
+public class SyncCollectionCommandsResponse {
 
 	public static SyncCollectionCommandsResponse empty() {
 		return builder().build();
@@ -53,20 +53,20 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 	
 	public static class Builder {
 		
-		private SyncCollectionCommandsIndex.Builder commandsBuilder;
+		private TypedCommandsIndex.Builder<SyncCollectionCommandResponse> commandsBuilder;
 
 		private Builder() {
-			commandsBuilder = SyncCollectionCommandsIndex.builder();
+			commandsBuilder = TypedCommandsIndex.builder();
 		}
 		
-		public Builder addCommand(SyncCollectionCommand command) {
+		public Builder addCommand(SyncCollectionCommandResponse command) {
 			commandsBuilder.addCommand(command);
 			return this;
 		}
 		
 		public Builder changes(List<ItemChange> changes) {
 			for (ItemChange change: changes) {
-				addCommand(SyncCollectionCommand.builder()
+				addCommand(SyncCollectionCommandResponse.builder()
 					.applicationData(change.getData())
 					.type(retrieveCommandType(change))
 					.serverId(change.getServerId())
@@ -78,7 +78,7 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 		public Builder fetchs(List<ItemChange> fetchs) {
 			for (ItemChange fetch: fetchs) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.applicationData(fetch.getData())
 							.type(SyncCommand.FETCH)
 							.serverId(fetch.getServerId())
@@ -94,7 +94,7 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 		public Builder deletions(List<ItemDeletion> deletions) {
 			for (ItemDeletion deletion: deletions) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.type(SyncCommand.DELETE)
 							.serverId(deletion.getServerId())
 							.build());
@@ -107,9 +107,9 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 		}
 	}
 	
-	private final SyncCollectionCommandsIndex commands;
+	private final TypedCommandsIndex<SyncCollectionCommandResponse> commands;
 
-	private SyncCollectionCommandsResponse(SyncCollectionCommandsIndex commands) {
+	private SyncCollectionCommandsResponse(TypedCommandsIndex<SyncCollectionCommandResponse> commands) {
 		this.commands = commands;
 	}
 
@@ -119,26 +119,23 @@ public class SyncCollectionCommandsResponse implements SyncCollectionCommands {
 	
 	public boolean hasFetch() {
 		return FluentIterable.from(commands.getCommands())
-			.anyMatch(new Predicate<SyncCollectionCommand>() {
+			.anyMatch(new Predicate<SyncCollectionCommandResponse>() {
 
 				@Override
-				public boolean apply(SyncCollectionCommand response) {
+				public boolean apply(SyncCollectionCommandResponse response) {
 					return response.getType().equals(SyncCommand.FETCH);
 				}
 			});
 	}
 
-	@Override
-	public List<SyncCollectionCommand> getCommands() {
+	public List<SyncCollectionCommandResponse> getCommands() {
 		return commands.getCommands();
 	}
 
-	@Override
-	public List<SyncCollectionCommand> getCommandsForType(SyncCommand type) {
+	public List<SyncCollectionCommandResponse> getCommandsForType(SyncCommand type) {
 		return commands.getCommandsForType(type);
 	}
 
-	@Override
 	public Summary getSummary() {
 		return commands.getSummary();
 	}

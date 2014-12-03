@@ -36,7 +36,7 @@ import java.util.List;
 
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
@@ -152,7 +152,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 					appendDataClass(col, collection);
 
 					Element commandsEl = DOMUtils.createElement(col, SyncRequestFields.COMMANDS.getName());
-					for (SyncCollectionCommand command: collection.getCommands()) {
+					for (SyncCollectionCommandRequest command: collection.getCommands()) {
 						Element commandEl = DOMUtils.createElement(commandsEl, command.getType().asSpecificationValue());
 						if (command.getServerId() != null) {
 							DOMUtils.createElementAndText(commandEl, SyncRequestFields.SERVER_ID.getName(), command.getServerId().asString());

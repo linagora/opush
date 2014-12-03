@@ -80,7 +80,7 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
@@ -454,7 +454,7 @@ public class SyncHandlerTest {
 		SyncResponse syncEmailResponse = opClient.run(Sync.builder(decoder)
 				.collection(SyncCollection.builder().collectionId(inbox.getCollectionId())
 								.syncKey(syncEmailSyncKey).dataType(PIMDataType.EMAIL)
-								.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+								.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 							.build())
 				.build());
 
@@ -755,7 +755,7 @@ public class SyncHandlerTest {
 		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
 				.collection(SyncCollection.builder().collectionId(collectionId).syncKey(syncKey)
 							.dataType(PIMDataType.EMAIL)
-							.command(SyncCollectionCommand.builder().type(command).serverId(collectionId.serverId(51)).build())
+							.command(SyncCollectionCommandRequest.builder().type(command).serverId(collectionId.serverId(51)).build())
 							.build())
 				.build());
 
@@ -804,7 +804,7 @@ public class SyncHandlerTest {
 					.collection(
 							SyncCollection.builder().collectionId(collectionId)
 								.syncKey(syncKey).dataType(PIMDataType.EMAIL)
-								.command(SyncCollectionCommand.builder().type(SyncCommand.ADD)
+								.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.serverId(serverId).clientId(clientId).applicationData(clientData).build())
 							.build())
 					.build());
@@ -855,7 +855,7 @@ public class SyncHandlerTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(users.jaures.device) 
 					.collection(SyncCollection.builder().collectionId(collectionId)
 							.syncKey(syncKey).dataType(PIMDataType.EMAIL)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.serverId(serverId).clientId(clientId).applicationData(clientData).build())
 							.build())
 					.build());
@@ -904,8 +904,8 @@ public class SyncHandlerTest {
 				Sync.builder(decoder).encoder(encoderFactory).collection(
 						SyncCollection.builder()
 							.dataType(PIMDataType.EMAIL).collectionId(collectionId).syncKey(syncKey)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
-							.command(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(ServerId.of("0")).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(ServerId.of("0")).build())
 						.build())
 				.build());
 
@@ -953,8 +953,8 @@ public class SyncHandlerTest {
 				Sync.builder(decoder).encoder(encoderFactory).collection(
 						SyncCollection.builder()
 							.dataType(PIMDataType.EMAIL).collectionId(collectionId).syncKey(syncKey)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
-							.command(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(2).serverId(2)).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD).clientId(clientId).applicationData(clientData).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(2).serverId(2)).build())
 						.build())
 				.build());
 

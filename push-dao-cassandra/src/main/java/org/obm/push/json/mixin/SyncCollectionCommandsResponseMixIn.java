@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Summary;
-import org.obm.push.bean.SyncCollectionCommand;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -45,7 +44,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public interface SyncCollectionCommandsResponseMixIn {
 	
 	@JsonIgnore
-	List<SyncCollectionCommand> getCommands();
+	List<SyncCollectionCommandsResponse> getCommands();
 	
 	@JsonIgnore
 	Summary getSummary();

@@ -54,7 +54,7 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -326,7 +326,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		SyncClientCommands.Builder clientCommandsBuilder = SyncClientCommands.builder();
 		SyncCollectionCommandsRequest commands = collection.getCommands();
 		
-		for (SyncCollectionCommand change: commands.getCommands()) {
+		for (SyncCollectionCommandRequest change: commands.getCommands()) {
 			try {
 				switch (change.getType()) {
 				case FETCH:
@@ -350,7 +350,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		return clientCommandsBuilder.build();
 	}
 
-	private Update updateServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change) 
+	private Update updateServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandRequest change) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
@@ -366,44 +366,44 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 	}
 
-	private Add addServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change)
+	private Add addServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandRequest addition)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException,
 			ProcessingEmailException, ConversionException, HierarchyChangedException, NoPermissionException {
 
 		try {
-			return new SyncClientCommands.Add(change.getClientId(), contentsImporter.importMessageChange(
-						udr, collection.getCollectionId(), change.getServerId(), change.getClientId(), change.getApplicationData()),
+			return new SyncClientCommands.Add(addition.getClientId(), contentsImporter.importMessageChange(
+						udr, collection.getCollectionId(), addition.getServerId(), addition.getClientId(), addition.getApplicationData()),
 					SyncStatus.OK);
 		} catch (ItemNotFoundException e) {
-			logger.warn("Item with server id {} not found.", change.getServerId());
-			return new SyncClientCommands.Add(change.getClientId(), change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
+			logger.warn("Item with server id {} not found.", addition.getServerId());
+			return new SyncClientCommands.Add(addition.getClientId(), addition.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
-			return new SyncClientCommands.Add(change.getClientId(), change.getServerId(), SyncStatus.SERVER_ERROR);
+			return new SyncClientCommands.Add(addition.getClientId(), addition.getServerId(), SyncStatus.SERVER_ERROR);
 		}
 	}
 	
-	private Deletion deleteServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change)
+	private Deletion deleteServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandRequest deletion)
 			throws CollectionNotFoundException, DaoException,
 			UnexpectedObmSyncServerException, ProcessingEmailException, UnsupportedBackendFunctionException {
 
-		ServerId serverId = change.getServerId();
+		ServerId serverId = deletion.getServerId();
 		try {
 			contentsImporter.importMessageDeletion(udr, collection.getDataType(), collection.getCollectionId(), serverId,
 					collection.getOptions().isDeletesAsMoves());
 			return new SyncClientCommands.Deletion(serverId, SyncStatus.OK);
 		} catch (ItemNotFoundException e) {
-			logger.warn("Item with server id {} not found.", change.getServerId());
-			return new SyncClientCommands.Deletion(change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
+			logger.warn("Item with server id {} not found.", deletion.getServerId());
+			return new SyncClientCommands.Deletion(deletion.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Deletion(serverId, SyncStatus.SERVER_ERROR);
 		}
 	}
 	
-	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommand change,
+	private Fetch fetchServerItem(UserDataRequest udr, AnalysedSyncCollection collection, SyncCollectionCommandRequest fetch,
 			ItemSyncState syncState, SyncKey newSyncKey)
 					throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException {
 
-		final ServerId serverId = change.getServerId();
+		final ServerId serverId = fetch.getServerId();
 		try {
 			Optional<ItemChange> optional = contentsExporter.fetch(udr, syncState, collection.getDataType(), 
 					collection.getCollectionId(), collection.getOptions(), serverId, newSyncKey);
@@ -413,7 +413,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			}
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.OBJECT_NOT_FOUND, null);
 		} catch (ItemNotFoundException e) {
-			logger.warn("Item with server id {} not found.", change.getServerId());
+			logger.warn("Item with server id {} not found.", fetch.getServerId());
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.OBJECT_NOT_FOUND, null);
 		} catch (ConversionException e) {
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.SERVER_ERROR, null);

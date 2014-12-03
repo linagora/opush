@@ -39,7 +39,8 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -156,18 +157,17 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return builder.build();
 	}
 
-	@VisibleForTesting List<SyncCollectionCommand> getCommands(Element commandsElement, PIMDataType dataType) {
-		ImmutableList.Builder<SyncCollectionCommand> builder = ImmutableList.builder();
+	@VisibleForTesting List<SyncCollectionCommandRequest> getCommands(Element commandsElement, PIMDataType dataType) {
+		ImmutableList.Builder<SyncCollectionCommandRequest> builder = ImmutableList.builder();
 		if (commandsElement != null) {
 			NodeList collectionNodes = commandsElement.getChildNodes();
 			for (int i = 0; i < collectionNodes.getLength(); i++) {
-				builder.add(getCommand((Element)collectionNodes.item(i), dataType));
+				builder.add(getCommandRequest((Element)collectionNodes.item(i), dataType));
 			}
 		}
 		return builder.build();
 	}
 	
-
 	private ServerId serverId(Element commandElement) {
 		String stringValue = uniqueStringFieldValue(commandElement, SyncRequestFields.SERVER_ID);
 		if (!Strings.isNullOrEmpty(stringValue)) {
@@ -176,6 +176,19 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return null;
 	}
 
+	@VisibleForTesting SyncCollectionCommandRequest getCommandRequest(Element commandElement, PIMDataType dataType) {
+		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
+		Element applicationDataElement = DOMUtils.getUniqueElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName());
+		IApplicationData applicationData = decodeApplicationData(applicationDataElement, dataType, syncCommand);
+		
+		return SyncCollectionCommandRequest.builder()
+			.type(syncCommand)
+			.serverId(serverId(commandElement))
+			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
+			.applicationData(applicationData)
+			.build();
+	}
+	
 	@VisibleForTesting List<BodyPreference> getBodyPreferences(Element optionElement) {
 		NodeList bodyPreferenceNodes = optionElement.getElementsByTagName(SyncRequestFields.BODY_PREFERENCE.getName());
 		List<BodyPreference> bodyPreferences = Lists.newArrayList();
@@ -254,18 +267,18 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		if (commandsEl != null) {
 			NodeList collectionNodes = commandsEl.getChildNodes();
 			for (int i = 0; i < collectionNodes.getLength(); i++) {
-				builder.addCommand(getCommand((Element)collectionNodes.item(i), dataType));
+				builder.addCommand(getCommandResponse((Element)collectionNodes.item(i), dataType));
 			}
 		}
 		return builder.build();	 		
 	}
 
-	@VisibleForTesting SyncCollectionCommand getCommand(Element commandElement, PIMDataType dataType) {
+	@VisibleForTesting SyncCollectionCommandResponse getCommandResponse(Element commandElement, PIMDataType dataType) {
 		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
 		Element applicationDataElement = DOMUtils.getUniqueElement(commandElement, SyncRequestFields.APPLICATION_DATA.getName());
 		IApplicationData applicationData = decodeApplicationData(applicationDataElement, dataType, syncCommand);
 		
-		return SyncCollectionCommand.builder()
+		return SyncCollectionCommandResponse.builder()
 			.type(syncCommand)
 			.serverId(serverId(commandElement))
  			.clientId(uniqueStringFieldValue(commandElement, SyncRequestFields.CLIENT_ID))
@@ -285,13 +298,13 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		return builder.build();	 		
 	}
 
-	@VisibleForTesting SyncCollectionCommand getResponse(Element commandElement, PIMDataType dataType) {
+	@VisibleForTesting SyncCollectionCommandResponse getResponse(Element commandElement, PIMDataType dataType) {
 		SyncStatus syncStatus = SyncStatus.fromSpecificationValue(uniqueStringFieldValue(commandElement, SyncResponseFields.STATUS));
 		SyncCommand syncCommand = SyncCommand.fromSpecificationValue(commandElement.getNodeName());
 		Element applicationDataElement = DOMUtils.getUniqueElement(commandElement, SyncResponseFields.APPLICATION_DATA.getName());
 		IApplicationData applicationData = decodeApplicationData(applicationDataElement, dataType, syncCommand);
 		
-		return SyncCollectionCommand.builder()
+		return SyncCollectionCommandResponse.builder()
 			.status(syncStatus)
 			.type(syncCommand)
  			.serverId(serverId(commandElement))

@@ -74,7 +74,8 @@ import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -428,7 +429,7 @@ public class SyncHandlerOnCalendarsTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 										.serverId(serverId).clientId(clientId).applicationData(msEventUpdated).build())
 							.build())
 					.build());
@@ -448,8 +449,8 @@ public class SyncHandlerOnCalendarsTest {
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse updateCollectionResponse = syncTestUtils.getCollectionWithId(updateSyncResponse, calendarCollectionId);
 		SyncCollectionResponsesResponse responses = updateCollectionResponse.getResponses();
-		List<SyncCollectionCommand> changes = responses.getCommandsForType(SyncCommand.CHANGE);
-		assertThat(changes).containsOnly(SyncCollectionCommand.builder()
+		List<SyncCollectionCommandResponse> changes = responses.getCommandsForType(SyncCommand.CHANGE);
+		assertThat(changes).containsOnly(SyncCollectionCommandResponse.builder()
 				.status(SyncStatus.SERVER_ERROR)
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
@@ -567,7 +568,7 @@ public class SyncHandlerOnCalendarsTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.serverId(serverId).clientId(clientId).applicationData(createdMSEvent).build())
 							.build())
 					.build());

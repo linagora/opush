@@ -50,7 +50,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -60,11 +60,10 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.bean.change.item.ItemChange;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.base.Optional;
-
-import org.obm.push.protocol.bean.CollectionId;
 
 
 public class SyncHandlerTest {
@@ -106,7 +105,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(serverId)
 								.type(SyncCommand.FETCH)
 								.build())
@@ -142,7 +141,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(serverId)
 								.clientId("1234")
 								.type(SyncCommand.FETCH)
@@ -179,7 +178,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.type(SyncCommand.MODIFY)
 								.build())
@@ -211,7 +210,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.MODIFY)
@@ -244,7 +243,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.type(SyncCommand.ADD)
 								.build())
@@ -270,7 +269,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.ADD)
@@ -303,7 +302,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(null)
 								.clientId("1234")
 								.type(SyncCommand.ADD)
@@ -336,7 +335,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId(null)
 								.type(SyncCommand.DELETE)
@@ -370,7 +369,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.DELETE)
@@ -403,7 +402,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId(null)
 								.type(SyncCommand.CHANGE)
@@ -436,7 +435,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(CollectionId.of(15).serverId(2))
 								.clientId("1234")
 								.type(SyncCommand.CHANGE)
@@ -469,7 +468,7 @@ public class SyncHandlerTest {
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
 				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommand.builder()
+						.addCommand(SyncCollectionCommandRequest.builder()
 								.serverId(null)
 								.clientId("1234")
 								.type(SyncCommand.CHANGE)

@@ -93,7 +93,8 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MethodAttachment;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
@@ -768,7 +769,7 @@ public class SyncHandlerWithBackendTest {
 				Sync.builder(decoder)
 					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(EMAIL)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 							.build())
 					.build());
 		
@@ -784,7 +785,7 @@ public class SyncHandlerWithBackendTest {
 		assertThat(inboxResponse.isMoreAvailable()).isFalse();
 		assertThat(responses.getCommands()).hasSize(1);
 		assertThat(responses.getCommandsForType(SyncCommand.FETCH)).containsOnly(
-			SyncCollectionCommand.builder()
+			SyncCollectionCommandResponse.builder()
 				.status(SyncStatus.OBJECT_NOT_FOUND)
 				.serverId(serverId).type(SyncCommand.FETCH)
 				.build());
@@ -1324,7 +1325,7 @@ public class SyncHandlerWithBackendTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(CALENDAR)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 									.serverId(serverId).clientId(clientId).applicationData(msEvent).build())									
 							.build())
 					.build());

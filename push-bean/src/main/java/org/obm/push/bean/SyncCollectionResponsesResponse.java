@@ -69,13 +69,13 @@ public class SyncCollectionResponsesResponse implements Serializable {
 	
 	public static class Builder {
 		
-		private SyncCollectionCommandsIndex.Builder commandsBuilder;
+		private TypedCommandsIndex.Builder<SyncCollectionCommandResponse> commandsBuilder;
 
 		private Builder() {
-			commandsBuilder = SyncCollectionCommandsIndex.builder();
+			commandsBuilder = TypedCommandsIndex.builder();
 		}
 		
-		public Builder addCommand(SyncCollectionCommand command) {
+		public Builder addCommand(SyncCollectionCommandResponse command) {
 			commandsBuilder.addCommand(command);
 			return this;
 		}
@@ -83,7 +83,7 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		public Builder adds(List<Add> adds) {
 			for (Add add: adds) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.status(add.getSyncStatus())
 							.type(add.syncCommand())
 							.serverId(add.getServerId())
@@ -96,7 +96,7 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		public Builder updates(List<Update> updates) {
 			for (Update update: updates) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.status(update.getSyncStatus())
 							.type(update.syncCommand())
 							.serverId(update.getServerId())
@@ -108,7 +108,7 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		public Builder deletions(List<Deletion> deletions) {
 			for (Deletion deletion: deletions) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.status(deletion.getSyncStatus())
 							.type(deletion.syncCommand())
 							.serverId(deletion.getServerId())
@@ -120,7 +120,7 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		public Builder fetchs(List<Fetch> fetches) {
 			for (Fetch fetch: fetches) {
 				addCommand(
-						SyncCollectionCommand.builder()
+						SyncCollectionCommandResponse.builder()
 							.status(fetch.getSyncStatus())
 							.type(fetch.syncCommand())
 							.serverId(fetch.getServerId())
@@ -135,9 +135,9 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		}
 	}
 	
-	private final SyncCollectionCommandsIndex commandsIndex;
+	private final TypedCommandsIndex<SyncCollectionCommandResponse> commandsIndex;
 	
-	private SyncCollectionResponsesResponse(SyncCollectionCommandsIndex commandsIndex) {
+	private SyncCollectionResponsesResponse(TypedCommandsIndex<SyncCollectionCommandResponse> commandsIndex) {
 		this.commandsIndex = commandsIndex;
 	}
 	
@@ -160,21 +160,21 @@ public class SyncCollectionResponsesResponse implements Serializable {
 		return serverIdsOfCommandType(SyncCommand.FETCH);
 	}
 
-	public List<SyncCollectionCommand> getCommands() {
+	public List<SyncCollectionCommandResponse> getCommands() {
 		return commandsIndex.getCommands();
 	}
 
-	public List<SyncCollectionCommand> getCommandsForType(SyncCommand fetch) {
+	public List<SyncCollectionCommandResponse> getCommandsForType(SyncCommand fetch) {
 		return commandsIndex.getCommandsForType(fetch);
 	}
 	
 	private List<ServerId> serverIdsOfCommandType(SyncCommand syncCommand) {
 		return FluentIterable
 				.from(commandsIndex.getCommandsForType(syncCommand))
-				.transform(new Function<SyncCollectionCommand, ServerId>() {
+				.transform(new Function<SyncCollectionCommandResponse, ServerId>() {
 
 					@Override
-					public ServerId apply(SyncCollectionCommand SyncCollectionCommand) {
+					public ServerId apply(SyncCollectionCommandResponse SyncCollectionCommand) {
 						return SyncCollectionCommand.getServerId();
 					}
 				}).toList();

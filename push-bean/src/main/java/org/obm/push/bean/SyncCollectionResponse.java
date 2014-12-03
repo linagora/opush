@@ -172,9 +172,9 @@ public class SyncCollectionResponse implements Serializable {
 	public List<ServerId> getResponseFetchIds() {
 		return FluentIterable.from(
 				responses.getCommandsForType(SyncCommand.FETCH))
-				.transform(new Function<SyncCollectionCommand, ServerId>() {
+				.transform(new Function<SyncCollectionCommandResponse, ServerId>() {
 					@Override
-					public ServerId apply(SyncCollectionCommand input) {
+					public ServerId apply(SyncCollectionCommandResponse input) {
 						return input.getServerId();
 					}
 				}).toList();
@@ -184,10 +184,10 @@ public class SyncCollectionResponse implements Serializable {
 		if (commands != null) {
 			return FluentIterable.from(
 					commands.getCommandsForType(SyncCommand.DELETE))
-					.transform(new Function<SyncCollectionCommand, ItemDeletion>() {
+					.transform(new Function<SyncCollectionCommandResponse, ItemDeletion>() {
 	
 						@Override
-						public ItemDeletion apply(SyncCollectionCommand input) {
+						public ItemDeletion apply(SyncCollectionCommandResponse input) {
 							return ItemDeletion.builder().serverId(input.getServerId()).build();
 						}
 					}).toList();
@@ -196,13 +196,13 @@ public class SyncCollectionResponse implements Serializable {
 	}
 	
 	public List<ItemChange> getItemFetchs() {
-		Iterable<SyncCollectionCommand> fetchs = getFetchs();
+		Iterable<SyncCollectionCommandResponse> fetchs = getFetchs();
 		if (fetchs != null) {
 			return FluentIterable.from(fetchs)
-					.transform(new Function<SyncCollectionCommand, ItemChange>() {
+					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommand fetch) {
+						public ItemChange apply(SyncCollectionCommandResponse fetch) {
 							return ItemChange.builder()
 									.serverId(fetch.getServerId())
 									.isNew(false)
@@ -214,7 +214,7 @@ public class SyncCollectionResponse implements Serializable {
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommand> getFetchs() {
+	private Iterable<SyncCollectionCommandResponse> getFetchs() {
 		SyncCollectionResponsesResponse commands = getResponses();
 		if (commands != null) {
 			return commands.getCommandsForType(SyncCommand.FETCH);
@@ -223,13 +223,13 @@ public class SyncCollectionResponse implements Serializable {
 	}
 
 	public List<ItemChange> getItemChanges() {
-		Iterable<SyncCollectionCommand> changes = getChanges();
+		Iterable<SyncCollectionCommandResponse> changes = getChanges();
 		if (changes != null) {
 			return FluentIterable.from(changes)
-					.transform(new Function<SyncCollectionCommand, ItemChange>() {
+					.transform(new Function<SyncCollectionCommandResponse, ItemChange>() {
 	
 						@Override
-						public ItemChange apply(SyncCollectionCommand change) {
+						public ItemChange apply(SyncCollectionCommandResponse change) {
 							return ItemChange.builder()
 									.serverId(change.getServerId())
 									.isNew(SyncCommand.ADD.equals(change.getType()))
@@ -241,7 +241,7 @@ public class SyncCollectionResponse implements Serializable {
 		return Lists.newArrayList();
 	}
 
-	private Iterable<SyncCollectionCommand> getChanges() {
+	private Iterable<SyncCollectionCommandResponse> getChanges() {
 		if (commands != null) {
 			return Iterables.concat(
 					commands.getCommandsForType(SyncCommand.ADD),

@@ -42,7 +42,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import com.google.common.collect.ImmutableList;
 
 
-public class SyncCollectionCommandsIndexTest {
+public class TypedCommandsIndexTest {
 
 	@Test
 	public void testBuilderCommandsIsNotRequired() {
@@ -57,13 +57,13 @@ public class SyncCollectionCommandsIndexTest {
 		ServerId serverIdDel = CollectionId.of(1).serverId(23);
 		ServerId serverIdFetch = CollectionId.of(1).serverId(33);
 		SyncCollectionCommandsResponse commands = SyncCollectionCommandsResponse.builder()
-			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build())
-			.addCommand(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build())
+			.addCommand(SyncCollectionCommandResponse.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build())
+			.addCommand(SyncCollectionCommandResponse.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build())
 			.build();
 		
 		assertThat(commands.getCommands()).containsOnly(
-				SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build(),
-				SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build());
+				SyncCollectionCommandResponse.builder().type(SyncCommand.DELETE).serverId(serverIdDel).build(),
+				SyncCollectionCommandResponse.builder().type(SyncCommand.FETCH).serverId(serverIdFetch).build());
 	}
 	
 	@Test
@@ -77,11 +77,11 @@ public class SyncCollectionCommandsIndexTest {
 				.deletions(deletions)
 				.build();
 				
-		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
 				.build());
-		assertThat(commands.getCommandsForType(SyncCommand.DELETE)).containsOnly(SyncCollectionCommand.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.DELETE)).containsOnly(SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.DELETE)
 				.serverId(serverIdDel)
 				.build());
@@ -95,7 +95,7 @@ public class SyncCollectionCommandsIndexTest {
 				.changes(changes)
 				.build();
 				
-		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommand.builder()
+		assertThat(commands.getCommandsForType(SyncCommand.CHANGE)).containsOnly(SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.CHANGE)
 				.serverId(serverId)
 				.build());

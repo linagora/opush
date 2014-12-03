@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,18 +29,11 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.mixin;
 
-import java.util.List;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 
-import org.obm.push.bean.change.SyncCommand;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public interface SyncCollectionCommands {
-
-	List<SyncCollectionCommand> getCommands();
-
-	List<SyncCollectionCommand> getCommandsForType(SyncCommand type);
-
-	Summary getSummary();
-
-}
+@JsonDeserialize(builder=SyncCollectionCommandResponse.Builder.class)
+public interface SyncCollectionCommandResponseMixIn {}

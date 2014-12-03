@@ -38,7 +38,7 @@ import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.IApplicationData;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -184,7 +184,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 
 		Element responses = DOMUtils.createElement(ce, "Responses");
 		SyncCollectionResponsesResponse responsesToClientCommands = collectionResponse.getResponses();
-		for (SyncCollectionCommand responseToClientCommand : responsesToClientCommands.getCommands()) {
+		for (SyncCollectionCommandResponse responseToClientCommand : responsesToClientCommands.getCommands()) {
 			switch (responseToClientCommand.getType()) {
 			case ADD:
 				Element add = DOMUtils.createElement(responses, "Add");

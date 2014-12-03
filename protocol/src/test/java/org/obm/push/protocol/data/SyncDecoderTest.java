@@ -41,7 +41,8 @@ import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
@@ -688,14 +689,14 @@ public class SyncDecoderTest {
 				"</Collection>").getDocumentElement();
 		
 		SyncCollection collection = new SyncDecoder(decoder).getCollection(request);
-		
-		assertThat( collection.getCommands()).containsOnly(
-				SyncCollectionCommand.builder()
+
+		assertThat(collection.getCommands()).containsOnly(
+				SyncCollectionCommandRequest.builder()
 					.type(SyncCommand.ADD).serverId(ServerId.of("2:12")).clientId("120").applicationData(contact).build(),
-				SyncCollectionCommand.builder()
+				SyncCollectionCommandRequest.builder()
 					.type(SyncCommand.CHANGE).serverId(ServerId.of("2:35")).clientId("350").applicationData(contact).build(),
-				SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(ServerId.of("2:56")).build(),
-				SyncCollectionCommand.builder().type(SyncCommand.DELETE).serverId(ServerId.of("2:79")).build());
+				SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(ServerId.of("2:56")).build(),
+				SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(ServerId.of("2:79")).build());
 	}
 
 	@Test
@@ -710,7 +711,7 @@ public class SyncDecoderTest {
 							"</ApplicationData>" +
 						"</Add>");
 		
-		SyncCollectionCommand command = new SyncDecoder(decoder).getCommand(request.getDocumentElement(), PIMDataType.CONTACTS);
+		SyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement(), PIMDataType.CONTACTS);
 		
 		assertThat(command.getServerId()).isNull();
 	}
@@ -727,7 +728,7 @@ public class SyncDecoderTest {
 							"</ApplicationData>" +
 						"</Add>");
 		
-		SyncCollectionCommand command = new SyncDecoder(decoder).getCommand(request.getDocumentElement(), PIMDataType.CONTACTS);
+		SyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement(), PIMDataType.CONTACTS);
 		
 		assertThat(command.getClientId()).isNull();
 	}
@@ -740,7 +741,7 @@ public class SyncDecoderTest {
 							"<ClientId>120</ClientId>" +
 						"</Add>");
 		
-		SyncCollectionCommand command = new SyncDecoder(decoder).getCommand(request.getDocumentElement(), PIMDataType.CONTACTS);
+		SyncCollectionCommandResponse command = new SyncDecoder(decoder).getCommandResponse(request.getDocumentElement(), PIMDataType.CONTACTS);
 		
 		assertThat(command.getApplicationData()).isNull();
 	}

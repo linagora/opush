@@ -188,9 +188,9 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	public List<ServerId> getFetchIds() {
 		return FluentIterable.from(
 				commands.getCommandsForType(SyncCommand.FETCH))
-				.transform(new Function<SyncCollectionCommand, ServerId>() {
+				.transform(new Function<SyncCollectionCommandRequest, ServerId>() {
 					@Override
-					public ServerId apply(SyncCollectionCommand input) {
+					public ServerId apply(SyncCollectionCommandRequest input) {
 						return input.getServerId();
 					}
 				}).toList();

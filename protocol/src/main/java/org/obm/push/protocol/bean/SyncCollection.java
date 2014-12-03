@@ -34,7 +34,7 @@ package org.obm.push.protocol.bean;
 import java.util.List;
 
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.protocol.bean.CollectionId;
@@ -57,7 +57,7 @@ public class SyncCollection {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private ImmutableList.Builder<SyncCollectionCommand> commands;
+		private ImmutableList.Builder<SyncCollectionCommandRequest> commands;
 
 		private Builder() {
 			commands = ImmutableList.builder();
@@ -98,13 +98,13 @@ public class SyncCollection {
 			return this;
 		}
 
-		public Builder command(SyncCollectionCommand command) {
+		public Builder command(SyncCollectionCommandRequest command) {
 			Preconditions.checkNotNull(command);
 			this.commands.add(command);
 			return this;
 		}
 		
-		public Builder commands(List<SyncCollectionCommand> commands) {
+		public Builder commands(List<SyncCollectionCommandRequest> commands) {
 			this.commands.addAll(commands);
 			return this;
 		}
@@ -124,11 +124,11 @@ public class SyncCollection {
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
 	private final CollectionId collectionId;
-	private final List<SyncCollectionCommand> commands;
+	private final List<SyncCollectionCommandRequest> commands;
 	
 	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, List<SyncCollectionCommand> commands) {
+			SyncCollectionOptions options, List<SyncCollectionCommandRequest> commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;
@@ -151,7 +151,7 @@ public class SyncCollection {
 		return syncKey;
 	}
 	
-	public List<SyncCollectionCommand> getCommands() {
+	public List<SyncCollectionCommandRequest> getCommands() {
 		return commands;
 	}
 

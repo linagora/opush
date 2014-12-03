@@ -104,7 +104,8 @@ public class BeansTest {
 					.add(ServerId.class)
 					.add(Sync.class)
 					.add(SyncCollectionOptions.class)
-					.add(SyncCollectionCommand.class)
+					.add(SyncCollectionCommandRequest.class)
+					.add(SyncCollectionCommandResponse.class)
 					.add(ItemSyncState.class)
 					.add(MSEventUid.class)
 					.add(User.class)
@@ -142,18 +143,18 @@ public class BeansTest {
 		equalsVerifierUtilsTest.test(list);
 		
 		EqualsVerifierBuilder.builder()
-			.equalsVerifiers(ImmutableList.<Class<?>>of(SyncCollectionCommandsIndex.class))
+			.equalsVerifiers(ImmutableList.<Class<?>>of(TypedCommandsIndex.class))
 			.prefabValue(ImmutableListMultimap.class, 
-					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
+					ImmutableListMultimap.<SyncCommand, SyncCollectionCommandRequest> of(
 							SyncCommand.ADD,
-							SyncCollectionCommand.builder()
+							SyncCollectionCommandRequest.builder()
 								.clientId("1")
 								.type(SyncCommand.ADD)
 								.serverId(CollectionId.of(1).serverId(2))
 								.build()), 
-					ImmutableListMultimap.<SyncCommand, SyncCollectionCommand> of(
+					ImmutableListMultimap.<SyncCommand, SyncCollectionCommandRequest> of(
 							SyncCommand.CHANGE,
-							SyncCollectionCommand.builder()
+							SyncCollectionCommandRequest.builder()
 								.clientId("3")
 								.type(SyncCommand.CHANGE)
 								.serverId(CollectionId.of(1).serverId(4))

@@ -62,7 +62,8 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -209,7 +210,7 @@ public class SyncHandlerOnContactsTest {
 									.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build()).build());
 		
 		mocksControl.verify();
-		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
+		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.ADD)
 				.serverId(serverId)
 				.clientId(null)
@@ -221,9 +222,9 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getCommands().getCommands();
 		assertThat(commands).hasSize(1);
-		SyncCollectionCommand SyncCollectionCommand = FluentIterable.from(commands).first().get();
+		SyncCollectionCommandResponse SyncCollectionCommand = FluentIterable.from(commands).first().get();
 		assertThat(SyncCollectionCommand).isEqualTo(expectedCommandResponse);
 		
 		MSContact msContact = (MSContact) SyncCollectionCommand.getApplicationData();
@@ -342,7 +343,7 @@ public class SyncHandlerOnContactsTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(contactCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.ADD)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.clientId(clientId).applicationData(createdMSContact).build())
 							.build())
 					.build());
@@ -465,9 +466,9 @@ public class SyncHandlerOnContactsTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(contactCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
-										.serverId(serverId).clientId(clientId)
-										.applicationData(modifiedMSContact).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
+								.serverId(serverId).clientId(clientId)
+								.applicationData(modifiedMSContact).build())
 							.build())
 					.build());
 		mocksControl.verify();
@@ -586,8 +587,8 @@ public class SyncHandlerOnContactsTest {
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(SyncCollection.builder().collectionId(contactCollectionId)
 								.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
-								.command(SyncCollectionCommand.builder().type(SyncCommand.CHANGE)
-								.serverId(serverId).clientId(clientId).applicationData(modifiedMSContact).build())
+								.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
+									.serverId(serverId).clientId(clientId).applicationData(modifiedMSContact).build())
 							.build())
 					.build());
 		
@@ -689,7 +690,7 @@ public class SyncHandlerOnContactsTest {
 		newMSContact.setHomeFaxNumber("1234");
 		newMSContact.setFileAs("firstname lastname");
 		
-		SyncCollectionCommand expectedCommandResponse = SyncCollectionCommand.builder()
+		SyncCollectionCommandResponse expectedCommandResponse = SyncCollectionCommandResponse.builder()
 				.type(SyncCommand.ADD)
 				.serverId(serverId)
 				.clientId(null)
@@ -701,9 +702,9 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, contactCollectionId);
 		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommand> commands = syncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getCommands().getCommands();
 		assertThat(commands).hasSize(1);
-		SyncCollectionCommand syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
+		SyncCollectionCommandResponse syncCollectionCommandResponse = FluentIterable.from(commands).first().get();
 		assertThat(syncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
 		
 		MSContact msContact = (MSContact) syncCollectionCommandResponse.getApplicationData();
@@ -717,9 +718,9 @@ public class SyncHandlerOnContactsTest {
 		SyncCollectionResponse sameSyncCollectionResponse = syncTestUtils.getCollectionWithId(sameSyncResponse, contactCollectionId);
 		assertThat(sameSyncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		
-		List<SyncCollectionCommand> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();
+		List<SyncCollectionCommandResponse> sameCommands = sameSyncCollectionResponse.getCommands().getCommands();
 		assertThat(sameCommands).hasSize(1);
-		SyncCollectionCommand sameSyncCollectionCommandResponse = FluentIterable.from(sameCommands).first().get();
+		SyncCollectionCommandResponse sameSyncCollectionCommandResponse = FluentIterable.from(sameCommands).first().get();
 		assertThat(sameSyncCollectionCommandResponse).isEqualTo(expectedCommandResponse);
 		
 		MSContact sameMSContact = (MSContact) sameSyncCollectionCommandResponse.getApplicationData();

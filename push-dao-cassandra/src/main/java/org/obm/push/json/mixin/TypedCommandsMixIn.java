@@ -34,21 +34,19 @@ package org.obm.push.json.mixin;
 import java.util.List;
 
 import org.obm.push.bean.Summary;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.change.SyncCommand;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableListMultimap;
 
-public abstract class SyncCollectionCommandsMixIn<T extends SyncCollectionCommand> {
+public interface TypedCommandsMixIn {
 
 	@JsonIgnore
-	ImmutableListMultimap<SyncCommand, T> commandsByType;
+	ImmutableListMultimap<?, ?> getCommandsByType();
 
 	@JsonIgnore
-	List<T> commands;
+	List<?> getCommands();
 	
 	@JsonIgnore
-	abstract Summary getSummary();
+	Summary getSummary();
 	
 }

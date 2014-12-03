@@ -41,7 +41,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -153,20 +153,20 @@ public class StateMachine implements IStateMachine {
 		log(udr, newState);
 	}
 	
-	private Iterable<ServerId> filterNotOk(List<SyncCollectionCommand> commands) {
+	private Iterable<ServerId> filterNotOk(List<SyncCollectionCommandResponse> commands) {
 		return FluentIterable
 				.from(commands)
-				.filter(new Predicate<SyncCollectionCommand>() {
+				.filter(new Predicate<SyncCollectionCommandResponse>() {
 		
 					@Override
-					public boolean apply(SyncCollectionCommand input) {
+					public boolean apply(SyncCollectionCommandResponse input) {
 						return SyncStatus.OK == input.getStatus();
 					}
 				})
-				.transform(new Function<SyncCollectionCommand, ServerId>() {
+				.transform(new Function<SyncCollectionCommandResponse, ServerId>() {
 
 					@Override
-					public ServerId apply(SyncCollectionCommand input) {
+					public ServerId apply(SyncCollectionCommandResponse input) {
 						return input.getServerId();
 					}
 				});

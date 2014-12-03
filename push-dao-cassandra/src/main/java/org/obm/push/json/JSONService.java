@@ -50,12 +50,13 @@ import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
-import org.obm.push.bean.SyncCollectionCommandsIndex;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.TypedCommandsIndex;
 import org.obm.push.bean.User;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -86,12 +87,13 @@ import org.obm.push.json.mixin.MSMeetingRequestMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestRecurrenceMixIn;
 import org.obm.push.json.mixin.ServerIdMixIn;
 import org.obm.push.json.mixin.SnapshotMixIn;
-import org.obm.push.json.mixin.SyncCollectionCommandMixIn;
-import org.obm.push.json.mixin.SyncCollectionCommandsMixIn;
+import org.obm.push.json.mixin.SyncCollectionCommandRequestMixIn;
+import org.obm.push.json.mixin.SyncCollectionCommandResponseMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsRequestMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandsResponseMixIn;
 import org.obm.push.json.mixin.SyncCollectionOptionsMixIn;
 import org.obm.push.json.mixin.SyncKeyMixIn;
+import org.obm.push.json.mixin.TypedCommandsMixIn;
 import org.obm.push.json.mixin.UserMixIn;
 import org.obm.push.json.mixin.WindowingContactMixIn;
 import org.obm.push.json.mixin.WindowingEventMixIn;
@@ -217,8 +219,9 @@ public class JSONService {
 			.setMixInAnnotation(MSMeetingRequestRecurrence.class, MSMeetingRequestRecurrenceMixIn.class)
 			.setMixInAnnotation(ServerId.class, ServerIdMixIn.class)
 			.setMixInAnnotation(Snapshot.class, SnapshotMixIn.class)
-			.setMixInAnnotation(SyncCollectionCommand.class, SyncCollectionCommandMixIn.class)
-			.setMixInAnnotation(SyncCollectionCommandsIndex.class, SyncCollectionCommandsMixIn.class)
+			.setMixInAnnotation(SyncCollectionCommandRequest.class, SyncCollectionCommandRequestMixIn.class)
+			.setMixInAnnotation(SyncCollectionCommandResponse.class, SyncCollectionCommandResponseMixIn.class)
+			.setMixInAnnotation(TypedCommandsIndex.class, TypedCommandsMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsRequest.class, SyncCollectionCommandsRequestMixIn.class)
 			.setMixInAnnotation(SyncCollectionCommandsResponse.class, SyncCollectionCommandsResponseMixIn.class)
 			.setMixInAnnotation(SyncCollectionOptions.class, SyncCollectionOptionsMixIn.class)

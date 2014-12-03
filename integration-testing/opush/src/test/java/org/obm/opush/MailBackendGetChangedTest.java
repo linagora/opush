@@ -68,7 +68,8 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
+import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
@@ -606,9 +607,9 @@ public class MailBackendGetChangedTest {
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
 		assertThat(inboxResponse.getItemChanges()).isEmpty();
-		List<SyncCollectionCommand> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
+		List<SyncCollectionCommandResponse> deletions = inboxResponse.getResponses().getCommandsForType(SyncCommand.DELETE);
 		assertThat(deletions).hasSize(1);
-		SyncCollectionCommand deletion = deletions.get(0);
+		SyncCollectionCommandResponse deletion = deletions.get(0);
 		assertThat(deletion.getServerId()).isEqualTo(CollectionId.of(1234).serverId(1));
 		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
 	}
@@ -1101,7 +1102,7 @@ public class MailBackendGetChangedTest {
 				Sync.builder(decoder)
 					.collection(SyncCollection.builder()
 							.collectionId(inboxCollectionId).syncKey(secondAllocatedSyncKey).dataType(PIMDataType.EMAIL)
-							.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 							.build())
 					.build());
 		
@@ -1185,7 +1186,7 @@ public class MailBackendGetChangedTest {
 				Sync.builder(decoder)
 					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
 						.dataType(PIMDataType.EMAIL).syncKey(secondAllocatedSyncKey)
-						.command(SyncCollectionCommand.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+						.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 						.build())
 					.build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
@@ -1200,7 +1201,7 @@ public class MailBackendGetChangedTest {
 		assertThat(responses.updates()).isEmpty();
 		assertThat(responses.deletions()).isEmpty();
 		assertThat(responses.fetches()).hasSize(1);
-		assertThat(responses.getCommandsForType(SyncCommand.FETCH)).containsOnly(SyncCollectionCommand.builder()
+		assertThat(responses.getCommandsForType(SyncCommand.FETCH)).containsOnly(SyncCollectionCommandResponse.builder()
 				.status(SyncStatus.OBJECT_NOT_FOUND)
 				.serverId(serverId)
 				.type(SyncCommand.FETCH)

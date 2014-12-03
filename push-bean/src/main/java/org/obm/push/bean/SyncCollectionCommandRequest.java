@@ -31,15 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean;
 
-import java.io.Serializable;
-
 import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.base.Objects;
 
-public class SyncCollectionCommand implements Serializable {
-
-	private static final long serialVersionUID = 5244279911428703760L;
+public class SyncCollectionCommandRequest implements TypedCommand {
 
 	public static Builder builder() {
 		return new Builder();
@@ -47,7 +43,6 @@ public class SyncCollectionCommand implements Serializable {
 	
 	public static class Builder {
 		
-		private SyncStatus status;
 		private SyncCommand type;
 		private ServerId serverId;
 		private String clientId;
@@ -75,34 +70,29 @@ public class SyncCollectionCommand implements Serializable {
 			return this;
 		}
 
-		public Builder status(SyncStatus status) {
-			this.status = status;
-			return this;
-		}
-		
-		public SyncCollectionCommand build() {
-			return new SyncCollectionCommand(status, type, serverId, clientId, applicationData);
+		public SyncCollectionCommandRequest build() {
+			return new SyncCollectionCommandRequest(type, serverId, clientId, applicationData);
 		}
 	}
 	
-	private final SyncStatus status;
 	private final SyncCommand type;
 	private final ServerId serverId;
 	private final String clientId;
 	private final IApplicationData applicationData;
 	
-	protected SyncCollectionCommand(SyncStatus status, SyncCommand type, ServerId serverId, String clientId, IApplicationData applicationData) {
+	protected SyncCollectionCommandRequest(SyncCommand type, ServerId serverId, String clientId, IApplicationData applicationData) {
 		this.type = type;
 		this.serverId = serverId;
 		this.clientId = clientId;
-		this.status = status;
 		this.applicationData = applicationData;
 	}
 
+	@Override
 	public SyncCommand getType() {
 		return type;
 	}
 
+	@Override
 	public ServerId getServerId() {
 		return serverId;
 	}
@@ -115,21 +105,16 @@ public class SyncCollectionCommand implements Serializable {
 		return applicationData;
 	}
 	
-	public SyncStatus getStatus() {
-		return status;
-	}
-	
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(status, type, serverId, clientId, applicationData);
+		return Objects.hashCode(type, serverId, clientId, applicationData);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommand) {
-			SyncCollectionCommand that = (SyncCollectionCommand) object;
+		if (object instanceof SyncCollectionCommandRequest) {
+			SyncCollectionCommandRequest that = (SyncCollectionCommandRequest) object;
 			return Objects.equal(this.type, that.type)
-				&& Objects.equal(this.status, that.status)
 				&& Objects.equal(this.serverId, that.serverId)
 				&& Objects.equal(this.clientId, that.clientId)
 				&& Objects.equal(this.applicationData, that.applicationData);
@@ -141,7 +126,6 @@ public class SyncCollectionCommand implements Serializable {
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("name", type)
-			.add("status", status)
 			.add("serverId", serverId)
 			.add("clientId", clientId)
 			.add("applicationData", applicationData)

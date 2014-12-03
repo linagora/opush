@@ -37,7 +37,7 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommand;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
@@ -125,7 +125,7 @@ public class SyncAnalyser {
 			
 			
 			SyncCollectionCommandsRequest.Builder commands = SyncCollectionCommandsRequest.builder();
-			for (SyncCollectionCommand command: collectionRequest.getCommands()) {
+			for (SyncCollectionCommandRequest command: collectionRequest.getCommands()) {
 				checkRequiredData(command);
 				try {
 					checkServerId(command, collectionId);
@@ -147,13 +147,13 @@ public class SyncAnalyser {
 
 	}
 
-	private void checkRequiredData(SyncCollectionCommand command) {
+	private void checkRequiredData(SyncCollectionCommandRequest command) {
 		if (command.getType().requireApplicationData() && command.getApplicationData() == null) {
 			throw new ProtocolException("No decodable " + command.getType() + " data");
 		}
 	}
-	
-	private void checkServerId(SyncCollectionCommand command, CollectionId collectionId) throws InvalidServerId {
+
+	private void checkServerId(SyncCollectionCommandRequest command, CollectionId collectionId) throws InvalidServerId {
 		ServerId serverId = command.getServerId();
 		if (serverId != null) {
 			if (!serverId.isItem() || serverId.getItemId() < 1) {
