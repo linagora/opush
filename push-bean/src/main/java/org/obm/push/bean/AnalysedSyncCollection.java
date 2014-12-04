@@ -41,6 +41,7 @@ import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 
 public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
@@ -60,10 +61,11 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		private Boolean changes;
 		private Integer windowSize;
 		private SyncCollectionOptions options;
-		private SyncCollectionCommandsRequest commands;
+		private TypedCommandsIndex.Builder<SyncCollectionCommandRequest> commands;
 		private SyncStatus status;
 
 		private Builder() {
+			commands = TypedCommandsIndex.builder();
 		}
 		
 		public Builder dataType(PIMDataType dataType) {
@@ -105,9 +107,16 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 			this.options = options;
 			return this;
 		}
+
+		public Builder command(SyncCollectionCommandRequest command) {
+			Preconditions.checkNotNull(command);
+			this.commands.addCommand(command);
+			return this;
+		}
 		
-		public Builder commands(SyncCollectionCommandsRequest commands) {
-			this.commands = commands;
+		public Builder commands(List<SyncCollectionCommandRequest> commands) {
+			Preconditions.checkNotNull(commands);
+			this.commands.addCommands(commands);
 			return this;
 		}
 		
@@ -131,7 +140,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 					collectionPath, deletesAsMoves, changes, 
 					Objects.firstNonNull(windowSize, DEFAULT_WINDOW_SIZE), 
 					Objects.firstNonNull(options, SyncCollectionOptions.defaultOptions()), 
-					Objects.firstNonNull(commands, SyncCollectionCommandsRequest.empty()),
+					commands.build(),
 					status);
 		}
 
@@ -141,7 +150,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
 	private final CollectionId collectionId;
-	private final SyncCollectionCommandsRequest commands;
+	private final TypedCommandsIndex<SyncCollectionCommandRequest> commands;
 	private final String collectionPath;
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
@@ -151,7 +160,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	
 	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
 			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
-			SyncCollectionOptions options, SyncCollectionCommandsRequest commands, SyncStatus status) {
+			SyncCollectionOptions options, TypedCommandsIndex<SyncCollectionCommandRequest> commands, SyncStatus status) {
 		
 		this.dataType = dataType;
 		this.syncKey = syncKey;
@@ -165,7 +174,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		this.status = status;
 	}
 
-	public SyncCollectionCommandsRequest getCommands() {
+	public Iterable<SyncCollectionCommandRequest> getCommands() {
 		return commands;
 	}
 
@@ -218,6 +227,10 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 
 	public SyncStatus getStatus() {
 		return status;
+	}
+	
+	public Summary getSummary() {
+		return commands.getSummary();
 	}
 	
 	@Override

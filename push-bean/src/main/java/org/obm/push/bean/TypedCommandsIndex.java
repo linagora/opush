@@ -32,6 +32,7 @@
 package org.obm.push.bean;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.List;
 
 import org.obm.push.bean.change.SyncCommand;
@@ -42,7 +43,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 
-public final class TypedCommandsIndex<T extends TypedCommand> implements Serializable {
+public final class TypedCommandsIndex<T extends TypedCommand> implements Serializable, Iterable<T> {
 
 	private static final long serialVersionUID = 5403154747427044879L;
 
@@ -86,11 +87,11 @@ public final class TypedCommandsIndex<T extends TypedCommand> implements Seriali
 	}
 	
 	private final ImmutableListMultimap<SyncCommand, T> commandsByType;
-	private final List<T> commands;
+	private final ImmutableList<T> commands;
 	
 	private TypedCommandsIndex(
 		ImmutableListMultimap<SyncCommand, T> commandsByType, 
-		List<T> commands) {
+		ImmutableList<T> commands) {
 		
 		this.commandsByType = commandsByType;
 		this.commands = commands;
@@ -104,6 +105,11 @@ public final class TypedCommandsIndex<T extends TypedCommand> implements Seriali
 		return commands;
 	}
 
+	@Override
+	public Iterator<T> iterator() {
+		return commands.iterator();
+	}
+	
 	public int countChanges() {
 		return getCommandsForType(SyncCommand.ADD).size() 
 				+ getCommandsForType(SyncCommand.CHANGE).size() 

@@ -67,7 +67,7 @@ public class SummaryLoggerService {
 		}
 		Summary summary = Summary.empty();
 		for (AnalysedSyncCollection collection : analyseSync.getCollections()) {
-			summary = summary.merge(collection.getCommands().getSummary());
+			summary = summary.merge(collection.getSummary());
 		}
 		loggerIn.info(summary.summary());
 	}

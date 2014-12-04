@@ -37,6 +37,8 @@ import org.junit.Test;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
 
+import com.google.common.collect.ImmutableList;
+
 public class AnalysedSyncCollectionTest {
 
 	@Test
@@ -47,36 +49,42 @@ public class AnalysedSyncCollectionTest {
 			.dataType(PIMDataType.EMAIL)
 			.build();
 		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsRequest.empty());
+		assertThat(collection.getCommands()).isEmpty();
 	}
 
+	@Test(expected=NullPointerException.class)
+	public void testBuildNullCommandsThrowNPE() {
+		AnalysedSyncCollection.builder().commands(null);
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testBuildNullCommandThrowNPE() {
+		AnalysedSyncCollection.builder().command(null);
+	}
+	
 	@Test
-	public void testBuildNullCommandGiveEmptyCommand() {
+	public void testBuildCommandGiveNotEmptyCommand() {
+		SyncCollectionCommandRequest command = SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 			.collectionId(CollectionId.of(5))
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
-			.commands(null)
+			.command(command)
 			.build();
 		
-		assertThat(collection.getCommands())
-			.isEqualTo(SyncCollectionCommandsRequest.empty());
+		assertThat(collection.getCommands()).containsExactly(command);
 	}
-
+	
 	@Test
-	public void testBuildCommandGiveNotEmptyCommand() {
-		SyncCollectionCommandsRequest commands = SyncCollectionCommandsRequest.builder()
-				.addCommand(SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build())
-				.build();
-		
+	public void testBuildCommandsGiveNotEmptyCommand() {
+		SyncCollectionCommandRequest command = SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(CollectionId.of(1).serverId(2)).build();
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 			.collectionId(CollectionId.of(1))
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
-			.commands(commands)
+			.commands(ImmutableList.of(command))
 			.build();
 		
-		assertThat(collection.getCommands()).isEqualTo(commands);
+		assertThat(collection.getCommands()).containsExactly(command);
 	}
 }

@@ -35,6 +35,8 @@ import java.util.List;
 
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.Summary;
+import org.obm.push.bean.SyncCollectionCommandRequest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -44,4 +46,10 @@ public interface AnalysedSyncCollectionMixIn {
 	
 	@JsonIgnore
 	List<ServerId> getFetchIds();
+	
+	@JsonIgnore
+	Iterable<SyncCollectionCommandRequest> getCommands();
+	
+	@JsonIgnore
+	Summary getSummary();
 }

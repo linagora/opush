@@ -53,7 +53,6 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
@@ -295,7 +294,6 @@ public class SyncAnalyserTest {
 			.options(syncCollectionOptions)
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.status(SyncStatus.OK)
-			.commands(SyncCollectionCommandsRequest.empty())
 			.build();
 		
 		Document firstDoc = buildRequestWithOptions("0",
@@ -344,7 +342,6 @@ public class SyncAnalyserTest {
 				.options(syncCollectionOptions)
 				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.status(SyncStatus.OK)
-				.commands(SyncCollectionCommandsRequest.empty())
 				.build();
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
@@ -380,7 +377,6 @@ public class SyncAnalyserTest {
 				.dataType(PIMDataType.EMAIL)
 				.syncKey(new SyncKey("1234"))
 				.status(SyncStatus.OK)
-				.commands(SyncCollectionCommandsRequest.empty())
 				.build();
 
 		Document requestWithoutOptions = DOMUtils.parse(
@@ -436,7 +432,6 @@ public class SyncAnalyserTest {
 			.options(options)
 			.syncKey(new SyncKey(syncKey))
 			.status(SyncStatus.OK)
-			.commands(SyncCollectionCommandsRequest.empty())
 			.build();
 	}
 

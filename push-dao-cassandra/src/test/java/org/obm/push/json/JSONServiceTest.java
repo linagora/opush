@@ -72,7 +72,6 @@ import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionCommandsResponse;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -1390,14 +1389,6 @@ public class JSONServiceTest {
 									))
 							.build())
 				.build();
-		SyncCollectionCommandsRequest syncCollectionCommands = SyncCollectionCommandsRequest.builder()
-				.addCommand(SyncCollectionCommandRequest.builder()
-						.serverId(CollectionId.of(1).serverId(3))
-						.clientId("clientId")
-						.type(SyncCommand.ADD)
-						.applicationData(msEmail)
-						.build())
-				.build();
 		
 		AnalysedSyncCollection analysedSyncCollection = AnalysedSyncCollection.builder()
 				.dataType(PIMDataType.EMAIL)
@@ -1409,7 +1400,12 @@ public class JSONServiceTest {
 				.windowSize(2)
 				.options(syncCollectionOptions)
 				.status(SyncStatus.OK)
-				.commands(syncCollectionCommands)
+				.command(SyncCollectionCommandRequest.builder()
+						.serverId(CollectionId.of(1).serverId(3))
+						.clientId("clientId")
+						.type(SyncCommand.ADD)
+						.applicationData(msEmail)
+						.build())
 				.build();
 		
 		String serialized = new JSONService().serialize(analysedSyncCollection);
@@ -1417,7 +1413,6 @@ public class JSONServiceTest {
 				"{\"changes\":true," + 
 					"\"collectionId\":1," + 
 					"\"collectionPath\":\"path\"," + 
-					"\"commands\":{}," + 
 					"\"dataType\":\"EMAIL\"," + 
 					"\"deletesAsMoves\":true," + 
 					"\"options\":" + 

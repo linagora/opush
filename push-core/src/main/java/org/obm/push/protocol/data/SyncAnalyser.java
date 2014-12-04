@@ -38,7 +38,6 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
 import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
@@ -124,18 +123,15 @@ public class SyncAnalyser {
 				.status(SyncStatus.OK);
 			
 			
-			SyncCollectionCommandsRequest.Builder commands = SyncCollectionCommandsRequest.builder();
 			for (SyncCollectionCommandRequest command: collectionRequest.getCommands()) {
 				checkRequiredData(command);
 				try {
 					checkServerId(command, collectionId);
-					commands.addCommand(command);
+					builder.command(command);
 				} catch (InvalidServerId e) {
 					logger.warn("Error with a command", e);
 				}
 			}
-			builder.commands(commands.build());
-			
 			AnalysedSyncCollection analysed = builder.build();
 			syncedCollectionStoreService.put(udr.getUser(), udr.getDevice(), analysed);
 			return analysed;

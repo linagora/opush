@@ -159,6 +159,7 @@ public class BeansTest {
 								.type(SyncCommand.CHANGE)
 								.serverId(CollectionId.of(1).serverId(4))
 								.build())) 
+			.prefabValue(ImmutableList.class, ImmutableList.of("potato"), ImmutableList.of("banana"))
 			.verify();
 	}
 	

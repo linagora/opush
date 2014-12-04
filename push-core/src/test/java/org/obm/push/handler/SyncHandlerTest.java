@@ -51,7 +51,6 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionCommandsRequest;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
@@ -104,12 +103,10 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(serverId)
-								.type(SyncCommand.FETCH)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(serverId)
+							.type(SyncCommand.FETCH)
+							.build())
 				.build();
 
 		IApplicationData data = mocks.createMock(IApplicationData.class);
@@ -140,13 +137,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(new SyncKey("d15f5fdd-d4f7-4a14-8889-42bc57e0c184"))
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(serverId)
-								.clientId("1234")
-								.type(SyncCommand.FETCH)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(serverId)
+							.clientId("1234")
+							.type(SyncCommand.FETCH)
+							.build())
 				.build();
 
 		IApplicationData data = mocks.createMock(IApplicationData.class);
@@ -177,12 +172,10 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.type(SyncCommand.MODIFY)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.type(SyncCommand.MODIFY)
+							.build())
 				.build();
 
 		ServerId serverId = CollectionId.of(15).serverId(3);
@@ -209,13 +202,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId("1234")
-								.type(SyncCommand.MODIFY)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId("1234")
+							.type(SyncCommand.MODIFY)
+							.build())
 				.build();
 
 		ServerId serverId = CollectionId.of(15).serverId(3);
@@ -242,12 +233,10 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.type(SyncCommand.ADD)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.type(SyncCommand.ADD)
+							.build())
 				.build();
 
 		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), null, null))
@@ -268,13 +257,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId("1234")
-								.type(SyncCommand.ADD)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId("1234")
+							.type(SyncCommand.ADD)
+							.build())
 				.build();
 
 		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), CollectionId.of(15).serverId(2), "1234", null))
@@ -301,13 +288,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(null)
-								.clientId("1234")
-								.type(SyncCommand.ADD)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(null)
+							.clientId("1234")
+							.type(SyncCommand.ADD)
+							.build())
 				.build();
 
 		expect(contentsImporter.importMessageChange(udr, CollectionId.of(15), null, "1234", null)).andReturn(CollectionId.of(15).serverId(3));
@@ -334,13 +319,11 @@ public class SyncHandlerTest {
 				.dataType(PIMDataType.EMAIL)
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId(null)
-								.type(SyncCommand.DELETE)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId(null)
+							.type(SyncCommand.DELETE)
+							.build())
 				.build();
 
 		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), CollectionId.of(15).serverId(2), true);
@@ -368,13 +351,11 @@ public class SyncHandlerTest {
 				.dataType(PIMDataType.EMAIL)
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId("1234")
-								.type(SyncCommand.DELETE)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId("1234")
+							.type(SyncCommand.DELETE)
+							.build())
 				.build();
 
 		contentsImporter.importMessageDeletion(udr, PIMDataType.EMAIL, CollectionId.of(15), CollectionId.of(15).serverId(2), true);
@@ -401,13 +382,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId(null)
-								.type(SyncCommand.CHANGE)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId(null)
+							.type(SyncCommand.CHANGE)
+							.build())
 				.build();
 
 		ServerId serverId = CollectionId.of(15).serverId(3);
@@ -434,13 +413,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(CollectionId.of(15).serverId(2))
-								.clientId("1234")
-								.type(SyncCommand.CHANGE)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(CollectionId.of(15).serverId(2))
+							.clientId("1234")
+							.type(SyncCommand.CHANGE)
+							.build())
 				.build();
 
 		ServerId serverId = CollectionId.of(15).serverId(3);
@@ -467,13 +444,11 @@ public class SyncHandlerTest {
 		AnalysedSyncCollection collection = AnalysedSyncCollection.builder()
 				.collectionId(CollectionId.of(15))
 				.syncKey(syncKey)
-				.commands(SyncCollectionCommandsRequest.builder()
-						.addCommand(SyncCollectionCommandRequest.builder()
-								.serverId(null)
-								.clientId("1234")
-								.type(SyncCommand.CHANGE)
-								.build())
-						.build())
+				.command(SyncCollectionCommandRequest.builder()
+							.serverId(null)
+							.clientId("1234")
+							.type(SyncCommand.CHANGE)
+							.build())
 				.build();
 
 		ServerId serverId = CollectionId.of(15).serverId(3);
