@@ -34,11 +34,11 @@ package org.obm.sync.push.client.commands;
 import java.io.IOException;
 import java.util.List;
 
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -66,8 +66,8 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	public static class Builder {
 		
 		private final SyncDecoder decoder;
-		private final ImmutableList.Builder<SyncCollection> collections;
-
+		private final ImmutableList.Builder<AnalysedSyncCollection> collections;
+		
 		private EncoderFactory encoderFactory;
 		private Device device;
 
@@ -81,7 +81,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			return this;
 		}
 		
-		public Builder collection(SyncCollection collection) {
+		public Builder collection(AnalysedSyncCollection collection) {
 			this.collections.add(collection);
 			return this;
 		}
@@ -92,8 +92,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		}
 		
 		public Sync build() {
-			ImmutableList<SyncCollection> collections = this.collections.build();
-			return new Sync(decoder, new SimpleSyncDocumentProvider(encoderFactory, device, collections));
+			return new Sync(decoder, new SimpleSyncDocumentProvider(encoderFactory, device, collections.build()));
 		}
 
 	}
@@ -117,11 +116,11 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	
 	private static class SimpleSyncDocumentProvider implements DocumentProvider {
 
-		private final List<SyncCollection> collections;
+		private final List<AnalysedSyncCollection> collections;
 		private Device device;
 		private EncoderFactory encoders;
 
-		private SimpleSyncDocumentProvider(EncoderFactory encoders, Device device, List<SyncCollection> collections) {
+		private SimpleSyncDocumentProvider(EncoderFactory encoders, Device device, List<AnalysedSyncCollection> collections) {
 			this.collections = collections;
 			this.encoders = encoders;
 			this.device = device;
@@ -134,7 +133,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 
 			try {
 				final Element cols = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
-				for (SyncCollection collection: collections) {
+				for (AnalysedSyncCollection collection: collections) {
 					Element col = DOMUtils.createElement(cols, SyncRequestFields.COLLECTION.getName());
 					DOMUtils.createElementAndText(col, SyncRequestFields.SYNC_KEY.getName(), collection.getSyncKey().getSyncKey());
 					DOMUtils.createElementAndText(col, SyncRequestFields.COLLECTION_ID.getName(), collection.getCollectionId().asString());
@@ -149,6 +148,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 							DOMUtils.createElementAndText(col, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
 						}
 					}
+
 					appendDataClass(col, collection);
 
 					Element commandsEl = DOMUtils.createElement(col, SyncRequestFields.COMMANDS.getName());
@@ -172,7 +172,7 @@ public class Sync extends AbstractCommand<SyncResponse> {
 			return document;
 		}
 		
-		private void appendDataClass(Element collectionEl, SyncCollection collection) {
+		private void appendDataClass(Element collectionEl, AnalysedSyncCollection collection) {
 			if (collection.getDataType() != null) {
 				String xmlValue = collection.getDataType().asXmlValue();
 				if (xmlValue != null) {

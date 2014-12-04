@@ -58,6 +58,7 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
@@ -69,7 +70,6 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -206,7 +206,7 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opushClient.run(
 				Sync.builder(decoder)
-					.collection(SyncCollection.builder().collectionId(contactCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 									.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build()).build());
 		
 		mocksControl.verify();
@@ -334,14 +334,14 @@ public class SyncHandlerOnContactsTest {
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.run(Sync.builder(decoder)
-					.collection(SyncCollection.builder()
+					.collection(AnalysedSyncCollection.builder()
 									.collectionId(contactCollectionId)
 									.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build())
 					.build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(SyncCollection.builder().collectionId(contactCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.clientId(clientId).applicationData(createdMSContact).build())
@@ -459,12 +459,12 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(contactCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build()).build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(SyncCollection.builder().collectionId(contactCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 								.serverId(serverId).clientId(clientId)
@@ -580,12 +580,12 @@ public class SyncHandlerOnContactsTest {
 
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opushClient.run(Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(contactCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build()).build());
 		
 		SyncResponse updateSyncResponse = opushClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(SyncCollection.builder().collectionId(contactCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 								.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CONTACTS)
 								.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 									.serverId(serverId).clientId(clientId).applicationData(modifiedMSContact).build())
@@ -672,12 +672,12 @@ public class SyncHandlerOnContactsTest {
 		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opushClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(contactCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build())
 				.build());
 		SyncResponse sameSyncResponse = opushClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(contactCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CONTACTS).build())
 				.build());
 		

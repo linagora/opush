@@ -35,18 +35,10 @@ import org.obm.push.bean.change.SyncCommand;
 
 import com.google.common.base.Objects;
 
-public class SyncCollectionCommandRequest implements TypedCommand {
+public class EncodedSyncCollectionCommandRequest implements TypedCommand {
 
 	public static Builder builder() {
 		return new Builder();
-	}
-	
-	public static Builder from(SyncCollectionCommandRequest request) {
-		return builder()
-			.type(request.type)
-			.serverId(request.serverId)
-			.clientId(request.clientId)
-			.applicationData(request.applicationData);
 	}
 	
 	public static class Builder {
@@ -54,7 +46,7 @@ public class SyncCollectionCommandRequest implements TypedCommand {
 		private SyncCommand type;
 		private ServerId serverId;
 		private String clientId;
-		private IApplicationData applicationData;
+		private EncodedApplicationData encodedApplicationData;
 
 		protected Builder() {}
 		
@@ -73,26 +65,26 @@ public class SyncCollectionCommandRequest implements TypedCommand {
 			return this;
 		}
 
-		public Builder applicationData(IApplicationData applicationData) {
-			this.applicationData = applicationData;
+		public Builder applicationData(EncodedApplicationData encodedApplicationData) {
+			this.encodedApplicationData = encodedApplicationData;
 			return this;
 		}
 
-		public SyncCollectionCommandRequest build() {
-			return new SyncCollectionCommandRequest(type, serverId, clientId, applicationData);
+		public EncodedSyncCollectionCommandRequest build() {
+			return new EncodedSyncCollectionCommandRequest(type, serverId, clientId, encodedApplicationData);
 		}
 	}
 	
 	private final SyncCommand type;
 	private final ServerId serverId;
 	private final String clientId;
-	private final IApplicationData applicationData;
+	private final EncodedApplicationData encodedApplicationData;
 	
-	private SyncCollectionCommandRequest(SyncCommand type, ServerId serverId, String clientId, IApplicationData applicationData) {
+	private EncodedSyncCollectionCommandRequest(SyncCommand type, ServerId serverId, String clientId, EncodedApplicationData encodedApplicationData) {
 		this.type = type;
 		this.serverId = serverId;
 		this.clientId = clientId;
-		this.applicationData = applicationData;
+		this.encodedApplicationData = encodedApplicationData;
 	}
 
 	@Override
@@ -109,23 +101,22 @@ public class SyncCollectionCommandRequest implements TypedCommand {
 		return clientId;
 	}
 
-	public IApplicationData getApplicationData() {
-		return applicationData;
+	public EncodedApplicationData getEncodedApplicationData() {
+		return encodedApplicationData;
 	}
 	
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(type, serverId, clientId, applicationData);
+		return Objects.hashCode(type, serverId, clientId);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof SyncCollectionCommandRequest) {
-			SyncCollectionCommandRequest that = (SyncCollectionCommandRequest) object;
+		if (object instanceof EncodedSyncCollectionCommandRequest) {
+			EncodedSyncCollectionCommandRequest that = (EncodedSyncCollectionCommandRequest) object;
 			return Objects.equal(this.type, that.type)
 				&& Objects.equal(this.serverId, that.serverId)
-				&& Objects.equal(this.clientId, that.clientId)
-				&& Objects.equal(this.applicationData, that.applicationData);
+				&& Objects.equal(this.clientId, that.clientId);
 		}
 		return false;
 	}
@@ -136,7 +127,6 @@ public class SyncCollectionCommandRequest implements TypedCommand {
 			.add("name", type)
 			.add("serverId", serverId)
 			.add("clientId", clientId)
-			.add("applicationData", applicationData)
  			.toString();
 	}
 }

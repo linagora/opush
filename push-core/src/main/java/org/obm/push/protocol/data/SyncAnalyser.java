@@ -32,6 +32,7 @@
 package org.obm.push.protocol.data;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
@@ -58,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -113,21 +115,26 @@ public class SyncAnalyser {
 		
 		try {
 			String collectionPath = collectionDao.getCollectionPath(collectionId);
-			checkCollectionType(collectionRequest.getDataType(), collectionPath);
+			PIMDataType checkedCollectionType = checkedCollectionType(collectionRequest.getDataType(), collectionPath);
 			builder
 				.collectionPath(collectionPath)
-				.dataType(collectionRequest.getDataType())
+				.dataType(checkedCollectionType)
 				.windowSize(getWindowSize(syncRequest, collectionRequest))
 				.options(getUpdatedOptions(
 						findLastSyncedCollectionOptions(udr, isPartial, collectionId), collectionRequest))
 				.status(SyncStatus.OK);
 			
 			
-			for (SyncCollectionCommandRequest command: collectionRequest.getCommands()) {
-				checkRequiredData(command);
+			for (EncodedSyncCollectionCommandRequest command: collectionRequest.getCommands()) {
 				try {
 					checkServerId(command, collectionId);
-					builder.command(command);
+					builder.command(
+							SyncCollectionCommandRequest.builder()
+								.clientId(command.getClientId())
+								.serverId(command.getServerId())
+								.type(command.getType())
+								.applicationData(decodeApplicationData(command, checkedCollectionType))
+								.build());
 				} catch (InvalidServerId e) {
 					logger.warn("Error with a command", e);
 				}
@@ -143,13 +150,23 @@ public class SyncAnalyser {
 
 	}
 
-	private void checkRequiredData(SyncCollectionCommandRequest command) {
-		if (command.getType().requireApplicationData() && command.getApplicationData() == null) {
-			throw new ProtocolException("No decodable " + command.getType() + " data");
+	private IApplicationData decodeApplicationData(EncodedSyncCollectionCommandRequest command, final PIMDataType dataType) {
+		if (command.getEncodedApplicationData() == null) {
+			if (command.getType().requireApplicationData()) {
+				throw new ProtocolException("No decodable " + command.getType() + " data");
+			}
+			return null;
+		} else {
+			return command.getEncodedApplicationData().decode(new Function<Element, IApplicationData>() {
+				@Override
+				public IApplicationData apply(Element input) {
+					return decoderFactory.decode(input, dataType);
+				}
+			});
 		}
 	}
-
-	private void checkServerId(SyncCollectionCommandRequest command, CollectionId collectionId) throws InvalidServerId {
+	
+	private void checkServerId(EncodedSyncCollectionCommandRequest command, CollectionId collectionId) throws InvalidServerId {
 		ServerId serverId = command.getServerId();
 		if (serverId != null) {
 			if (!serverId.isItem() || serverId.getItemId() < 1) {
@@ -161,12 +178,13 @@ public class SyncAnalyser {
 		}
 	}
 
-	private void checkCollectionType(PIMDataType dataClass, String collectionPath) {
-		PIMDataType collectionDataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-		if (!Objects.equal(dataClass, collectionDataType)) {
+	private PIMDataType checkedCollectionType(PIMDataType dataClass, String collectionPath) {
+		PIMDataType recognizedDataType = collectionPathHelper.recognizePIMDataType(collectionPath);
+		if (dataClass != null && !Objects.equal(dataClass, recognizedDataType)) {
 			String msg = "The type of the collection found:{%s} is not the same than received in DataClass:{%s}";
-			throw new ServerErrorException(String.format(msg, collectionDataType , dataClass));
+			throw new ServerErrorException(String.format(msg, recognizedDataType , dataClass));
 		}
+		return recognizedDataType;
 	}
 
 	private CollectionId getCollectionId(SyncCollection collectionRequest) {

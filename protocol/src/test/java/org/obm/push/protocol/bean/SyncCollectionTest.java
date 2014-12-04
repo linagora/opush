@@ -34,14 +34,12 @@ package org.obm.push.protocol.bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.change.SyncCommand;
-
-import com.google.common.collect.ImmutableList;
 
 public class SyncCollectionTest {
 
@@ -149,10 +147,12 @@ public class SyncCollectionTest {
 
 	@Test
 	public void testBuilderCommandsValid() {
-		SyncCollectionCommandRequest command = SyncCollectionCommandRequest.builder().serverId(CollectionId.of(1).serverId(2)).type(SyncCommand.DELETE).build();
+		EncodedSyncCollectionCommandRequest command = 
+				EncodedSyncCollectionCommandRequest.builder()
+					.serverId(CollectionId.of(1).serverId(35)).type(SyncCommand.DELETE).build();
 		
 		SyncCollection syncRequestCollection = builderWithRequirement()
-				.commands(ImmutableList.of(command))
+				.command(command)
 				.build();
 		
 		assertThat(syncRequestCollection.getCommands()).containsOnly(command);

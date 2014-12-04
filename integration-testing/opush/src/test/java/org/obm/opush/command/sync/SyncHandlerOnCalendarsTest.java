@@ -64,6 +64,7 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.ItemSyncState;
@@ -84,7 +85,6 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -250,15 +250,15 @@ public class SyncHandlerOnCalendarsTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
 				Sync.builder(decoder)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse sameSyncResponse = opClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		mocksControl.verify();
@@ -418,16 +418,16 @@ public class SyncHandlerOnCalendarsTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse initialSyncResponse = opClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 						.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		SyncResponse syncResponse = opClient.run(
 				Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 										.serverId(serverId).clientId(clientId).applicationData(msEventUpdated).build())
@@ -560,13 +560,13 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		opClient.run(Sync.builder(decoder)
-				.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
 		SyncResponse updateSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(SyncCollection.builder().collectionId(calendarCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
 							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
 										.serverId(serverId).clientId(clientId).applicationData(createdMSEvent).build())

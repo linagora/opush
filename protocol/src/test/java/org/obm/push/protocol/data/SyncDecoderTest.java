@@ -36,12 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.EncodedApplicationData;
+import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
@@ -651,6 +651,7 @@ public class SyncDecoderTest {
 
 	@Test
 	public void testCollectionCommands() throws Exception {
+		CollectionId collectionId = CollectionId.of(2);
 		String contactApplicationData = 
 				"<ApplicationData>" +
 					"<Email1Address>opush@obm.org</Email1Address>" +
@@ -666,7 +667,7 @@ public class SyncDecoderTest {
 		Element request = DOMUtils.parse(
 				"<Collection>" +
 					"<SyncKey>ddcf2e35-9834-49de-96ff-09979c7e2aa0</SyncKey>" +
-					"<CollectionId>2</CollectionId>" +
+					"<CollectionId>"+ collectionId.asString() +"</CollectionId>" +
 					"<Class>Contacts</Class>" +
 					"<Commands>" +
 						"<Add>" +
@@ -691,12 +692,16 @@ public class SyncDecoderTest {
 		SyncCollection collection = new SyncDecoder(decoder).getCollection(request);
 
 		assertThat(collection.getCommands()).containsOnly(
-				SyncCollectionCommandRequest.builder()
-					.type(SyncCommand.ADD).serverId(ServerId.of("2:12")).clientId("120").applicationData(contact).build(),
-				SyncCollectionCommandRequest.builder()
-					.type(SyncCommand.CHANGE).serverId(ServerId.of("2:35")).clientId("350").applicationData(contact).build(),
-				SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(ServerId.of("2:56")).build(),
-				SyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(ServerId.of("2:79")).build());
+				EncodedSyncCollectionCommandRequest.builder()
+					.type(SyncCommand.ADD).serverId(collectionId.serverId(12)).clientId("120").applicationData(encodeContact(contact)).build(),
+				EncodedSyncCollectionCommandRequest.builder()
+					.type(SyncCommand.CHANGE).serverId(collectionId.serverId(35)).clientId("350").applicationData(encodeContact(contact)).build(),
+				EncodedSyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(collectionId.serverId(56)).build(),
+				EncodedSyncCollectionCommandRequest.builder().type(SyncCommand.DELETE).serverId(collectionId.serverId(79)).build());
+	}
+
+	private EncodedApplicationData encodeContact(MSContact contact) {
+		return new EncodedApplicationData(new ContactEncoder(){}.encodedApplicationData(null, contact));
 	}
 
 	@Test
@@ -711,7 +716,7 @@ public class SyncDecoderTest {
 							"</ApplicationData>" +
 						"</Add>");
 		
-		SyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement(), PIMDataType.CONTACTS);
+		EncodedSyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement());
 		
 		assertThat(command.getServerId()).isNull();
 	}
@@ -728,7 +733,7 @@ public class SyncDecoderTest {
 							"</ApplicationData>" +
 						"</Add>");
 		
-		SyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement(), PIMDataType.CONTACTS);
+		EncodedSyncCollectionCommandRequest command = new SyncDecoder(decoder).getCommandRequest(request.getDocumentElement());
 		
 		assertThat(command.getClientId()).isNull();
 	}

@@ -173,7 +173,7 @@ public class ContactEncoder {
 	}
 
 	public Element encodedApplicationData(Device device, IApplicationData data) {
-		Document doc = DOMUtils.createDoc(null, null);
+		Document doc = DOMUtils.createDoc(null, "Root");
 		Element root = doc.getDocumentElement();
 		encode(device, root, data);
 		return root;

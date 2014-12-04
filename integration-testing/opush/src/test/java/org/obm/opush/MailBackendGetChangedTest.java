@@ -64,6 +64,7 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.command.sync.SyncTestUtils;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
@@ -79,7 +80,6 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
@@ -1100,7 +1100,7 @@ public class MailBackendGetChangedTest {
 		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.run(
 				Sync.builder(decoder)
-					.collection(SyncCollection.builder()
+					.collection(AnalysedSyncCollection.builder()
 							.collectionId(inboxCollectionId).syncKey(secondAllocatedSyncKey).dataType(PIMDataType.EMAIL)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 							.build())
@@ -1184,7 +1184,7 @@ public class MailBackendGetChangedTest {
 		
 		SyncResponse response = opClient.run(
 				Sync.builder(decoder)
-					.collection(SyncCollection.builder().collectionId(inboxCollectionId)
+					.collection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId)
 						.dataType(PIMDataType.EMAIL).syncKey(secondAllocatedSyncKey)
 						.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
 						.build())

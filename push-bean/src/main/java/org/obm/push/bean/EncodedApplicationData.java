@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,9 +29,22 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.protocol;
+package org.obm.push.bean;
 
+import org.w3c.dom.Element;
 
-public interface ActiveSyncProtocol<Request, Response> extends AsymetricActiveSyncProtocol<Request, Request, Response, Response> {
+import com.google.common.base.Function;
+
+public class EncodedApplicationData {
+
+	private final Element node;
+
+	public EncodedApplicationData(Element applicationDataElement) {
+		this.node = applicationDataElement;
+	}
+	
+	public IApplicationData decode(Function<Element, IApplicationData> decoder) {
+		return decoder.apply(node);
+	}
 	
 }

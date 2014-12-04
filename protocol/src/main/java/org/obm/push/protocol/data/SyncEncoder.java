@@ -32,20 +32,20 @@
 package org.obm.push.protocol.data;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
-import org.obm.push.protocol.bean.SyncCollection;
-import org.obm.push.protocol.bean.SyncRequest;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -59,7 +59,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		this.encoderFactory = encoderFactory;
 	}
 
-	public Document encodeSync(SyncRequest request, Device device) {
+	public Document encodeSync(ClientSyncRequest request, Device device) {
 		Document doc = DOMUtils.createDoc(null, "Sync");
 		Element root = doc.getDocumentElement();
 		
@@ -70,32 +70,36 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		return doc;
 	}
 
-	private void appendPartial(Element root, SyncRequest request) {
-		appendBoolean(root, SyncRequestFields.PARTIAL, request.isPartial());
+	private void appendPartial(Element root, ClientSyncRequest request) {
+		if (request.isPartial() != null) {
+			appendBoolean(root, SyncRequestFields.PARTIAL, request.isPartial());
+		}
 	}
 
-	private void appendWait(Element root, SyncRequest request) {
-		appendInteger(root, SyncRequestFields.WAIT, request.getWaitInMinute());
+	private void appendWait(Element root, ClientSyncRequest request) {
+		if (request.getWaitInMinute() != null) {
+			appendInteger(root, SyncRequestFields.WAIT, request.getWaitInMinute());
+		}
 	}
 	
-	private void appendWindowSize(Element root, int windowSize) {
-		if (windowSize != DEFAULT_WINDOW_SIZE) {
+	private void appendWindowSize(Element root, Integer windowSize) {
+		if (windowSize != null) {
 			appendInteger(root, SyncRequestFields.WINDOW_SIZE, windowSize);
 		}
 	}
 
-	private void appendCollections(Element root, SyncRequest request, Device device) {
+	private void appendCollections(Element root, ClientSyncRequest request, Device device) {
 			
-		Set<SyncCollection> requestCollections = request.getCollections();
+		Set<AnalysedSyncCollection> requestCollections = request.getCollections();
 		if (requestCollections != null && !requestCollections.isEmpty()) {
 			Element collections = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
-			for (SyncCollection collection : requestCollections) {
+			for (AnalysedSyncCollection collection : requestCollections) {
 				appendCollection(collections, collection, device);
 			}
 		}
 	}
 	
-	private void appendCollection(Element collections, SyncCollection collection, Device device) {
+	private void appendCollection(Element collections, AnalysedSyncCollection collection, Device device) {
 			
 		Element collectionEl = DOMUtils.createElement(collections, SyncRequestFields.COLLECTION.getName());
 		appendDataClass(collectionEl, collection);
@@ -106,7 +110,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendCommands(collectionEl, collection.getCommands(), device);
 	}
 
-	private void appendDataClass(Element collectionEl, SyncCollection collection) {
+	private void appendDataClass(Element collectionEl, AnalysedSyncCollection collection) {
 		if (collection.getDataType() != null) {
 			String xmlValue = collection.getDataType().asXmlValue();
 			if (xmlValue != null) {
@@ -140,8 +144,8 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendBoolean(bodyPreferenceEl, SyncRequestFields.ALL_OR_NONE, bodyPreference.isAllOrNone());
 	}
 	
-	private void appendCommands(Element collectionElement, List<SyncCollectionCommandRequest> commands, Device device) {
-		if (commands.isEmpty()) {
+	private void appendCommands(Element collectionElement, Iterable<SyncCollectionCommandRequest> commands, Device device) {
+		if (Iterables.isEmpty(commands)) {
 			return;
 		}
 		Element commandsElement = DOMUtils.createElement(collectionElement, SyncRequestFields.COMMANDS.getName());

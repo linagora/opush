@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -33,16 +33,12 @@ package org.obm.push.protocol.bean;
 
 import java.util.Set;
 
-import org.joda.time.Minutes;
-import org.joda.time.Seconds;
-import org.obm.push.bean.SyncDefaultValues;
-import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
+import org.obm.push.bean.AnalysedSyncCollection;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
-public class SyncRequest implements SyncDefaultValues {
+public class ClientSyncRequest {
 
 	public static Builder builder() {
 		return new Builder();
@@ -53,13 +49,13 @@ public class SyncRequest implements SyncDefaultValues {
 		private Integer waitInMinute;
 		private Boolean partial;
 		private Integer windowSize;
-		private Set<SyncCollection> collections;
+		private ImmutableSet.Builder<AnalysedSyncCollection> collections;
 
 		private Builder() {
-			this.collections = Sets.newHashSet();
+			this.collections = ImmutableSet.builder();
 		}
 		
-		public Builder waitInMinute(Integer waitInMinute) {
+		public Builder waitInMinute(int waitInMinute) {
 			this.waitInMinute = waitInMinute;
 			return this;
 		}
@@ -69,90 +65,60 @@ public class SyncRequest implements SyncDefaultValues {
 			return this;
 		}
 		
-		public Builder windowSize(Integer windowSize) {
+		public Builder windowSize(int windowSize) {
 			this.windowSize = windowSize;
 			return this;
 		}
 
-		public Builder addCollection(SyncCollection collection) {
+		public Builder addCollection(AnalysedSyncCollection collection) {
 			collections.add(collection);
 			return this;
 		}
 
-		public SyncRequest build() {
-			assertWait();
-			assertWindowSize();
-			
-			if (collections == null) {
-				collections = ImmutableSet.of();
-			}
-			if (waitInMinute == null) {
-				waitInMinute = DEFAULT_WAIT;
-			}
-			if (windowSize == null) {
-				windowSize = DEFAULT_WINDOW_SIZE;
-			}
-
-			return new SyncRequest(Minutes.minutes(waitInMinute).toStandardSeconds().getSeconds(), 
-					partial, windowSize, collections);
-		}
-
-		private void assertWait() {
-			if (waitInMinute != null && (waitInMinute < 0 || waitInMinute > 59)) {
-				throw new ASRequestIntegerFieldException("Wait should be between 0 and 59 : " + waitInMinute);
-			}
-		}
-
-		private void assertWindowSize() {
-			if (windowSize != null && (windowSize < 1 || windowSize > 512)) {
-				throw new ASRequestIntegerFieldException("WindowSize should be between 0 and 512 : " + windowSize);
-			}
+		public ClientSyncRequest build() {
+			return new ClientSyncRequest(waitInMinute, partial, windowSize, collections.build());
 		}
 	}
 
-	private final int waitInSecond;
+	private final Integer waitInMinute;
 	private final Boolean partial;
-	private final int windowSize;
-	private final Set<SyncCollection> collections;
+	private final Integer windowSize;
+	private final Set<AnalysedSyncCollection> collections;
 	
-	protected SyncRequest(int waitInSecond, Boolean partial, int windowSize,
-			Set<SyncCollection> collections) {
-		this.waitInSecond = waitInSecond;
+	protected ClientSyncRequest(Integer waitInMinute, Boolean partial, Integer windowSize,
+			Set<AnalysedSyncCollection> collections) {
+		this.waitInMinute = waitInMinute;
 		this.partial = partial;
 		this.windowSize = windowSize;
 		this.collections = collections;
 	}
 	
-	public int getWaitInSecond() {
-		return waitInSecond;
-	}
-	
-	public int getWaitInMinute() {
-		return Seconds.seconds(waitInSecond).toStandardMinutes().getMinutes();
+	public Integer getWaitInMinute() {
+		return waitInMinute;
 	}
 	
 	public Boolean isPartial() {
 		return partial;
 	}
 	
-	public Set<SyncCollection> getCollections() {
+	public Set<AnalysedSyncCollection> getCollections() {
 		return collections;
 	}
 
-	public int getWindowSize() {
+	public Integer getWindowSize() {
 		return windowSize;
 	}
 
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(waitInSecond, partial, windowSize, collections);
+		return Objects.hashCode(waitInMinute, partial, windowSize, collections);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof SyncRequest) {
-			SyncRequest that = (SyncRequest) object;
-			return Objects.equal(this.waitInSecond, that.waitInSecond)
+		if (object instanceof ClientSyncRequest) {
+			ClientSyncRequest that = (ClientSyncRequest) object;
+			return Objects.equal(this.waitInMinute, that.waitInMinute)
 				&& Objects.equal(this.partial, that.partial)
 				&& Objects.equal(this.windowSize, that.windowSize)
 				&& Objects.equal(this.collections, that.collections);
@@ -163,7 +129,7 @@ public class SyncRequest implements SyncDefaultValues {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("waitInSecond", waitInSecond)
+			.add("waitInSecond", waitInMinute)
 			.add("partial", partial)
 			.add("windowSize", windowSize)
 			.add("collections", collections)

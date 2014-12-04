@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,7 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import org.obm.push.bean.Device;
+import org.obm.push.exception.activesync.ProtocolException;
+import org.w3c.dom.Document;
 
-public interface ActiveSyncProtocol<Request, Response> extends AsymetricActiveSyncProtocol<Request, Request, Response, Response> {
+public interface AsymetricActiveSyncProtocol<RequestIn, RequestOut, ResponseIn, ResponseOut> {
+
+	RequestIn decodeRequest(Document requestDocument) throws ProtocolException;
+	
+	Document encodeRequest(RequestOut request) throws ProtocolException;
+	
+	ResponseIn decodeResponse(Document responseDocument) throws ProtocolException;
+
+	Document encodeResponse(Device device, ResponseOut response) throws ProtocolException;
 	
 }

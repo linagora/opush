@@ -45,10 +45,14 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.ProtocolVersion;
+import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.EncodedApplicationData;
+import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
@@ -65,6 +69,7 @@ import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.client.SyncClientCommands;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.NoDocumentException;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
@@ -78,7 +83,9 @@ import org.obm.push.protocol.data.SyncEncoder;
 import org.obm.push.protocol.data.ms.MSEmailDecoder;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -325,7 +332,6 @@ public class SyncProtocolTest {
 			.syncKey(new SyncKey(syncingCollectionSyncKey))
 			.windowSize(windowSize)
 			.deletesAsMoves(true)
-			.commands(ImmutableList.<SyncCollectionCommandRequest>of())
 			.options(null)
 			.build();
 		assertThat(syncRequest.getCollections()).containsOnly(expectedSyncCollection);
@@ -545,8 +551,8 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getCommands().iterator().next().getApplicationData()).isNull();
+		SyncCollection syncCollection = Iterables.getOnlyElement(syncRequest.getCollections());
+		assertThat(Iterables.getOnlyElement(syncCollection.getCommands()).getEncodedApplicationData()).isNull();
 	}
 
 	@Test
@@ -572,8 +578,8 @@ public class SyncProtocolTest {
 		SyncRequest syncRequest = testee.decodeRequest(request);
 		
 		assertThat(syncRequest.getCollections()).hasSize(1);
-		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getCommands().iterator().next().getApplicationData()).isNull();
+		SyncCollection syncCollection = Iterables.getOnlyElement(syncRequest.getCollections());
+		assertThat(Iterables.getOnlyElement(syncCollection.getCommands()).getEncodedApplicationData()).isNull();
 	}
 
 	@Test
@@ -1086,7 +1092,21 @@ public class SyncProtocolTest {
 	}
 
 	@Test
-	public void testEncodeDecodeLoopForPartialNoCollectionSyncRequest() throws Exception {
+	public void testEncodeForPartialNoCollectionSyncRequest() throws Exception {
+		String expected = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Partial>1</Partial>" +
+					"<Wait>30</Wait>" +
+				"</Sync>";
+		
+		Document encodedRequest = testee.encodeRequest(ClientSyncRequest.builder().partial(true).waitInMinute(30).build());
+		
+		assertThat(DOMUtils.serialize(encodedRequest)).isEqualTo(expected);
+	}
+
+	@Test
+	public void testDecodeForPartialNoCollectionSyncRequest() throws Exception {
 		String request = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
@@ -1095,14 +1115,12 @@ public class SyncProtocolTest {
 				"</Sync>";
 		
 		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
-		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
-		
-		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
+		assertThat(decodedSyncRequest).isEqualTo(SyncRequest.builder().partial(true).waitInMinute(30).build());
 	}
-
+	
 	@Test
-	public void testEncodeDecodeLoopForSimpleSyncRequest() throws Exception {
-		int syncingCollectionId = 2;
+	public void testEncodeSimpleSyncRequest() throws Exception {
+		CollectionId syncingCollectionId = CollectionId.of(2);
 		String request = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 				"<Sync>" +
@@ -1112,12 +1130,52 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>1234-5678</SyncKey>" +
-							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<CollectionId>" + syncingCollectionId.asString() + "</CollectionId>" +
 							"<WindowSize>12</WindowSize>" +
 							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
 							"<Commands>" +
 								"<Delete>" +
-									"<ServerId>79</ServerId>" +
+									"<ServerId>" + syncingCollectionId.serverId(79).asString() + "</ServerId>" +
+								"</Delete>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+		
+		
+		Document encodedRequest = testee.encodeRequest(
+				ClientSyncRequest.builder().waitInMinute(0).windowSize(12)
+					.addCollection(AnalysedSyncCollection.builder()
+									.dataType(PIMDataType.CONTACTS)
+									.syncKey(new SyncKey("1234-5678"))
+									.collectionId(syncingCollectionId)
+									.windowSize(12)
+									.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).conflict(1).build())
+									.command(SyncCollectionCommandRequest.builder().serverId(syncingCollectionId.serverId(79)).type(SyncCommand.DELETE).build())
+									.build())
+					.build());
+		
+		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
+	}
+	
+	@Test
+	public void testDecodeLoopForSimpleSyncRequest() throws Exception {
+		CollectionId syncingCollectionId = CollectionId.of(2);
+		String request = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Wait>0</Wait>" +
+					"<WindowSize>12</WindowSize>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>1234-5678</SyncKey>" +
+							"<CollectionId>" + syncingCollectionId.asString() + "</CollectionId>" +
+							"<WindowSize>12</WindowSize>" +
+							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
+							"<Commands>" +
+								"<Delete>" +
+									"<ServerId>" + syncingCollectionId.serverId(79).asString() + "</ServerId>" +
 								"</Delete>" +
 							"</Commands>" +
 						"</Collection>" +
@@ -1126,41 +1184,22 @@ public class SyncProtocolTest {
 		
 		
 		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
-		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
 		
-		assertThat(request).isEqualTo(DOMUtils.serialize(encodedRequest));
+		assertThat(decodedSyncRequest).isEqualTo(SyncRequest.builder().waitInMinute(0).windowSize(12)
+				.addCollection(SyncCollection.builder()
+						.dataType(PIMDataType.CONTACTS)
+						.syncKey(new SyncKey("1234-5678"))
+						.collectionId(syncingCollectionId)
+						.windowSize(12)
+						.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).conflict(1).build())
+						.command(EncodedSyncCollectionCommandRequest.builder().serverId(syncingCollectionId.serverId(79)).type(SyncCommand.DELETE).build())
+						.build())
+					.build());
 	}
 
 	@Test
-	public void testEncodeDecodeLoopForSyncRequestWithData() throws Exception {
-		int syncingCollectionId = 2;
-		String request = 
-				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-				"<Sync>" +
-					"<Wait>0</Wait>" +
-					"<WindowSize>12</WindowSize>" +
-					"<Collections>" +
-						"<Collection>" +
-							"<Class>Contacts</Class>" +
-							"<SyncKey>1234-5678</SyncKey>" +
-							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
-							"<WindowSize>12</WindowSize>" +
-							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
-							"<Commands>" +
-								"<Change>" +
-									"<ServerId>35</ServerId>" +
-									"<ClientId>350</ClientId>" +
-									"<ApplicationData>" +
-										"<FileAs>Dobney, JoLynn Julie</FileAs>" +
-										"<FirstName>JoLynn</FirstName>" +
-										"<Email1Address>opush@obm.org</Email1Address>" +
-									"</ApplicationData>" +
-								"</Change>" +
-							"</Commands>" +
-						"</Collection>" +
-					"</Collections>" +
-				"</Sync>";
-		
+	public void testEncodeSyncRequestWithData() throws Exception {
+		CollectionId syncingCollectionId = CollectionId.of(2);
 		
 		String expectedResult = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -1171,12 +1210,12 @@ public class SyncProtocolTest {
 						"<Collection>" +
 							"<Class>Contacts</Class>" +
 							"<SyncKey>1234-5678</SyncKey>" +
-							"<CollectionId>" + syncingCollectionId + "</CollectionId>" +
+							"<CollectionId>" + syncingCollectionId.asString() + "</CollectionId>" +
 							"<WindowSize>12</WindowSize>" +
 							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
 							"<Commands>" +
 								"<Change>" +
-									"<ServerId>35</ServerId>" +
+									"<ServerId>" + syncingCollectionId.serverId(35).asString() + "</ServerId>" +
 									"<ClientId>350</ClientId>" +
 									"<ApplicationData>" +
 										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
@@ -1189,12 +1228,97 @@ public class SyncProtocolTest {
 					"</Collections>" +
 				"</Sync>";
 		
-		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
-		Document encodedRequest = testee.encodeRequest(decodedSyncRequest);
+		MSContact msContact = new MSContact();
+		msContact.setFileAs("Dobney, JoLynn Julie");
+		msContact.setFirstName("JoLynn");
+		msContact.setEmail1Address("opush@obm.org");
+		
+		Document encodedRequest = testee.encodeRequest(
+				ClientSyncRequest.builder()
+					.waitInMinute(0)
+					.windowSize(12)
+					.addCollection(
+						AnalysedSyncCollection.builder()
+							.dataType(PIMDataType.CONTACTS)
+							.syncKey(new SyncKey("1234-5678"))
+							.collectionId(syncingCollectionId)
+							.windowSize(12)
+							.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).conflict(1).build())
+							.command(SyncCollectionCommandRequest.builder()
+									.type(SyncCommand.CHANGE)
+									.serverId(syncingCollectionId.serverId(35))
+									.clientId("350")
+									.applicationData(msContact)
+									.build())
+							.build())
+					.build());
 		
 		assertThat(DOMUtils.serialize(encodedRequest)).isXmlEqualTo(expectedResult);
 	}
 
+	@Test
+	public void testDecodeSyncRequestWithData() throws Exception {
+		CollectionId syncingCollectionId = CollectionId.of(2);
+		String request = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Wait>0</Wait>" +
+					"<WindowSize>12</WindowSize>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>1234-5678</SyncKey>" +
+							"<CollectionId>" + syncingCollectionId.asString() + "</CollectionId>" +
+							"<WindowSize>12</WindowSize>" +
+							"<Options><FilterType>2</FilterType><Conflict>1</Conflict></Options>" +
+							"<Commands>" +
+								"<Change>" +
+									"<ServerId>" + syncingCollectionId.serverId(35).asString()+ "</ServerId>" +
+									"<ClientId>350</ClientId>" +
+									"<ApplicationData>" +
+										"<FileAs>Dobney, JoLynn Julie</FileAs>" +
+										"<FirstName>JoLynn</FirstName>" +
+										"<Email1Address>opush@obm.org</Email1Address>" +
+									"</ApplicationData>" +
+								"</Change>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+		
+		SyncRequest decodedSyncRequest = testee.decodeRequest(DOMUtils.parse(request));
+		
+		final MSContact msContact = new MSContact();
+		msContact.setFileAs("Dobney, JoLynn Julie");
+		msContact.setFirstName("JoLynn");
+		msContact.setEmail1Address("opush@obm.org");
+		
+		SyncRequest expected = SyncRequest.builder()
+			.waitInMinute(0)
+			.windowSize(12)
+			.addCollection(
+				SyncCollection.builder()
+					.dataType(PIMDataType.CONTACTS)
+					.syncKey(new SyncKey("1234-5678"))
+					.collectionId(syncingCollectionId)
+					.windowSize(12)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).conflict(1).build())
+					.command(EncodedSyncCollectionCommandRequest.builder()
+							.type(SyncCommand.CHANGE)
+							.serverId(syncingCollectionId.serverId(35))
+							.clientId("350")
+							.applicationData(new EncodedApplicationData(null) {
+								@Override
+								public IApplicationData decode(Function<Element, IApplicationData> decoder) {
+									return msContact;
+								}
+							})
+							.build())
+					.build())
+			.build();
+		assertThat(decodedSyncRequest).isEqualTo(expected);
+	}
+	
 	@Test
 	public void testDecodePartialErrorResponse() throws Exception {
 		String response = 

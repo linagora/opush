@@ -1442,6 +1442,67 @@ public class JSONServiceTest {
 				"{\"changes\":true," + 
 					"\"collectionId\":1," + 
 					"\"collectionPath\":\"path\"," + 
+					"\"dataType\":\"EMAIL\"," + 
+					"\"deletesAsMoves\":true," + 
+					"\"options\":" + 
+						"{\"bodyPreferences\":" + 
+							"[" + 
+								"{\"allOrNone\":true," + 
+									"\"truncationSize\":5," + 
+									"\"type\":\"MIME\"" + 
+								"}" + 
+							"]," + 
+							"\"conflict\":5," + 
+							"\"deletesAsMoves\":false," + 
+							"\"filterType\":\"ONE_DAY_BACK\"," + 
+							"\"mimeSupport\":6," + 
+							"\"mimeTruncation\":400," + 
+							"\"truncation\":420" + 
+						"}," + 
+					"\"status\":\"OK\"," + 
+					"\"syncKey\":{\"syncKey\":\"123\"}," + 
+					"\"windowSize\":2" + 
+				"}");
+		
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
+				.conflict(5)
+				.deletesAsMoves(false)
+				.filterType(FilterType.ONE_DAY_BACK)
+				.mimeSupport(6)
+				.mimeTruncation(400)
+				.truncation(420)
+				.bodyPreferences(ImmutableList.of(BodyPreference.builder()
+						.allOrNone(true)
+						.bodyType(MSEmailBodyType.MIME)
+						.truncationSize(5).build()))
+				.build();
+		
+		MSAttachement msAttachement = new MSAttachement();
+		msAttachement.setDisplayName("displayName");
+		msAttachement.setEstimatedDataSize(156);
+		msAttachement.setFileReference("file reference");
+		msAttachement.setMethod(MethodAttachment.EmbeddedMessage);
+		
+		AnalysedSyncCollection expectedAnalysedSyncCollection = AnalysedSyncCollection.builder()
+				.dataType(PIMDataType.EMAIL)
+				.syncKey(new SyncKey("123"))
+				.deletesAsMoves(true)
+				.changes(true)
+				.collectionId(CollectionId.of(1))
+				.collectionPath("path")
+				.windowSize(2)
+				.options(syncCollectionOptions)
+				.status(SyncStatus.OK)
+				.build();
+		assertThat(analysedSyncCollection).isEqualTo(expectedAnalysedSyncCollection);
+	}
+	
+	@Test
+	public void testDeserializeOldAnalysedSyncCollection() {
+		AnalysedSyncCollection analysedSyncCollection = new JSONService().deserialize(AnalysedSyncCollection.class, 
+				"{\"changes\":true," + 
+					"\"collectionId\":1," + 
+					"\"collectionPath\":\"path\"," + 
 					"\"commands\":{}," + 
 					"\"dataType\":\"EMAIL\"," + 
 					"\"deletesAsMoves\":true," + 

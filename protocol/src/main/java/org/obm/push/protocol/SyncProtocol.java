@@ -50,6 +50,7 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.NoDocumentException;
 import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.exception.activesync.ServerErrorException;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.SyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
@@ -62,7 +63,7 @@ import org.w3c.dom.Element;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 
-public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncResponse> {
+public class SyncProtocol implements AsymetricActiveSyncProtocol<SyncRequest, ClientSyncRequest, SyncResponse, SyncResponse> {
 
 	private final static Device DEVICE = new Device.Factory()
 		.create(1, "BellLabsWiredPhone", "BellLabsWiredPhoneAgent", new DeviceId("blwp123"), ProtocolVersion.V121);
@@ -234,7 +235,7 @@ public class SyncProtocol implements ActiveSyncProtocol<SyncRequest, SyncRespons
 	}
 
 	@Override
-	public Document encodeRequest(SyncRequest request) throws ProtocolException {
+	public Document encodeRequest(ClientSyncRequest request) throws ProtocolException {
 		return syncEncoder.encodeSync(request, DEVICE);
 	}
 
