@@ -78,3 +78,16 @@ cqlsh> TRUNCATE OPUSH_KEYSPACE.synced_collection;
 |http://ci-obm.linagora.com/jira/browse/OP-128[OP-128]|OPush is now able to synchronize collection containing more than 65535 items
 |http://ci-obm.linagora.com/jira/browse/OP-129[OP-129]|The "days to sync" option is now respected
 |=====================================
+
+=== 3.0.3 to 3.0.4
+
+.Changelog (highlights)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-132[OP-132]|Reply to an email with no charset defined works now perfectly
+|http://ci-obm.linagora.com/jira/browse/OP-130[OP-130]|No more errors with users without IMAP Sent folder
+|http://ci-obm.linagora.com/jira/browse/OP-127[OP-127]|A deleted occurence on a smartphone is now correctly deleted in Thunderbird calendar too
+|http://ci-obm.linagora.com/jira/browse/OP-123[OP-123]|Invalid ServerId in incoming requests are now handled
+|http://ci-obm.linagora.com/jira/browse/OP-108[OP-108]|Useless HTML tags are no longer displayed in the preview of iOS devices
+|=====================================
