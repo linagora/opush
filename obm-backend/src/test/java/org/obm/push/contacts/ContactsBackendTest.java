@@ -97,6 +97,7 @@ import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.FolderChanges;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
@@ -129,6 +130,7 @@ public class ContactsBackendTest {
 	private ContactConverter contactConverter;
 	private DateService dateService;
 	private OpushResourcesHolder opushResourcesHolder;
+	private ContactCreationIdempotenceService creationIdempotenceService;
 	
 	@Before
 	public void setUp() {
@@ -155,9 +157,11 @@ public class ContactsBackendTest {
 		clientIdService = mocks.createMock(ClientIdService.class);
 		contactConverter = new ContactConverter();
 		dateService = mocks.createMock(DateService.class);
+		creationIdempotenceService = mocks.createMock(ContactCreationIdempotenceService.class);
 		
 		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService, opushResourcesHolder);
+				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService,
+				opushResourcesHolder, creationIdempotenceService);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -187,7 +191,7 @@ public class ContactsBackendTest {
 	
 	@Test
 	public void testGetPIMDataType() {
-		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null, null);
+		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null, null, null);
 		assertThat(contactsBackend.getPIMDataType()).isEqualTo(PIMDataType.CONTACTS);
 	}
 
@@ -356,7 +360,7 @@ public class ContactsBackendTest {
 	}
 	
 	@Test
-	public void testCreateOrUpdateCreatesContact() throws Exception {
+	public void createShouldStoreContact() throws Exception {
 		CollectionId otherContactCollectionUid = CollectionId.of(1);
 		CollectionId targetcontactCollectionUid = CollectionId.of(2);
 		ServerId serverId = targetcontactCollectionUid.serverId(215);
@@ -381,14 +385,67 @@ public class ContactsBackendTest {
 			.andReturn(contact).once();
 		
 		expectMappingServiceCollectionIdBehavior(books);
+
+		expect(creationIdempotenceService.find(userDataRequest, targetcontactCollectionUid, msContact)).
+			andReturn(Optional.<ServerId>absent());
+		expect(mappingService.getServerIdFor(targetcontactCollectionUid, "215"))
+			.andReturn(serverId);
+		expect(creationIdempotenceService.registerCreation(userDataRequest, msContact, serverId))
+			.andReturn(serverId);
+
+		mocks.replay();
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, null, clientId, msContact);
+		mocks.verify();
+		
+		assertThat(newServerId).isEqualTo(targetcontactCollectionUid.serverId(215));
+	}
+	
+	@Test
+	public void createShouldOnlyReturnServerIdWhenHashAlreadyKnown() throws Exception {
+		CollectionId collectionId = CollectionId.of(2);
+		ServerId serverId = collectionId.serverId(215);
+		String clientId = "1";
+
+		MSContact msContact = new MSContact();
+		expect(creationIdempotenceService.find(userDataRequest, collectionId, msContact))
+			.andReturn(Optional.of(serverId));
+
+		mocks.replay();
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, collectionId, null, clientId, msContact);
+		mocks.verify();
+		
+		assertThat(newServerId).isEqualTo(serverId);
+	}
+	
+	@Test
+	public void updateShouldStoreContact() throws Exception {
+		CollectionId otherContactCollectionUid = CollectionId.of(1);
+		CollectionId targetcontactCollectionUid = CollectionId.of(2);
+		ServerId serverId = targetcontactCollectionUid.serverId(215);
+		String clientId = null;
+
+		List<AddressBook> books = ImmutableList.of(
+				newAddressBookObject("folder", otherContactCollectionUid, false),
+				newAddressBookObject("folder_1", targetcontactCollectionUid, false));
+		
+		expectLoginBehavior(token);
+		expectListAllBooks(token,books);
+		expectBuildCollectionPath("folder", otherContactCollectionUid);
+		expectBuildCollectionPath("folder_1", targetcontactCollectionUid);
+		
+		MSContact msContact = new MSContact();
+		Contact contact = contactConverter.contact(msContact);
+		contact.setUid(serverId.getItemId());
+		expect(bookClient.storeContact(token, targetcontactCollectionUid.asInt(), contact, clientId))
+			.andReturn(contact).once();
+		
+		expectMappingServiceCollectionIdBehavior(books);
 		
 		expect(mappingService.getServerIdFor(targetcontactCollectionUid, "215"))
 			.andReturn(serverId);
 
 		mocks.replay();
-		
-		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, null, clientId, msContact);
-		
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, targetcontactCollectionUid, serverId, clientId, msContact);
 		mocks.verify();
 		
 		assertThat(newServerId).isEqualTo(targetcontactCollectionUid.serverId(215));
@@ -409,6 +466,8 @@ public class ContactsBackendTest {
 		expectListAllBooks(token,books);
 		expectBuildCollectionPath("folder", contactCollectionUid);
 		expectMappingServiceCollectionIdBehavior(books);
+		expect(creationIdempotenceService.find(userDataRequest, contactCollectionUid, msContact))
+			.andReturn(Optional.<ServerId>absent());
 		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
 		
 		expect(bookClient.storeContact(token, contactCollectionUid.asInt(), new Contact(), clientIdHash)).andThrow(new NoPermissionException());

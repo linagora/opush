@@ -36,7 +36,7 @@ public interface CassandraStructure {
 	
 	interface ContactCreation {
 		Table TABLE = Table.of("contact_creation");
-		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID };
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.HASH };
 		
 		interface Columns {
 			String USER = "user";

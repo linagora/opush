@@ -109,6 +109,7 @@ public class ContactsBackendHierarchyChangesTest {
 	private ContactConverter contactConverter;
 	private DateService dateService;
 	private OpushResourcesHolder opushResourcesHolder;
+	private ContactCreationIdempotenceService creationIdempotenceService;
 
 	@Before
 	public void setUp() {
@@ -135,6 +136,7 @@ public class ContactsBackendHierarchyChangesTest {
 		windowingDao = mocks.createMock(WindowingDao.class);
 		clientIdService = mocks.createMock(ClientIdService.class);
 		dateService = mocks.createMock(DateService.class);
+		creationIdempotenceService = mocks.createMock(ContactCreationIdempotenceService.class);
 		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, 
@@ -145,7 +147,8 @@ public class ContactsBackendHierarchyChangesTest {
 				clientIdService,
 				contactConverter,
 				dateService,
-				opushResourcesHolder);
+				opushResourcesHolder,
+				creationIdempotenceService);
 	}
 
 	@After

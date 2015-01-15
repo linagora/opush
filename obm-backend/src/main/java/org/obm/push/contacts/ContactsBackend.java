@@ -92,6 +92,7 @@ import org.obm.sync.items.FolderChanges;
 import org.obm.sync.services.IAddressBook;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSortedSet;
@@ -108,6 +109,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	private final BookClient.Factory bookClientFactory;
 	private final ClientIdService clientIdService;
 	private final ContactConverter contactConverter;
+	private final ContactCreationIdempotenceService creationIdempotenceService;
 	
 	@Inject
 	@VisibleForTesting ContactsBackend(MappingService mappingService, 
@@ -118,13 +120,15 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ClientIdService clientIdService,
 			ContactConverter contactConverter,
 			DateService dateService,
-			OpushResourcesHolder opushResourcesHolder) {
+			OpushResourcesHolder opushResourcesHolder,
+			ContactCreationIdempotenceService creationIdempotenceService) {
 		
 		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;
 		this.contactConverter = contactConverter;
+		this.creationIdempotenceService = creationIdempotenceService;
 	}
 
 	@Override
@@ -382,18 +386,15 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ItemNotFoundException, NoPermissionException {
 
 		MSContact contact = (MSContact) data;
-		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
-		try {
-
-			Contact storedContact = storeContact(addressBookId, 
-					convertContact(serverId, contact), 
-					hashClientId(udr, clientId));
-			
-			return mappingService.getServerIdFor(collectionId, String.valueOf(storedContact.getUid()));
-		} catch (ContactNotFoundException e) {
-			throw new ItemNotFoundException(e);
-		}
 		
+		if (isUpdate(serverId)) {
+			return storeContact(udr, collectionId, serverId, clientId, contact);
+		}
+		return createContact(udr, collectionId, serverId, clientId, contact);
+	}
+
+	private boolean isUpdate(ServerId serverId) {
+		return serverId != null;
 	}
 
 	private Contact convertContact(ServerId serverId, MSContact contact) {
@@ -413,14 +414,31 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return clientIdService.hash(udr, clientId);
 	}
 
-	private Contact storeContact(Integer addressBookId, Contact contact, String clientId) 
-			throws UnexpectedObmSyncServerException, NoPermissionException, ContactNotFoundException {
+	private ServerId createContact(UserDataRequest udr, CollectionId colId, 
+				ServerId serverId, String clientId, MSContact contact)
+			throws UnexpectedObmSyncServerException, NoPermissionException {
 		
-		AccessToken token = getAccessToken();
+		Optional<ServerId> alreadyCreated = creationIdempotenceService.find(udr, colId, contact);
+		if(alreadyCreated.isPresent()) {
+			logger.warn("A creation is discarded as a recent similar creation has been found");
+			return alreadyCreated.get();
+		}
+		return creationIdempotenceService.registerCreation(udr, contact, storeContact(udr, colId, serverId, clientId, contact));
+	}
+
+	private ServerId storeContact(UserDataRequest udr, CollectionId collectionId, 
+				ServerId serverId, String clientId, MSContact msContact)
+			throws UnexpectedObmSyncServerException, NoPermissionException {
+		
 		try {
-			return getBookClient().storeContact(token, addressBookId, contact, clientId);
+			int addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
+			Contact contact = convertContact(serverId, msContact);
+			Contact storedContact = getBookClient().storeContact(getAccessToken(), addressBookId, contact, hashClientId(udr, clientId));
+			return mappingService.getServerIdFor(collectionId, String.valueOf(storedContact.getUid()));
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
+		} catch (ContactNotFoundException e) {
+			throw new ItemNotFoundException(e);
 		}
 	}
 
