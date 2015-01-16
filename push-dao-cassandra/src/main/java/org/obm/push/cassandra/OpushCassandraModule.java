@@ -32,6 +32,7 @@
 package org.obm.push.cassandra;
 
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
+import org.obm.push.cassandra.dao.CassandraStructure.ContactCreation;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.Schema;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
@@ -40,6 +41,7 @@ import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
+import org.obm.push.cassandra.dao.ContactCreationDaoImpl;
 import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.dao.SchemaProducerImpl;
@@ -49,6 +51,7 @@ import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
+import org.obm.push.store.ContactCreationDao;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.SyncedCollectionDao;
@@ -63,6 +66,7 @@ import com.google.inject.multibindings.Multibinder;
 public class OpushCassandraModule extends AbstractModule {
 
 	public static final DaoTables TABLES_OF_DAO = DaoTables.builder()
+		.put(ContactCreationDaoImpl.class, ContactCreation.TABLE)
 		.put(MonitoredCollectionDaoCassandraImpl.class, MonitoredCollection.TABLE, V1.MonitoredCollection.TABLE)
 		.put(SnapshotDaoCassandraImpl.class, SnapshotIndex.TABLE, SnapshotTable.TABLE)
 		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE, V1.SyncedCollection.TABLE)
@@ -88,6 +92,7 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(MonitoredCollectionDao.class).to(MonitoredCollectionDaoCassandraImpl.class);
 		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
 		bind(SnapshotDao.class).to(SnapshotDaoCassandraImpl.class);
+		bind(ContactCreationDao.class).to(ContactCreationDaoImpl.class);
 		bind(DaoTables.class).toProvider(new Provider<DaoTables>() {
 
 			@Override

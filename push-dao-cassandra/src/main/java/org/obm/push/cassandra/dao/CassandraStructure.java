@@ -34,6 +34,19 @@ package org.obm.push.cassandra.dao;
 
 public interface CassandraStructure {
 	
+	interface ContactCreation {
+		Table TABLE = Table.of("contact_creation");
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID };
+		
+		interface Columns {
+			String USER = "user";
+			String DEVICE_ID = "device_id";
+			String COLLECTION_ID = "collection_id";
+			String HASH = "hash";
+			String SERVER_ID = "server_id";
+		}
+	}
+	
 	interface Schema {
 		Table TABLE = Table.of("schema_version");
 		String[] PK = { Columns.ID, Columns.VERSION }; 
