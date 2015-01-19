@@ -729,4 +729,148 @@ public class SyncHandlerOnContactsTest {
 		assertThat(sameMSContact.getEmail1Address()).isEqualTo("contact@mydomain.org");
 		assertThat(sameMSContact.getHomeFaxNumber()).isEqualTo("1234");
 	}
+
+	@Test
+	public void twoNewContactFromClientShouldBeCreatedIfSameClientId() throws Exception {
+		SyncKey firstAllocatedSyncKey = new SyncKey("4a2c7db8-b532-40a0-92c3-bfebb8da8f00");
+		SyncKey secondAllocatedSyncKey = new SyncKey("55df3cf4-b70d-4df2-ac48-d31646994321");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("4872672c-95b9-4c1c-90ae-ebea7d0e83ed");
+		ServerId serverId1 = contactCollectionId.serverId(123);
+		ServerId serverId2 = contactCollectionId.serverId(456);
+		String clientId1 = "clientId1";
+		String clientId2 = "clientId2";
+		String hashedClientId1 = "521d3a54b8e0fe037c5eb0b72f0c1149c036781e";
+		String hashedClientId2 = "b8e5920f68399305522bb03593f3d97b304059f9";
+		
+		Date syncDate = date("2012-10-09T16:22:53");
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(syncDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(3)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(syncDate)
+				.syncKey(secondAllocatedSyncKey)
+				.id(4)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(syncDate)
+				.syncKey(thirdAllocatedSyncKey)
+				.id(5)
+				.build();
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, contactCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, contactCollectionId);
+		
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId1));
+		expectLastCall().once();
+		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId2));
+		expectLastCall().once();
+
+		expect(bookClient.listAllBooks(user.accessToken))
+			.andReturn(ImmutableList.<AddressBook> of(AddressBook.builder()
+					.name("contacts")
+					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
+					.readOnly(false)
+					.build())).anyTimes();
+		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
+			.andReturn(contactCollectionId).anyTimes();
+		
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+			.andReturn(new ContactChanges(
+					ImmutableList.<Contact> of(),
+					ImmutableSet.<Integer> of(),
+					syncDate)).anyTimes();
+
+		MSContact msContact = new MSContact();
+		msContact.setFirstName("firstname");
+		msContact.setLastName("lastname");
+		msContact.setEmail1Address("contact@mydomain.org");
+		msContact.setFileAs("lastname, firstname");
+		
+		Contact convertedContact = new Contact();
+		convertedContact.setFirstname("firstname");
+		convertedContact.setLastname("lastname");
+		convertedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+		
+		Contact storedContact1 = new Contact();
+		storedContact1.setUid(serverId1.getItemId());
+		storedContact1.setFirstname("firstname");
+		storedContact1.setLastname("lastname");
+		storedContact1.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+
+		Contact storedContact2 = new Contact();
+		storedContact2.setUid(serverId2.getItemId());
+		storedContact2.setFirstname("firstname");
+		storedContact2.setLastname("lastname");
+		storedContact2.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
+		
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), convertedContact, hashedClientId1))
+			.andReturn(storedContact1);
+		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), convertedContact, hashedClientId2))
+			.andReturn(storedContact2);
+		
+		mocksControl.replay();
+		opushServer.start();
+
+		WBXMLOPClient opushClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		SyncResponse addResponse1 = opushClient.run(Sync.builder(decoder).encoder(encoderFactory)
+			.collection(AnalysedSyncCollection.builder()
+				.dataType(PIMDataType.CONTACTS)
+				.collectionId(contactCollectionId)
+				.syncKey(firstAllocatedSyncKey)
+				.command(SyncCollectionCommandRequest.builder()
+					.type(SyncCommand.ADD)
+					.clientId(clientId1)
+					.applicationData(msContact)
+					.build())
+				.build())
+			.build());
+		SyncResponse addResponse2 = opushClient.run(Sync.builder(decoder).encoder(encoderFactory)
+			.collection(AnalysedSyncCollection.builder()
+				.dataType(PIMDataType.CONTACTS)
+				.collectionId(contactCollectionId)
+				.syncKey(secondAllocatedSyncKey)
+				.command(SyncCollectionCommandRequest.builder()
+					.type(SyncCommand.ADD)
+					.clientId(clientId2)
+					.applicationData(msContact)
+					.build())
+				.build())
+			.build());
+		
+		mocksControl.verify();
+
+		// First Add
+		assertThat(addResponse1.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse syncCollectionResponse = syncTestUtils.getCollectionWithId(addResponse1, contactCollectionId);
+		assertThat(syncCollectionResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		List<SyncCollectionCommandResponse> commands = syncCollectionResponse.getResponses().getCommands();
+		assertThat(commands).hasSize(1);
+		SyncCollectionCommandResponse syncCollectionCommand = FluentIterable.from(commands).first().get();
+		assertThat(syncCollectionCommand).isEqualTo(SyncCollectionCommandResponse.builder()
+				.type(SyncCommand.ADD)
+				.serverId(serverId1)
+				.clientId("clientId1")
+				.status(SyncStatus.OK)
+				.build());
+		
+		// Second Add
+		assertThat(addResponse2.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse syncCollectionResponse2 = syncTestUtils.getCollectionWithId(addResponse2, contactCollectionId);
+		assertThat(syncCollectionResponse2.getStatus()).isEqualTo(SyncStatus.OK);
+		List<SyncCollectionCommandResponse> commands2 = syncCollectionResponse2.getResponses().getCommands();
+		assertThat(commands2).hasSize(1);
+		SyncCollectionCommandResponse syncCollectionCommand2 = FluentIterable.from(commands2).first().get();
+		assertThat(syncCollectionCommand2).isEqualTo(SyncCollectionCommandResponse.builder()
+				.type(SyncCommand.ADD)
+				.serverId(serverId2)
+				.clientId("clientId2")
+				.status(SyncStatus.OK)
+				.build());
+	}
 }
