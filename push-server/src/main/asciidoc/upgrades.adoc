@@ -91,3 +91,13 @@ cqlsh> TRUNCATE OPUSH_KEYSPACE.synced_collection;
 |http://ci-obm.linagora.com/jira/browse/OP-123[OP-123]|Invalid ServerId in incoming requests are now handled
 |http://ci-obm.linagora.com/jira/browse/OP-108[OP-108]|Useless HTML tags are no longer displayed in the preview of iOS devices
 |=====================================
+
+=== 3.0.4 to 3.0.5
+
+.Changelog (highlights)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-155[OP-155]|Respect the clientId for contact creation to avoid duplication
+|http://ci-obm.linagora.com/jira/browse/OP-151[OP-151]|Repare Cassandra reconnection behavior after a network failure
+|=====================================

@@ -1,5 +1,5 @@
-= Opush 3.0.4 Administration Guide
-Antoine Duprat <aduprat@linagora.com>; Matthieu Baechler <mbaechler@linagora.com>; Thomas Hilaire <thilaire@linagora.com>;
+= Opush 3.0.5 Administration Guide
+OBM Core Team <lgs-obm-dev@linagora.com>;
 :imagesdir: images
 :numbered:
 :sectlink:
