@@ -418,12 +418,22 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 				ServerId serverId, String clientId, MSContact contact)
 			throws UnexpectedObmSyncServerException, NoPermissionException {
 		
-		Optional<ServerId> alreadyCreated = creationIdempotenceService.find(udr, colId, contact);
-		if(alreadyCreated.isPresent()) {
+		Optional<ServerId> alreadyCreatedServerId = creationIdempotenceService.find(udr, colId, contact);
+		if(alreadyCreatedServerId.isPresent() && contactExists(udr, colId, alreadyCreatedServerId.get())) {
 			logger.warn("A creation is discarded as a recent similar creation has been found");
-			return alreadyCreated.get();
+			return alreadyCreatedServerId.get();
 		}
 		return creationIdempotenceService.registerCreation(udr, contact, storeContact(udr, colId, serverId, clientId, contact));
+	}
+
+	private boolean contactExists(UserDataRequest udr, CollectionId collectionId, ServerId serverId) {
+		try {
+			int addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
+			return getBookClient().getContactFromId(getAccessToken(), addressBookId, serverId.getItemId()) != null;
+		} catch (ServerFault | ContactNotFoundException e) {
+			logger.info("This contact has not been found by obm-sync", e);
+		}
+		return false;
 	}
 
 	private ServerId storeContact(UserDataRequest udr, CollectionId collectionId, 
@@ -455,6 +465,11 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			logger.warn(e.getMessage());
 		} catch (ContactNotFoundException e) {
 			logger.warn(e.getMessage());
+		} finally {
+			// Try to remove creation commit even if there was an error.
+			// For example, if the contact has been already removed from 
+			// elsewhere, opush must allow to create it again.
+			creationIdempotenceService.remove(udr, collectionId, serverId);
 		}
 	}
 

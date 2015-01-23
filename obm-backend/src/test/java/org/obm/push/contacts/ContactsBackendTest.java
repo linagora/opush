@@ -94,6 +94,7 @@ import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.client.login.LoginService;
+import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.FolderChanges;
 
@@ -401,20 +402,96 @@ public class ContactsBackendTest {
 	}
 	
 	@Test
-	public void createShouldOnlyReturnServerIdWhenHashAlreadyKnown() throws Exception {
+	public void createShouldOnlyReturnServerIdWhenHashAlreadyKnownAndContactExists() throws Exception {
 		CollectionId collectionId = CollectionId.of(2);
 		ServerId serverId = collectionId.serverId(215);
 		String clientId = "1";
 
+		List<AddressBook> books = ImmutableList.of(newAddressBookObject("folder", collectionId, false));
+		expectLoginBehavior(token);
+		expectListAllBooks(token,books);
+		expectBuildCollectionPath("folder", collectionId);
+		expectMappingServiceCollectionIdBehavior(books);
+		
 		MSContact msContact = new MSContact();
 		expect(creationIdempotenceService.find(userDataRequest, collectionId, msContact))
 			.andReturn(Optional.of(serverId));
+		
+		expect(bookClient.getContactFromId(token, collectionId.asInt(), serverId.getItemId())).andReturn(new Contact());
 
 		mocks.replay();
 		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, collectionId, null, clientId, msContact);
 		mocks.verify();
 		
 		assertThat(newServerId).isEqualTo(serverId);
+	}
+	
+	@Test
+	public void createShouldStoreContactWhenHashAlreadyKnownButContactDoesntExistAnymore() throws Exception {
+		CollectionId collectionId = CollectionId.of(2);
+		int itemId = 215;
+		ServerId serverId = collectionId.serverId(itemId);
+		String clientId = "1";
+		String clientIdHash = "146565647814688";
+
+		List<AddressBook> books = ImmutableList.of(newAddressBookObject("folder", collectionId, false));
+		
+		expectLoginBehavior(token);
+		expectListAllBooks(token,books);
+		expectListAllBooks(token,books);
+		expectBuildCollectionPath("folder", collectionId);
+		expectBuildCollectionPath("folder", collectionId);
+		expectMappingServiceCollectionIdBehavior(books);
+		
+		MSContact msContact = new MSContact();
+		expect(creationIdempotenceService.find(userDataRequest, collectionId, msContact))
+			.andReturn(Optional.of(serverId));
+		
+		expect(bookClient.getContactFromId(token, collectionId.asInt(), itemId)).andThrow(new ContactNotFoundException(""));
+
+		Contact contact = newContactObject(itemId);
+		Contact convertedContact = contactConverter.contact(msContact);
+		expect(clientIdService.hash(userDataRequest, clientId)).andReturn(clientIdHash);
+		expect(bookClient.storeContact(token, collectionId.asInt(), convertedContact, clientIdHash))
+			.andReturn(contact).once();
+		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId)))
+			.andReturn(serverId);
+		expect(creationIdempotenceService.registerCreation(userDataRequest, msContact, serverId))
+		.andReturn(serverId);
+		
+		mocks.replay();
+		ServerId newServerId = contactsBackend.createOrUpdate(userDataRequest, collectionId, null, clientId, msContact);
+		mocks.verify();
+		
+		assertThat(newServerId).isEqualTo(serverId);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void createShouldLetPropagateUnexpectedExceptionFromContactExistMethod() throws Exception {
+		CollectionId collectionId = CollectionId.of(2);
+		int itemId = 215;
+		ServerId serverId = collectionId.serverId(itemId);
+		String clientId = "1";
+
+		List<AddressBook> books = ImmutableList.of(newAddressBookObject("folder", collectionId, false));
+		
+		expectLoginBehavior(token);
+		expectListAllBooks(token,books);
+		expectBuildCollectionPath("folder", collectionId);
+		expectMappingServiceCollectionIdBehavior(books);
+		
+		MSContact msContact = new MSContact();
+		expect(creationIdempotenceService.find(userDataRequest, collectionId, msContact))
+			.andReturn(Optional.of(serverId));
+		
+		expect(bookClient.getContactFromId(token, collectionId.asInt(), itemId)).andThrow(new RuntimeException(""));
+		
+		mocks.replay();
+		try {
+			contactsBackend.createOrUpdate(userDataRequest, collectionId, null, clientId, msContact);
+		} finally {
+			mocks.verify();
+		}
 	}
 	
 	@Test
@@ -529,6 +606,38 @@ public class ContactsBackendTest {
 		
 		expect(bookClient.removeContact(token, targetcontactCollectionUid.asInt(), itemId))
 			.andReturn(newContactObject(itemId)).once();
+		
+		creationIdempotenceService.remove(userDataRequest, targetcontactCollectionUid, serverId);
+		expectLastCall();
+
+		expectMappingServiceCollectionIdBehavior(books);
+
+		mocks.replay();
+		contactsBackend.delete(userDataRequest, targetcontactCollectionUid, serverId, true);
+		mocks.verify();
+	}
+	
+	@Test
+	public void removeCreationIdempotenceShouldBeCalledEvenWhenException() throws Exception {
+		CollectionId otherContactCollectionUid = CollectionId.of(1);
+		CollectionId targetcontactCollectionUid = CollectionId.of(2);
+		int itemId = 2;
+		ServerId serverId = targetcontactCollectionUid.serverId(itemId);
+		
+		List<AddressBook> books = ImmutableList.of(
+				newAddressBookObject("folder", otherContactCollectionUid, false),
+				newAddressBookObject("folder_1", targetcontactCollectionUid, false));
+
+		expectLoginBehavior(token);
+		expectListAllBooks(token, books);
+		expectBuildCollectionPath("folder", otherContactCollectionUid);
+		expectBuildCollectionPath("folder_1", targetcontactCollectionUid);
+		
+		expect(bookClient.removeContact(token, targetcontactCollectionUid.asInt(), itemId))
+			.andThrow(new ContactNotFoundException("not found"));
+		
+		creationIdempotenceService.remove(userDataRequest, targetcontactCollectionUid, serverId);
+		expectLastCall();
 
 		expectMappingServiceCollectionIdBehavior(books);
 

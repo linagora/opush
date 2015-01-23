@@ -45,4 +45,6 @@ public interface ContactCreationDao {
 
 	Optional<ServerId> find(User user, DeviceId device, CollectionId collectionId, HashCode hash);
 
+	void remove(User user, DeviceId device, CollectionId collectionId, ServerId serverId);
+
 }

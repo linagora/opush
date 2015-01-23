@@ -64,6 +64,10 @@ public class ContactCreationIdempotenceService {
 		return contactCreationDao.find(udr.getUser(), udr.getDevId(), collectionId, hash(contact));
 	}
 
+	public void remove(UserDataRequest udr, CollectionId collectionId, ServerId serverId) {
+		contactCreationDao.remove(udr.getUser(), udr.getDevId(), collectionId, serverId);
+	}
+
 	@VisibleForTesting HashCode hash(MSContact contact) {
 		return Hashing.sha1().newHasher()
 			.putUnencodedChars(Strings.nullToEmpty(contact.getLastName()))

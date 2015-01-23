@@ -801,6 +801,7 @@ public class SyncHandlerOnContactsTest {
 		storedContact.setLastname("lastname");
 		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 
+		expect(bookClient.getContactFromId(user.accessToken, contactCollectionId.asInt(), serverId.getItemId())).andReturn(storedContact);
 		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), convertedContact, hashedClientId1))
 			.andReturn(storedContact);
 		

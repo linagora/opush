@@ -152,4 +152,46 @@ public abstract class ContactCreationDaoTest {
 		assertThat(testee.find(user3, deviceId, collectionId3, hashCode3)).isAbsent();
 		assertThat(testee.find(user3, deviceId3, collectionId2, hashCode3)).isAbsent();
 	}
+
+	@Test
+	public void removeWithMatchingParamsShouldMakeItUnfindable() {
+		testee.registerCreation(user, deviceId, collectionId, hashCode, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+		testee.remove(user, deviceId, collectionId, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).isAbsent();
+	}
+	
+	@Test
+	public void removeWithDifferentUserShouldStillFindable() {
+		testee.registerCreation(user, deviceId, collectionId, hashCode, serverId);
+		User otherUser = User.builder().login("otherlogin").domain("otherdomain").email("otheruser@domain").build();
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+		testee.remove(otherUser, deviceId, collectionId, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+	}
+	
+	@Test
+	public void removeWithDifferentDeviceIdShouldStillFindable() {
+		testee.registerCreation(user, deviceId, collectionId, hashCode, serverId);
+		DeviceId otherDevice = new DeviceId("other one");
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+		testee.remove(user, otherDevice, collectionId, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+	}
+	
+	@Test
+	public void removeWithDifferentCollectionIdShouldStillFindable() {
+		testee.registerCreation(user, deviceId, collectionId, hashCode, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+		testee.remove(user, deviceId, CollectionId.of(6), serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+	}
+	
+	@Test
+	public void removeWithDifferentServerIdShouldStillFindable() {
+		testee.registerCreation(user, deviceId, collectionId, hashCode, serverId);
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+		testee.remove(user, deviceId, collectionId, collectionId.serverId(1356));
+		assertThat(testee.find(user, deviceId, collectionId, hashCode)).contains(serverId);
+	}
 }

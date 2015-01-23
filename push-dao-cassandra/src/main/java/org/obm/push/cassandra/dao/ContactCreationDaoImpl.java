@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
@@ -54,6 +55,7 @@ import org.slf4j.Logger;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.annotations.VisibleForTesting;
@@ -100,6 +102,39 @@ public class ContactCreationDaoImpl extends AbstractCassandraDao implements Cont
 			return Optional.absent();
 		}
 		return Optional.of(ServerId.of(results.one().getString(SERVER_ID)));
+	}
+
+	@Override
+	public void remove(User user, DeviceId device, CollectionId collectionId, ServerId serverId) {
+		Optional<HashCode> relatedHash = findHashByServerId(user, device, collectionId, serverId);
+		if (!relatedHash.isPresent()) {
+			logger.debug("No hashcode found for the given serverId: {}", serverId);
+			return;
+		}
+		
+		Delete.Where statement = delete().from(TABLE.get())
+				.where(eq(USER, user.getLoginAtDomain()))
+				.and(eq(DEVICE_ID, device.getDeviceId()))
+				.and(eq(COLLECTION_ID, collectionId.asInt()))
+				.and(eq(HASH, relatedHash.get().toString()));
+		logger.debug("Removing contact creation: {}", statement.getQueryString());
+
+		getSession().execute(statement);
+	}
+	
+	private Optional<HashCode> findHashByServerId(User user, DeviceId device, CollectionId collectionId, ServerId serverId) {
+		Where statement = select(HASH).from(TABLE.get())
+				.where(eq(USER, user.getLoginAtDomain()))
+				.and(eq(DEVICE_ID, device.getDeviceId()))
+				.and(eq(COLLECTION_ID, collectionId.asInt()))
+				.and(eq(SERVER_ID, serverId.asString()));
+		logger.debug("Selecting contact creation by serverId: {}", statement.getQueryString());
+
+		ResultSet results = getSession().execute(statement);
+		if (results.isExhausted()) {
+			return Optional.absent();
+		}
+		return Optional.of(HashCode.fromString(results.one().getString(HASH)));
 	}
 
 }
