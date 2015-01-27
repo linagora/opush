@@ -140,10 +140,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact2.setFirstName("other firstname");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 
 	@Test
@@ -154,10 +151,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact2.setLastName("other lastname");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -168,10 +162,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setMiddleName("other middlename");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -182,10 +173,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setFileAs("other value");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -196,10 +184,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setEmail1Address("other value");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -210,10 +195,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setEmail2Address("other value");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -224,10 +206,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setMobilePhoneNumber("other value");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 	
 	@Test
@@ -238,10 +217,7 @@ public class ContactCreationIdempotenceServiceTest {
 		MSContact contact2 = new MSContact();
 		contact1.setBusinessPhoneNumber("other value");
 		
-		HashCode hash1 = testee.hash(contact1);
-		HashCode hash2 = testee.hash(contact2);
-		
-		assertThat(hash1).isNotEqualTo(hash2);
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
 	}
 
 	@Test
@@ -299,4 +275,509 @@ public class ContactCreationIdempotenceServiceTest {
 		
 		assertThat(testee.hash(contact)).isEqualTo(testee.hash(contact2));
 	}
+	
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentCompany() {
+		MSContact contact1 = new MSContact();
+		contact1.setCompanyName("value");
+		
+		MSContact contact2 = new MSContact();
+		contact1.setCompanyName("other value");
+		
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+	
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentEmail3Address() {
+		MSContact contact1 = new MSContact();
+		contact1.setEmail3Address("value");
+		
+		MSContact contact2 = new MSContact();
+		contact1.setEmail3Address("other value");
+		
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+	
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentAssistantName() {
+		MSContact contact1 = new MSContact();
+		contact1.setAssistantName("value");
+		
+		MSContact contact2 = new MSContact();
+		contact1.setAssistantName("other value");
+		
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentAssistantPhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setAssistantPhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setAssistantPhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentAssistnamePhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setAssistnamePhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setAssistnamePhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusiness2PhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusiness2PhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusiness2PhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessAddressCity() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessAddressCity("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessAddressCity("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentWebPage() {
+		MSContact contact1 = new MSContact();
+		contact1.setWebPage("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setWebPage("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessAddressCountry() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessAddressCountry("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessAddressCountry("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentDepartment() {
+		MSContact contact1 = new MSContact();
+		contact1.setDepartment("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setDepartment("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentEmail1Address() {
+		MSContact contact1 = new MSContact();
+		contact1.setEmail1Address("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setEmail1Address("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentEmail2Address() {
+		MSContact contact1 = new MSContact();
+		contact1.setEmail2Address("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setEmail2Address("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessFaxNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessFaxNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessFaxNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentFirstName() {
+		MSContact contact1 = new MSContact();
+		contact1.setFirstName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setFirstName("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentMiddleName() {
+		MSContact contact1 = new MSContact();
+		contact1.setMiddleName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setMiddleName("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeAddressCity() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeAddressCity("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomeAddressCity("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeAddressCountry() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeAddressCountry("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomeAddressCountry("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeFaxNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeFaxNumber("value");
+		MSContact contact2 = new MSContact();
+		contact1.setHomeFaxNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomePhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomePhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomePhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHome2PhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setHome2PhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHome2PhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeAddressPostalCode() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeAddressPostalCode("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomeAddressPostalCode("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeAddressState() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeAddressState("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomeAddressState("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentHomeAddressStreet() {
+		MSContact contact1 = new MSContact();
+		contact1.setHomeAddressStreet("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setHomeAddressStreet("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentSuffix() {
+		MSContact contact1 = new MSContact();
+		contact1.setSuffix("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setSuffix("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentCompanyName() {
+		MSContact contact1 = new MSContact();
+		contact1.setCompanyName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setCompanyName("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOtherAddressCity() {
+		MSContact contact1 = new MSContact();
+		contact1.setOtherAddressCity("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOtherAddressCity("other value");
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOtherAddressCountry() {
+		MSContact contact1 = new MSContact();
+		contact1.setOtherAddressCountry("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOtherAddressCountry("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentCarPhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setCarPhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setCarPhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOtherAddressPostalCode() {
+		MSContact contact1 = new MSContact();
+		contact1.setOtherAddressPostalCode("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOtherAddressPostalCode("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOtherAddressState() {
+		MSContact contact1 = new MSContact();
+		contact1.setOtherAddressState("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOtherAddressState("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOtherAddressStreet() {
+		MSContact contact1 = new MSContact();
+		contact1.setOtherAddressStreet("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOtherAddressStreet("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentPagerNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setPagerNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setPagerNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentTitle() {
+		MSContact contact1 = new MSContact();
+		contact1.setTitle("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setTitle("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessPostalCode() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessPostalCode("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessPostalCode("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentLastName() {
+		MSContact contact1 = new MSContact();
+		contact1.setLastName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setLastName("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentSpouse() {
+		MSContact contact1 = new MSContact();
+		contact1.setSpouse("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setSpouse("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessState() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessState("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessState("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentBusinessStreet() {
+		MSContact contact1 = new MSContact();
+		contact1.setBusinessStreet("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setBusinessStreet("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentJobTitle() {
+		MSContact contact1 = new MSContact();
+		contact1.setJobTitle("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setJobTitle("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentOfficeLocation() {
+		MSContact contact1 = new MSContact();
+		contact1.setOfficeLocation("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setOfficeLocation("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveDifferentResultWhenCalledWithDifferentRadioPhoneNumber() {
+		MSContact contact1 = new MSContact();
+		contact1.setRadioPhoneNumber("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setRadioPhoneNumber("other value");
+
+		assertThat(testee.hash(contact1)).isNotEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveSameResultWhenCalledWithDifferentYomiFirstName() {
+		MSContact contact1 = new MSContact();
+		contact1.setYomiFirstName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setYomiFirstName("other value");
+
+		assertThat(testee.hash(contact1)).isEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveSameResultWhenCalledWithDifferentYomiLastName() {
+		MSContact contact1 = new MSContact();
+		contact1.setYomiLastName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setYomiLastName("other value");
+
+		assertThat(testee.hash(contact1)).isEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveSameResultWhenCalledWithDifferentYomiCompanyName() {
+		MSContact contact1 = new MSContact();
+		contact1.setYomiCompanyName("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setYomiCompanyName("other value");
+
+		assertThat(testee.hash(contact1)).isEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveSameResultWhenCalledWithDifferentPicture() {
+		MSContact contact1 = new MSContact();
+		contact1.setPicture("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setPicture("other value");
+
+		assertThat(testee.hash(contact1)).isEqualTo(testee.hash(contact2));
+	}
+
+	@Test
+	public void hashShouldHaveSameResultWhenCalledWithDifferentData() {
+		MSContact contact1 = new MSContact();
+		contact1.setData("value");
+
+		MSContact contact2 = new MSContact();
+		contact1.setData("other value");
+
+		assertThat(testee.hash(contact1)).isEqualTo(testee.hash(contact2));
+	}
+
 }
