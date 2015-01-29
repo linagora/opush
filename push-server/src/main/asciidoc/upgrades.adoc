@@ -101,3 +101,18 @@ cqlsh> TRUNCATE OPUSH_KEYSPACE.synced_collection;
 |http://ci-obm.linagora.com/jira/browse/OP-155[OP-155]|Respect the clientId for contact creation to avoid duplication
 |http://ci-obm.linagora.com/jira/browse/OP-151[OP-151]|Repare Cassandra reconnection behavior after a network failure
 |=====================================
+
+=== 3.0.5 to 3.0.6
+
+.Changelog (highlights)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-139[OP-139]|Protect OBM about contact duplication
+|=====================================
+
+The changeset provided by OP-139 aims to protect the backend about contact duplication. +
+That protection is implemented using the hash of every contact created by a device. +
+When a contact hash is already known by Opush, it'll not send the creation command to its backend.
+
+This fix has been done to handle the _never fixed_ "ClientId" bug of Android, see https://code.google.com/p/android/issues/detail?id=61100
