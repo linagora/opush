@@ -49,12 +49,15 @@ public class SimpleQueryString extends AbstractActiveSyncRequest {
 
 	@Override
 	public <T> T getParameter(String key) {
-		if (key.equalsIgnoreCase("CollectionId")) {
-			return (T) CollectionId.of(request.getParameter(key));
+		String value = request.getParameter(key);
+		if (value == null) {
+			return null;
+		} else if (key.equalsIgnoreCase("CollectionId")) {
+			return (T) CollectionId.of(value);
 		} else if (key.equalsIgnoreCase("ItemId")) {
-			return (T) ServerId.of(request.getParameter(key));
+			return (T) ServerId.of(value);
 		}
-		return (T) request.getParameter(key);
+		return (T) value;
 	}
 
 	@Override

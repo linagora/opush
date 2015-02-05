@@ -31,15 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.request;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
+import org.obm.push.bean.ServerId;
+import org.obm.push.protocol.bean.CollectionId;
 
 
 public class SimpleQueryStringTest {
@@ -54,12 +56,38 @@ public class SimpleQueryStringTest {
 		expect(httpRequest.getParameter("DeviceType")).andReturn("WP");
 		
 		replay(httpRequest);
-		ActiveSyncRequest asRequest = new SimpleQueryString(httpRequest);
+		SimpleQueryString asRequest = new SimpleQueryString(httpRequest);
 		assertThat(asRequest.getMsPolicyKey()).isEqualTo("956301312");
 		assertThat(asRequest.getMSASProtocolVersion()).isEqualTo("12.1");
 		assertThat(asRequest.getCommand()).isEqualTo("Autodiscover");
 		assertThat(asRequest.getParameter("DeviceId")).isEqualTo("gkOZ9qq+1NRMXs1KPVLrCQ==");
 		assertThat(asRequest.getParameter("DeviceType")).isEqualTo("WP");
+		verify(httpRequest);
+	}
+	
+	@Test
+	public void itemIdAndCollectionIdShouldNotBeRequired() {
+		HttpServletRequest httpRequest = createMock(HttpServletRequest.class);
+		expect(httpRequest.getParameter("ItemId")).andReturn(null);
+		expect(httpRequest.getParameter("CollectionId")).andReturn(null);
+		
+		replay(httpRequest);
+		SimpleQueryString asRequest = new SimpleQueryString(httpRequest);
+		assertThat(asRequest.getParameter("ItemId")).isEqualTo(null);
+		assertThat(asRequest.getParameter("CollectionId")).isEqualTo(null);
+		verify(httpRequest);
+	}
+	
+	@Test
+	public void itemIdAndCollectionIdShouldBeTypedWhenRightValue() {
+		HttpServletRequest httpRequest = createMock(HttpServletRequest.class);
+		expect(httpRequest.getParameter("ItemId")).andReturn("12:5");
+		expect(httpRequest.getParameter("CollectionId")).andReturn("999");
+		
+		replay(httpRequest);
+		SimpleQueryString asRequest = new SimpleQueryString(httpRequest);
+		assertThat(asRequest.getParameter("ItemId")).isEqualTo(ServerId.of("12:5"));
+		assertThat(asRequest.getParameter("CollectionId")).isEqualTo(CollectionId.of(999));
 		verify(httpRequest);
 	}
 }
