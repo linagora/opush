@@ -41,7 +41,6 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -61,7 +60,7 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
 
-public interface PIMBackend {
+public interface PIMBackend extends PIMTyped {
 
 	ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
 			ServerId serverId, String clientId, IApplicationData data)
@@ -78,8 +77,6 @@ public interface PIMBackend {
 	
 	void emptyFolderContent(UserDataRequest udr, String collectionPath, boolean deleteSubFolder)
 			throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException;
-	
-	PIMDataType getPIMDataType();
 	
 	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
 			throws ProcessingEmailException, CollectionNotFoundException, 
