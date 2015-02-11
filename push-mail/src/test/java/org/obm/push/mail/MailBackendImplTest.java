@@ -39,6 +39,10 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.obm.DateUtils.date;
+import static org.obm.configuration.EmailConfiguration.IMAP_DRAFTS_NAME;
+import static org.obm.configuration.EmailConfiguration.IMAP_INBOX_NAME;
+import static org.obm.configuration.EmailConfiguration.IMAP_SENT_NAME;
+import static org.obm.configuration.EmailConfiguration.IMAP_TRASH_NAME;
 import static org.obm.push.mail.MSMailTestsUtils.loadEmail;
 
 import java.io.InputStream;
@@ -61,6 +65,7 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
@@ -72,6 +77,8 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -83,6 +90,8 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
+import org.obm.push.mail.bean.MailboxFolder;
+import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
@@ -94,6 +103,7 @@ import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -956,5 +966,52 @@ public class MailBackendImplTest {
 			control.verify();
 			throw e;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
+		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
+			new MailboxFolder("custom/mail/box", '/'))
+		);
+		
+		expect(mailboxService.listSubscribedFolders(udr)).andReturn(folders);
+		
+		control.replay();
+		BackendFolders<MailboxPath> currentFolders = testee.currentFolders(udr);
+		control.verify();
+		
+		assertThat(currentFolders).containsOnly(
+			BackendFolder.<MailboxPath>builder()
+				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
+				.displayName(IMAP_INBOX_NAME)
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.parentId(Optional.<MailboxPath>absent())
+				.build(),
+			BackendFolder.<MailboxPath>builder()
+				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
+				.displayName(IMAP_DRAFTS_NAME)
+				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
+				.parentId(Optional.<MailboxPath>absent())
+				.build(),
+			BackendFolder.<MailboxPath>builder()
+				.backendId(MailboxPath.of(IMAP_SENT_NAME))
+				.displayName(IMAP_SENT_NAME)
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.parentId(Optional.<MailboxPath>absent())
+				.build(),
+			BackendFolder.<MailboxPath>builder()
+				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
+				.displayName(IMAP_TRASH_NAME)
+				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+				.parentId(Optional.<MailboxPath>absent())
+				.build(),
+			BackendFolder.<MailboxPath>builder()
+				.backendId(MailboxPath.of("custom/mail/box"))
+				.displayName("custom/mail/box")
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.parentId(Optional.<MailboxPath>absent())
+				.build()
+		);
 	}
 }

@@ -31,13 +31,88 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import java.util.List;
+
 import org.obm.push.bean.Stringable;
 
-public class MailboxPath implements Stringable {
+import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.Iterables;
+
+public class MailboxPath implements Stringable, Comparable<MailboxPath> {
+
+	public static final char DEFAULT_SEPARATOR = '/';
+	
+	public static MailboxPath of(String path) {
+		return new MailboxPath(path, DEFAULT_SEPARATOR);
+	}
+	
+	public static MailboxPath of(String path, char separator) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
+		return new MailboxPath(path, separator);
+	}
+	
+	private final String path;
+	private final char separator;
+	
+	private MailboxPath(String path, char separator) {
+		this.path = path;
+		this.separator = separator;
+	}
 
 	@Override
 	public String asString() {
-		return null;
+		return path;
 	}
 
+	public String getPath() {
+		return path;
+	}
+
+	public char getSeparator() {
+		return separator;
+	}
+
+	public Iterable<MailboxPath> reducingPaths() {
+		Builder<MailboxPath> paths = ImmutableList.builder();
+		List<String> pieces = Splitter.on(separator).omitEmptyStrings().splitToList(path);
+		for (int index = pieces.size() - 1 ; index > 0; index--) {
+			String path = Joiner.on(separator).join(Iterables.limit(pieces, index));
+			paths.add(MailboxPath.of(path, separator));
+		}
+		return paths.build();
+	}
+
+	@Override
+	public int compareTo(MailboxPath o) {
+		return asString().compareToIgnoreCase(o.asString());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(path, separator);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof MailboxPath) {
+			MailboxPath that = (MailboxPath)obj;
+			return Objects.equal(path, that.path)
+				&& Objects.equal(separator, that.separator);
+		}
+		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("path", path)
+			.add("separator", separator)
+			.toString();
+	}
 }

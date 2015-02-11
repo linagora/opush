@@ -56,6 +56,7 @@ public class BeansTest {
 				ImmutableList.<Class<?>>builder()
 					.add(FetchInstruction.class)
 					.add(EmailChanges.class)
+					.add(MailboxPath.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

@@ -217,7 +217,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 	@Override
 	protected BackendFolders<MailboxPath> currentFolders(UserDataRequest udr) {
-		return null;
+		return new MailBackendFoldersBuilder()
+			.addFolders(mailboxService.listSubscribedFolders(udr))
+			.addSpecialFolders(SPECIAL_FOLDERS)
+			.build();
 	}
 	
 	@Override
