@@ -34,11 +34,12 @@ package org.obm.push.protocol.bean;
 import java.io.Serializable;
 
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.Stringable;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-public class CollectionId implements Serializable {
+public class CollectionId implements Serializable, Stringable {
 
 	public static final CollectionId ROOT = of(0);
 	
@@ -59,6 +60,7 @@ public class CollectionId implements Serializable {
 		this.id = collectionId;
 	}
 
+	@Override
 	public String asString() {
 		return String.valueOf(id);
 	}

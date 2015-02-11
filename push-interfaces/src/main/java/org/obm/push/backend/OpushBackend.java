@@ -59,6 +59,7 @@ import org.obm.push.state.FolderSyncKey;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
@@ -101,15 +102,15 @@ public abstract class OpushBackend implements PIMTyped {
 	}
 
 	@VisibleForTesting FolderSnapshot snapshot(UserDataRequest udr, FolderSyncKey outgoingSyncKey,
-			FolderSnapshot knownSnapshot, BackendFolders currentFolders) {
+			FolderSnapshot knownSnapshot, BackendFolders<?> currentFolders) {
 		
 		int nextId = knownSnapshot.getNextId();
-		Map<CollectionId, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
+		Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
 
 		ImmutableSet.Builder<Folder> allFolders = ImmutableSet.builder();
-		for (BackendFolder currentFolder : currentFolders) {
+		for (BackendFolder<?> currentFolder : currentFolders) {
 			if (isKnownFolder(knownFolders, currentFolder)) {
-				CollectionId collectionId = knownFolders.get(currentFolder.getBackendId()).getCollectionId();
+				CollectionId collectionId = knownFolders.get(currentFolder.getBackendId().asString()).getCollectionId();
 				allFolders.add(Folder.from(currentFolder, collectionId));
 			} else {
 				allFolders.add(Folder.from(currentFolder, CollectionId.of(nextId++)));
@@ -121,16 +122,16 @@ public abstract class OpushBackend implements PIMTyped {
 		return snapshot;
 	}
 
-	private boolean isKnownFolder(Map<CollectionId, Folder> knownFolders, BackendFolder currentFolder) {
-		return knownFolders.containsKey(currentFolder.getBackendId());
+	private boolean isKnownFolder(Map<String, Folder> knownFolders, BackendFolder<?> currentFolder) {
+		return knownFolders.containsKey(currentFolder.getBackendId().asString());
 	}
 	
 	@VisibleForTesting HierarchyCollectionChanges buildDiff(final FolderSnapshot knownSnapshot, final FolderSnapshot currentSnapshot) throws DaoException {
-		final Map<CollectionId, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
-		final Map<CollectionId, Folder> currentFolders = currentSnapshot.getFoldersByBackendId();
+		final Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
+		final Map<String, Folder> currentFolders = currentSnapshot.getFoldersByBackendId();
 
-		final Set<CollectionId> adds = Sets.difference(currentFolders.keySet(), knownFolders.keySet());
-		final Set<CollectionId> dels = Sets.difference(knownFolders.keySet(), currentFolders.keySet());
+		final Set<String> adds = Sets.difference(currentFolders.keySet(), knownFolders.keySet());
+		final Set<String> dels = Sets.difference(knownFolders.keySet(), currentFolders.keySet());
 		
 		return HierarchyCollectionChanges.builder()
 			.deletions(FluentIterable.from(dels).transform(folderToCollectionDeletion(knownFolders)).toSet())
@@ -149,11 +150,11 @@ public abstract class OpushBackend implements PIMTyped {
 			.build();
 	}
 
-	@VisibleForTesting Function<CollectionId, CollectionDeletion> folderToCollectionDeletion(final Map<CollectionId, Folder> knownFolders) {
-		return new Function<CollectionId, CollectionDeletion>() {
+	@VisibleForTesting Function<String, CollectionDeletion> folderToCollectionDeletion(final Map<String, Folder> knownFolders) {
+		return new Function<String, CollectionDeletion>() {
 		
 			@Override
-			public CollectionDeletion apply(CollectionId id) {
+			public CollectionDeletion apply(String id) {
 				return CollectionDeletion.builder()
 						.collectionId(knownFolders.get(id).getCollectionId())
 						.build();
@@ -161,11 +162,11 @@ public abstract class OpushBackend implements PIMTyped {
 		};
 	}
 
-	@VisibleForTesting Function<CollectionId, CollectionChange> folderToCollectionCreation(final Map<CollectionId, Folder> currentFoldersMap) {
-		return new Function<CollectionId, CollectionChange>() {
+	@VisibleForTesting Function<String, CollectionChange> folderToCollectionCreation(final Map<String, Folder> currentFoldersMap) {
+		return new Function<String, CollectionChange>() {
 	
 				@Override
-				public CollectionChange apply(CollectionId id) {
+				public CollectionChange apply(String id) {
 					Folder folder = currentFoldersMap.get(id);
 					return CollectionChange.builder()
 							.isNew(true)
@@ -178,7 +179,7 @@ public abstract class OpushBackend implements PIMTyped {
 		};
 	}
 
-	@VisibleForTesting Function<Folder, CollectionChange> folderToCollectionChange(final Map<CollectionId, Folder> currentFolders) {
+	@VisibleForTesting Function<Folder, CollectionChange> folderToCollectionChange(final Map<String, Folder> currentFolders) {
 		return new Function<Folder, CollectionChange>() {
 		
 			@Override
@@ -194,8 +195,12 @@ public abstract class OpushBackend implements PIMTyped {
 		};
 	}
 
-	private CollectionId getParentCollectionId(Map<CollectionId, Folder> currentFoldersMap, Folder folder) {
-		Folder parentFolder = currentFoldersMap.get(folder.getParentBackendId());
+	private CollectionId getParentCollectionId(Map<String, Folder> currentFoldersMap, Folder folder) {
+		Optional<String> parentBackendId = folder.getParentBackendId();
+		if (!parentBackendId.isPresent()) {
+			return CollectionId.ROOT;
+		}
+		Folder parentFolder = currentFoldersMap.get(parentBackendId.get());
 		return parentFolder != null ? parentFolder.getCollectionId() : CollectionId.ROOT;
 	}
 
@@ -286,6 +291,6 @@ public abstract class OpushBackend implements PIMTyped {
 	protected abstract CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
 			throws DaoException, CollectionNotFoundException;
 	
-	protected abstract BackendFolders currentFolders(UserDataRequest udr);
+	protected abstract BackendFolders<?> currentFolders(UserDataRequest udr);
 	
 }

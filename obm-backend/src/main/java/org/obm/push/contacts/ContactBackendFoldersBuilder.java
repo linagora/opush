@@ -98,14 +98,14 @@ public class ContactBackendFoldersBuilder {
 		return isOwner && isDefaultAddressBookName;
 	}
 	
-	public BackendFolders build() {
-		final Builder<BackendFolder> backendFoldersBuilder = ImmutableSet.builder();
-		Optional<CollectionId> parentId = parentFolder == null ? 
-				Optional.<CollectionId>absent() : 
-				Optional.of(CollectionId.of(parentFolder.getUid()));
+	public BackendFolders<CollectionId> build() {
+		final Builder<BackendFolder<CollectionId>> backendFoldersBuilder = ImmutableSet.builder();
+		Optional<CollectionId> parentId = parentFolder != null ? 
+				Optional.of(CollectionId.of(parentFolder.getUid())) :
+				Optional.<CollectionId>absent();
 		
 		if (parentFolder != null) {
-			backendFoldersBuilder.add(BackendFolder.builder()
+			backendFoldersBuilder.add(BackendFolder.<CollectionId>builder()
 				.displayName(parentFolder.getName())
 				.folderType(findFolderType(udr, parentFolder))
 				.backendId(CollectionId.of(parentFolder.getUid()))
@@ -114,19 +114,19 @@ public class ContactBackendFoldersBuilder {
 		}
 		
 		for (Folder folder : folders) {
-			backendFoldersBuilder.add(BackendFolder.builder()
+			backendFoldersBuilder.add(BackendFolder.<CollectionId>builder()
 				.displayName(folder.getName())
 				.folderType(findFolderType(udr, folder))
 				.backendId(CollectionId.of(folder.getUid()))
 				.parentId(parentId)
 				.build());
 		}
-		return new BackendFolders() {
+		return new BackendFolders<CollectionId>() {
 			
-			Set<BackendFolder> backendFolders = backendFoldersBuilder.build();
+			Set<BackendFolder<CollectionId>> backendFolders = backendFoldersBuilder.build();
 			
 			@Override
-			public Iterator<BackendFolder> iterator() {
+			public Iterator<BackendFolder<CollectionId>> iterator() {
 				return backendFolders.iterator();
 			}
 		};

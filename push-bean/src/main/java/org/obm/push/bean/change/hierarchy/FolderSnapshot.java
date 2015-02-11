@@ -34,10 +34,12 @@ package org.obm.push.bean.change.hierarchy;
 import java.util.Set;
 
 import org.obm.push.bean.FolderType;
+import org.obm.push.bean.Stringable;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -74,7 +76,7 @@ public class FolderSnapshot {
 	
 	private final int nextId;
 	private final Set<Folder> folders;
-	private final ImmutableMap<CollectionId, Folder> foldersByBackendId;
+	private final ImmutableMap<String, Folder> foldersByBackendId;
 
 	private FolderSnapshot(int nextId, Set<Folder> folders) {
 		this.nextId = nextId;
@@ -90,7 +92,7 @@ public class FolderSnapshot {
 		return folders;
 	}
 
-	public ImmutableMap<CollectionId, Folder> getFoldersByBackendId() {
+	public ImmutableMap<String, Folder> getFoldersByBackendId() {
 		return foldersByBackendId;
 	}
 
@@ -119,23 +121,28 @@ public class FolderSnapshot {
 	
 	public static class Folder {
 
-		public static ImmutableMap<CollectionId, Folder> mapByBackendId(Iterable<Folder> folders) {
-			return Maps.uniqueIndex(folders,  new Function<Folder, CollectionId>() {
+		public static ImmutableMap<String, Folder> mapByBackendId(Iterable<Folder> folders) {
+			return Maps.uniqueIndex(folders,  new Function<Folder, String>() {
 
 				@Override
-				public CollectionId apply(Folder folder) {
+				public String apply(Folder folder) {
 					return folder.getBackendId();
 				}
 			});
 		}
 
-		public static Folder from(BackendFolder folder, CollectionId collectionId) {
+		public static <T extends Stringable> Folder from(BackendFolder<T> folder, CollectionId collectionId) {
 			return Folder.builder()
 				.collectionId(collectionId)
-				.backendId(folder.getBackendId())
+				.backendId(folder.getBackendId().asString())
 				.displayName(folder.getDisplayName())
 				.folderType(folder.getFolderType())
-				.parentBackendId(folder.getParentBackendId().or(CollectionId.ROOT))
+				.parentBackendId(folder.getParentBackendId().transform(new Function<T, String>() {
+					@Override
+					public String apply(T input) {
+						return input.asString();
+					}
+				}))
 				.build();
 		}
 		
@@ -146,8 +153,8 @@ public class FolderSnapshot {
 		public static class Builder {
 
 			private CollectionId collectionId;
-			private CollectionId backendId;
-			private CollectionId parentBackendId;
+			private String backendId;
+			private Optional<String> parentBackendId;
 			private String displayName;
 			private FolderType folderType;
 			
@@ -161,7 +168,7 @@ public class FolderSnapshot {
 				return this;
 			}
 			
-			public Builder backendId(CollectionId backendId) {
+			public Builder backendId(String backendId) {
 				Preconditions.checkNotNull(backendId);
 				this.backendId = backendId;
 				return this;
@@ -180,7 +187,7 @@ public class FolderSnapshot {
 			}
 
 
-			public Builder parentBackendId(CollectionId parentBackendId) {
+			public Builder parentBackendId(Optional<String> parentBackendId) {
 				Preconditions.checkNotNull(parentBackendId);
 				this.parentBackendId = parentBackendId;
 				return this;
@@ -198,13 +205,13 @@ public class FolderSnapshot {
 		}
 
 		private final CollectionId collectionId;
-		private final CollectionId backendId;
-		private final CollectionId parentBackendId;
+		private final String backendId;
+		private final Optional<String> parentBackendId;
 		private final String displayName;
 		private final FolderType folderType;
 		
-		private Folder(CollectionId collectionId, CollectionId backendId,
-				String displayName, FolderType folderType, CollectionId parentBackendId) {
+		private Folder(CollectionId collectionId, String backendId,
+				String displayName, FolderType folderType, Optional<String> parentBackendId) {
 			this.collectionId = collectionId;
 			this.backendId = backendId;
 			this.displayName = displayName;
@@ -216,11 +223,11 @@ public class FolderSnapshot {
 			return collectionId;
 		}
 
-		public CollectionId getBackendId() {
+		public String getBackendId() {
 			return backendId;
 		}
 
-		public CollectionId getParentBackendId() {
+		public Optional<String> getParentBackendId() {
 			return parentBackendId;
 		}
 

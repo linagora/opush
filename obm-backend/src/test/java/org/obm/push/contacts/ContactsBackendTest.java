@@ -999,11 +999,12 @@ public class ContactsBackendTest {
 		expect(bookClient.listAddressBooksChanged(token, epoch)).andReturn(folderChanges);
 
 		mocks.replay();
-		BackendFolders currentFolders = contactsBackend.currentFolders(userDataRequest);
+		BackendFolders<CollectionId> currentFolders = contactsBackend.currentFolders(userDataRequest);
 		mocks.verify();
-		
-		assertThat(currentFolders).containsOnly(
-			BackendFolder.builder()
+
+		assertThat(currentFolders).hasSize(1);
+		assertThat(currentFolders.iterator().next()).isEqualTo(
+			BackendFolder.<CollectionId>builder()
 				.backendId(CollectionId.of(12))
 				.displayName("contacts")
 				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)

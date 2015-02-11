@@ -140,7 +140,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	protected BackendFolders currentFolders(UserDataRequest udr) {
+	protected BackendFolders<CollectionId> currentFolders(UserDataRequest udr) {
 		return new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName(contactConfiguration.getDefaultAddressBookName())

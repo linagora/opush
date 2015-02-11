@@ -50,6 +50,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.Stringable;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -124,7 +125,7 @@ public class OpushBackendTest {
 			}
 
 			@Override
-			protected BackendFolders currentFolders(UserDataRequest udr) {
+			protected BackendFolders<CollectionId> currentFolders(UserDataRequest udr) {
 				throw new NotImplementedException();
 			}
 			
@@ -134,7 +135,7 @@ public class OpushBackendTest {
 	@Test
 	public void snapshotShouldBeEmptyWhenNoFolder() {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
-		BackendFolders currentFolders = testBackendFolders();
+		BackendFolders<?> currentFolders = emptyBackendFolders();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
 		FolderSnapshot expectedSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
@@ -154,13 +155,13 @@ public class OpushBackendTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder newFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders currentFolders = testBackendFolders(
-			BackendFolder.builder()
+		BackendFolders<CollectionId> currentFolders = testBackendFolders(
+			BackendFolder.<CollectionId>builder()
 				.displayName("name")
 				.backendId(CollectionId.of(12))
 				.parentId(Optional.<CollectionId>absent())
@@ -186,19 +187,19 @@ public class OpushBackendTest {
 		
 		Folder knownFolder = Folder.builder()
 			.displayName("known")
-			.backendId(CollectionId.of(8))
+			.backendId("8")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		Folder sameFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders currentFolders = testBackendFolders(
-			BackendFolder.builder()
+		BackendFolders<CollectionId> currentFolders = testBackendFolders(
+			BackendFolder.<CollectionId>builder()
 				.displayName("name")
 				.backendId(CollectionId.of(12))
 				.parentId(Optional.<CollectionId>absent())
@@ -223,19 +224,19 @@ public class OpushBackendTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder knownFolder = Folder.builder()
 			.displayName("known")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		Folder expectedFolder = Folder.builder()
 			.displayName("changed name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders currentFolders = testBackendFolders(
-			BackendFolder.builder()
+		BackendFolders<CollectionId> currentFolders = testBackendFolders(
+			BackendFolder.<CollectionId>builder()
 				.displayName("changed name")
 				.backendId(CollectionId.of(12))
 				.parentId(Optional.<CollectionId>absent())
@@ -260,13 +261,13 @@ public class OpushBackendTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder knownFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders currentFolders = testBackendFolders(
-			BackendFolder.builder()
+		BackendFolders<CollectionId> currentFolders = testBackendFolders(
+			BackendFolder.<CollectionId>builder()
 				.backendId(CollectionId.of(12))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
@@ -286,12 +287,23 @@ public class OpushBackendTest {
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
 	}
 	
-	private BackendFolders testBackendFolders(BackendFolder...folders) {
-		final UnmodifiableIterator<BackendFolder> iterator = Iterators.forArray(folders);
-		return new BackendFolders() {
+	private <T extends Stringable> BackendFolders<T> emptyBackendFolders() {
+		return new BackendFolders<T>() {
+			
+			@Override
+			public Iterator<BackendFolder<T>> iterator() {
+				return Iterators.emptyIterator();
+			}
+		};
+	}
+	
+	private <T extends Stringable> BackendFolders<T> testBackendFolders(BackendFolder<T> folder) {
+		@SuppressWarnings("unchecked")
+		final UnmodifiableIterator<BackendFolder<T>> iterator = Iterators.forArray(folder);
+		return new BackendFolders<T>() {
 
 			@Override
-			public Iterator<BackendFolder> iterator() {
+			public Iterator<BackendFolder<T>> iterator() {
 				return iterator;
 			}
 		};
@@ -345,8 +357,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenNullFolders() {
-		Map<CollectionId, Folder> folders = null;
-		CollectionId collection = CollectionId.of(4);
+		Map<String, Folder> folders = null;
+		String collection = "4";
 		
 		mocks.replay();
 		try {
@@ -358,8 +370,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenNullCollectionId() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of();
-		CollectionId collection = null;
+		Map<String, Folder> folders = ImmutableMap.of();
+		String collection = null;
 		
 		mocks.replay();
 		try {
@@ -371,8 +383,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenFolderNotFound() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of();
-		CollectionId collection = CollectionId.of(5);
+		Map<String, Folder> folders = ImmutableMap.of();
+		String collection = "5";
 		
 		mocks.replay();
 		try {
@@ -384,15 +396,15 @@ public class OpushBackendTest {
 	
 	@Test
 	public void folderToCollectionDeletionShouldSucceedWhenFolderFound() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of(
-			CollectionId.of(5), Folder.builder()
-				.backendId(CollectionId.of(5))
+		Map<String, Folder> folders = ImmutableMap.of(
+			"5", Folder.builder()
+				.backendId("5")
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(CollectionId.of(12))
+				.parentBackendId(Optional.of("12"))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		CollectionId collection = CollectionId.of(5);
+		String collection = "5";
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionDeletion(folders).apply(collection))
@@ -402,8 +414,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenNullFolders() {
-		Map<CollectionId, Folder> folders = null;
-		CollectionId collection = CollectionId.of(4);
+		Map<String, Folder> folders = null;
+		String collection = "4";
 		
 		mocks.replay();
 		try {
@@ -415,8 +427,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenNullCollectionId() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of();
-		CollectionId collection = null;
+		Map<String, Folder> folders = ImmutableMap.of();
+		String collection = null;
 		
 		mocks.replay();
 		try {
@@ -428,8 +440,8 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenFolderNotFound() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of();
-		CollectionId collection = CollectionId.of(5);
+		Map<String, Folder> folders = ImmutableMap.of();
+		String collection = "5";
 		
 		mocks.replay();
 		try {
@@ -441,15 +453,15 @@ public class OpushBackendTest {
 	
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndNoParent() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of(
-			CollectionId.of(5), Folder.builder()
-				.backendId(CollectionId.of(5))
+		Map<String, Folder> folders = ImmutableMap.of(
+			"5", Folder.builder()
+				.backendId("5")
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(CollectionId.ROOT)
+				.parentBackendId(Optional.<String>absent())
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		CollectionId collection = CollectionId.of(5);
+		String collection = "5";
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionCreation(folders).apply(collection))
@@ -464,15 +476,15 @@ public class OpushBackendTest {
 	}
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndParentNotFound() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of(
-			CollectionId.of(5), Folder.builder()
-				.backendId(CollectionId.of(5))
+		Map<String, Folder> folders = ImmutableMap.of(
+			"5", Folder.builder()
+				.backendId("5")
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(CollectionId.of(12))
+				.parentBackendId(Optional.of("12"))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		CollectionId collection = CollectionId.of(5);
+		String collection = "5";
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionCreation(folders).apply(collection))
@@ -488,22 +500,22 @@ public class OpushBackendTest {
 	
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndParent() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of(
-			CollectionId.of(5), Folder.builder()
-				.backendId(CollectionId.of(5))
+		Map<String, Folder> folders = ImmutableMap.of(
+			"5", Folder.builder()
+				.backendId("5")
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(CollectionId.of(12))
+				.parentBackendId(Optional.of("12"))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build(),
-			CollectionId.of(12), Folder.builder()
-				.backendId(CollectionId.of(12))
+			"12", Folder.builder()
+				.backendId("12")
 				.collectionId(CollectionId.of(4))
-				.parentBackendId(CollectionId.ROOT)
+				.parentBackendId(Optional.<String>absent())
 				.displayName("the parent")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		CollectionId collection = CollectionId.of(5);
+		String collection = "5";
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionCreation(folders).apply(collection))
@@ -519,11 +531,11 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionChangeShouldNPEWhenNullFolders() {
-		Map<CollectionId, Folder> folders = null;
+		Map<String, Folder> folders = null;
 		Folder folder = Folder.builder()
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.of("2"))
 			.displayName("the parent")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
@@ -538,7 +550,7 @@ public class OpushBackendTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionChangeShouldNPEWhenNullFolder() {
-		Map<CollectionId, Folder> folders = ImmutableMap.of();
+		Map<String, Folder> folders = ImmutableMap.of();
 		Folder folder = null;
 		
 		mocks.replay();
@@ -552,14 +564,14 @@ public class OpushBackendTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenNoParent() {
 		Folder folder = Folder.builder()
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<CollectionId, Folder> folders = ImmutableMap.of(CollectionId.of(5), folder);
+		Map<String, Folder> folders = ImmutableMap.of("5", folder);
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionChange(folders).apply(folder))
@@ -576,14 +588,14 @@ public class OpushBackendTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenParentNotFound() {
 		Folder folder = Folder.builder()
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(CollectionId.of(12))
+			.parentBackendId(Optional.of("12"))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<CollectionId, Folder> folders = ImmutableMap.of(CollectionId.of(5), folder);
+		Map<String, Folder> folders = ImmutableMap.of("5", folder);
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionChange(folders).apply(folder))
@@ -600,24 +612,24 @@ public class OpushBackendTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenParentFound() {
 		Folder folder = Folder.builder()
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(CollectionId.of(12))
+			.parentBackendId(Optional.of("12"))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 			
 		Folder parentFolder = Folder.builder()
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(8))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.displayName("the parent")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<CollectionId, Folder> folders = ImmutableMap.of(
-			CollectionId.of(5), folder,
-			CollectionId.of(12), parentFolder);
+		Map<String, Folder> folders = ImmutableMap.of(
+			"5", folder,
+			"12", parentFolder);
 		
 		mocks.replay();
 		assertThat(testee().folderToCollectionChange(folders).apply(folder))
@@ -648,9 +660,9 @@ public class OpushBackendTest {
 	public void buildDiffShouldReturnEmptyWhenBothHaveSameFolder() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -668,9 +680,9 @@ public class OpushBackendTest {
 	public void buildDiffShouldReturnAddWhenEmptyKnownSnapshotAndNewFolder() throws Exception {
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.empty();
@@ -683,7 +695,7 @@ public class OpushBackendTest {
 		assertThat(hierarchyItemsChanges.getCollectionDeletions()).isEmpty();
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(CollectionChange.builder()
 			.collectionId(newSnapshotFolder.getCollectionId())
-			.parentCollectionId(newSnapshotFolder.getParentBackendId())
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName(newSnapshotFolder.getDisplayName())
 			.folderType(newSnapshotFolder.getFolderType())
 			.isNew(true).build());
@@ -693,16 +705,16 @@ public class OpushBackendTest {
 	public void buildDiffShouldReturnAddWhenKnownSnapshotAndNewFolder() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder addSnapshotFolder = Folder.builder()
 			.displayName("another name")
-			.backendId(CollectionId.of(15))
+			.backendId("15")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(knownSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(knownSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -725,16 +737,16 @@ public class OpushBackendTest {
 	public void buildDiffShouldReturnChangeWhenKnownFolderButChanged() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("another display name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -747,7 +759,7 @@ public class OpushBackendTest {
 		assertThat(hierarchyItemsChanges.getCollectionDeletions()).isEmpty();
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(CollectionChange.builder()
 			.collectionId(newSnapshotFolder.getCollectionId())
-			.parentCollectionId(newSnapshotFolder.getParentBackendId())
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName(newSnapshotFolder.getDisplayName())
 			.folderType(newSnapshotFolder.getFolderType())
 			.isNew(false).build());
@@ -757,9 +769,9 @@ public class OpushBackendTest {
 	public void buildDiffShouldReturnDeletionWhenKnownFolderNotInNewSnapshot() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -778,36 +790,36 @@ public class OpushBackendTest {
 	public void buildDiffWhenComplexe() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("not anymore folder")
-			.backendId(CollectionId.of(8))
+			.backendId("8")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		Folder sameSnapshotFolder = Folder.builder()
 			.displayName("unchanged folder")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder priorChangeSnapshotFolder = Folder.builder()
 			.displayName("previous name")
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		Folder changedSnapshotFolder = Folder.builder()
 			.displayName("changed name")
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
  
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("yet another name")
-			.backendId(CollectionId.of(980))
+			.backendId("980")
 			.collectionId(CollectionId.of(5))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(5)

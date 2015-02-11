@@ -76,6 +76,7 @@ import org.obm.sync.book.Folder;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.FolderChanges;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provider;
 
@@ -170,9 +171,9 @@ public class ContactBackendGetFoldersTest {
 		
 		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.empty();
@@ -188,7 +189,7 @@ public class ContactBackendGetFoldersTest {
 		assertThat(hierarchyItemsChanges.getCollectionDeletions()).isEmpty();
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(CollectionChange.builder()
 			.collectionId(newSnapshotFolder.getCollectionId())
-			.parentCollectionId(newSnapshotFolder.getParentBackendId())
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName(newSnapshotFolder.getDisplayName())
 			.folderType(newSnapshotFolder.getFolderType())
 			.isNew(true).build());
@@ -212,16 +213,16 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot.Folder addSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("another name")
-			.backendId(CollectionId.of(15))
+			.backendId("15")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(knownSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(knownSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -285,9 +286,9 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder snapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(snapshotFolder));
@@ -334,9 +335,9 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -368,9 +369,9 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -401,16 +402,16 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 
 		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("another display name")
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -426,7 +427,7 @@ public class ContactBackendGetFoldersTest {
 		assertThat(hierarchyItemsChanges.getCollectionDeletions()).isEmpty();
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(CollectionChange.builder()
 			.collectionId(newSnapshotFolder.getCollectionId())
-			.parentCollectionId(newSnapshotFolder.getParentBackendId())
+			.parentCollectionId(CollectionId.ROOT)
 			.displayName(newSnapshotFolder.getDisplayName())
 			.folderType(newSnapshotFolder.getFolderType())
 			.isNew(false).build());
@@ -454,36 +455,36 @@ public class ContactBackendGetFoldersTest {
 
 		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("not anymore folder")
-			.backendId(CollectionId.of(8))
+			.backendId("8")
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot.Folder sameSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName(contactDisplayName)
-			.backendId(CollectionId.of(12))
+			.backendId("12")
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(CollectionId.ROOT)
+			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot.Folder priorChangeSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("previous name")
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		FolderSnapshot.Folder changedSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("changed name")
-			.backendId(CollectionId.of(5))
+			.backendId("5")
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
  
 		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
 			.displayName("yet another name")
-			.backendId(CollectionId.of(980))
+			.backendId("980")
 			.collectionId(CollectionId.of(5))
-			.parentBackendId(sameSnapshotFolder.getBackendId())
+			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(5)

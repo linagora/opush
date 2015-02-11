@@ -216,7 +216,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	protected BackendFolders currentFolders(UserDataRequest udr) {
+	protected BackendFolders<MailboxPath> currentFolders(UserDataRequest udr) {
 		return null;
 	}
 	

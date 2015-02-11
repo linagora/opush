@@ -31,26 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.hierarchy;
 
-import java.io.Serializable;
-
 import org.obm.push.bean.FolderType;
-import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.bean.Stringable;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class BackendFolder implements Serializable {
+public class BackendFolder<T extends Stringable> {
 	
-	public static Builder builder() {
-		return new Builder();
+	public static <T extends Stringable> Builder<T> builder() {
+		return new Builder<T>();
 	}
 	
-	public static class Builder {
+	public static class Builder<T extends Stringable> {
 
-		private CollectionId backendId;
-		private Optional<CollectionId> parentId;
+		private T backendId;
+		private Optional<T> parentId;
 		private String displayName;
 		private FolderType folderType;
 		
@@ -58,52 +56,52 @@ public class BackendFolder implements Serializable {
 			super();
 		}
 
-		public Builder backendId(CollectionId backendId) {
+		public Builder<T> backendId(T backendId) {
 			Preconditions.checkNotNull(backendId);
 			this.backendId = backendId;
 			return this;
 		}
 
-		public Builder displayName(String displayName) {
+		public Builder<T> displayName(String displayName) {
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			this.displayName = displayName;
 			return this;
 		}
 
-		public Builder folderType(FolderType folderType) {
+		public Builder<T> folderType(FolderType folderType) {
 			Preconditions.checkNotNull(folderType);
 			this.folderType = folderType;
 			return this;
 		}
 		
-		public Builder parentId(Optional<CollectionId> parentId) {
+		public Builder<T> parentId(Optional<T> parentId) {
 			this.parentId = parentId;
 			return this;
 		}
 
-		public BackendFolder build() {
+		public BackendFolder<T> build() {
 			Preconditions.checkNotNull(backendId);
 			Preconditions.checkNotNull(parentId);
 			Preconditions.checkNotNull(folderType);
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			
-			return new BackendFolder(backendId, parentId, displayName, folderType);
+			return new BackendFolder<T>(backendId, parentId, displayName, folderType);
 		}
 	}
 	
-	private final CollectionId backendId;
-	private final Optional<CollectionId> parentId;
+	private final T backendId;
+	private final Optional<T> parentId;
 	private final String displayName;
 	private final FolderType folderType;
 	
-	public BackendFolder(CollectionId backendId, Optional<CollectionId> parentId, String displayName, FolderType folderType) {
+	public BackendFolder(T backendId, Optional<T> parentId, String displayName, FolderType folderType) {
 		this.backendId = backendId;
 		this.parentId = parentId;
 		this.displayName = displayName;
 		this.folderType = folderType;
 	}
 	
-	public CollectionId getBackendId() {
+	public T getBackendId() {
 		return backendId;
 	}
 
@@ -115,7 +113,7 @@ public class BackendFolder implements Serializable {
 		return folderType;
 	}
 
-	public Optional<CollectionId> getParentBackendId() {
+	public Optional<T> getParentBackendId() {
 		return parentId;
 	}
 
@@ -127,7 +125,7 @@ public class BackendFolder implements Serializable {
 	@Override
 	public final boolean equals(Object object){
 		if (object instanceof BackendFolder) {
-			BackendFolder that = (BackendFolder) object;
+			BackendFolder<?> that = (BackendFolder<?>) object;
 			return Objects.equal(this.backendId, that.backendId)
 				&& Objects.equal(this.displayName, that.displayName)
 				&& Objects.equal(this.folderType, that.folderType)

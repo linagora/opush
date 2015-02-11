@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,9 +29,10 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean.change.hierarchy;
+package org.obm.push.bean;
 
-import org.obm.push.bean.Stringable;
+public interface Stringable {
 
-public interface BackendFolders<T extends Stringable> extends Iterable<BackendFolder<T>> {
+	String asString();
+	
 }

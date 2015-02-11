@@ -164,7 +164,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	protected BackendFolders currentFolders(UserDataRequest udr) {
+	protected BackendFolders<CalendarPath> currentFolders(UserDataRequest udr) {
 		return null;
 	}
 	
