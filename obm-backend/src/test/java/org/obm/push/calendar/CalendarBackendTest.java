@@ -83,6 +83,8 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -122,6 +124,7 @@ import org.obm.sync.items.EventChanges;
 import org.obm.sync.items.ParticipationChanges;
 import org.slf4j.Logger;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -1780,4 +1783,19 @@ public class CalendarBackendTest {
 		assertThat(calendarBackend.belongsToCalendar(event, "creator@email.com")).isFalse();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
+		mockControl.replay();
+		BackendFolders<CalendarPath> currentFolders = calendarBackend.currentFolders(userDataRequest);
+		mockControl.verify();
+		
+		assertThat(currentFolders).containsOnly(
+			BackendFolder.<CalendarPath>builder()
+				.backendId(CalendarPath.of("test"))
+				.displayName("test calendar")
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.parentId(Optional.<CalendarPath>absent())
+				.build());
+	}
 }

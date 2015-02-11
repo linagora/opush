@@ -34,6 +34,7 @@ package org.obm.push.calendar;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -107,10 +109,12 @@ import org.obm.sync.services.ICalendar;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -164,8 +168,19 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 	
 	@Override
-	protected BackendFolders<CalendarPath> currentFolders(UserDataRequest udr) {
-		return null;
+	protected BackendFolders<CalendarPath> currentFolders(final UserDataRequest udr) {
+		return new BackendFolders<CalendarPath>() {
+
+			@Override
+			public Iterator<BackendFolder<CalendarPath>> iterator() {
+				return Iterators.singletonIterator(BackendFolder.<CalendarPath>builder()
+						.parentId(Optional.<CalendarPath>absent())
+						.backendId(CalendarPath.of(udr.getUser().getLogin()))
+						.displayName(udr.getUser().getLogin() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
+						.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+						.build());
+			}
+		};
 	}
 	
 	@Override

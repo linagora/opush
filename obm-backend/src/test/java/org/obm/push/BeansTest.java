@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2015 Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,51 +29,20 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.calendar;
+package org.obm.push;
 
-import org.obm.push.bean.Stringable;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import org.junit.Test;
+import org.obm.push.calendar.CalendarPath;
 
-public class CalendarPath implements Stringable {
+public class BeansTest {
 
-	public static CalendarPath of(String path) {
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
-		return new CalendarPath(path);
-	}
-	
-	private String path;
-	
-	private CalendarPath(String path) {
-		this.path = path;
-	}
-
-	@Override
-	public String asString() {
-		return path;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(path);
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof CalendarPath) {
-			CalendarPath that = (CalendarPath)obj;
-			return Objects.equal(path, that.path);
-		}
-		return false;
-	}
-	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("path", path)
-			.toString();
-	}
-
+	@Test
+	public void beanShouldRespectBeanContract() {
+		EqualsVerifier.forClass(CalendarPath.class)
+			.suppress(Warning.NONFINAL_FIELDS, Warning.STRICT_INHERITANCE)
+			.verify();
+	}	
 }
