@@ -138,10 +138,26 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	public PIMDataType getPIMDataType() {
 		return PIMDataType.CONTACTS;
 	}
-	
+
 	@Override
 	protected BackendFolders currentFolders(UserDataRequest udr) {
-		return null;
+		return new ContactBackendFoldersBuilder()
+			.userDataRequest(udr)
+			.defaultAddressBookName(contactConfiguration.getDefaultAddressBookName())
+			.folders(listAllAddressBooks())
+			.build();
+	}
+
+	private Set<Folder> listAllAddressBooks() throws UnexpectedObmSyncServerException {
+		AccessToken token = getAccessToken();
+		Date lastSyncDate = DateUtils.getEpochCalendar().getTime();
+		try {
+			// Can't use "listAllBooks" endpoint as it give shared books
+			// and does not respect the "syncUsersAsAddressBook" policy
+			return getBookClient().listAddressBooksChanged(token, lastSyncDate).getUpdated();
+		} catch (ServerFault e) {
+			throw new UnexpectedObmSyncServerException(e);
+		}
 	}
 	
 	@Override

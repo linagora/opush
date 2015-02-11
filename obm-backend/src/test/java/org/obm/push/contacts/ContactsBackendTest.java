@@ -74,9 +74,12 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.impl.ObmSyncBackend.WindowingChangesDelta;
 import org.obm.push.protocol.bean.CollectionId;
@@ -116,6 +119,8 @@ public class ContactsBackendTest {
 	private User user;
 	private Device device;
 	private UserDataRequest userDataRequest;
+	private Date now;
+	private Date epoch;
 	
 	private IMocksControl mocks;
 	private MappingService mappingService;
@@ -142,6 +147,8 @@ public class ContactsBackendTest {
 		token = new AccessToken(0, "OBM");
 		userDataRequest = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		httpClient = HttpClientBuilder.create().build();
+		now = DateUtils.date("2222-11-11T11:11:11Z");
+		epoch = DateUtils.date("1970-01-01T00:00:00Z");
 		
 		mocks = createControl();
 		opushResourcesHolder = mocks.createMock(OpushResourcesHolder.class);
@@ -976,5 +983,55 @@ public class ContactsBackendTest {
 		mocks.verify();
 		
 		assertThat(defaultFolder).isTrue();
+	}
+	
+	@Test
+	public void currentFoldersShouldCallObmSync() throws Exception {
+		Folder change = Folder.builder()
+			.name("contacts")
+			.uid(12)
+			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
+
+		Set<Folder> changes = ImmutableSet.of(change);
+		Set<Folder> deletions = ImmutableSet.of();
+		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
+
+		expect(bookClient.listAddressBooksChanged(token, epoch)).andReturn(folderChanges);
+
+		mocks.replay();
+		BackendFolders currentFolders = contactsBackend.currentFolders(userDataRequest);
+		mocks.verify();
+		
+		assertThat(currentFolders).containsOnly(
+			BackendFolder.builder()
+				.backendId(CollectionId.of(12))
+				.displayName("contacts")
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.parentId(Optional.<CollectionId>absent())
+				.build());
+	}
+	
+	@Test(expected=UnexpectedObmSyncServerException.class)
+	public void currentFoldersShouldWrapServerFault() throws Exception {
+		expect(bookClient.listAddressBooksChanged(token, epoch)).andThrow(new ServerFault("error"));
+
+		mocks.replay();
+		try {
+			contactsBackend.currentFolders(userDataRequest);
+		} finally {
+			mocks.verify();
+		}
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void currentFoldersShouldPropagateOtherException() throws Exception {
+		expect(bookClient.listAddressBooksChanged(token, epoch)).andThrow(new IllegalStateException("error"));
+
+		mocks.replay();
+		try {
+			contactsBackend.currentFolders(userDataRequest);
+		} finally {
+			mocks.verify();
+		}
 	}
 }
