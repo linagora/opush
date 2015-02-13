@@ -61,6 +61,7 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.protocol.bean.CollectionId;
@@ -72,7 +73,6 @@ import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
-import org.obm.sync.book.Folder;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.FolderChanges;
 
@@ -159,17 +159,17 @@ public class ContactBackendGetFoldersTest {
 
 	@Test
 	public void getFoldersShouldReturnOneAddWhenEmptyKnownSnapshotAndOneChange() throws Exception {
-		Folder change = Folder.builder()
+		org.obm.sync.book.Folder change = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 
-		Set<Folder> changes = ImmutableSet.of(change);
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(change);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 		
-		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder newSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
@@ -197,28 +197,28 @@ public class ContactBackendGetFoldersTest {
 
 	@Test
 	public void getFoldersShouldReturnOneAddWhenKnownSnapshotAndOneMoreChange() throws Exception {
-		Folder knownChange = Folder.builder()
+		org.obm.sync.book.Folder knownChange = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
-		Folder addFolder = Folder.builder()
+		org.obm.sync.book.Folder addFolder = org.obm.sync.book.Folder.builder()
 			.name("another name")
 			.uid(15)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 
-		Set<Folder> changes = ImmutableSet.of(knownChange, addFolder);
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(knownChange, addFolder);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder knownSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
-		FolderSnapshot.Folder addSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder addSnapshotFolder = Folder.builder()
 			.displayName("another name")
 			.backendId("15")
 			.collectionId(CollectionId.of(2))
@@ -246,13 +246,13 @@ public class ContactBackendGetFoldersTest {
 
 	@Test
 	public void getFoldersShouldReturnEmptyWhenEmptyKnownSnapshotAndOneDeletion() throws Exception {
-		Folder deleted = Folder.builder()
+		org.obm.sync.book.Folder deleted = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 
-		Set<Folder> changes = ImmutableSet.of();
-		Set<Folder> deletions = ImmutableSet.of(deleted);
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of(deleted);
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 		
@@ -274,17 +274,17 @@ public class ContactBackendGetFoldersTest {
 	public void getFoldersShouldReturnEmptyWhenKnownSnapshotAndSameChangeAndDeletion() throws Exception {
 		// The "deletions" are always discarded as snapshot behavior
 		// manage the diff itself, so deletions. The deletion should be discarded.
-		Folder sameAddAndDelete = Folder.builder()
+		org.obm.sync.book.Folder sameAddAndDelete = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 
-		Set<Folder> changes = ImmutableSet.of(sameAddAndDelete);
-		Set<Folder> deletions = ImmutableSet.of(sameAddAndDelete);
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(sameAddAndDelete);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of(sameAddAndDelete);
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder snapshotFolder = FolderSnapshot.Folder.builder()
+		Folder snapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
@@ -307,8 +307,8 @@ public class ContactBackendGetFoldersTest {
 
 	@Test
 	public void getFoldersShouldReturnEmptyWhenEmptyKnownSnapshotAndNoChange() throws Exception {
-		Set<Folder> changes = ImmutableSet.of();
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 		
@@ -328,12 +328,12 @@ public class ContactBackendGetFoldersTest {
 	
 	@Test
 	public void getFoldersShouldReturnOneDeletionWhenKnownSnapshotAndNoChange() throws Exception {
-		Set<Folder> changes = ImmutableSet.of();
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder knownSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
@@ -341,7 +341,7 @@ public class ContactBackendGetFoldersTest {
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
-		FolderSnapshot newSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<FolderSnapshot.Folder>of());
+		FolderSnapshot newSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
 		expect(folderSnapshotDao.get(user, device, PIMDataType.CONTACTS, incomingSK)).andReturn(knownSnapshot);
 		folderSnapshotDao.create(user, device, PIMDataType.CONTACTS, outgoingSK, newSnapshot);
 		expectLastCall();
@@ -357,17 +357,17 @@ public class ContactBackendGetFoldersTest {
 	
 	@Test
 	public void getFoldersShouldReturnEmptyWhenKnownSnapshotAndChange() throws Exception {
-		Folder knownChange = Folder.builder()
+		org.obm.sync.book.Folder knownChange = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 
-		Set<Folder> changes = ImmutableSet.of(knownChange);
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(knownChange);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder knownSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
@@ -390,24 +390,24 @@ public class ContactBackendGetFoldersTest {
 	
 	@Test
 	public void getFoldersShouldReturnOneChangeWhenKnownSnapshotAndChange() throws Exception {
-		Folder changed = Folder.builder()
+		org.obm.sync.book.Folder changed = org.obm.sync.book.Folder.builder()
 			.name("another display name")
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 		
-		Set<Folder> changes = ImmutableSet.of(changed);
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(changed);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder knownSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 
-		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder newSnapshotFolder = Folder.builder()
 			.displayName("another display name")
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
@@ -435,52 +435,52 @@ public class ContactBackendGetFoldersTest {
 	
 	@Test
 	public void getFoldersShouldReturnOneOfEachWhenKnownSnapshotAndManyChanges() throws Exception {
-		Folder same = Folder.builder()
+		org.obm.sync.book.Folder same = org.obm.sync.book.Folder.builder()
 			.name(contactDisplayName)
 			.uid(12)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
-		Folder changed = Folder.builder()
+		org.obm.sync.book.Folder changed = org.obm.sync.book.Folder.builder()
 			.name("changed name")
 			.uid(5)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
-		Folder newer = Folder.builder()
+		org.obm.sync.book.Folder newer = org.obm.sync.book.Folder.builder()
 			.name("yet another name")
 			.uid(980)
 			.ownerLoginAtDomain(user.getLoginAtDomain()).build();
 		
-		Set<Folder> changes = ImmutableSet.of(same, changed, newer);
-		Set<Folder> deletions = ImmutableSet.of();
+		Set<org.obm.sync.book.Folder> changes = ImmutableSet.of(same, changed, newer);
+		Set<org.obm.sync.book.Folder> deletions = ImmutableSet.of();
 		FolderChanges folderChanges = new FolderChanges(changes, deletions, now);
 		expect(bookClient.listAddressBooksChanged(accessToken, epoch)).andReturn(folderChanges);
 
-		FolderSnapshot.Folder knownSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("not anymore folder")
 			.backendId("8")
 			.collectionId(CollectionId.of(2))
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
-		FolderSnapshot.Folder sameSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder sameSnapshotFolder = Folder.builder()
 			.displayName(contactDisplayName)
 			.backendId("12")
 			.collectionId(CollectionId.of(1))
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
-		FolderSnapshot.Folder priorChangeSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder priorChangeSnapshotFolder = Folder.builder()
 			.displayName("previous name")
 			.backendId("5")
 			.collectionId(CollectionId.of(3))
 			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
-		FolderSnapshot.Folder changedSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder changedSnapshotFolder = Folder.builder()
 			.displayName("changed name")
 			.backendId("5")
 			.collectionId(CollectionId.of(3))
 			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
  
-		FolderSnapshot.Folder newSnapshotFolder = FolderSnapshot.Folder.builder()
+		Folder newSnapshotFolder = Folder.builder()
 			.displayName("yet another name")
 			.backendId("980")
 			.collectionId(CollectionId.of(5))

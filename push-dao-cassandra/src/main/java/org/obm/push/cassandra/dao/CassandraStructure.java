@@ -130,6 +130,20 @@ public interface CassandraStructure {
 		}
 	}
 	
+	interface FolderSnapshot {
+		Table TABLE = Table.of("folder_snapshot");
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.SYNC_KEY, Columns.FOLDER_TYPE };
+		
+		interface Columns {
+			String USER = "user";
+			String DEVICE_ID = "device_id";
+			String SYNC_KEY = "sync_key";
+			String FOLDER_TYPE = "folder_type";
+			String FOLDERS = "folders";
+			String NEXT_COLLECTION_ID = "next_collection_id";
+		}
+	}
+	
 	interface V1 {
 
 		interface SyncedCollection {

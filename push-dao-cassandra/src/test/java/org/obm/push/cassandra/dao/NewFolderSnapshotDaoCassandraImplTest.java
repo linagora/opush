@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,53 +29,29 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.state;
+package org.obm.push.cassandra.dao;
 
-import java.util.UUID;
+import org.cassandraunit.CassandraCQLUnit;
+import org.junit.Before;
+import org.junit.Rule;
+import org.obm.push.dao.testsuite.NewFolderSnapshotDaoTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
+public class NewFolderSnapshotDaoCassandraImplTest extends NewFolderSnapshotDaoTest {
 
-
-public class FolderSyncKey {
-
-	public static final FolderSyncKey INITIAL_FOLDER_SYNC_KEY = new FolderSyncKey("0"); 
+	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(FolderSnapshotDaoCassandraImpl.class);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
-	private String syncKey;
-
-	public FolderSyncKey(String syncKey) {
-		this.syncKey = syncKey;
-	}
-
-	public String asString() {
-		return syncKey;
-	}
-
-	public boolean isInitialFolderSync() {
-		return this.equals(INITIAL_FOLDER_SYNC_KEY);
-	}
-
-	public UUID asUUID() {
-		return UUID.fromString(syncKey);
+	private Logger logger = LoggerFactory.getLogger(NewFolderSnapshotDaoCassandraImplTest.class);
+	private PublicJSONService jsonService;
+	private SessionProvider sessionProvider;
+	
+	@Before
+	public void init() {
+		sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		jsonService = new PublicJSONService();
+		folderDao = new FolderSnapshotDaoCassandraImpl(sessionProvider, jsonService, logger);
 	}
 	
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(syncKey);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof FolderSyncKey) {
-			FolderSyncKey that = (FolderSyncKey) object;
-			return Objects.equal(this.syncKey, that.syncKey);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("syncKey", syncKey)
-			.toString();
-	}
 }

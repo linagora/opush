@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,53 +29,12 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.state;
+package org.obm.push.json.mixin;
 
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-import com.google.common.base.Objects;
+public interface FolderTypeMixIn {
 
-
-public class FolderSyncKey {
-
-	public static final FolderSyncKey INITIAL_FOLDER_SYNC_KEY = new FolderSyncKey("0"); 
-	
-	private String syncKey;
-
-	public FolderSyncKey(String syncKey) {
-		this.syncKey = syncKey;
-	}
-
-	public String asString() {
-		return syncKey;
-	}
-
-	public boolean isInitialFolderSync() {
-		return this.equals(INITIAL_FOLDER_SYNC_KEY);
-	}
-
-	public UUID asUUID() {
-		return UUID.fromString(syncKey);
-	}
-	
-	@Override
-	public final int hashCode(){
-		return Objects.hashCode(syncKey);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof FolderSyncKey) {
-			FolderSyncKey that = (FolderSyncKey) object;
-			return Objects.equal(this.syncKey, that.syncKey);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("syncKey", syncKey)
-			.toString();
-	}
+	@JsonValue
+	String asSpecificationValue();
 }

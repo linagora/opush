@@ -44,6 +44,7 @@ import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSEmailHeader;
@@ -57,6 +58,7 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.TypedCommandsIndex;
 import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
@@ -72,6 +74,8 @@ import org.obm.push.json.mixin.DeviceIdMixIn;
 import org.obm.push.json.mixin.DeviceMixIn;
 import org.obm.push.json.mixin.EmailChangesMixIn;
 import org.obm.push.json.mixin.EmailMixIn;
+import org.obm.push.json.mixin.FolderMixIn;
+import org.obm.push.json.mixin.FolderTypeMixIn;
 import org.obm.push.json.mixin.IApplicationDataMixIn;
 import org.obm.push.json.mixin.ItemChangeMixIn;
 import org.obm.push.json.mixin.ItemDeletionMixIn;
@@ -225,7 +229,9 @@ public class JSONService {
 			.setMixInAnnotation(SyncKey.class, SyncKeyMixIn.class)
 			.setMixInAnnotation(User.class, UserMixIn.class)
 			.setMixInAnnotation(WindowingContact.class, WindowingContactMixIn.class)
-			.setMixInAnnotation(WindowingEvent.class, WindowingEventMixIn.class);
+			.setMixInAnnotation(WindowingEvent.class, WindowingEventMixIn.class)
+			.setMixInAnnotation(Folder.class, FolderMixIn.class)
+			.setMixInAnnotation(FolderType.class, FolderTypeMixIn.class);
 	}
 
 	private SimpleModule buildOpushBeansSerializers() {

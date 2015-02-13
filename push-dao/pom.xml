@@ -44,6 +44,10 @@
 			<artifactId>push-bean</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.linagora.obm.opush</groupId>
+			<artifactId>push-interfaces</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>be.bitronix.btm</groupId>
 			<artifactId>btm</artifactId>
 			<scope>test</scope>

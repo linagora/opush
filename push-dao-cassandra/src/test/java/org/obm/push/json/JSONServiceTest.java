@@ -55,6 +55,7 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSAttachement;
 import org.obm.push.bean.MSContact;
@@ -79,6 +80,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
@@ -98,11 +100,52 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class JSONServiceTest {
+	
+	@Test
+	public void testSerializeFolderWithParent() {
+		Folder folder = Folder.builder()
+			.backendId("the backendId")
+			.parentBackendId(Optional.of("parent"))
+			.displayName("the displayName")
+			.collectionId(CollectionId.of(5))
+			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+			.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":\"the backendId\"," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":\"parent\"" + 
+			"}");
+	}
+	
+	@Test
+	public void testDeserializeFolderWithParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":\"the backendId\"," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":\"parent\"" + 
+			"}");
+		
+		assertThat(folder).isEqualTo(Folder.builder()
+			.backendId("the backendId")
+			.parentBackendId(Optional.of("parent"))
+			.displayName("the displayName")
+			.collectionId(CollectionId.of(5))
+			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+			.build());
+	}
 
 	@Test
 	public void testSerializeEmailChanges() {

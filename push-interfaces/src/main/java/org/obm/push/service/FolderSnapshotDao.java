@@ -50,6 +50,10 @@ public interface FolderSnapshotDao {
 			super();
 		}
 		
+		public FolderSnapshotNotFoundException(String message) {
+			super(message);
+		}
+		
 		public FolderSnapshotNotFoundException(Throwable cause) {
 			super(cause);
 		}
