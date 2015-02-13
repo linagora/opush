@@ -48,6 +48,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.FolderSnapshotDao.FolderSnapshotNotFoundException;
@@ -208,5 +209,168 @@ public abstract class NewFolderSnapshotDaoTest {
 		assertThat(calendarResult).isEqualTo(calendarSnapshot);
 		assertThat(contactResult).isEqualTo(contactSnapshot);
 		assertThat(mailResult).isEqualTo(mailSnapshot);
+	}
+	
+	@Test(expected=CollectionNotFoundException.class)
+	public void createShouldThrowNotFoundWhenWrongCollectionId() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folder = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
+		folderDao.get(user, device, CollectionId.of(4));
+	}
+	
+	@Test
+	public void createShouldMakeFolderFindableWhenRightCollectionId() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folder = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
+		Folder result = folderDao.get(user, device, folder.getCollectionId());
+		
+		assertThat(result).isEqualTo(folder);
+	}
+	
+	@Test
+	public void createShouldMakeTheLastFolderFindableWhenCreatedManyTimes() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folderV1 = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		Folder folderV2 = Folder.builder()
+			.displayName("INBOX V2")
+			.backendId("INBOX V2")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		Folder folderV3 = Folder.builder()
+			.displayName("INBOX V3")
+			.backendId("INBOX V3")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.of("the parent"))
+			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV1)));
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV2)));
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV3)));
+		
+		Folder result = folderDao.get(user, device, folderV1.getCollectionId());
+		
+		assertThat(result).isEqualTo(folderV3);
+	}
+
+	@Test(expected=CollectionNotFoundException.class)
+	public void createShouldThrowNotFoundWhenWrongBackendId() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folder = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
+		folderDao.get(user, device, PIMDataType.EMAIL, "unknown backend id");
+	}
+
+	@Test(expected=CollectionNotFoundException.class)
+	public void createShouldThrowNotFoundWhenWrongFolderType() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folder = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
+		folderDao.get(user, device, PIMDataType.CALENDAR, folder.getBackendId());
+	}
+	
+	@Test
+	public void createShouldMakeFolderFindableWhenRightBackendIdAndFolderType() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folder = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
+		Folder result = folderDao.get(user, device, PIMDataType.EMAIL, folder.getBackendId());
+		
+		assertThat(result).isEqualTo(folder);
+	}
+	
+	@Test
+	public void createShouldMakeTheLastFolderFindableWhenCreatedManyTimesByBackendId() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
+		
+		Folder folderV1 = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		Folder folderV2 = Folder.builder()
+			.displayName("INBOX V2")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(4))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
+		
+		Folder folderV3 = Folder.builder()
+			.displayName("INBOX V3")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(5))
+			.parentBackendId(Optional.of("the parent"))
+			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
+		
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV1)));
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV2)));
+		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV3)));
+		
+		Folder result = folderDao.get(user, device, PIMDataType.EMAIL, folderV1.getBackendId());
+		
+		assertThat(result).isEqualTo(folderV3);
 	}
 }

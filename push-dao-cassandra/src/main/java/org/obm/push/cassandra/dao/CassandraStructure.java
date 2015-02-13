@@ -144,6 +144,31 @@ public interface CassandraStructure {
 		}
 	}
 	
+	interface FolderMapping {
+		Table TABLE = Table.of("folder_mapping");
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.COLLECTION_ID };
+		
+		interface Columns {
+			String USER = "user";
+			String DEVICE_ID = "device_id";
+			String COLLECTION_ID = "collection_id";
+			String FOLDER = "folder";
+		}
+	}
+	
+	interface FolderReverseMapping {
+		Table TABLE = Table.of("folder_reverse_mapping");
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.BACKEND_ID, Columns.FOLDER_TYPE };
+		
+		interface Columns {
+			String USER = "user";
+			String DEVICE_ID = "device_id";
+			String BACKEND_ID = "backend_id";
+			String FOLDER_TYPE = "folder_type";
+			String FOLDER = "folder";
+		}
+	}
+	
 	interface V1 {
 
 		interface SyncedCollection {

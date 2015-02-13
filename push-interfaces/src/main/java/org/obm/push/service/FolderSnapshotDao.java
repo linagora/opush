@@ -34,8 +34,11 @@ package org.obm.push.service;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.state.FolderSyncKey;
 
 public interface FolderSnapshotDao {
@@ -43,6 +46,10 @@ public interface FolderSnapshotDao {
 	void create(User user, Device device, PIMDataType pimDataType, FolderSyncKey folderSyncKey, FolderSnapshot snapshot) throws DaoException;
 	
 	FolderSnapshot get(User user, Device device, PIMDataType pimDataType, FolderSyncKey folderSyncKey) throws DaoException, FolderSnapshotNotFoundException;
+
+	Folder get(User user, Device device, CollectionId collectionId) throws CollectionNotFoundException;
+	
+	Folder get(User user, Device device, PIMDataType pimDataType, String backendId) throws CollectionNotFoundException;
 	
 	public static class FolderSnapshotNotFoundException extends Exception {
 
