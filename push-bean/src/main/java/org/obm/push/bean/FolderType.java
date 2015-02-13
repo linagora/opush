@@ -38,33 +38,39 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 public enum FolderType {
 
-	USER_FOLDER_GENERIC("1"),
-	DEFAULT_INBOX_FOLDER("2"),
-	DEFAULT_DRAFTS_FOLDER("3"),
-	DEFAULT_DELETED_ITEMS_FOLDER("4"),
-	DEFAULT_SENT_EMAIL_FOLDER("5"),
-	DEFAULT_OUTBOX_FOLDER("6"),
-	DEFAULT_TASKS_FOLDER("7"),
-	DEFAULT_CALENDAR_FOLDER("8"),
-	DEFAULT_CONTACTS_FOLDER("9"),
-	DEFAULT_NOTES_FOLDER("10"),
-	DEFAULT_JOURNAL_FOLDER("11"),
-	USER_CREATED_EMAIL_FOLDER("12"),
-	USER_CREATED_CALENDAR_FOLDER("13"),
-	USER_CREATED_CONTACTS_FOLDER("14"),
-	USER_CREATED_TASKS_FOLDER("15"),
-	USER_CREATED_JOURNAL_FOLDER("16"),
-	USER_CREATED_NOTES_FOLDER("17"),
-	UNKNOWN_FOLDER_TYPE("18");
+	USER_FOLDER_GENERIC("1", PIMDataType.UNKNOWN),
+	DEFAULT_INBOX_FOLDER("2", PIMDataType.EMAIL),
+	DEFAULT_DRAFTS_FOLDER("3", PIMDataType.EMAIL),
+	DEFAULT_DELETED_ITEMS_FOLDER("4", PIMDataType.EMAIL),
+	DEFAULT_SENT_EMAIL_FOLDER("5", PIMDataType.EMAIL),
+	DEFAULT_OUTBOX_FOLDER("6", PIMDataType.EMAIL),
+	DEFAULT_TASKS_FOLDER("7", PIMDataType.TASKS),
+	DEFAULT_CALENDAR_FOLDER("8", PIMDataType.CALENDAR),
+	DEFAULT_CONTACTS_FOLDER("9", PIMDataType.CONTACTS),
+	DEFAULT_NOTES_FOLDER("10", PIMDataType.UNKNOWN),
+	DEFAULT_JOURNAL_FOLDER("11", PIMDataType.UNKNOWN),
+	USER_CREATED_EMAIL_FOLDER("12", PIMDataType.EMAIL),
+	USER_CREATED_CALENDAR_FOLDER("13", PIMDataType.CALENDAR),
+	USER_CREATED_CONTACTS_FOLDER("14", PIMDataType.CONTACTS),
+	USER_CREATED_TASKS_FOLDER("15", PIMDataType.TASKS),
+	USER_CREATED_JOURNAL_FOLDER("16", PIMDataType.UNKNOWN),
+	USER_CREATED_NOTES_FOLDER("17", PIMDataType.UNKNOWN),
+	UNKNOWN_FOLDER_TYPE("18", PIMDataType.UNKNOWN);
 	
 	private final String specificationValue;
+	private final PIMDataType type;
 	
-	private FolderType(String specificationValue) {
+	private FolderType(String specificationValue, PIMDataType type) {
 		this.specificationValue = specificationValue;
+		this.type = type;
 	}
 
 	public String asSpecificationValue() {
 		return specificationValue;
+	}
+	
+	public PIMDataType getPIMDataType() {
+		return type;
 	}
 
 	public static FolderType fromSpecificationValue(String specificationValue){
