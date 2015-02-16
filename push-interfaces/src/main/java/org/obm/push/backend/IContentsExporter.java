@@ -70,10 +70,6 @@ public interface IContentsExporter {
 	Optional<ItemChange> fetch(UserDataRequest udr, ItemSyncState itemSyncState, PIMDataType dataType, CollectionId collectionId, SyncCollectionOptions options, ServerId fetchId, SyncKey newSyncKey) 
 			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnexpectedObmSyncServerException, ConversionException;
 
-	int getItemEstimateSize(UserDataRequest udr, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState)
-			throws CollectionNotFoundException, ProcessingEmailException,
-			DaoException, UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException;
-
 	int getItemEstimateSize(UserDataRequest udr, PIMDataType pimDataType, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState) 
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, 
 			UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException;

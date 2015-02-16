@@ -179,8 +179,9 @@ public class OBMBackend implements IBackend {
 						.syncKey(syncCollection.getSyncKey())
 						.build();
 			}
-			
-			int count = getItemEstimateSize(userDataRequest, syncCollection, itemSyncState);
+
+			int count = contentsExporter.getItemEstimateSize(
+					userDataRequest, syncCollection.getDataType(), syncCollection, itemSyncState);
 			if (count > 0) {
 				syncCollectionsChanged.add(builder.build());
 			}
@@ -189,10 +190,4 @@ public class OBMBackend implements IBackend {
 		return syncCollectionsChanged;
 	}
 	
-	private int getItemEstimateSize(UserDataRequest udr, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState) throws DaoException,
-		CollectionNotFoundException, UnexpectedObmSyncServerException, 
-		ProcessingEmailException, ConversionException, FilterTypeChangedException, HierarchyChangedException {
-		
-		return contentsExporter.getItemEstimateSize(udr, syncCollection, itemSyncState);
-	}
 }

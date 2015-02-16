@@ -109,16 +109,6 @@ public class ContentsExporter implements IContentsExporter {
 	}
 
 	@Override
-	public int getItemEstimateSize(UserDataRequest udr, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState) 
-					throws CollectionNotFoundException, ProcessingEmailException, DaoException,
-					UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException {
-
-		PIMBackend backend = backends.getBackend(syncCollection.getDataType());
-		return backend.getItemEstimateSize(udr, itemSyncState, 
-				syncCollection.getCollectionId(), syncCollection.getOptions());
-	}
-
-	@Override
 	public int getItemEstimateSize(UserDataRequest udr, PIMDataType pimDataType, AnalysedSyncCollection syncCollection, ItemSyncState itemSyncState) 
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, 
 			UnexpectedObmSyncServerException, ConversionException, FilterTypeChangedException, HierarchyChangedException {
