@@ -41,7 +41,6 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
-import org.obm.push.protocol.data.TimeZoneConverterImpl;
 import org.obm.push.utils.type.UnsignedShort;
 
 
@@ -167,9 +166,9 @@ public class TimeZoneConverterImplTest {
 		
 		assertThat(asTimeZone.getBias()).isEqualTo(biasHourOffsetInMinutes(SYDNEY_GMT));
 		assertThat(asTimeZone.getStandardBias()).isEqualTo(SYDNEY_STANDARD_OFFSET);
-		assertThat(asTimeZone.getStandardName()).isEqualTo("Eastern Standard Time (New South Wales)");
+		assertThat(asTimeZone.getStandardName()).isIn("Eastern Standard Time (New South Wales)", "Australian Eastern Standard Time (New South Wales)");
 		assertThat(asTimeZone.getDayLightBias()).isEqualTo(biasHourOffsetInMinutes(SYDNEY_DST_OFFSET));
-		assertThat(asTimeZone.getDayLightName()).isEqualTo("Eastern Summer Time (New South Wales)");
+		assertThat(asTimeZone.getDayLightName()).isIn("Eastern Summer Time (New South Wales)", "Australian Eastern Daylight Time (New South Wales)");
 		assertThat(asTimeZone.getStandardDate()).isEqualTo(new ASSystemTime.FromDateBuilder()
 			.dateTime(DateTime.parse("2013-04-07T03:00:00+11"))
 			.overridingYear(UnsignedShort.checkedCast(TIMEZONE_EACH_YEARS_SPEC_VALUE))
@@ -179,7 +178,7 @@ public class TimeZoneConverterImplTest {
 			.overridingYear(UnsignedShort.checkedCast(TIMEZONE_EACH_YEARS_SPEC_VALUE))
 			.build());
 	}
-	
+
 	@Test
 	public void testAucklandConversion() {
 		ASTimeZone asTimeZone = new TimeZoneConverterImpl()
