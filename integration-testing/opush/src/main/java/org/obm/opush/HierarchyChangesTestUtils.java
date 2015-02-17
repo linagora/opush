@@ -40,9 +40,11 @@ import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.calendar.CalendarBackend;
+import org.obm.push.calendar.CalendarPath;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
@@ -116,6 +118,17 @@ public class HierarchyChangesTestUtils {
 	
 	private HierarchyCollectionChanges emptyChange() {
 		return HierarchyCollectionChanges.builder().build();
+	}
+
+	public void mockGetBackendFoldersUnchanged() {
+		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.<CollectionId>instance());
+		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.<CalendarPath>instance());
+		expect(mailBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance());
+		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance());
 	}
 	
 

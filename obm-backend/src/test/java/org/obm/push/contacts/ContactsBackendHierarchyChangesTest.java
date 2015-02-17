@@ -71,7 +71,6 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
@@ -111,7 +110,6 @@ public class ContactsBackendHierarchyChangesTest {
 	private DateService dateService;
 	private OpushResourcesHolder opushResourcesHolder;
 	private ContactCreationIdempotenceService creationIdempotenceService;
-	private FolderSnapshotDao folderSnapshotDao;
 
 	@Before
 	public void setUp() {
@@ -139,7 +137,6 @@ public class ContactsBackendHierarchyChangesTest {
 		clientIdService = mocks.createMock(ClientIdService.class);
 		dateService = mocks.createMock(DateService.class);
 		creationIdempotenceService = mocks.createMock(ContactCreationIdempotenceService.class);
-		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		contactConverter = new ContactConverter();
 		
 		contactsBackend = new ContactsBackend(mappingService, 
@@ -151,8 +148,7 @@ public class ContactsBackendHierarchyChangesTest {
 				contactConverter,
 				dateService,
 				opushResourcesHolder,
-				creationIdempotenceService,
-				folderSnapshotDao);
+				creationIdempotenceService);
 	}
 
 	@After

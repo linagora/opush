@@ -38,6 +38,7 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Properties;
 
+import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.bean.Device;
@@ -72,6 +73,7 @@ public class SpushnikScenarioTestUtils {
 	@Inject private MailBackend mailBackend;
 	@Inject private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
 	@Inject private IntegrationUserAccessUtils accessUtils;
+	@Inject private HierarchyChangesTestUtils hierarchyChangesTestUtils;
 	
 	public void mockWorkingFolderSync(OpushUser userFixture) throws AuthFault {
 		
@@ -109,7 +111,7 @@ public class SpushnikScenarioTestUtils {
 			.andReturn(policyKey).once();
 		
 		// FolderSync
-		FolderSyncKey syncKey = new FolderSyncKey("123");
+		FolderSyncKey syncKey = new FolderSyncKey("f5c5e432-3db6-4b30-adf2-b5673943df5b");
 		expect(folderSyncKeyFactory.randomSyncKey())
 			.andReturn(syncKey).once();
 		FolderSyncState syncState = FolderSyncState.builder()
@@ -134,6 +136,9 @@ public class SpushnikScenarioTestUtils {
 		expect(mailBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
 			.andReturn(HierarchyCollectionChanges.builder()
 					.build()).once();
+		
+		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		
 		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), eq(syncState));
 		expectLastCall().anyTimes();
 	}

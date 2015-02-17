@@ -132,13 +132,12 @@ public interface CassandraStructure {
 	
 	interface FolderSnapshot {
 		Table TABLE = Table.of("folder_snapshot");
-		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.SYNC_KEY, Columns.FOLDER_TYPE };
+		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.SYNC_KEY };
 		
 		interface Columns {
 			String USER = "user";
 			String DEVICE_ID = "device_id";
 			String SYNC_KEY = "sync_key";
-			String FOLDER_TYPE = "folder_type";
 			String FOLDERS = "folders";
 			String NEXT_COLLECTION_ID = "next_collection_id";
 		}
@@ -152,19 +151,8 @@ public interface CassandraStructure {
 			String USER = "user";
 			String DEVICE_ID = "device_id";
 			String COLLECTION_ID = "collection_id";
-			String FOLDER = "folder";
-		}
-	}
-	
-	interface FolderReverseMapping {
-		Table TABLE = Table.of("folder_reverse_mapping");
-		String[] PK = { Columns.USER, Columns.DEVICE_ID, Columns.BACKEND_ID, Columns.FOLDER_TYPE };
-		
-		interface Columns {
-			String USER = "user";
-			String DEVICE_ID = "device_id";
 			String BACKEND_ID = "backend_id";
-			String FOLDER_TYPE = "folder_type";
+			String DATA_TYPE = "data_type";
 			String FOLDER = "folder";
 		}
 	}

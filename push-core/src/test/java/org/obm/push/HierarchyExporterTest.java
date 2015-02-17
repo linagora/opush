@@ -39,6 +39,8 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.util.Iterator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.backend.FolderBackend;
@@ -50,9 +52,12 @@ import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.Stringable;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -63,7 +68,9 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.FolderSyncKey;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -253,6 +260,87 @@ public class HierarchyExporterTest {
 		
 		assertThat(hierarchyItemsChanges.getCollectionChanges()).containsOnly(contact1, contact2, mail1, mail2);
 		assertThat(hierarchyItemsChanges.getCollectionDeletions()).containsOnly(contactDeleted, mailDeleted);
+	}
+
+	@Test
+	public void getBackendFoldersShouldBeEmptyWhenAllEmpty() {
+		FolderBackend folderExporter = createStrictMock(FolderBackend.class);
+		PIMBackend contactsBackend = createMock(PIMBackend.class);
+		PIMBackend calendarBackend = createMock(PIMBackend.class);
+		MailBackend mailBackend = createMock(MailBackend.class);
+		MappingService mappingService = createMock(MappingService.class);
+
+		expectGetPIMDataType(contactsBackend, calendarBackend, mailBackend);
+		expect(contactsBackend.getBackendFolders(userDataRequest))
+			.andReturn(BackendFolders.EMPTY.instance());
+		expect(calendarBackend.getBackendFolders(userDataRequest))
+			.andReturn(BackendFolders.EMPTY.instance());
+		expect(mailBackend.getBackendFolders(userDataRequest))
+			.andReturn(BackendFolders.EMPTY.instance());
+		
+		replay(folderExporter, mailBackend, calendarBackend, contactsBackend, mappingService);
+		IHierarchyExporter hierarchyExporter = buildHierarchyExporter(
+				folderExporter, mappingService, contactsBackend, calendarBackend, mailBackend);
+
+		BackendFolders<?> backendFolders = hierarchyExporter.getBackendFolders(userDataRequest);
+		verify(mailBackend, calendarBackend, contactsBackend, mappingService);
+		
+		assertThat(backendFolders).isEmpty();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void getBackendFoldersShouldHaveAllElementsWhenEveryBackendHasFolder() {
+		FolderBackend folderExporter = createStrictMock(FolderBackend.class);
+		PIMBackend contactsBackend = createMock(PIMBackend.class);
+		PIMBackend calendarBackend = createMock(PIMBackend.class);
+		MailBackend mailBackend = createMock(MailBackend.class);
+		MappingService mappingService = createMock(MappingService.class);
+
+		BackendFolder<Stringable> addressBook = BackendFolder.builder()
+			.displayName("addressBook")
+			.backendId(CollectionId.of(12))
+			.parentId(Optional.<Stringable>absent())
+			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+			.build();
+		
+		BackendFolder<Stringable> calendar = BackendFolder.builder()
+			.displayName("calendar")
+			.backendId(CollectionId.of(15))
+			.parentId(Optional.<Stringable>absent())
+			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+			.build();
+		
+		BackendFolder<Stringable> mailbox = BackendFolder.builder()
+			.displayName("mailbox")
+			.backendId(CollectionId.of(18))
+			.parentId(Optional.<Stringable>absent())
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.build();
+		
+		expectGetPIMDataType(contactsBackend, calendarBackend, mailBackend);
+		expect(contactsBackend.getBackendFolders(userDataRequest)).andReturn(folders(addressBook));
+		expect(calendarBackend.getBackendFolders(userDataRequest)).andReturn(folders(calendar));
+		expect(mailBackend.getBackendFolders(userDataRequest)).andReturn(folders(mailbox));
+		
+		replay(folderExporter, mailBackend, calendarBackend, contactsBackend, mappingService);
+		IHierarchyExporter hierarchyExporter = buildHierarchyExporter(
+				folderExporter, mappingService, contactsBackend, calendarBackend, mailBackend);
+
+		BackendFolders<Stringable> backendFolders = (BackendFolders<Stringable>) 
+				hierarchyExporter.getBackendFolders(userDataRequest);
+		verify(mailBackend, calendarBackend, contactsBackend, mappingService);
+		
+		assertThat(backendFolders).containsOnly(addressBook, calendar, mailbox);
+	}
+
+	private BackendFolders<Stringable> folders(final BackendFolder<Stringable> folder) {
+		return new BackendFolders<Stringable>() {
+
+			@Override
+			public Iterator<BackendFolder<Stringable>> iterator() {
+				return ImmutableSet.of(folder).iterator();
+			}};
 	}
 
 	private void expectCreateBackendMappingForBackends(MappingService mappingService,

@@ -88,7 +88,6 @@ import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
@@ -148,10 +147,9 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			Ical4jHelper ical4jHelper, 
 			Ical4jUser.Factory ical4jUserFactory,
 			DateService dateService,
-			OpushResourcesHolder opushResourcesHolder,
-			FolderSnapshotDao folderSnapshotDao) {
+			OpushResourcesHolder opushResourcesHolder) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder, folderSnapshotDao);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
 		this.calendarClientFactory = calendarClientFactory;
 		this.eventConverter = eventConverter;
 		this.eventService = eventService;
@@ -167,8 +165,9 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return PIMDataType.CALENDAR;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	protected BackendFolders<CalendarPath> currentFolders(final UserDataRequest udr) {
+	public BackendFolders<CalendarPath> getBackendFolders(final UserDataRequest udr) {
 		return new BackendFolders<CalendarPath>() {
 
 			@Override
@@ -182,7 +181,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			}
 		};
 	}
-	
+
 	@Override
 	public HierarchyCollectionChanges getHierarchyChanges(UserDataRequest udr, 
 			FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)

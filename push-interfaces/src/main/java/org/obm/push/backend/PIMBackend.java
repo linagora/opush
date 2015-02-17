@@ -42,9 +42,11 @@ import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.Stringable;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.ConversionException;
@@ -59,7 +61,6 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.state.FolderSyncKey;
 
 public interface PIMBackend extends PIMTyped {
 
@@ -102,6 +103,5 @@ public interface PIMBackend extends PIMTyped {
 
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 
-	HierarchyCollectionChanges getFolders(UserDataRequest udr, FolderSyncKey incomingSyncKey, FolderSyncKey outgoingSyncKey)
-			throws DaoException, InvalidSyncKeyException;
+	<TYPE extends Stringable> BackendFolders<TYPE> getBackendFolders(UserDataRequest udr) ;
 }

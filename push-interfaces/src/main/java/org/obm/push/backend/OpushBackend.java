@@ -32,7 +32,6 @@
 package org.obm.push.backend;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.obm.push.backend.CollectionPath.Builder;
@@ -40,26 +39,14 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.hierarchy.BackendFolder;
-import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
-import org.obm.push.bean.change.hierarchy.Folder;
-import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.service.FolderSnapshotDao;
-import org.obm.push.service.FolderSnapshotDao.FolderSnapshotNotFoundException;
 import org.obm.push.service.impl.MappingService;
-import org.obm.push.state.FolderSyncKey;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
@@ -71,139 +58,12 @@ public abstract class OpushBackend implements PIMTyped {
 
 	protected final MappingService mappingService;
 	protected final Provider<Builder> collectionPathBuilderProvider;
-	protected final FolderSnapshotDao folderSnapshotDao;
 
-	protected OpushBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, 
-			FolderSnapshotDao folderSnapshotDao) {
+	protected OpushBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider) {
 		this.mappingService = mappingService;
 		this.collectionPathBuilderProvider = collectionPathBuilderProvider;
-		this.folderSnapshotDao = folderSnapshotDao;
 	}
 	
-	public HierarchyCollectionChanges getFolders(UserDataRequest udr, FolderSyncKey incomingSyncKey, FolderSyncKey outgoingSyncKey) {
-		try {
-			FolderSnapshot knownSnapshot = findFolderSnapshot(udr, incomingSyncKey);
-			FolderSnapshot newSnapshot = snapshot(udr, outgoingSyncKey, knownSnapshot, currentFolders(udr));
-			return buildDiff(knownSnapshot, newSnapshot);
-		} catch (CollectionNotFoundException e) {
-			throw new HierarchyChangesException(e);
-		}
-	}
-
-	@VisibleForTesting FolderSnapshot findFolderSnapshot(UserDataRequest udr, FolderSyncKey folderSyncKey) {
-		try {
-			if (folderSyncKey.isInitialFolderSync()) {
-				return FolderSnapshot.empty();
-			}
-			return folderSnapshotDao.get(udr.getUser(), udr.getDevice(), getPIMDataType(), folderSyncKey);
-		} catch (FolderSnapshotNotFoundException e) {
-			throw new InvalidFolderSyncKeyException(folderSyncKey, e);
-		}
-	}
-
-	@VisibleForTesting FolderSnapshot snapshot(UserDataRequest udr, FolderSyncKey outgoingSyncKey,
-			FolderSnapshot knownSnapshot, BackendFolders<?> currentFolders) {
-		
-		int nextId = knownSnapshot.getNextId();
-		Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
-
-		ImmutableSet.Builder<Folder> allFolders = ImmutableSet.builder();
-		for (BackendFolder<?> currentFolder : currentFolders) {
-			if (isKnownFolder(knownFolders, currentFolder)) {
-				CollectionId collectionId = knownFolders.get(currentFolder.getBackendId().asString()).getCollectionId();
-				allFolders.add(Folder.from(currentFolder, collectionId));
-			} else {
-				allFolders.add(Folder.from(currentFolder, CollectionId.of(nextId++)));
-			}
-		}
-		
-		FolderSnapshot snapshot = FolderSnapshot.nextId(nextId).folders(allFolders.build());
-		folderSnapshotDao.create(udr.getUser(), udr.getDevice(), getPIMDataType(), outgoingSyncKey, snapshot);
-		return snapshot;
-	}
-
-	private boolean isKnownFolder(Map<String, Folder> knownFolders, BackendFolder<?> currentFolder) {
-		return knownFolders.containsKey(currentFolder.getBackendId().asString());
-	}
-	
-	@VisibleForTesting HierarchyCollectionChanges buildDiff(final FolderSnapshot knownSnapshot, final FolderSnapshot currentSnapshot) throws DaoException {
-		final Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
-		final Map<String, Folder> currentFolders = currentSnapshot.getFoldersByBackendId();
-
-		final Set<String> adds = Sets.difference(currentFolders.keySet(), knownFolders.keySet());
-		final Set<String> dels = Sets.difference(knownFolders.keySet(), currentFolders.keySet());
-		
-		return HierarchyCollectionChanges.builder()
-			.deletions(FluentIterable.from(dels).transform(folderToCollectionDeletion(knownFolders)).toSet())
-			.additions(FluentIterable.from(adds).transform(folderToCollectionCreation(currentFolders)).toSet())
-			.changes(FluentIterable.from(currentSnapshot.getFolders())
-					.filter(new Predicate<Folder>() {
-
-						@Override
-						public boolean apply(Folder folder) {
-							return !adds.contains(folder.getBackendId())
-								&& !dels.contains(folder.getBackendId())
-								&& !knownSnapshot.getFolders().contains(folder);
-						}
-					})
-					.transform(folderToCollectionChange(currentFolders)).toSet())
-			.build();
-	}
-
-	@VisibleForTesting Function<String, CollectionDeletion> folderToCollectionDeletion(final Map<String, Folder> knownFolders) {
-		return new Function<String, CollectionDeletion>() {
-		
-			@Override
-			public CollectionDeletion apply(String id) {
-				return CollectionDeletion.builder()
-						.collectionId(knownFolders.get(id).getCollectionId())
-						.build();
-			}
-		};
-	}
-
-	@VisibleForTesting Function<String, CollectionChange> folderToCollectionCreation(final Map<String, Folder> currentFoldersMap) {
-		return new Function<String, CollectionChange>() {
-	
-				@Override
-				public CollectionChange apply(String id) {
-					Folder folder = currentFoldersMap.get(id);
-					return CollectionChange.builder()
-							.isNew(true)
-							.displayName(folder.getDisplayName())
-							.folderType(folder.getFolderType())
-							.collectionId(folder.getCollectionId())
-							.parentCollectionId(getParentCollectionId(currentFoldersMap, folder))
-							.build();
-				}
-		};
-	}
-
-	@VisibleForTesting Function<Folder, CollectionChange> folderToCollectionChange(final Map<String, Folder> currentFolders) {
-		return new Function<Folder, CollectionChange>() {
-		
-			@Override
-			public CollectionChange apply(Folder folder) {
-				return CollectionChange.builder()
-						.isNew(false)
-						.displayName(folder.getDisplayName())
-						.folderType(folder.getFolderType())
-						.collectionId(folder.getCollectionId())
-						.parentCollectionId(getParentCollectionId(currentFolders, folder))
-						.build();
-			}
-		};
-	}
-
-	private CollectionId getParentCollectionId(Map<String, Folder> currentFoldersMap, Folder folder) {
-		Optional<String> parentBackendId = folder.getParentBackendId();
-		if (!parentBackendId.isPresent()) {
-			return CollectionId.ROOT;
-		}
-		Folder parentFolder = currentFoldersMap.get(parentBackendId.get());
-		return parentFolder != null ? parentFolder.getCollectionId() : CollectionId.ROOT;
-	}
-
 	protected void snapshotHierarchy(UserDataRequest udr, Iterable<CollectionPath> collections,
 			FolderSyncState outgoingSyncState) throws DaoException {
 
@@ -290,7 +150,5 @@ public abstract class OpushBackend implements PIMTyped {
 
 	protected abstract CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
 			throws DaoException, CollectionNotFoundException;
-	
-	protected abstract BackendFolders<?> currentFolders(UserDataRequest udr);
 	
 }

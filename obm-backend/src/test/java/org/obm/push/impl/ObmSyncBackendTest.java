@@ -51,7 +51,6 @@ import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 
@@ -73,8 +72,7 @@ public class ObmSyncBackendTest {
 						mocks.createMock(Provider.class), 
 						mocks.createMock(WindowingDao.class),
 						mocks.createMock(DateService.class),
-						mocks.createMock(OpushResourcesHolder.class),
-						mocks.createMock(FolderSnapshotDao.class))
+						mocks.createMock(OpushResourcesHolder.class))
 				.createMock();
 	}
 	

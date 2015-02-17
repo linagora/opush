@@ -37,11 +37,11 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.TABLE;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.DEVICE_ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.FOLDERS;
-import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.FOLDER_TYPE;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.NEXT_COLLECTION_ID;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.SYNC_KEY;
 import static org.obm.push.cassandra.dao.CassandraStructure.FolderSnapshot.Columns.USER;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -52,7 +52,6 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.cassandra.dao.CassandraStructure.FolderMapping;
-import org.obm.push.cassandra.dao.CassandraStructure.FolderReverseMapping;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -86,26 +85,25 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 	}
 
 	@Override
-	public void create(User user, Device device, PIMDataType pimDataType,
-			FolderSyncKey folderSyncKey, FolderSnapshot snapshot) throws DaoException {
+	public void create(User user, Device device, FolderSyncKey folderSyncKey, FolderSnapshot snapshot)
+			throws DaoException {
+		
 		BatchStatement batch = new BatchStatement(Type.LOGGED);
 		
-		insertSnapshot(batch, user, device, pimDataType, folderSyncKey, snapshot);
+		insertSnapshot(batch, user, device, folderSyncKey, snapshot);
 		insertMapping(batch, user, device, snapshot.getFolders());
-		insertReverseMapping(batch, user, device, pimDataType, snapshot.getFolders());
 
 		logger.debug("Executing batch of size: {}", batch.size());
 		getSession().execute(batch);
 	}
 
-	private void insertSnapshot(BatchStatement batch, User user, Device device, PIMDataType pimDataType,
+	private void insertSnapshot(BatchStatement batch, User user, Device device, 
 			FolderSyncKey folderSyncKey, FolderSnapshot snapshot) {
 		Insert query = insertInto(TABLE.get())
 			.value(USER, user.getLoginAtDomain())
 			.value(DEVICE_ID, device.getDevId().getDeviceId())
 			.value(SYNC_KEY, folderSyncKey.asUUID())
 			.value(NEXT_COLLECTION_ID, snapshot.getNextId())
-			.value(FOLDER_TYPE, pimDataType.asXmlValue())
 			.value(FOLDERS, jsonService.serializeSet(snapshot.getFolders()));
 		logger.debug("Batch will insert snapshot {}", query.getQueryString());
 		batch.add(query);
@@ -117,37 +115,23 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 				.value(FolderMapping.Columns.USER, user.getLoginAtDomain())
 				.value(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId())
 				.value(FolderMapping.Columns.COLLECTION_ID, folder.getCollectionId().asInt())
+				.value(FolderMapping.Columns.DATA_TYPE, folder.getFolderType().getPIMDataType().asXmlValue())
+				.value(FolderMapping.Columns.BACKEND_ID, folder.getBackendId())
 				.value(FolderMapping.Columns.FOLDER, jsonService.serialize(folder));
 			logger.debug("Batch will insert mapping {}", query.getQueryString());
 			batch.add(query);
 		}
 	}
 
-	private void insertReverseMapping(BatchStatement batch, User user, Device device,
-			PIMDataType pimDataType, Set<Folder> folders) {
-		
-		for (Folder folder : folders) {
-			Insert query = insertInto(FolderReverseMapping.TABLE.get())
-				.value(FolderReverseMapping.Columns.USER, user.getLoginAtDomain())
-				.value(FolderReverseMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId())
-				.value(FolderReverseMapping.Columns.FOLDER_TYPE, pimDataType.asXmlValue())
-				.value(FolderReverseMapping.Columns.BACKEND_ID, folder.getBackendId())
-				.value(FolderReverseMapping.Columns.FOLDER, jsonService.serialize(folder));
-			logger.debug("Batch will insert reverse mapping {}", query.getQueryString());
-			batch.add(query);
-		}
-	}
-
 	@Override
-	public FolderSnapshot get(User user, Device device, PIMDataType pimDataType, FolderSyncKey folderSyncKey)
+	public FolderSnapshot get(User user, Device device, FolderSyncKey folderSyncKey)
 			throws DaoException, FolderSnapshotNotFoundException {
 
 		Where query = select(NEXT_COLLECTION_ID, FOLDERS)
 			.from(TABLE.get())
 			.where(eq(USER, user.getLoginAtDomain()))
 			.and(eq(DEVICE_ID, device.getDevId().getDeviceId()))
-			.and(eq(SYNC_KEY, folderSyncKey.asUUID()))
-			.and(eq(FOLDER_TYPE, pimDataType.asXmlValue()));
+			.and(eq(SYNC_KEY, folderSyncKey.asUUID()));
 		
 		logger.debug("Getting {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
@@ -180,12 +164,13 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 
 	@Override
 	public Folder get(User user, Device device, PIMDataType pimDataType, String backendId) throws CollectionNotFoundException {
-		Where query = select(FolderReverseMapping.Columns.FOLDER)
-			.from(FolderReverseMapping.TABLE.get())
-			.where(eq(FolderReverseMapping.Columns.USER, user.getLoginAtDomain()))
-			.and(eq(FolderReverseMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId()))
-			.and(eq(FolderReverseMapping.Columns.FOLDER_TYPE, pimDataType.asXmlValue()))
-			.and(eq(FolderReverseMapping.Columns.BACKEND_ID, backendId));
+		Where query = select(FolderMapping.Columns.COLLECTION_ID, FolderMapping.Columns.FOLDER)
+			.from(FolderMapping.TABLE.get())
+			.allowFiltering()
+			.where(eq(FolderMapping.Columns.USER, user.getLoginAtDomain()))
+			.and(eq(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId()))
+			.and(eq(FolderMapping.Columns.DATA_TYPE, pimDataType.asXmlValue()))
+			.and(eq(FolderMapping.Columns.BACKEND_ID, backendId));
 		
 		logger.debug("Getting folder {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
@@ -193,6 +178,16 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 			throw new CollectionNotFoundException("No folder found for the request: " + query.getQueryString());
 		}
 
-		return jsonService.deserialize(Folder.class, resultSet.one().getString(FolderMapping.Columns.FOLDER));
+		Iterator<Row> results = resultSet.iterator();
+		Row lastKnownRow = results.next();
+		int lastKnownCollectionId = 0;
+		while (results.hasNext()) {
+			Row row = results.next();
+			if (lastKnownCollectionId < row.getInt(FolderMapping.Columns.COLLECTION_ID)) {
+				lastKnownRow = row;
+			}
+		}
+		
+		return jsonService.deserialize(Folder.class, lastKnownRow.getString(FolderMapping.Columns.FOLDER));
 	}
 }

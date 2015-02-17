@@ -46,9 +46,11 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.Stringable;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
@@ -59,7 +61,6 @@ import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.state.FolderSyncKey;
 
 @Watch(BreakdownGroups.TASKS)
 public class TaskBackend implements PIMBackend {
@@ -135,11 +136,10 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public HierarchyCollectionChanges getFolders(UserDataRequest udr,
-			FolderSyncKey incomingSyncKey, FolderSyncKey outgoingSyncKey)
+	public BackendFolders<Stringable> getBackendFolders(UserDataRequest udr)
 			throws DaoException, InvalidSyncKeyException {
 		
-		return HierarchyCollectionChanges.builder().build();
+		return BackendFolders.EMPTY.instance();
 	}
 	
 	@Override

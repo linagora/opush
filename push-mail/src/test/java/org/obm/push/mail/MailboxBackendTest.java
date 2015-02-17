@@ -88,7 +88,6 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -123,7 +122,6 @@ public class MailboxBackendTest {
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
 	private DateService dateService;
-	private FolderSnapshotDao folderSnapshotDao;
 
 	@Before
 	public void setUp() {
@@ -149,11 +147,10 @@ public class MailboxBackendTest {
 		smtpSender = mocks.createMock(SmtpSender.class);
 		emailConfiguration = mocks.createMock(EmailConfiguration.class);
 		dateService = mocks.createMock(DateService.class);
-		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		
 		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, 
 				snapshotDao, null, mappingService, msEmailFetcher, null, null, null, 
-				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
+				windowingDao, smtpSender, emailConfiguration, dateService);
 	}
 	
 	@Test

@@ -31,17 +31,25 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.obm.push.backend.FolderBackend;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.FolderSyncState;
+import org.obm.push.bean.Stringable;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges.Builder;
 import org.obm.push.exception.DaoException;
 import org.obm.push.service.impl.MappingService;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -73,6 +81,23 @@ public class HierarchyExporter implements IHierarchyExporter {
 			
 		}
 		return builder.build();
+	}
+	
+	@Override
+	public BackendFolders<?> getBackendFolders(UserDataRequest udr) {
+		
+		final List<BackendFolders<Stringable>> allFoldersIterables = Lists.newArrayList();
+		for (PIMBackend backend: backends) {
+			allFoldersIterables.add(backend.getBackendFolders(udr));
+			
+		}
+		return new BackendFolders<Stringable>() {
+
+			@Override
+			public Iterator<BackendFolder<Stringable>> iterator() {
+				return Iterables.concat(allFoldersIterables).iterator();
+			}
+		};
 	}
 
 	private void updateBackendSyncState(PIMBackend backend, FolderSyncState outgoingSyncState)

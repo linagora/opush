@@ -55,7 +55,6 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
@@ -79,8 +78,8 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 
 	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, 
 			WindowingDao windowingDao, DateService dateService, 
-			OpushResourcesHolder opushResourcesHolder, FolderSnapshotDao folderSnapshotDao) {
-		super(mappingService, collectionPathBuilderProvider, folderSnapshotDao);
+			OpushResourcesHolder opushResourcesHolder) {
+		super(mappingService, collectionPathBuilderProvider);
 		this.windowingDao = windowingDao;
 		this.dateService = dateService;
 		this.opushResourcesHolder = opushResourcesHolder;

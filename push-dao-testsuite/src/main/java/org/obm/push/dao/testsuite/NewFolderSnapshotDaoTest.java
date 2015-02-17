@@ -75,7 +75,7 @@ public abstract class NewFolderSnapshotDaoTest {
 	@Test(expected=FolderSnapshotNotFoundException.class)
 	public void getShouldThrowNotFoundWhenNothingFound() throws Exception {
 		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
-		folderDao.get(user, device, PIMDataType.CALENDAR, syncKey);
+		folderDao.get(user, device, syncKey);
 	}
 	
 	@Test
@@ -83,8 +83,8 @@ public abstract class NewFolderSnapshotDaoTest {
 		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
 		
-		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, snapshot);
-		FolderSnapshot result = folderDao.get(user, device, PIMDataType.CALENDAR, syncKey);
+		folderDao.create(user, device, syncKey, snapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
 		assertThat(result).isEqualTo(snapshot);
 	}
@@ -94,8 +94,8 @@ public abstract class NewFolderSnapshotDaoTest {
 		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, snapshot);
-		FolderSnapshot result = folderDao.get(user, device, PIMDataType.EMAIL, syncKey);
+		folderDao.create(user, device, syncKey, snapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
 		assertThat(result).isEqualTo(snapshot);
 	}
@@ -112,8 +112,8 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder));
 		
-		folderDao.create(user, device, PIMDataType.CONTACTS, syncKey, snapshot);
-		FolderSnapshot result = folderDao.get(user, device, PIMDataType.CONTACTS, syncKey);
+		folderDao.create(user, device, syncKey, snapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
 		assertThat(result).isEqualTo(snapshot);
 	}
@@ -130,8 +130,8 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder));
 		
-		folderDao.create(user, device, PIMDataType.CONTACTS, syncKey, snapshot);
-		FolderSnapshot result = folderDao.get(user, device, PIMDataType.CONTACTS, syncKey);
+		folderDao.create(user, device, syncKey, snapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
 		assertThat(result).isEqualTo(snapshot);
 	}
@@ -162,8 +162,8 @@ public abstract class NewFolderSnapshotDaoTest {
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(8).folders(ImmutableSet.of(folder1, folder2, folder3));
-		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, snapshot);
-		FolderSnapshot result = folderDao.get(user, device, PIMDataType.CALENDAR, syncKey);
+		folderDao.create(user, device, syncKey, snapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
 		assertThat(result).isEqualTo(snapshot);
 	}
@@ -193,22 +193,52 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
-		FolderSnapshot calendarSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(calendarFolder));
-		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, calendarSnapshot);
+		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(
+				ImmutableSet.of(calendarFolder, contactFolder, mailFolder));
+		folderDao.create(user, device, syncKey, snapshot);
 
-		FolderSnapshot contactSnapshot = FolderSnapshot.nextId(4).folders(ImmutableSet.of(contactFolder));
-		folderDao.create(user, device, PIMDataType.CONTACTS, syncKey, contactSnapshot);
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
 		
-		FolderSnapshot mailSnapshot = FolderSnapshot.nextId(5).folders(ImmutableSet.of(mailFolder));
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, mailSnapshot);
+		assertThat(result).isEqualTo(snapshot);
+	}
+	
+	@Test
+	public void createShouldOverrideSnapshotWhenSameUserDeviceIdAndSyncKey() throws Exception {
+		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
 
-		FolderSnapshot calendarResult = folderDao.get(user, device, PIMDataType.CALENDAR, syncKey);
-		FolderSnapshot contactResult = folderDao.get(user, device, PIMDataType.CONTACTS, syncKey);
-		FolderSnapshot mailResult = folderDao.get(user, device, PIMDataType.EMAIL, syncKey);
+		Folder folder1 = Folder.builder()
+			.displayName("calendar")
+			.backendId("8")
+			.collectionId(CollectionId.of(2))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
-		assertThat(calendarResult).isEqualTo(calendarSnapshot);
-		assertThat(contactResult).isEqualTo(contactSnapshot);
-		assertThat(mailResult).isEqualTo(mailSnapshot);
+		Folder folder2 = Folder.builder()
+			.displayName("address book")
+			.backendId("12")
+			.collectionId(CollectionId.of(1))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
+		
+		Folder folder3 = Folder.builder()
+			.displayName("INBOX")
+			.backendId("INBOX")
+			.collectionId(CollectionId.of(3))
+			.parentBackendId(Optional.<String>absent())
+			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
+		
+		FolderSnapshot snapshot1 = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder1));
+		folderDao.create(user, device, syncKey, snapshot1);
+
+		FolderSnapshot snapshot2 = FolderSnapshot.nextId(4).folders(ImmutableSet.of(folder2));
+		folderDao.create(user, device, syncKey, snapshot2);
+		
+		FolderSnapshot snapshot3 = FolderSnapshot.nextId(5).folders(ImmutableSet.of(folder3));
+		folderDao.create(user, device, syncKey, snapshot3);
+
+		FolderSnapshot result = folderDao.get(user, device, syncKey);
+		
+		assertThat(result).isEqualTo(snapshot3);
 	}
 	
 	@Test(expected=CollectionNotFoundException.class)
@@ -222,7 +252,7 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		folderDao.get(user, device, CollectionId.of(4));
@@ -239,7 +269,7 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.CALENDAR, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		Folder result = folderDao.get(user, device, folder.getCollectionId());
@@ -272,11 +302,11 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.of("the parent"))
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV1)));
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV2)));
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV3)));
 		
 		Folder result = folderDao.get(user, device, folderV1.getCollectionId());
@@ -295,7 +325,7 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		folderDao.get(user, device, PIMDataType.EMAIL, "unknown backend id");
@@ -312,7 +342,7 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		folderDao.get(user, device, PIMDataType.CALENDAR, folder.getBackendId());
@@ -329,7 +359,7 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.<String>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		Folder result = folderDao.get(user, device, PIMDataType.EMAIL, folder.getBackendId());
@@ -362,11 +392,11 @@ public abstract class NewFolderSnapshotDaoTest {
 			.parentBackendId(Optional.of("the parent"))
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
 		
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV1)));
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV2)));
-		folderDao.create(user, device, PIMDataType.EMAIL, syncKey, 
+		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folderV3)));
 		
 		Folder result = folderDao.get(user, device, PIMDataType.EMAIL, folderV1.getBackendId());

@@ -100,7 +100,6 @@ import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.WindowingDao;
@@ -157,7 +156,6 @@ public class CalendarBackendTest {
 	private Ical4jUser.Factory ical4jUserFactory;
 	private DateService dateService;
 	private OpushResourcesHolder opushResourcesHolder;
-	private FolderSnapshotDao folderSnapshotDao;
 	
 	private CalendarBackend calendarBackend;
 	private IMocksControl mockControl;
@@ -202,7 +200,6 @@ public class CalendarBackendTest {
 		this.ical4jUserFactory = mockControl.createMock(Ical4jUser.Factory.class);
 		this.dateService = mockControl.createMock(DateService.class);
 		this.opushResourcesHolder = mockControl.createMock(OpushResourcesHolder.class);
-		this.folderSnapshotDao = mockControl.createMock(FolderSnapshotDao.class);
 		expect(opushResourcesHolder.getAccessToken()).andReturn(token).anyTimes();
 		expect(opushResourcesHolder.getHttpClient()).andReturn(httpClient).anyTimes();
 		
@@ -222,8 +219,7 @@ public class CalendarBackendTest {
 				ical4jHelper,
 				ical4jUserFactory,
 				dateService,
-				opushResourcesHolder,
-				folderSnapshotDao);
+				opushResourcesHolder);
 	}
 	
 	@After
@@ -1783,14 +1779,14 @@ public class CalendarBackendTest {
 		assertThat(calendarBackend.belongsToCalendar(event, "creator@email.com")).isFalse();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
 		mockControl.replay();
-		BackendFolders<CalendarPath> currentFolders = calendarBackend.currentFolders(userDataRequest);
+		BackendFolders<?> currentFolders = calendarBackend.getBackendFolders(userDataRequest);
 		mockControl.verify();
 		
-		assertThat(currentFolders).containsOnly(
+		assertThat(currentFolders).hasSize(1);
+		assertThat(currentFolders.iterator().next()).isEqualTo(
 			BackendFolder.<CalendarPath>builder()
 				.backendId(CalendarPath.of("test"))
 				.displayName("test calendar")

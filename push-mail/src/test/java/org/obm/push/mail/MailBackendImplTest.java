@@ -96,7 +96,6 @@ import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -131,7 +130,6 @@ public class MailBackendImplTest {
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
 	private DateService dateService;
-	private FolderSnapshotDao folderSnapshotDao;
 
 	private MailBackendImpl testee;
 
@@ -158,11 +156,10 @@ public class MailBackendImplTest {
 		dateService = control.createMock(DateService.class);
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
 		emailConfiguration = control.createMock(EmailConfiguration.class);
-		folderSnapshotDao = control.createMock(FolderSnapshotDao.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, snapshotDao,
 				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, null, mailBackendSyncDataFactory,
-				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
+				windowingDao, smtpSender, emailConfiguration, dateService);
 	}
 	
 	@Test
@@ -978,7 +975,7 @@ public class MailBackendImplTest {
 		expect(mailboxService.listSubscribedFolders(udr)).andReturn(folders);
 		
 		control.replay();
-		BackendFolders<MailboxPath> currentFolders = testee.currentFolders(udr);
+		BackendFolders<MailboxPath> currentFolders = testee.getBackendFolders(udr);
 		control.verify();
 		
 		assertThat(currentFolders).containsOnly(

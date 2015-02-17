@@ -68,8 +68,11 @@ import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.calendar.CalendarBackend;
+import org.obm.push.calendar.CalendarPath;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.PingProtocol;
@@ -80,6 +83,7 @@ import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
@@ -120,6 +124,7 @@ public class MailBackendImapTimeoutTest {
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
@@ -203,10 +208,12 @@ public class MailBackendImapTimeoutTest {
 		mocksControl.verify();
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
 	}
+	
 	@Test
 	public void testFolderSyncHandler() throws Exception {
 		FolderSyncKey syncKey = new FolderSyncKey("cf32d2cb-2f09-425b-b840-bee03c1dd18e");
 		FolderSyncKey secondSyncKey = new FolderSyncKey("768380e9-c6d5-45c1-baaa-19c7405daffb");
+		folderSnapshotDao.create(user.user, user.device, syncKey, FolderSnapshot.empty());
 		int stateId = 3;
 		int stateId2 = 4;
 		
@@ -222,8 +229,6 @@ public class MailBackendImapTimeoutTest {
 				.id(stateId2)
 				.build();
 		
-		expect(collectionDao.findFolderStateForKey(syncKey))
-			.andReturn(folderSyncState);
 		expect(collectionDao.allocateNewFolderSyncState(user.device, syncKey))
 			.andReturn(secondFolderSyncState).anyTimes();
 		expect(collectionDao.allocateNewFolderSyncState(user.device, secondSyncKey))
@@ -236,6 +241,13 @@ public class MailBackendImapTimeoutTest {
 			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
 		expect(calendarBackend.getHierarchyChanges(udr, folderSyncState, secondFolderSyncState))
 			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
+
+		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.<CollectionId>instance()).anyTimes();
+		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.<CalendarPath>instance()).anyTimes();
+		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
 		
 		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), anyObject(FolderSyncState.class));
 		expectLastCall().anyTimes();

@@ -117,7 +117,6 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -191,10 +190,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
 			EmailConfiguration emailConfiguration,
-			DateService dateService,
-			FolderSnapshotDao folderSnapshotDao)  {
+			DateService dateService)  {
 
-		super(mappingService, collectionPathBuilderProvider, folderSnapshotDao);
+		super(mappingService, collectionPathBuilderProvider);
 		this.mailboxService = mailboxService;
 		this.mime4jUtils = mime4jUtils;
 		this.opushConfiguration = opushConfiguration;
@@ -215,8 +213,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return PIMDataType.EMAIL;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected BackendFolders<MailboxPath> currentFolders(UserDataRequest udr) {
+	public BackendFolders<MailboxPath> getBackendFolders(UserDataRequest udr) {
 		return new MailBackendFoldersBuilder()
 			.addFolders(mailboxService.listSubscribedFolders(udr))
 			.addSpecialFolders(SPECIAL_FOLDERS)

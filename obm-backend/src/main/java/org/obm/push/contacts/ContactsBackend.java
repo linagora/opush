@@ -78,7 +78,6 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
-import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
@@ -123,10 +122,9 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ContactConverter contactConverter,
 			DateService dateService,
 			OpushResourcesHolder opushResourcesHolder,
-			ContactCreationIdempotenceService creationIdempotenceService,
-			FolderSnapshotDao folderSnapshotDao) {
+			ContactCreationIdempotenceService creationIdempotenceService) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder, folderSnapshotDao);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;
@@ -139,8 +137,9 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return PIMDataType.CONTACTS;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected BackendFolders<CollectionId> currentFolders(UserDataRequest udr) {
+	public BackendFolders<CollectionId> getBackendFolders(UserDataRequest udr) {
 		return new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName(contactConfiguration.getDefaultAddressBookName())

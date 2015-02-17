@@ -47,8 +47,8 @@ import com.google.inject.name.Names;
 
 public class MigrationModule extends AbstractModule {
 
-	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(4);
-	public static final Version LATEST_SCHEMA_VERSION = Version.of(4);
+	public static final Version MINIMAL_SCHEMA_VERSION = Version.of(5);
+	public static final Version LATEST_SCHEMA_VERSION = Version.of(5);
 	public static final String MINIMAL_SCHEMA_VERSION_NAME = "minimalSchemaVersion";
 	public static final String LATEST_SCHEMA_VERSION_NAME = "latestSchemaVersion";
 	

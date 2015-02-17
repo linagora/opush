@@ -32,11 +32,14 @@
 package org.obm.push.handler;
 
 import org.obm.push.SummaryLoggerService;
+import org.obm.push.backend.FolderSnapshotService;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.HierarchyChangesException;
@@ -50,6 +53,7 @@ import org.obm.push.protocol.FolderSyncProtocol;
 import org.obm.push.protocol.bean.FolderSyncRequest;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.request.ActiveSyncRequest;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.state.StateMachine;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
@@ -64,12 +68,14 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 	private final FolderSyncProtocol protocol;
 	private final SummaryLoggerService summaryLoggerService;
 	private final StateMachine stMachine;
+	private final FolderSnapshotService folderSnapshotService;
 	
 	@Inject
 	protected FolderSyncHandler(IHierarchyExporter hierarchyExporter, StateMachine stMachine,
 			FolderSyncProtocol protocol,
 			WBXMLTools wbxmlTools, DOMDumper domDumper,
-			SummaryLoggerService summaryLoggerService) {
+			SummaryLoggerService summaryLoggerService,
+			FolderSnapshotService folderSnapshotService) {
 		
 		super(wbxmlTools, domDumper);
 		
@@ -77,6 +83,7 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 		this.stMachine = stMachine;
 		this.protocol = protocol;
 		this.summaryLoggerService = summaryLoggerService;
+		this.folderSnapshotService = folderSnapshotService;
 	}
 
 	@Override
@@ -125,8 +132,21 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 	private FolderSyncResponse getFolderSyncResponse(UserDataRequest udr, FolderSyncRequest folderSyncRequest)
 			throws DaoException, UnexpectedObmSyncServerException {
 		
-		FolderSyncState incomingSyncState = stMachine.getFolderSyncState(folderSyncRequest.getSyncKey());
 		FolderSyncState outgoingSyncState = stMachine.allocateNewFolderSyncState(udr);
+
+		// NEW SYSTEM //
+		FolderSyncKey outgoingSyncKey = outgoingSyncState.getSyncKey();
+		FolderSnapshot knownSnapshot = folderSnapshotService.findFolderSnapshot(udr, folderSyncRequest.getSyncKey());
+		BackendFolders<?> backendFolders = hierarchyExporter.getBackendFolders(udr);
+		FolderSnapshot currentSnapshot = folderSnapshotService.snapshot(udr, outgoingSyncKey, knownSnapshot, backendFolders);
+		FolderSyncResponse shoudBeTheResponse = FolderSyncResponse.builder()
+			.status(FolderSyncStatus.OK)
+			.hierarchyItemsChanges(folderSnapshotService.buildDiff(knownSnapshot, currentSnapshot))
+			.newSyncKey(outgoingSyncState.getSyncKey())
+			.build();
+		// NEW SYSTEM - END //
+		
+		FolderSyncState incomingSyncState = stMachine.getFolderSyncState(folderSyncRequest.getSyncKey());
 		HierarchyCollectionChanges hierarchyItemsChanges = hierarchyExporter.getChanged(udr, incomingSyncState, outgoingSyncState);
 		return FolderSyncResponse.builder()
 			.status(FolderSyncStatus.OK)
