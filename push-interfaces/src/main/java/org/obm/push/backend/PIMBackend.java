@@ -59,6 +59,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.state.FolderSyncKey;
 
 public interface PIMBackend extends PIMTyped {
 
@@ -100,4 +101,7 @@ public interface PIMBackend extends PIMTyped {
 			throws DaoException, InvalidSyncKeyException;
 
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
+
+	HierarchyCollectionChanges getFolders(UserDataRequest udr, FolderSyncKey incomingSyncKey, FolderSyncKey outgoingSyncKey)
+			throws DaoException, InvalidSyncKeyException;
 }

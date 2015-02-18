@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.hierarchy;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.base.Objects;
@@ -47,6 +48,7 @@ public class HierarchyCollectionChanges {
 	}
 	
 	public static class Builder {
+
 		private final List<CollectionChange> changes;
 		private final List<CollectionDeletion> deletions;
 
@@ -54,14 +56,20 @@ public class HierarchyCollectionChanges {
 			changes = Lists.newArrayList();
 			deletions = Lists.newArrayList();
 		}
+
+		public Builder additions(Collection<CollectionChange> additions) {
+			Preconditions.checkNotNull(additions);
+			this.changes.addAll(additions);
+			return this;
+		}
 		
-		public Builder changes(List<CollectionChange> changes) {
+		public Builder changes(Collection<CollectionChange> changes) {
 			Preconditions.checkNotNull(changes);
 			this.changes.addAll(changes);
 			return this;
 		}
 		
-		public Builder deletions(List<CollectionDeletion> deletions) {
+		public Builder deletions(Collection<CollectionDeletion> deletions) {
 			Preconditions.checkNotNull(deletions);
 			this.deletions.addAll(deletions);
 			return this;

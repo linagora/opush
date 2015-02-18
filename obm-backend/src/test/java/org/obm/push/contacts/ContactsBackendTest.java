@@ -83,6 +83,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
@@ -132,6 +133,7 @@ public class ContactsBackendTest {
 	private DateService dateService;
 	private OpushResourcesHolder opushResourcesHolder;
 	private ContactCreationIdempotenceService creationIdempotenceService;
+	private FolderSnapshotDao folderSnapshotDao;
 	
 	@Before
 	public void setUp() {
@@ -159,10 +161,12 @@ public class ContactsBackendTest {
 		contactConverter = new ContactConverter();
 		dateService = mocks.createMock(DateService.class);
 		creationIdempotenceService = mocks.createMock(ContactCreationIdempotenceService.class);
+		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		
-		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, contactConfiguration,
-				collectionPathBuilderProvider, windowingDao, clientIdService, contactConverter, dateService,
-				opushResourcesHolder, creationIdempotenceService);
+		contactsBackend = new ContactsBackend(mappingService, bookClientFactory, 
+				contactConfiguration, collectionPathBuilderProvider, windowingDao, 
+				clientIdService, contactConverter, dateService, opushResourcesHolder,
+				creationIdempotenceService, folderSnapshotDao);
 		
 		expectDefaultAddressAndParentForContactConfiguration();
 	}
@@ -192,7 +196,7 @@ public class ContactsBackendTest {
 	
 	@Test
 	public void testGetPIMDataType() {
-		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null, null, null);
+		ContactsBackend contactsBackend = new ContactsBackend(null, null, null, null, null, null, null, null, null, null, null);
 		assertThat(contactsBackend.getPIMDataType()).isEqualTo(PIMDataType.CONTACTS);
 	}
 

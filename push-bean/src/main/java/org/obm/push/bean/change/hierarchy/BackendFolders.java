@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,27 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.exception.activesync;
+package org.obm.push.bean.change.hierarchy;
 
-import org.obm.push.state.FolderSyncKey;
-
-public class InvalidFolderSyncKeyException extends RuntimeException {
-
-	private final FolderSyncKey syncKey;
-
-	public InvalidFolderSyncKeyException(FolderSyncKey folderSyncKey) {
-		this(folderSyncKey, null);
-	}
-	
-	public InvalidFolderSyncKeyException(FolderSyncKey folderSyncKey, Exception cause) {
-		super(String.format(
-				"A client provided an unknown SyncKey (%s), may be expected after database migration", 
-				folderSyncKey), cause);
-		this.syncKey = folderSyncKey;
-	}
-	
-	public FolderSyncKey getSyncKey() {
-		return syncKey;
-	}
-
+public interface BackendFolders extends Iterable<BackendFolder> {
 }

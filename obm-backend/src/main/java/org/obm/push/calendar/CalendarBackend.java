@@ -65,6 +65,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -85,6 +86,7 @@ import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.auth.AccessToken;
@@ -142,9 +144,10 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			Ical4jHelper ical4jHelper, 
 			Ical4jUser.Factory ical4jUserFactory,
 			DateService dateService,
-			OpushResourcesHolder opushResourcesHolder) {
+			OpushResourcesHolder opushResourcesHolder,
+			FolderSnapshotDao folderSnapshotDao) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder, folderSnapshotDao);
 		this.calendarClientFactory = calendarClientFactory;
 		this.eventConverter = eventConverter;
 		this.eventService = eventService;
@@ -158,6 +161,11 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	@Override
 	public PIMDataType getPIMDataType() {
 		return PIMDataType.CALENDAR;
+	}
+	
+	@Override
+	protected BackendFolders currentFolders(UserDataRequest udr) {
+		return null;
 	}
 	
 	@Override

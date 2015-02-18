@@ -31,6 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import org.obm.push.bean.Device;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.CassandraStructure.ContactCreation;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
@@ -51,6 +55,9 @@ import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
+import org.obm.push.exception.DaoException;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.ContactCreationDao;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.store.SnapshotDao;
@@ -93,6 +100,7 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
 		bind(SnapshotDao.class).to(SnapshotDaoCassandraImpl.class);
 		bind(ContactCreationDao.class).to(ContactCreationDaoImpl.class);
+		bind(FolderSnapshotDao.class).to(DummyFolderSnapshotDao.class);
 		bind(DaoTables.class).toProvider(new Provider<DaoTables>() {
 
 			@Override
@@ -106,4 +114,21 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(Session.class).toProvider(CassandraSessionProvider.class);
 	}
 	
+	private static class DummyFolderSnapshotDao implements FolderSnapshotDao {
+
+		@Override
+		public void create(User user, Device device, PIMDataType pimDataType,
+				FolderSyncKey folderSyncKey, FolderSnapshot snapshot)
+				throws DaoException {
+			
+		}
+
+		@Override
+		public FolderSnapshot get(User user, Device device, PIMDataType pimDataType,
+				FolderSyncKey folderSyncKey) throws DaoException,
+				FolderSnapshotNotFoundException {
+			return null;
+		}
+		
+	}
 }

@@ -78,6 +78,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -116,6 +117,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -189,9 +191,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
 			EmailConfiguration emailConfiguration,
-			DateService dateService)  {
+			DateService dateService,
+			FolderSnapshotDao folderSnapshotDao)  {
 
-		super(mappingService, collectionPathBuilderProvider);
+		super(mappingService, collectionPathBuilderProvider, folderSnapshotDao);
 		this.mailboxService = mailboxService;
 		this.mime4jUtils = mime4jUtils;
 		this.opushConfiguration = opushConfiguration;
@@ -210,6 +213,11 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	@Override
 	public PIMDataType getPIMDataType() {
 		return PIMDataType.EMAIL;
+	}
+
+	@Override
+	protected BackendFolders currentFolders(UserDataRequest udr) {
+		return null;
 	}
 	
 	@Override

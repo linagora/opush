@@ -81,6 +81,7 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.FolderSyncKey;
@@ -111,9 +112,11 @@ public class MailBackendTest {
 	private SmtpSender smtpSender;
 	private EmailConfiguration emailConfiguration;
 	private DateService dateService;
+	private FolderSnapshotDao folderSnapshotDao;
 
 	private IMocksControl mocksControl;
 	private MailBackend testee;
+
 
 
 	@Before
@@ -135,9 +138,11 @@ public class MailBackendTest {
 		smtpSender = mocksControl.createMock(SmtpSender.class);
 		emailConfiguration = mocksControl.createMock(EmailConfiguration.class);
 		dateService = mocksControl.createMock(DateService.class);
+		folderSnapshotDao = mocksControl.createMock(FolderSnapshotDao.class);
 		
-		testee = new MailBackendImpl(mailboxService, null, null, null, null, null, mappingService,
-				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, dateService);
+		testee = new MailBackendImpl(mailboxService, null, null, null, null, null, 
+				mappingService, null, null, collectionPathBuilderProvider, null, 
+				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 	}
 	
 	@Test
@@ -161,7 +166,8 @@ public class MailBackendTest {
 				
 		MailBackend mailBackend = new MailBackendImpl(mailboxService, authenticationService, new Mime4jUtils(),
 				mockOpushConfiguration(), null, null, mappingService, null, null,
-				collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, dateService);
+				collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration,
+				dateService, folderSnapshotDao);
 
 		mocksControl.replay();
 		
@@ -383,7 +389,8 @@ public class MailBackendTest {
 		
 		mocksControl.replay();
 		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, null,
-				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, dateService);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, 
+				dateService, folderSnapshotDao);
 		Collection<OpushCollection> specialFolders = mailBackend.listSpecialFolders(udr).collections();
 		mocksControl.verify();
 
@@ -407,7 +414,8 @@ public class MailBackendTest {
 		
 		mocksControl.replay();
 		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, null,
-				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, dateService);
+				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, 
+				dateService, folderSnapshotDao);
 		Collection<OpushCollection> subscribedFolders = mailBackend.listSubscribedFolders(udr).collections();
 		mocksControl.verify();
 
@@ -431,8 +439,9 @@ public class MailBackendTest {
 				.build();
 		
 		mocksControl.replay();
-		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, null, mappingService,
-				null, null, collectionPathBuilderProvider, null, windowingDao, smtpSender, emailConfiguration, dateService);
+		MailBackendImpl mailBackend = new MailBackendImpl(mailboxService, null, null, null, null, 
+				null, mappingService, null, null, collectionPathBuilderProvider, null, windowingDao, 
+				smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 		CollectionChange itemChange = mailBackend.createCollectionChange(udr, collection);
 		mocksControl.verify();
 		

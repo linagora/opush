@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2011-2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,27 +29,29 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.exception.activesync;
+package org.obm.push.service;
 
+import org.obm.push.bean.Device;
+import org.obm.push.bean.PIMDataType;
+import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.exception.DaoException;
 import org.obm.push.state.FolderSyncKey;
 
-public class InvalidFolderSyncKeyException extends RuntimeException {
+public interface FolderSnapshotDao {
 
-	private final FolderSyncKey syncKey;
-
-	public InvalidFolderSyncKeyException(FolderSyncKey folderSyncKey) {
-		this(folderSyncKey, null);
-	}
+	void create(User user, Device device, PIMDataType pimDataType, FolderSyncKey folderSyncKey, FolderSnapshot snapshot) throws DaoException;
 	
-	public InvalidFolderSyncKeyException(FolderSyncKey folderSyncKey, Exception cause) {
-		super(String.format(
-				"A client provided an unknown SyncKey (%s), may be expected after database migration", 
-				folderSyncKey), cause);
-		this.syncKey = folderSyncKey;
-	}
+	FolderSnapshot get(User user, Device device, PIMDataType pimDataType, FolderSyncKey folderSyncKey) throws DaoException, FolderSnapshotNotFoundException;
 	
-	public FolderSyncKey getSyncKey() {
-		return syncKey;
-	}
+	public static class FolderSnapshotNotFoundException extends Exception {
 
+		public FolderSnapshotNotFoundException() {
+			super();
+		}
+		
+		public FolderSnapshotNotFoundException(Throwable cause) {
+			super(cause);
+		}
+	}
 }

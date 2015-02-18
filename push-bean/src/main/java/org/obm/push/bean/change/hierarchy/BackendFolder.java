@@ -37,10 +37,11 @@ import org.obm.push.bean.FolderType;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class CollectionChange implements Serializable {
+public class BackendFolder implements Serializable {
 	
 	public static Builder builder() {
 		return new Builder();
@@ -48,75 +49,62 @@ public class CollectionChange implements Serializable {
 	
 	public static class Builder {
 
-		private CollectionId collectionId;
-		private CollectionId parentCollectionId;
+		private CollectionId backendId;
+		private Optional<CollectionId> parentId;
 		private String displayName;
 		private FolderType folderType;
-		private Boolean isNew;
 		
 		private Builder() {
 			super();
 		}
 
-		public Builder collectionId(CollectionId collectionId) {
-			this.collectionId = collectionId;
-			return this;
-		}
-
-		public Builder parentCollectionId(CollectionId collectionId) {
-			this.parentCollectionId = collectionId;
+		public Builder backendId(CollectionId backendId) {
+			Preconditions.checkNotNull(backendId);
+			this.backendId = backendId;
 			return this;
 		}
 
 		public Builder displayName(String displayName) {
+			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			this.displayName = displayName;
 			return this;
 		}
 
 		public Builder folderType(FolderType folderType) {
+			Preconditions.checkNotNull(folderType);
 			this.folderType = folderType;
 			return this;
 		}
-
-		public Builder isNew(boolean isNew) {
-			this.isNew = isNew;
+		
+		public Builder parentId(Optional<CollectionId> parentId) {
+			this.parentId = parentId;
 			return this;
 		}
-		
-		public CollectionChange build() {
-			Preconditions.checkArgument(collectionId != null);
-			Preconditions.checkArgument(parentCollectionId != null);
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
+
+		public BackendFolder build() {
+			Preconditions.checkNotNull(backendId);
+			Preconditions.checkNotNull(parentId);
 			Preconditions.checkNotNull(folderType);
-			Preconditions.checkNotNull(isNew);
+			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			
-			return new CollectionChange(collectionId, parentCollectionId, displayName, folderType, isNew);
+			return new BackendFolder(backendId, parentId, displayName, folderType);
 		}
 	}
 	
-	private final CollectionId collectionId;
-	private final CollectionId parentCollectionId;
+	private final CollectionId backendId;
+	private final Optional<CollectionId> parentId;
 	private final String displayName;
 	private final FolderType folderType;
-	private final boolean isNew;
 	
-	public CollectionChange(
-			CollectionId collectionId, CollectionId parentCollectionId,
-			String displayName, FolderType folderType, boolean isNew) {
-		
-		this.collectionId = collectionId;
-		this.parentCollectionId = parentCollectionId;
+	public BackendFolder(CollectionId backendId, Optional<CollectionId> parentId, String displayName, FolderType folderType) {
+		this.backendId = backendId;
+		this.parentId = parentId;
 		this.displayName = displayName;
 		this.folderType = folderType;
-		this.isNew = isNew;
 	}
 	
-	public CollectionId getCollectionId() {
-		return collectionId;
-	}
-
-	public CollectionId getParentCollectionId() {
-		return parentCollectionId;
+	public CollectionId getBackendId() {
+		return backendId;
 	}
 
 	public String getDisplayName() {
@@ -127,24 +115,23 @@ public class CollectionChange implements Serializable {
 		return folderType;
 	}
 
-	public boolean isNew() {
-		return isNew;
+	public Optional<CollectionId> getParentBackendId() {
+		return parentId;
 	}
 
 	@Override
 	public final int hashCode(){
-		return Objects.hashCode(collectionId, parentCollectionId, displayName, folderType, isNew);
+		return Objects.hashCode(backendId, displayName, folderType, parentId);
 	}
 	
 	@Override
 	public final boolean equals(Object object){
-		if (object instanceof CollectionChange) {
-			CollectionChange that = (CollectionChange) object;
-			return Objects.equal(this.collectionId, that.collectionId)
-				&& Objects.equal(this.parentCollectionId, that.parentCollectionId)
+		if (object instanceof BackendFolder) {
+			BackendFolder that = (BackendFolder) object;
+			return Objects.equal(this.backendId, that.backendId)
 				&& Objects.equal(this.displayName, that.displayName)
 				&& Objects.equal(this.folderType, that.folderType)
-				&& Objects.equal(this.isNew, that.isNew);
+				&& Objects.equal(this.parentId, that.parentId);
 		}
 		return false;
 	}
@@ -152,11 +139,10 @@ public class CollectionChange implements Serializable {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("collectionId", collectionId)
-			.add("parentCollectionId", parentCollectionId)
+			.add("backendId", backendId)
 			.add("displayName", displayName)
 			.add("itemType", folderType)
-			.add("isNew", isNew)
+			.add("parentId", parentId)
 			.toString();
 	}
 }

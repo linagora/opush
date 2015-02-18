@@ -59,6 +59,7 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -77,6 +78,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
@@ -121,9 +123,10 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ContactConverter contactConverter,
 			DateService dateService,
 			OpushResourcesHolder opushResourcesHolder,
-			ContactCreationIdempotenceService creationIdempotenceService) {
+			ContactCreationIdempotenceService creationIdempotenceService,
+			FolderSnapshotDao folderSnapshotDao) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
+		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder, folderSnapshotDao);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;
@@ -134,6 +137,11 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	@Override
 	public PIMDataType getPIMDataType() {
 		return PIMDataType.CONTACTS;
+	}
+	
+	@Override
+	protected BackendFolders currentFolders(UserDataRequest udr) {
+		return null;
 	}
 	
 	@Override
