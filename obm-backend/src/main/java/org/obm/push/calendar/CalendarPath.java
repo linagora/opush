@@ -31,13 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.calendar;
 
-import org.obm.push.bean.Stringable;
+import org.obm.push.bean.BackendId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class CalendarPath implements Stringable {
+public class CalendarPath implements BackendId {
 
 	public static CalendarPath of(String path) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
@@ -53,6 +53,11 @@ public class CalendarPath implements Stringable {
 	@Override
 	public String asString() {
 		return path;
+	}
+
+	@Override
+	public BackendId.Id asId() {
+		return BackendId.Id.from(asString());
 	}
 
 	@Override

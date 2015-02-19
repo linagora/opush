@@ -42,11 +42,11 @@ import java.util.Map;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.Stringable;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -116,9 +116,9 @@ public class FolderSnapshotServiceTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder newFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
 		BackendFolders<CollectionId> currentFolders = testBackendFolders(
@@ -148,15 +148,15 @@ public class FolderSnapshotServiceTest {
 		
 		Folder knownFolder = Folder.builder()
 			.displayName("known")
-			.backendId("8")
+			.backendId(BackendId.Id.from("8"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		Folder sameFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
 		BackendFolders<CollectionId> currentFolders = testBackendFolders(
@@ -185,15 +185,15 @@ public class FolderSnapshotServiceTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder knownFolder = Folder.builder()
 			.displayName("known")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		Folder expectedFolder = Folder.builder()
 			.displayName("changed name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
 		BackendFolders<CollectionId> currentFolders = testBackendFolders(
@@ -222,9 +222,9 @@ public class FolderSnapshotServiceTest {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
 		Folder knownFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
 		BackendFolders<CollectionId> currentFolders = testBackendFolders(
@@ -248,7 +248,7 @@ public class FolderSnapshotServiceTest {
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
 	}
 	
-	private <T extends Stringable> BackendFolders<T> emptyBackendFolders() {
+	private <T extends BackendId> BackendFolders<T> emptyBackendFolders() {
 		return new BackendFolders<T>() {
 			
 			@Override
@@ -258,7 +258,7 @@ public class FolderSnapshotServiceTest {
 		};
 	}
 	
-	private <T extends Stringable> BackendFolders<T> testBackendFolders(BackendFolder<T> folder) {
+	private <T extends BackendId> BackendFolders<T> testBackendFolders(BackendFolder<T> folder) {
 		@SuppressWarnings("unchecked")
 		final UnmodifiableIterator<BackendFolder<T>> iterator = Iterators.forArray(folder);
 		return new BackendFolders<T>() {
@@ -318,12 +318,12 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenNullFolders() {
-		Map<String, Folder> folders = null;
-		String collection = "4";
+		Map<BackendId.Id, Folder> folders = null;
+		BackendId.Id id = BackendId.Id.from("4");
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionDeletion(folders).apply(collection);
+			testee.folderToCollectionDeletion(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -331,12 +331,12 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenNullCollectionId() {
-		Map<String, Folder> folders = ImmutableMap.of();
-		String collection = null;
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of();
+		BackendId.Id id = null;
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionDeletion(folders).apply(collection);
+			testee.folderToCollectionDeletion(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -344,12 +344,12 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionDeletionShouldNPEWhenFolderNotFound() {
-		Map<String, Folder> folders = ImmutableMap.of();
-		String collection = "5";
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of();
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionDeletion(folders).apply(collection);
+			testee.folderToCollectionDeletion(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -357,30 +357,30 @@ public class FolderSnapshotServiceTest {
 	
 	@Test
 	public void folderToCollectionDeletionShouldSucceedWhenFolderFound() {
-		Map<String, Folder> folders = ImmutableMap.of(
-			"5", Folder.builder()
-				.backendId("5")
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(
+			BackendId.Id.from("5"), Folder.builder()
+				.backendId(BackendId.Id.from("5"))
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(Optional.of("12"))
+				.parentBackendId(Optional.of(BackendId.Id.from("12")))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		String collection = "5";
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
-		assertThat(testee.folderToCollectionDeletion(folders).apply(collection))
+		assertThat(testee.folderToCollectionDeletion(folders).apply(id))
 			.isEqualTo(CollectionDeletion.builder().collectionId(CollectionId.of(2)).build());
 		mocks.verify();
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenNullFolders() {
-		Map<String, Folder> folders = null;
-		String collection = "4";
+		Map<BackendId.Id, Folder> folders = null;
+		BackendId.Id id = BackendId.Id.from("4");
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionCreation(folders).apply(collection);
+			testee.folderToCollectionCreation(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -388,12 +388,12 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenNullCollectionId() {
-		Map<String, Folder> folders = ImmutableMap.of();
-		String collection = null;
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of();
+		BackendId.Id id = null;
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionCreation(folders).apply(collection);
+			testee.folderToCollectionCreation(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -401,12 +401,12 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionCreationShouldNPEWhenFolderNotFound() {
-		Map<String, Folder> folders = ImmutableMap.of();
-		String collection = "5";
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of();
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
 		try {
-			testee.folderToCollectionCreation(folders).apply(collection);
+			testee.folderToCollectionCreation(folders).apply(id);
 		} finally {
 			mocks.verify();
 		}
@@ -414,18 +414,18 @@ public class FolderSnapshotServiceTest {
 	
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndNoParent() {
-		Map<String, Folder> folders = ImmutableMap.of(
-			"5", Folder.builder()
-				.backendId("5")
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(
+			BackendId.Id.from("5"), Folder.builder()
+				.backendId(BackendId.Id.from("5"))
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(Optional.<String>absent())
+				.parentBackendId(Optional.<BackendId.Id>absent())
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		String collection = "5";
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
-		assertThat(testee.folderToCollectionCreation(folders).apply(collection))
+		assertThat(testee.folderToCollectionCreation(folders).apply(id))
 			.isEqualTo(CollectionChange.builder()
 				.isNew(true)
 				.collectionId(CollectionId.of(2))
@@ -437,18 +437,18 @@ public class FolderSnapshotServiceTest {
 	}
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndParentNotFound() {
-		Map<String, Folder> folders = ImmutableMap.of(
-			"5", Folder.builder()
-				.backendId("5")
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(
+			BackendId.Id.from("5"), Folder.builder()
+				.backendId(BackendId.Id.from("5"))
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(Optional.of("12"))
+				.parentBackendId(Optional.of(BackendId.Id.from("12")))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		String collection = "5";
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
-		assertThat(testee.folderToCollectionCreation(folders).apply(collection))
+		assertThat(testee.folderToCollectionCreation(folders).apply(id))
 			.isEqualTo(CollectionChange.builder()
 				.isNew(true)
 				.collectionId(CollectionId.of(2))
@@ -461,25 +461,25 @@ public class FolderSnapshotServiceTest {
 	
 	@Test
 	public void folderToCollectionCreationShouldSucceedWhenFolderFoundAndParent() {
-		Map<String, Folder> folders = ImmutableMap.of(
-			"5", Folder.builder()
-				.backendId("5")
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(
+			BackendId.Id.from("5"), Folder.builder()
+				.backendId(BackendId.Id.from("5"))
 				.collectionId(CollectionId.of(2))
-				.parentBackendId(Optional.of("12"))
+				.parentBackendId(Optional.of(BackendId.Id.from("12")))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build(),
-			"12", Folder.builder()
-				.backendId("12")
+			BackendId.Id.from("12"), Folder.builder()
+				.backendId(BackendId.Id.from("12"))
 				.collectionId(CollectionId.of(4))
-				.parentBackendId(Optional.<String>absent())
+				.parentBackendId(Optional.<BackendId.Id>absent())
 				.displayName("the parent")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
-		String collection = "5";
+		BackendId.Id id = BackendId.Id.from("5");
 		
 		mocks.replay();
-		assertThat(testee.folderToCollectionCreation(folders).apply(collection))
+		assertThat(testee.folderToCollectionCreation(folders).apply(id))
 			.isEqualTo(CollectionChange.builder()
 				.isNew(true)
 				.collectionId(CollectionId.of(2))
@@ -492,11 +492,11 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionChangeShouldNPEWhenNullFolders() {
-		Map<String, Folder> folders = null;
+		Map<BackendId.Id, Folder> folders = null;
 		Folder folder = Folder.builder()
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(Optional.of("2"))
+			.parentBackendId(Optional.of(BackendId.Id.from("2")))
 			.displayName("the parent")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
@@ -511,7 +511,7 @@ public class FolderSnapshotServiceTest {
 
 	@Test(expected=NullPointerException.class)
 	public void folderToCollectionChangeShouldNPEWhenNullFolder() {
-		Map<String, Folder> folders = ImmutableMap.of();
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of();
 		Folder folder = null;
 		
 		mocks.replay();
@@ -525,14 +525,14 @@ public class FolderSnapshotServiceTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenNoParent() {
 		Folder folder = Folder.builder()
-			.backendId("5")
+			.backendId(BackendId.Id.from("5"))
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<String, Folder> folders = ImmutableMap.of("5", folder);
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(BackendId.Id.from("5"), folder);
 		
 		mocks.replay();
 		assertThat(testee.folderToCollectionChange(folders).apply(folder))
@@ -549,14 +549,14 @@ public class FolderSnapshotServiceTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenParentNotFound() {
 		Folder folder = Folder.builder()
-			.backendId("5")
+			.backendId(BackendId.Id.from("5"))
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(Optional.of("12"))
+			.parentBackendId(Optional.of(BackendId.Id.from("12")))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<String, Folder> folders = ImmutableMap.of("5", folder);
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(BackendId.Id.from("5"), folder);
 		
 		mocks.replay();
 		assertThat(testee.folderToCollectionChange(folders).apply(folder))
@@ -573,24 +573,24 @@ public class FolderSnapshotServiceTest {
 	@Test
 	public void folderToCollectionChangeShouldSucceedWhenParentFound() {
 		Folder folder = Folder.builder()
-			.backendId("5")
+			.backendId(BackendId.Id.from("5"))
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(Optional.of("12"))
+			.parentBackendId(Optional.of(BackendId.Id.from("12")))
 			.displayName("name")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 			
 		Folder parentFolder = Folder.builder()
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(8))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.displayName("the parent")
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		Map<String, Folder> folders = ImmutableMap.of(
-			"5", folder,
-			"12", parentFolder);
+		Map<BackendId.Id, Folder> folders = ImmutableMap.of(
+			BackendId.Id.from("5"), folder,
+			BackendId.Id.from("12"), parentFolder);
 		
 		mocks.replay();
 		assertThat(testee.folderToCollectionChange(folders).apply(folder))
@@ -621,9 +621,9 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffShouldReturnEmptyWhenBothHaveSameFolder() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -641,9 +641,9 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffShouldReturnAddWhenEmptyKnownSnapshotAndNewFolder() throws Exception {
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.empty();
@@ -666,14 +666,14 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffShouldReturnAddWhenKnownSnapshotAndNewFolder() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder addSnapshotFolder = Folder.builder()
 			.displayName("another name")
-			.backendId("15")
+			.backendId(BackendId.Id.from("15"))
 			.collectionId(CollectionId.of(2))
 			.parentBackendId(Optional.of(knownSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
@@ -698,16 +698,16 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffShouldReturnChangeWhenKnownFolderButChanged() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("another display name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -730,9 +730,9 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffShouldReturnDeletionWhenKnownFolderNotInNewSnapshot() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("name")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownSnapshotFolder));
@@ -751,34 +751,34 @@ public class FolderSnapshotServiceTest {
 	public void buildDiffWhenComplexe() throws Exception {
 		Folder knownSnapshotFolder = Folder.builder()
 			.displayName("not anymore folder")
-			.backendId("8")
+			.backendId(BackendId.Id.from("8"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		Folder sameSnapshotFolder = Folder.builder()
 			.displayName("unchanged folder")
-			.backendId("12")
+			.backendId(BackendId.Id.from("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<String>absent())
+			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder priorChangeSnapshotFolder = Folder.builder()
 			.displayName("previous name")
-			.backendId("5")
+			.backendId(BackendId.Id.from("5"))
 			.collectionId(CollectionId.of(3))
 			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		Folder changedSnapshotFolder = Folder.builder()
 			.displayName("changed name")
-			.backendId("5")
+			.backendId(BackendId.Id.from("5"))
 			.collectionId(CollectionId.of(3))
 			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
  
 		Folder newSnapshotFolder = Folder.builder()
 			.displayName("yet another name")
-			.backendId("980")
+			.backendId(BackendId.Id.from("980"))
 			.collectionId(CollectionId.of(5))
 			.parentBackendId(Optional.of(sameSnapshotFolder.getBackendId()))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();

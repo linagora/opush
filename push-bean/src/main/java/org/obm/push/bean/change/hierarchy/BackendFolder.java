@@ -31,21 +31,21 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.hierarchy;
 
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.Stringable;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class BackendFolder<T extends Stringable> {
+public class BackendFolder<T extends BackendId> {
 	
-	public static <T extends Stringable> Builder<T> builder() {
+	public static <T extends BackendId> Builder<T> builder() {
 		return new Builder<T>();
 	}
 	
-	public static class Builder<T extends Stringable> {
+	public static class Builder<T extends BackendId> {
 
 		private T backendId;
 		private Optional<T> parentId;

@@ -31,8 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.hierarchy;
 
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.Stringable;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Function;
@@ -45,26 +45,26 @@ import com.google.common.collect.Maps;
 
 public class Folder {
 
-	public static ImmutableMap<String, Folder> mapByBackendId(Iterable<Folder> folders) {
-		return Maps.uniqueIndex(folders,  new Function<Folder, String>() {
+	public static ImmutableMap<BackendId.Id, Folder> mapByBackendId(Iterable<Folder> folders) {
+		return Maps.uniqueIndex(folders,  new Function<Folder, BackendId.Id>() {
 
 			@Override
-			public String apply(Folder folder) {
+			public BackendId.Id apply(Folder folder) {
 				return folder.getBackendId();
 			}
 		});
 	}
 
-	public static <T extends Stringable> Folder from(BackendFolder<T> folder, CollectionId collectionId) {
+	public static <T extends BackendId> Folder from(BackendFolder<T> folder, CollectionId collectionId) {
 		return Folder.builder()
 			.collectionId(collectionId)
-			.backendId(folder.getBackendId().asString())
+			.backendId(folder.getBackendId().asId())
 			.displayName(folder.getDisplayName())
 			.folderType(folder.getFolderType())
-			.parentBackendId(folder.getParentBackendId().transform(new Function<T, String>() {
+			.parentBackendId(folder.getParentBackendId().transform(new Function<T, BackendId.Id>() {
 				@Override
-				public String apply(T input) {
-					return input.asString();
+				public BackendId.Id apply(T input) {
+					return input.asId();
 				}
 			}))
 			.build();
@@ -77,8 +77,8 @@ public class Folder {
 	public static class Builder {
 
 		private CollectionId collectionId;
-		private String backendId;
-		private Optional<String> parentBackendId;
+		private BackendId.Id backendId;
+		private Optional<BackendId.Id> parentBackendId;
 		private String displayName;
 		private FolderType folderType;
 		
@@ -92,7 +92,7 @@ public class Folder {
 			return this;
 		}
 		
-		public Folder.Builder backendId(String backendId) {
+		public Folder.Builder backendId(BackendId.Id backendId) {
 			Preconditions.checkNotNull(backendId);
 			this.backendId = backendId;
 			return this;
@@ -111,12 +111,12 @@ public class Folder {
 		}
 
 		
-		public Folder.Builder parentBackendId(String parentBackendId) {
+		public Folder.Builder parentBackendId(BackendId.Id parentBackendId) {
 			parentBackendId(Optional.of(parentBackendId));
 			return this;
 		}
 
-		public Folder.Builder parentBackendId(Optional<String> parentBackendId) {
+		public Folder.Builder parentBackendId(Optional<BackendId.Id> parentBackendId) {
 			Preconditions.checkNotNull(parentBackendId);
 			this.parentBackendId = parentBackendId;
 			return this;
@@ -134,13 +134,13 @@ public class Folder {
 	}
 
 	private final CollectionId collectionId;
-	private final String backendId;
-	private final Optional<String> parentBackendId;
+	private final BackendId.Id backendId;
+	private final Optional<BackendId.Id> parentBackendId;
 	private final String displayName;
 	private final FolderType folderType;
 	
-	private Folder(CollectionId collectionId, String backendId,
-			String displayName, FolderType folderType, Optional<String> parentBackendId) {
+	private Folder(CollectionId collectionId, BackendId.Id backendId,
+			String displayName, FolderType folderType, Optional<BackendId.Id> parentBackendId) {
 		this.collectionId = collectionId;
 		this.backendId = backendId;
 		this.displayName = displayName;
@@ -152,11 +152,11 @@ public class Folder {
 		return collectionId;
 	}
 
-	public String getBackendId() {
+	public BackendId.Id getBackendId() {
 		return backendId;
 	}
 
-	public Optional<String> getParentBackendId() {
+	public Optional<BackendId.Id> getParentBackendId() {
 		return parentBackendId;
 	}
 

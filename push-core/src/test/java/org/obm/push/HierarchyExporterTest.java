@@ -46,13 +46,13 @@ import org.junit.Test;
 import org.obm.push.backend.FolderBackend;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PIMBackend;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.Stringable;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
@@ -297,24 +297,24 @@ public class HierarchyExporterTest {
 		MailBackend mailBackend = createMock(MailBackend.class);
 		MappingService mappingService = createMock(MappingService.class);
 
-		BackendFolder<Stringable> addressBook = BackendFolder.builder()
+		BackendFolder<BackendId> addressBook = BackendFolder.builder()
 			.displayName("addressBook")
 			.backendId(CollectionId.of(12))
-			.parentId(Optional.<Stringable>absent())
+			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 			.build();
 		
-		BackendFolder<Stringable> calendar = BackendFolder.builder()
+		BackendFolder<BackendId> calendar = BackendFolder.builder()
 			.displayName("calendar")
 			.backendId(CollectionId.of(15))
-			.parentId(Optional.<Stringable>absent())
+			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		BackendFolder<Stringable> mailbox = BackendFolder.builder()
+		BackendFolder<BackendId> mailbox = BackendFolder.builder()
 			.displayName("mailbox")
 			.backendId(CollectionId.of(18))
-			.parentId(Optional.<Stringable>absent())
+			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.build();
 		
@@ -327,18 +327,18 @@ public class HierarchyExporterTest {
 		IHierarchyExporter hierarchyExporter = buildHierarchyExporter(
 				folderExporter, mappingService, contactsBackend, calendarBackend, mailBackend);
 
-		BackendFolders<Stringable> backendFolders = (BackendFolders<Stringable>) 
+		BackendFolders<BackendId> backendFolders = (BackendFolders<BackendId>) 
 				hierarchyExporter.getBackendFolders(userDataRequest);
 		verify(mailBackend, calendarBackend, contactsBackend, mappingService);
 		
 		assertThat(backendFolders).containsOnly(addressBook, calendar, mailbox);
 	}
 
-	private BackendFolders<Stringable> folders(final BackendFolder<Stringable> folder) {
-		return new BackendFolders<Stringable>() {
+	private BackendFolders<BackendId> folders(final BackendFolder<BackendId> folder) {
+		return new BackendFolders<BackendId>() {
 
 			@Override
-			public Iterator<BackendFolder<Stringable>> iterator() {
+			public Iterator<BackendFolder<BackendId>> iterator() {
 				return ImmutableSet.of(folder).iterator();
 			}};
 	}

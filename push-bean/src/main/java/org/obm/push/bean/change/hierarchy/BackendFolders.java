@@ -33,25 +33,25 @@ package org.obm.push.bean.change.hierarchy;
 
 import java.util.Iterator;
 
-import org.obm.push.bean.Stringable;
+import org.obm.push.bean.BackendId;
 
 import com.google.common.collect.Iterators;
 
-public interface BackendFolders<T extends Stringable> extends Iterable<BackendFolder<T>> {
+public interface BackendFolders<T extends BackendId> extends Iterable<BackendFolder<T>> {
 
-	public static class EMPTY implements BackendFolders<Stringable> {
+	public static class EMPTY implements BackendFolders<BackendId> {
 
 		private static final EMPTY INSTANCE = new EMPTY();
 
 		@SuppressWarnings("unchecked")
-		public static <T extends Stringable> BackendFolders<T> instance() {
+		public static <T extends BackendId> BackendFolders<T> instance() {
 			return (BackendFolders<T>) INSTANCE;
 		}
 		
 		private EMPTY() {}
 		
 		@Override
-		public Iterator<BackendFolder<Stringable>> iterator() {
+		public Iterator<BackendFolder<BackendId>> iterator() {
 			return Iterators.emptyIterator();
 		}
 		

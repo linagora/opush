@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,72 +29,50 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.protocol.bean;
-
-import java.io.Serializable;
-
-import org.obm.push.bean.BackendId;
-import org.obm.push.bean.ServerId;
+package org.obm.push.bean;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 
-public class CollectionId implements Serializable, BackendId {
+public interface BackendId extends Stringable {
 
-	public static final CollectionId ROOT = of(0);
+	Id asId();
 	
-	public static CollectionId of(String id) {
-		Preconditions.checkNotNull(id);
-		Integer intValue = Integer.valueOf(id);
-		return of(intValue);
-	}
+	public static class Id implements Stringable {
 
-	public static CollectionId of(int collectionId) {
-		Preconditions.checkArgument(collectionId >= 0);
-		return new CollectionId(collectionId);
-	}
-	
-	private int id;
-	
-	private CollectionId(int collectionId) {
-		this.id = collectionId;
-	}
-
-	@Override
-	public String asString() {
-		return String.valueOf(id);
-	}
-
-	@Override
-	public BackendId.Id asId() {
-		return BackendId.Id.from(asString());
-	}
-	
-	public int asInt() {
-		return id;
-	}
-
-	public ServerId serverId(int itemId) {
-		return ServerId.of(this, itemId);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(id);
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof CollectionId) {
-			return id == ((CollectionId)obj).id;
+		public static Id from(String id) {
+			return new Id(id);
 		}
-		return false;
-	}
-	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("id", id)
-			.toString();
+		
+		private final String id;
+		
+		private Id(String id) {
+			this.id = id;
+		}
+		
+		@Override
+		public String asString() {
+			return id;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(id);
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Id) {
+				Id that = (Id) obj;
+				return Objects.equal(this.id, that.id);
+			}
+			return false;
+		}
+		
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+				.add("id", id)
+				.toString();
+		}
 	}
 }

@@ -34,6 +34,7 @@ package org.obm.push.backend;
 import java.util.Map;
 import java.util.Set;
 
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
@@ -84,12 +85,12 @@ public class FolderSnapshotService {
 			FolderSnapshot knownSnapshot, BackendFolders<?> currentFolders) {
 		
 		int nextId = knownSnapshot.getNextId();
-		Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
+		Map<BackendId.Id, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
 
 		ImmutableSet.Builder<Folder> allFolders = ImmutableSet.builder();
 		for (BackendFolder<?> currentFolder : currentFolders) {
 			if (isKnownFolder(knownFolders, currentFolder)) {
-				CollectionId collectionId = knownFolders.get(currentFolder.getBackendId().asString()).getCollectionId();
+				CollectionId collectionId = knownFolders.get(currentFolder.getBackendId().asId()).getCollectionId();
 				allFolders.add(Folder.from(currentFolder, collectionId));
 			} else {
 				allFolders.add(Folder.from(currentFolder, CollectionId.of(nextId++)));
@@ -101,16 +102,16 @@ public class FolderSnapshotService {
 		return snapshot;
 	}
 
-	private boolean isKnownFolder(Map<String, Folder> knownFolders, BackendFolder<?> currentFolder) {
-		return knownFolders.containsKey(currentFolder.getBackendId().asString());
+	private boolean isKnownFolder(Map<BackendId.Id, Folder> knownFolders, BackendFolder<?> currentFolder) {
+		return knownFolders.containsKey(currentFolder.getBackendId().asId());
 	}
 	
 	public HierarchyCollectionChanges buildDiff(final FolderSnapshot knownSnapshot, final FolderSnapshot currentSnapshot) throws DaoException {
-		final Map<String, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
-		final Map<String, Folder> currentFolders = currentSnapshot.getFoldersByBackendId();
+		final Map<BackendId.Id, Folder> knownFolders = knownSnapshot.getFoldersByBackendId();
+		final Map<BackendId.Id, Folder> currentFolders = currentSnapshot.getFoldersByBackendId();
 
-		final Set<String> adds = Sets.difference(currentFolders.keySet(), knownFolders.keySet());
-		final Set<String> dels = Sets.difference(knownFolders.keySet(), currentFolders.keySet());
+		final Set<BackendId.Id> adds = Sets.difference(currentFolders.keySet(), knownFolders.keySet());
+		final Set<BackendId.Id> dels = Sets.difference(knownFolders.keySet(), currentFolders.keySet());
 		
 		return HierarchyCollectionChanges.builder()
 			.deletions(FluentIterable.from(dels).transform(folderToCollectionDeletion(knownFolders)).toSet())
@@ -129,11 +130,11 @@ public class FolderSnapshotService {
 			.build();
 	}
 
-	@VisibleForTesting Function<String, CollectionDeletion> folderToCollectionDeletion(final Map<String, Folder> knownFolders) {
-		return new Function<String, CollectionDeletion>() {
+	@VisibleForTesting Function<BackendId.Id, CollectionDeletion> folderToCollectionDeletion(final Map<BackendId.Id, Folder> knownFolders) {
+		return new Function<BackendId.Id, CollectionDeletion>() {
 		
 			@Override
-			public CollectionDeletion apply(String id) {
+			public CollectionDeletion apply(BackendId.Id id) {
 				return CollectionDeletion.builder()
 						.collectionId(knownFolders.get(id).getCollectionId())
 						.build();
@@ -141,11 +142,11 @@ public class FolderSnapshotService {
 		};
 	}
 
-	@VisibleForTesting Function<String, CollectionChange> folderToCollectionCreation(final Map<String, Folder> currentFoldersMap) {
-		return new Function<String, CollectionChange>() {
+	@VisibleForTesting Function<BackendId.Id, CollectionChange> folderToCollectionCreation(final Map<BackendId.Id, Folder> currentFoldersMap) {
+		return new Function<BackendId.Id, CollectionChange>() {
 	
 				@Override
-				public CollectionChange apply(String id) {
+				public CollectionChange apply(BackendId.Id id) {
 					Folder folder = currentFoldersMap.get(id);
 					return CollectionChange.builder()
 							.isNew(true)
@@ -158,7 +159,7 @@ public class FolderSnapshotService {
 		};
 	}
 
-	@VisibleForTesting Function<Folder, CollectionChange> folderToCollectionChange(final Map<String, Folder> currentFolders) {
+	@VisibleForTesting Function<Folder, CollectionChange> folderToCollectionChange(final Map<BackendId.Id, Folder> currentFolders) {
 		return new Function<Folder, CollectionChange>() {
 		
 			@Override
@@ -174,8 +175,8 @@ public class FolderSnapshotService {
 		};
 	}
 
-	private CollectionId getParentCollectionId(Map<String, Folder> currentFoldersMap, Folder folder) {
-		Optional<String> parentBackendId = folder.getParentBackendId();
+	private CollectionId getParentCollectionId(Map<BackendId.Id, Folder> currentFoldersMap, Folder folder) {
+		Optional<BackendId.Id> parentBackendId = folder.getParentBackendId();
 		if (!parentBackendId.isPresent()) {
 			return CollectionId.ROOT;
 		}

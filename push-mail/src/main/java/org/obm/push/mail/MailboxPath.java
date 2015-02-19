@@ -33,7 +33,7 @@ package org.obm.push.mail;
 
 import java.util.List;
 
-import org.obm.push.bean.Stringable;
+import org.obm.push.bean.BackendId;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Iterables;
 
-public class MailboxPath implements Stringable, Comparable<MailboxPath> {
+public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 
 	public static final char DEFAULT_SEPARATOR = '/';
 	
@@ -68,6 +68,11 @@ public class MailboxPath implements Stringable, Comparable<MailboxPath> {
 	@Override
 	public String asString() {
 		return path;
+	}
+
+	@Override
+	public BackendId.Id asId() {
+		return BackendId.Id.from(asString());
 	}
 
 	public String getPath() {

@@ -45,6 +45,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.obm.breakdownduration.bean.Watch;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
@@ -116,7 +117,7 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 				.value(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId())
 				.value(FolderMapping.Columns.COLLECTION_ID, folder.getCollectionId().asInt())
 				.value(FolderMapping.Columns.DATA_TYPE, folder.getFolderType().getPIMDataType().asXmlValue())
-				.value(FolderMapping.Columns.BACKEND_ID, folder.getBackendId())
+				.value(FolderMapping.Columns.BACKEND_ID, folder.getBackendId().asString())
 				.value(FolderMapping.Columns.FOLDER, jsonService.serialize(folder));
 			logger.debug("Batch will insert mapping {}", query.getQueryString());
 			batch.add(query);
@@ -163,14 +164,14 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 	}
 
 	@Override
-	public Folder get(User user, Device device, PIMDataType pimDataType, String backendId) throws CollectionNotFoundException {
+	public Folder get(User user, Device device, PIMDataType pimDataType, BackendId.Id backendId) throws CollectionNotFoundException {
 		Where query = select(FolderMapping.Columns.COLLECTION_ID, FolderMapping.Columns.FOLDER)
 			.from(FolderMapping.TABLE.get())
 			.allowFiltering()
 			.where(eq(FolderMapping.Columns.USER, user.getLoginAtDomain()))
 			.and(eq(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId()))
 			.and(eq(FolderMapping.Columns.DATA_TYPE, pimDataType.asXmlValue()))
-			.and(eq(FolderMapping.Columns.BACKEND_ID, backendId));
+			.and(eq(FolderMapping.Columns.BACKEND_ID, backendId.asString()));
 		
 		logger.debug("Getting folder {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);

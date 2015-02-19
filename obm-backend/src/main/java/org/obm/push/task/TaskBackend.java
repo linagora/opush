@@ -38,6 +38,7 @@ import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.PIMBackend;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
@@ -46,7 +47,6 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.Stringable;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -136,7 +136,7 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public BackendFolders<Stringable> getBackendFolders(UserDataRequest udr)
+	public BackendFolders<BackendId> getBackendFolders(UserDataRequest udr)
 			throws DaoException, InvalidSyncKeyException {
 		
 		return BackendFolders.EMPTY.instance();

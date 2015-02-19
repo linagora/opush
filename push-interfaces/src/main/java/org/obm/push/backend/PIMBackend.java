@@ -36,13 +36,13 @@ import java.util.List;
 import javax.naming.NoPermissionException;
 
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.Stringable;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
@@ -103,5 +103,5 @@ public interface PIMBackend extends PIMTyped {
 
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 
-	<TYPE extends Stringable> BackendFolders<TYPE> getBackendFolders(UserDataRequest udr) ;
+	<TYPE extends BackendId> BackendFolders<TYPE> getBackendFolders(UserDataRequest udr) ;
 }

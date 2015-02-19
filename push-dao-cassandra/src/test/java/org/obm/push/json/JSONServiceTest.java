@@ -47,6 +47,7 @@ import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarMeetingStatus;
@@ -110,8 +111,8 @@ public class JSONServiceTest {
 	@Test
 	public void testSerializeFolderWithParent() {
 		Folder folder = Folder.builder()
-			.backendId("the backendId")
-			.parentBackendId(Optional.of("parent"))
+			.backendId(BackendId.Id.from("the backendId"))
+			.parentBackendId(Optional.of(BackendId.Id.from("parent")))
 			.displayName("the displayName")
 			.collectionId(CollectionId.of(5))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
@@ -139,8 +140,8 @@ public class JSONServiceTest {
 			"}");
 		
 		assertThat(folder).isEqualTo(Folder.builder()
-			.backendId("the backendId")
-			.parentBackendId(Optional.of("parent"))
+			.backendId(BackendId.Id.from("the backendId"))
+			.parentBackendId(Optional.of(BackendId.Id.from("parent")))
 			.displayName("the displayName")
 			.collectionId(CollectionId.of(5))
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
