@@ -1001,11 +1001,11 @@ public class ContactsBackendTest {
 
 		assertThat(currentFolders).hasSize(1);
 		assertThat(currentFolders.iterator().next()).isEqualTo(
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(12))
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(12))
 				.displayName("contacts")
 				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
-				.parentId(Optional.<CollectionId>absent())
+				.parentId(Optional.<AddressBookId>absent())
 				.build());
 	}
 	

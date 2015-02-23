@@ -299,21 +299,21 @@ public class HierarchyExporterTest {
 
 		BackendFolder<BackendId> addressBook = BackendFolder.builder()
 			.displayName("addressBook")
-			.backendId(CollectionId.of(12))
+			.backendId(new TestBackendId("12"))
 			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 			.build();
 		
 		BackendFolder<BackendId> calendar = BackendFolder.builder()
 			.displayName("calendar")
-			.backendId(CollectionId.of(15))
+			.backendId(new TestBackendId("15"))
 			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
 		BackendFolder<BackendId> mailbox = BackendFolder.builder()
 			.displayName("mailbox")
-			.backendId(CollectionId.of(18))
+			.backendId(new TestBackendId("18"))
 			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.build();

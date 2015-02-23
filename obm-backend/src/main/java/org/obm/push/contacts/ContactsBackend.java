@@ -139,7 +139,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public BackendFolders<CollectionId> getBackendFolders(UserDataRequest udr) {
+	public BackendFolders<AddressBookId> getBackendFolders(UserDataRequest udr) {
 		return new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName(contactConfiguration.getDefaultAddressBookName())

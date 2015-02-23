@@ -42,6 +42,7 @@ import java.util.Map;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.TestBackendId;
 import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
@@ -121,11 +122,11 @@ public class FolderSnapshotServiceTest {
 			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders<CollectionId> currentFolders = testBackendFolders(
-			BackendFolder.<CollectionId>builder()
+		BackendFolders<TestBackendId> currentFolders = testBackendFolders(
+			BackendFolder.<TestBackendId>builder()
 				.displayName("name")
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.<CollectionId>absent())
+				.backendId(new TestBackendId("12"))
+				.parentId(Optional.<TestBackendId>absent())
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
 		
@@ -159,11 +160,11 @@ public class FolderSnapshotServiceTest {
 			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders<CollectionId> currentFolders = testBackendFolders(
-			BackendFolder.<CollectionId>builder()
+		BackendFolders<TestBackendId> currentFolders = testBackendFolders(
+			BackendFolder.<TestBackendId>builder()
 				.displayName("name")
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.<CollectionId>absent())
+				.backendId(new TestBackendId("12"))
+				.parentId(Optional.<TestBackendId>absent())
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
 		
@@ -196,11 +197,11 @@ public class FolderSnapshotServiceTest {
 			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders<CollectionId> currentFolders = testBackendFolders(
-			BackendFolder.<CollectionId>builder()
+		BackendFolders<TestBackendId> currentFolders = testBackendFolders(
+			BackendFolder.<TestBackendId>builder()
 				.displayName("changed name")
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.<CollectionId>absent())
+				.backendId(new TestBackendId("12"))
+				.parentId(Optional.<TestBackendId>absent())
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build());
 		
@@ -227,12 +228,12 @@ public class FolderSnapshotServiceTest {
 			.parentBackendId(Optional.<BackendId.Id>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 
-		BackendFolders<CollectionId> currentFolders = testBackendFolders(
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(12))
+		BackendFolders<TestBackendId> currentFolders = testBackendFolders(
+			BackendFolder.<TestBackendId>builder()
+				.backendId(new TestBackendId("12"))
 				.displayName("name")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
-				.parentId(Optional.<CollectionId>absent())
+				.parentId(Optional.<TestBackendId>absent())
 				.build());
 		
 		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(knownFolder));

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,47 +29,32 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.protocol.bean;
+package org.obm.push.contacts;
 
-import java.io.Serializable;
-
-import org.obm.push.bean.ServerId;
+import org.obm.push.bean.BackendId;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 
-public class CollectionId implements Serializable {
+public class AddressBookId implements BackendId {
 
-	public static final CollectionId ROOT = of(0);
-	
-	public static CollectionId of(String id) {
-		Preconditions.checkNotNull(id);
-		Integer intValue = Integer.valueOf(id);
-		return of(intValue);
-	}
-
-	public static CollectionId of(int collectionId) {
-		// TODO: to be reworked by OP-53, this is blocking initial sync (collectionId = -1)
-		//		Preconditions.checkArgument(collectionId >= 0);
-		return new CollectionId(collectionId);
+	public static AddressBookId of(int id) {
+		return new AddressBookId(id);
 	}
 	
-	private int id;
+	private final Id id;
 	
-	private CollectionId(int collectionId) {
-		this.id = collectionId;
+	private AddressBookId(int id) {
+		this.id = Id.from(String.valueOf(id));
 	}
-
+	
+	@Override
 	public String asString() {
-		return String.valueOf(id);
+		return id.asString();
 	}
 
-	public int asInt() {
+	@Override
+	public Id asId() {
 		return id;
-	}
-
-	public ServerId serverId(int itemId) {
-		return ServerId.of(this, itemId);
 	}
 
 	@Override
@@ -79,8 +64,9 @@ public class CollectionId implements Serializable {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof CollectionId) {
-			return id == ((CollectionId)obj).id;
+		if (obj instanceof AddressBookId) {
+			AddressBookId that = (AddressBookId)obj;
+			return Objects.equal(id, that.id);
 		}
 		return false;
 	}

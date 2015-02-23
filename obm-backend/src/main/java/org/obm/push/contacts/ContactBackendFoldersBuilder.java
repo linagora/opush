@@ -39,7 +39,6 @@ import org.obm.push.bean.FolderType;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.sync.book.Folder;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -98,35 +97,35 @@ public class ContactBackendFoldersBuilder {
 		return isOwner && isDefaultAddressBookName;
 	}
 	
-	public BackendFolders<CollectionId> build() {
-		final Builder<BackendFolder<CollectionId>> backendFoldersBuilder = ImmutableSet.builder();
-		Optional<CollectionId> parentId = parentFolder != null ? 
-				Optional.of(CollectionId.of(parentFolder.getUid())) :
-				Optional.<CollectionId>absent();
+	public BackendFolders<AddressBookId> build() {
+		final Builder<BackendFolder<AddressBookId>> backendFoldersBuilder = ImmutableSet.builder();
+		Optional<AddressBookId> parentId = parentFolder != null ? 
+				Optional.of(AddressBookId.of(parentFolder.getUid())) :
+				Optional.<AddressBookId>absent();
 		
 		if (parentFolder != null) {
-			backendFoldersBuilder.add(BackendFolder.<CollectionId>builder()
+			backendFoldersBuilder.add(BackendFolder.<AddressBookId>builder()
 				.displayName(parentFolder.getName())
 				.folderType(findFolderType(udr, parentFolder))
-				.backendId(CollectionId.of(parentFolder.getUid()))
-				.parentId(Optional.<CollectionId>absent())
+				.backendId(AddressBookId.of(parentFolder.getUid()))
+				.parentId(Optional.<AddressBookId>absent())
 				.build());
 		}
 		
 		for (Folder folder : folders) {
-			backendFoldersBuilder.add(BackendFolder.<CollectionId>builder()
+			backendFoldersBuilder.add(BackendFolder.<AddressBookId>builder()
 				.displayName(folder.getName())
 				.folderType(findFolderType(udr, folder))
-				.backendId(CollectionId.of(folder.getUid()))
+				.backendId(AddressBookId.of(folder.getUid()))
 				.parentId(parentId)
 				.build());
 		}
-		return new BackendFolders<CollectionId>() {
+		return new BackendFolders<AddressBookId>() {
 			
-			Set<BackendFolder<CollectionId>> backendFolders = backendFoldersBuilder.build();
+			Set<BackendFolder<AddressBookId>> backendFolders = backendFoldersBuilder.build();
 			
 			@Override
-			public Iterator<BackendFolder<CollectionId>> iterator() {
+			public Iterator<BackendFolder<AddressBookId>> iterator() {
 				return backendFolders.iterator();
 			}
 		};

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,66 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.protocol.bean;
+package org.obm.push;
 
-import java.io.Serializable;
+import org.obm.push.bean.BackendId;
 
-import org.obm.push.bean.ServerId;
+public class TestBackendId implements BackendId {
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+	private final String id;
 
-public class CollectionId implements Serializable {
-
-	public static final CollectionId ROOT = of(0);
-	
-	public static CollectionId of(String id) {
-		Preconditions.checkNotNull(id);
-		Integer intValue = Integer.valueOf(id);
-		return of(intValue);
-	}
-
-	public static CollectionId of(int collectionId) {
-		// TODO: to be reworked by OP-53, this is blocking initial sync (collectionId = -1)
-		//		Preconditions.checkArgument(collectionId >= 0);
-		return new CollectionId(collectionId);
+	public TestBackendId(String id) {
+		this.id = id;
 	}
 	
-	private int id;
-	
-	private CollectionId(int collectionId) {
-		this.id = collectionId;
-	}
-
+	@Override
 	public String asString() {
-		return String.valueOf(id);
-	}
-
-	public int asInt() {
 		return id;
 	}
 
-	public ServerId serverId(int itemId) {
-		return ServerId.of(this, itemId);
-	}
-
 	@Override
-	public int hashCode() {
-		return Objects.hashCode(id);
+	public Id asId() {
+		return Id.from(id);
 	}
 	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof CollectionId) {
-			return id == ((CollectionId)obj).id;
-		}
-		return false;
-	}
-	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("id", id)
-			.toString();
-	}
 }

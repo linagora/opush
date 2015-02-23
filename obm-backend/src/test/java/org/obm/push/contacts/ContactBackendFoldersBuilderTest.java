@@ -45,7 +45,6 @@ import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.sync.book.Folder;
 
 import com.google.common.base.Optional;
@@ -107,7 +106,7 @@ public class ContactBackendFoldersBuilderTest {
 	
 	@Test
 	public void buildEmptyShouldReturnEmpty() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableSet.<Folder>of())
@@ -119,7 +118,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildOneFolderShouldReturnDefaultWhenMatchingNameAndOwner() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableSet.of( 
@@ -129,9 +128,9 @@ public class ContactBackendFoldersBuilderTest {
 					.ownerLoginAtDomain(user.getLoginAtDomain()).build()))
 			.build();
 		
-		assertThat(backendFolders).containsOnly(BackendFolder.<CollectionId>builder()
-			.backendId(CollectionId.of(12))
-			.parentId(Optional.<CollectionId>absent())
+		assertThat(backendFolders).containsOnly(BackendFolder.<AddressBookId>builder()
+			.backendId(AddressBookId.of(12))
+			.parentId(Optional.<AddressBookId>absent())
 			.displayName("default")
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 			.build());
@@ -140,7 +139,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildOneFolderShouldReturnUserFolderWhenMatchingNameButNotOwner() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableSet.of( 
@@ -150,9 +149,9 @@ public class ContactBackendFoldersBuilderTest {
 					.ownerLoginAtDomain("belongs to another user").build()))
 			.build();
 		
-		assertThat(backendFolders).containsOnly(BackendFolder.<CollectionId>builder()
-			.backendId(CollectionId.of(12))
-			.parentId(Optional.<CollectionId>absent())
+		assertThat(backendFolders).containsOnly(BackendFolder.<AddressBookId>builder()
+			.backendId(AddressBookId.of(12))
+			.parentId(Optional.<AddressBookId>absent())
 			.displayName("default")
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 			.build());
@@ -161,7 +160,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildOneFolderShouldReturnUserFolderWhenMatchingOwnerButNotName() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableSet.of( 
@@ -171,9 +170,9 @@ public class ContactBackendFoldersBuilderTest {
 					.ownerLoginAtDomain(user.getLoginAtDomain()).build()))
 			.build();
 		
-		assertThat(backendFolders).containsOnly(BackendFolder.<CollectionId>builder()
-			.backendId(CollectionId.of(12))
-			.parentId(Optional.<CollectionId>absent())
+		assertThat(backendFolders).containsOnly(BackendFolder.<AddressBookId>builder()
+			.backendId(AddressBookId.of(12))
+			.parentId(Optional.<AddressBookId>absent())
 			.displayName("the name")
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 			.build());
@@ -182,7 +181,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildTwoFoldersShouldReturnHierarchyWhenDefaultAsFirst() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableList.of( 
@@ -197,15 +196,15 @@ public class ContactBackendFoldersBuilderTest {
 			.build();
 		
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(15))
-				.parentId(Optional.<CollectionId>absent())
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(15))
+				.parentId(Optional.<AddressBookId>absent())
 				.displayName("default")
 				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 				.build(),
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.of(CollectionId.of(15)))
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(12))
+				.parentId(Optional.of(AddressBookId.of(15)))
 				.displayName("the name")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.build());
@@ -214,7 +213,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildTwoFoldersShouldReturnHierarchyWhenDefaultAsLast() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableList.of( 
@@ -229,15 +228,15 @@ public class ContactBackendFoldersBuilderTest {
 			.build();
 
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.<CollectionId>absent())
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(12))
+				.parentId(Optional.<AddressBookId>absent())
 				.displayName("default")
 				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 				.build(),
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(15))
-				.parentId(Optional.of(CollectionId.of(12)))
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(15))
+				.parentId(Optional.of(AddressBookId.of(12)))
 				.displayName("the name")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.build());
@@ -246,7 +245,7 @@ public class ContactBackendFoldersBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void buildTwoFoldersShouldReturnOnlyUserCreatedWhenNoDefault() {
-		BackendFolders<CollectionId> backendFolders = new ContactBackendFoldersBuilder()
+		BackendFolders<AddressBookId> backendFolders = new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName("default")
 			.folders(ImmutableList.of( 
@@ -261,15 +260,15 @@ public class ContactBackendFoldersBuilderTest {
 			.build();
 	
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(12))
-				.parentId(Optional.<CollectionId>absent())
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(12))
+				.parentId(Optional.<AddressBookId>absent())
 				.displayName("not default")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.build(),
-			BackendFolder.<CollectionId>builder()
-				.backendId(CollectionId.of(15))
-				.parentId(Optional.<CollectionId>absent())
+			BackendFolder.<AddressBookId>builder()
+				.backendId(AddressBookId.of(15))
+				.parentId(Optional.<AddressBookId>absent())
 				.displayName("the name")
 				.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER)
 				.build());
