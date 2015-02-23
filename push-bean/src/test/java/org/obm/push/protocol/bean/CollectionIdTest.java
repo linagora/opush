@@ -33,6 +33,7 @@ package org.obm.push.protocol.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -54,6 +55,7 @@ public class CollectionIdTest {
 		assertThat(actual.asString()).isEqualTo("0");
 	}
 	
+	@Ignore("TODO: OP-53")
 	@Test(expected=IllegalArgumentException.class)
 	public void builderShouldThrowOnNegativeInteger() {
 		CollectionId.of(-12);
@@ -85,6 +87,7 @@ public class CollectionIdTest {
 		assertThat(actual.asString()).isEqualTo("0");
 	}
 
+	@Ignore("TODO: OP-53")
 	@Test(expected=IllegalArgumentException.class)
 	public void builderShouldThrowOnStringEncodedNegativeInteger() {
 		CollectionId.of("-12");

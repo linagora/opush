@@ -50,7 +50,8 @@ public class CollectionId implements Serializable, BackendId {
 	}
 
 	public static CollectionId of(int collectionId) {
-		Preconditions.checkArgument(collectionId >= 0);
+		// TODO: to be reworked by OP-53, this is blocking initial sync (collectionId = -1)
+		//		Preconditions.checkArgument(collectionId >= 0);
 		return new CollectionId(collectionId);
 	}
 	
