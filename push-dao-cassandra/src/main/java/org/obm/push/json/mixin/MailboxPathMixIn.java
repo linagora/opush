@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2015 Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,50 +29,17 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.bean;
+package org.obm.push.json.mixin;
 
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface BackendId extends Stringable {
+public abstract class MailboxPathMixIn {
 
-	Id asId();
-	
-	public static class Id implements Stringable {
-
-		public static Id from(String id) {
-			return new Id(id);
-		}
-		
-		private final String id;
-		
-		private Id(String id) {
-			this.id = id;
-		}
-		
-		@Override
-		public String asString() {
-			return id;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(id);
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof Id) {
-				Id that = (Id) obj;
-				return Objects.equal(this.id, that.id);
-			}
-			return false;
-		}
-		
-		@Override
-		public String toString() {
-			return Objects.toStringHelper(this)
-				.add("id", id)
-				.toString();
-		}
+	@SuppressWarnings("unused")
+	@JsonCreator
+	protected MailboxPathMixIn(
+		@JsonProperty("path") String path,
+		@JsonProperty("separator") char separator) {
 	}
 }

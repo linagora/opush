@@ -29,47 +29,39 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.calendar;
+package org.obm.push.bean.change.hierarchy;
 
-import org.obm.push.bean.BackendId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
-public class CalendarPath implements BackendId {
+public class AddressBookId implements BackendId {
 
-	public static CalendarPath of(String path) {
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
-		return new CalendarPath(path);
+	public static AddressBookId of(int id) {
+		return new AddressBookId(id);
 	}
 	
-	private String path;
+	private final int id;
 	
-	private CalendarPath(String path) {
-		this.path = path;
+	private AddressBookId(int id) {
+		this.id = id;
 	}
-
+	
 	@Override
 	public String asString() {
-		return path;
-	}
-
-	@Override
-	public BackendId.Id asId() {
-		return BackendId.Id.from(asString());
+		return String.valueOf(id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(path);
+		return Objects.hashCode(id);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof CalendarPath) {
-			CalendarPath that = (CalendarPath)obj;
-			return Objects.equal(path, that.path);
+		if (obj instanceof AddressBookId) {
+			AddressBookId that = (AddressBookId)obj;
+			return Objects.equal(id, that.id);
 		}
 		return false;
 	}
@@ -77,8 +69,7 @@ public class CalendarPath implements BackendId {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("path", path)
+			.add("id", id)
 			.toString();
 	}
-
 }

@@ -72,8 +72,6 @@ import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.calendar.CalendarBackend;
-import org.obm.push.calendar.CalendarPath;
-import org.obm.push.contacts.AddressBookId;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.PingProtocol;
@@ -244,9 +242,9 @@ public class MailBackendImapTimeoutTest {
 			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
 
 		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
-			.andReturn(BackendFolders.EMPTY.<AddressBookId>instance()).anyTimes();
+			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
 		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
-			.andReturn(BackendFolders.EMPTY.<CalendarPath>instance()).anyTimes();
+			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
 		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
 		

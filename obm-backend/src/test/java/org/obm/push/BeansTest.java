@@ -35,7 +35,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 
 import org.junit.Test;
-import org.obm.push.calendar.CalendarPath;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
 
 public class BeansTest {
 

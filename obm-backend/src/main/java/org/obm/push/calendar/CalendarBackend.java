@@ -67,7 +67,9 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -166,15 +168,14 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return PIMDataType.CALENDAR;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public BackendFolders<CalendarPath> getBackendFolders(final UserDataRequest udr) {
-		return new BackendFolders<CalendarPath>() {
+	public BackendFolders getBackendFolders(final UserDataRequest udr) {
+		return new BackendFolders() {
 
 			@Override
-			public Iterator<BackendFolder<CalendarPath>> iterator() {
-				return Iterators.singletonIterator(BackendFolder.<CalendarPath>builder()
-						.parentId(Optional.<CalendarPath>absent())
+			public Iterator<BackendFolder> iterator() {
+				return Iterators.singletonIterator(BackendFolder.builder()
+						.parentId(Optional.<BackendId>absent())
 						.backendId(CalendarPath.of(udr.getUser().getLogin()))
 						.displayName(udr.getUser().getLogin() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
 						.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)

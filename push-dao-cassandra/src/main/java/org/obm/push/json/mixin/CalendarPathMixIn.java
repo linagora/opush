@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2015 Linagora
+ * Copyright (C) 2011-2012  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,43 +29,15 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push;
+package org.obm.push.json.mixin;
 
-import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.google.common.base.Objects;
+public abstract class CalendarPathMixIn {
 
-public class TestBackendId implements BackendId {
-
-	private final String id;
-
-	public TestBackendId(String id) {
-		this.id = id;
-	}
-	
-	@Override
-	public String asString() {
-		return id;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(id);
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof TestBackendId) {
-			TestBackendId that = (TestBackendId)obj;
-			return Objects.equal(id, that.id);
-		}
-		return false;
-	}
-	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("id", id)
-			.toString();
+	@SuppressWarnings("unused")
+	@JsonCreator
+	protected CalendarPathMixIn(@JsonProperty("path") String path) {
 	}
 }

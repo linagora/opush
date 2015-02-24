@@ -74,7 +74,9 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.item.ItemChange;
@@ -996,16 +998,16 @@ public class ContactsBackendTest {
 		expect(bookClient.listAddressBooksChanged(token, epoch)).andReturn(folderChanges);
 
 		mocks.replay();
-		BackendFolders<?> currentFolders = contactsBackend.getBackendFolders(userDataRequest);
+		BackendFolders currentFolders = contactsBackend.getBackendFolders(userDataRequest);
 		mocks.verify();
 
 		assertThat(currentFolders).hasSize(1);
 		assertThat(currentFolders.iterator().next()).isEqualTo(
-			BackendFolder.<AddressBookId>builder()
+			BackendFolder.builder()
 				.backendId(AddressBookId.of(12))
 				.displayName("contacts")
 				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
-				.parentId(Optional.<AddressBookId>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build());
 	}
 	

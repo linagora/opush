@@ -29,40 +29,25 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.mail;
+package org.obm.push.bean.change.hierarchy;
 
-import java.util.List;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
-import org.obm.push.bean.BackendId;
-
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
-import com.google.common.collect.Iterables;
 
-public class MailboxPath implements Comparable<MailboxPath>, BackendId {
+public class CalendarPath implements BackendId {
 
-	public static final char DEFAULT_SEPARATOR = '/';
-	
-	public static MailboxPath of(String path) {
-		return new MailboxPath(path, DEFAULT_SEPARATOR);
-	}
-	
-	public static MailboxPath of(String path, char separator) {
+	public static CalendarPath of(String path) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
-		return new MailboxPath(path, separator);
+		return new CalendarPath(path);
 	}
 	
-	private final String path;
-	private final char separator;
+	private String path;
 	
-	private MailboxPath(String path, char separator) {
+	private CalendarPath(String path) {
 		this.path = path;
-		this.separator = separator;
 	}
 
 	@Override
@@ -71,44 +56,15 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 	}
 
 	@Override
-	public BackendId.Id asId() {
-		return BackendId.Id.from(asString());
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public char getSeparator() {
-		return separator;
-	}
-
-	public Iterable<MailboxPath> reducingPaths() {
-		Builder<MailboxPath> paths = ImmutableList.builder();
-		List<String> pieces = Splitter.on(separator).omitEmptyStrings().splitToList(path);
-		for (int index = pieces.size() - 1 ; index > 0; index--) {
-			String path = Joiner.on(separator).join(Iterables.limit(pieces, index));
-			paths.add(MailboxPath.of(path, separator));
-		}
-		return paths.build();
-	}
-
-	@Override
-	public int compareTo(MailboxPath o) {
-		return asString().compareToIgnoreCase(o.asString());
-	}
-
-	@Override
 	public int hashCode() {
-		return Objects.hashCode(path, separator);
+		return Objects.hashCode(path);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof MailboxPath) {
-			MailboxPath that = (MailboxPath)obj;
-			return Objects.equal(path, that.path)
-				&& Objects.equal(separator, that.separator);
+		if (obj instanceof CalendarPath) {
+			CalendarPath that = (CalendarPath)obj;
+			return Objects.equal(path, that.path);
 		}
 		return false;
 	}
@@ -117,7 +73,7 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 	public String toString() {
 		return Objects.toStringHelper(this)
 			.add("path", path)
-			.add("separator", separator)
 			.toString();
 	}
+
 }

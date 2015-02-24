@@ -139,7 +139,6 @@ public class BeansTest {
 					.add(Update.class)
 					.add(Deletion.class)
 					.add(Fetch.class)
-					.add(BackendId.Id.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

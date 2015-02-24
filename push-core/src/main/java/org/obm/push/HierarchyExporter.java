@@ -37,7 +37,6 @@ import java.util.List;
 import org.obm.push.backend.FolderBackend;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
@@ -84,17 +83,17 @@ public class HierarchyExporter implements IHierarchyExporter {
 	}
 	
 	@Override
-	public BackendFolders<?> getBackendFolders(UserDataRequest udr) {
+	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		
-		final List<BackendFolders<BackendId>> allFoldersIterables = Lists.newArrayList();
+		final List<BackendFolders> allFoldersIterables = Lists.newArrayList();
 		for (PIMBackend backend: backends) {
 			allFoldersIterables.add(backend.getBackendFolders(udr));
 			
 		}
-		return new BackendFolders<BackendId>() {
+		return new BackendFolders() {
 
 			@Override
-			public Iterator<BackendFolder<BackendId>> iterator() {
+			public Iterator<BackendFolder> iterator() {
 				return Iterables.concat(allFoldersIterables).iterator();
 			}
 		};

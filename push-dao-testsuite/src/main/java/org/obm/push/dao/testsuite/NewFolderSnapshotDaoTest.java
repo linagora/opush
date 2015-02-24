@@ -40,15 +40,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.ProtocolVersion;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.FolderSnapshotDao;
@@ -106,9 +107,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
 		Folder folder = Folder.builder()
 			.displayName("name")
-			.backendId(BackendId.Id.from("15"))
+			.backendId(MailboxPath.of("15"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.of(BackendId.Id.from("12")))
+			.parentBackendId(MailboxPath.of("12"))
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder));
@@ -124,9 +125,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		FolderSyncKey syncKey = new FolderSyncKey("26b7ebcd-9dca-4d89-8725-411223ebb5e8");
 		Folder folder = Folder.builder()
 			.displayName("name")
-			.backendId(BackendId.Id.from("15"))
+			.backendId(MailboxPath.of("15"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder));
@@ -143,23 +144,23 @@ public abstract class NewFolderSnapshotDaoTest {
 
 		Folder folder1 = Folder.builder()
 			.displayName("calendar")
-			.backendId(BackendId.Id.from("8"))
+			.backendId(MailboxPath.of("8"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
 		Folder folder2 = Folder.builder()
 			.displayName("calendar 2")
-			.backendId(BackendId.Id.from("88"))
+			.backendId(MailboxPath.of("88"))
 			.collectionId(CollectionId.of(22))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER).build();
 		
 		Folder folder3 = Folder.builder()
 			.displayName("calendar 3")
-			.backendId(BackendId.Id.from("888"))
+			.backendId(MailboxPath.of("888"))
 			.collectionId(CollectionId.of(2222))
-			.parentBackendId(Optional.of(BackendId.Id.from("a parent")))
+			.parentBackendId(MailboxPath.of("a parent"))
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(8).folders(ImmutableSet.of(folder1, folder2, folder3));
@@ -175,23 +176,23 @@ public abstract class NewFolderSnapshotDaoTest {
 
 		Folder calendarFolder = Folder.builder()
 			.displayName("calendar")
-			.backendId(BackendId.Id.from("8"))
+			.backendId(MailboxPath.of("8"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
 		Folder contactFolder = Folder.builder()
 			.displayName("address book")
-			.backendId(BackendId.Id.from("12"))
+			.backendId(MailboxPath.of("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder mailFolder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot snapshot = FolderSnapshot.nextId(2).folders(
@@ -209,23 +210,23 @@ public abstract class NewFolderSnapshotDaoTest {
 
 		Folder folder1 = Folder.builder()
 			.displayName("calendar")
-			.backendId(BackendId.Id.from("8"))
+			.backendId(MailboxPath.of("8"))
 			.collectionId(CollectionId.of(2))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CALENDAR_FOLDER).build();
 		
 		Folder folder2 = Folder.builder()
 			.displayName("address book")
-			.backendId(BackendId.Id.from("12"))
+			.backendId(MailboxPath.of("12"))
 			.collectionId(CollectionId.of(1))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER).build();
 		
 		Folder folder3 = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.USER_CREATED_CONTACTS_FOLDER).build();
 		
 		FolderSnapshot snapshot1 = FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder1));
@@ -248,9 +249,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
@@ -265,9 +266,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
@@ -284,23 +285,23 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folderV1 = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		Folder folderV2 = Folder.builder()
 			.displayName("INBOX V2")
-			.backendId(BackendId.Id.from("INBOX V2"))
+			.backendId(MailboxPath.of("INBOX V2"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		Folder folderV3 = Folder.builder()
 			.displayName("INBOX V3")
-			.backendId(BackendId.Id.from("INBOX V3"))
+			.backendId(MailboxPath.of("INBOX V3"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.of(BackendId.Id.from("the parent")))
+			.parentBackendId(MailboxPath.of("the parent"))
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
@@ -321,15 +322,15 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
-		folderDao.get(user, device, PIMDataType.EMAIL, BackendId.Id.from("unknown backend id"));
+		folderDao.get(user, device, PIMDataType.EMAIL, MailboxPath.of("unknown backend id"));
 	}
 
 	@Test(expected=CollectionNotFoundException.class)
@@ -338,9 +339,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
@@ -355,9 +356,9 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folder = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 
@@ -374,23 +375,23 @@ public abstract class NewFolderSnapshotDaoTest {
 		
 		Folder folderV1 = Folder.builder()
 			.displayName("INBOX")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(3))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		Folder folderV2 = Folder.builder()
 			.displayName("INBOX V2")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(4))
-			.parentBackendId(Optional.<BackendId.Id>absent())
+			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_INBOX_FOLDER).build();
 		
 		Folder folderV3 = Folder.builder()
 			.displayName("INBOX V3")
-			.backendId(BackendId.Id.from("INBOX"))
+			.backendId(MailboxPath.of("INBOX"))
 			.collectionId(CollectionId.of(5))
-			.parentBackendId(Optional.of(BackendId.Id.from("the parent")))
+			.parentBackendId(MailboxPath.of("the parent"))
 			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER).build();
 		
 		folderDao.create(user, device, syncKey, 

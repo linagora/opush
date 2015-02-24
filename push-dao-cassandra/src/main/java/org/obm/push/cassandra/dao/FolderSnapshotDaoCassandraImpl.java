@@ -45,11 +45,11 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.obm.breakdownduration.bean.Watch;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.cassandra.dao.CassandraStructure.FolderMapping;
@@ -164,7 +164,7 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 	}
 
 	@Override
-	public Folder get(User user, Device device, PIMDataType pimDataType, BackendId.Id backendId) throws CollectionNotFoundException {
+	public Folder get(User user, Device device, PIMDataType pimDataType, BackendId backendId) throws CollectionNotFoundException {
 		Where query = select(FolderMapping.Columns.COLLECTION_ID, FolderMapping.Columns.FOLDER)
 			.from(FolderMapping.TABLE.get())
 			.allowFiltering()

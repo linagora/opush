@@ -31,12 +31,21 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.json.mixin;
 
-import java.io.Serializable;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-public abstract class BackendIdMixIn implements Serializable {
+@JsonTypeInfo(use=Id.NAME, property="type")
+@JsonSubTypes({
+	@JsonSubTypes.Type(value=CalendarPath.class, name="CALENDAR"),
+	@JsonSubTypes.Type(value=MailboxPath.class, name="EMAIL"),
+	@JsonSubTypes.Type(value=AddressBookId.class, name="CONTACTS"),
+})
+public interface BackendIdMixIn extends BackendId {
 
-	@JsonValue
-	abstract String asString();
 }

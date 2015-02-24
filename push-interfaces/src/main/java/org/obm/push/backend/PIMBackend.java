@@ -36,7 +36,6 @@ import java.util.List;
 import javax.naming.NoPermissionException;
 
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderSyncState;
@@ -103,5 +102,5 @@ public interface PIMBackend extends PIMTyped {
 
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 
-	<TYPE extends BackendId> BackendFolders<TYPE> getBackendFolders(UserDataRequest udr) ;
+	BackendFolders getBackendFolders(UserDataRequest udr) ;
 }

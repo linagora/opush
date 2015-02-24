@@ -33,7 +33,7 @@ package org.obm.push.bean.change.hierarchy;
 
 import java.util.Set;
 
-import org.obm.push.bean.BackendId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -70,7 +70,7 @@ public class FolderSnapshot {
 	
 	private final int nextId;
 	private final Set<Folder> folders;
-	private final ImmutableMap<BackendId.Id, Folder> foldersByBackendId;
+	private final ImmutableMap<BackendId, Folder> foldersByBackendId;
 
 	private FolderSnapshot(int nextId, Set<Folder> folders) {
 		this.nextId = nextId;
@@ -86,7 +86,7 @@ public class FolderSnapshot {
 		return folders;
 	}
 
-	public ImmutableMap<BackendId.Id, Folder> getFoldersByBackendId() {
+	public ImmutableMap<BackendId, Folder> getFoldersByBackendId() {
 		return foldersByBackendId;
 	}
 

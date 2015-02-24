@@ -49,5 +49,5 @@ public interface IHierarchyExporter {
 
 	HierarchyCollectionChanges getChanged(UserDataRequest udr, FolderSyncState incomingSyncState, FolderSyncState outgoingSyncState) throws DaoException, InvalidSyncKeyException;
 
-	BackendFolders<?> getBackendFolders(UserDataRequest udr);
+	BackendFolders getBackendFolders(UserDataRequest udr);
 }

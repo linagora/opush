@@ -36,12 +36,14 @@ import static org.obm.configuration.EmailConfiguration.IMAP_DRAFTS_NAME;
 import static org.obm.configuration.EmailConfiguration.IMAP_INBOX_NAME;
 import static org.obm.configuration.EmailConfiguration.IMAP_SENT_NAME;
 import static org.obm.configuration.EmailConfiguration.IMAP_TRASH_NAME;
-import static org.obm.push.mail.MailboxPath.DEFAULT_SEPARATOR;
+import static org.obm.push.bean.change.hierarchy.MailboxPath.DEFAULT_SEPARATOR;
 
 import org.junit.Test;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MailboxFolders;
 
@@ -58,22 +60,20 @@ public class MailBackendFoldersBuilderTest {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void buildShouldReturnOnlyElementWhenOnlyOneFolder() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
 			new MailboxFolder("mailbox", DEFAULT_SEPARATOR))
 		);
 		assertThat(new MailBackendFoldersBuilder().addFolders(folders).build()).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("mailbox"))
 				.displayName("mailbox")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void buildShouldReturnRightFolderTypeWhenCommonMailboxes() {
 		ImmutableSet<String> folders = ImmutableSet.of(
@@ -83,34 +83,33 @@ public class MailBackendFoldersBuilderTest {
 			IMAP_TRASH_NAME
 		);
 		assertThat(new MailBackendFoldersBuilder().addSpecialFolders(folders).build()).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
 				.displayName(IMAP_INBOX_NAME)
 				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
 				.displayName(IMAP_DRAFTS_NAME)
 				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_SENT_NAME))
 				.displayName(IMAP_SENT_NAME)
 				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
 				.displayName(IMAP_TRASH_NAME)
 				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build()
 		);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void buildShouldNotDuplicateSpecialMailboxesWhenAddedTwice() {
 		ImmutableSet<String> specialFolders = ImmutableSet.of(
@@ -127,40 +126,39 @@ public class MailBackendFoldersBuilderTest {
 			new MailboxFolder(IMAP_TRASH_NAME, DEFAULT_SEPARATOR))
 		);
 		
-		BackendFolders<MailboxPath> backendFolders = new MailBackendFoldersBuilder()
+		BackendFolders backendFolders = new MailBackendFoldersBuilder()
 			.addSpecialFolders(specialFolders)
 			.addFolders(sameFoldersAsSubscribed)
 			.build();
 		
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
 				.displayName(IMAP_INBOX_NAME)
 				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
 				.displayName(IMAP_DRAFTS_NAME)
 				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_SENT_NAME))
 				.displayName(IMAP_SENT_NAME)
 				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
 				.displayName(IMAP_TRASH_NAME)
 				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build()
 		);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void buildDoNotSupportParentMatchingWhenDifferentSeparator() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
@@ -169,33 +167,32 @@ public class MailBackendFoldersBuilderTest {
 			new MailboxFolder("custom.sub2", '.')
 		));
 
-		BackendFolders<MailboxPath> backendFolders = new MailBackendFoldersBuilder()
+		BackendFolders backendFolders = new MailBackendFoldersBuilder()
 			.addFolders(folders)
 			.build();
 		
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom", DEFAULT_SEPARATOR))
 				.displayName("custom")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub", DEFAULT_SEPARATOR))
 				.displayName("custom/sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of("custom", DEFAULT_SEPARATOR)))
+				.parentId(Optional.<BackendId>of(MailboxPath.of("custom", DEFAULT_SEPARATOR)))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom.sub2", '.'))
 				.displayName("custom.sub2")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build()
 		);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void buildShouldReturnRightParentIsWhenSubMailbox() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
@@ -213,7 +210,7 @@ public class MailBackendFoldersBuilderTest {
 			new MailboxFolder(IMAP_TRASH_NAME, DEFAULT_SEPARATOR))
 		);
 		
-		BackendFolders<MailboxPath> backendFolders = new MailBackendFoldersBuilder()
+		BackendFolders backendFolders = new MailBackendFoldersBuilder()
 			.addFolders(folders)
 			.addSpecialFolders(ImmutableList.of(
 				IMAP_INBOX_NAME,
@@ -223,77 +220,77 @@ public class MailBackendFoldersBuilderTest {
 			.build();
 		
 		assertThat(backendFolders).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom"))
 				.displayName("custom")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub"))
 				.displayName("custom/sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of("custom")))
+				.parentId(Optional.<BackendId>of(MailboxPath.of("custom")))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub/sub with/some space/sub"))
 				.displayName("custom/sub/sub with/some space/sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of("custom/sub")))
+				.parentId(Optional.<BackendId>of(MailboxPath.of("custom/sub")))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom2"))
 				.displayName("custom2")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("folder/with/hierachy/but/no/parent"))
 				.displayName("folder/with/hierachy/but/no/parent")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
 				.displayName(IMAP_INBOX_NAME)
 				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/submailbox"))
 				.displayName(IMAP_INBOX_NAME + "/submailbox")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of(IMAP_INBOX_NAME)))
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox"))
 				.displayName(IMAP_INBOX_NAME + "/sub/mailbox")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of(IMAP_INBOX_NAME)))
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox/withparent"))
 				.displayName(IMAP_INBOX_NAME + "/sub/mailbox/withparent")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.of(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox")))
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox")))
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
 				.displayName(IMAP_DRAFTS_NAME)
 				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_SENT_NAME))
 				.displayName(IMAP_SENT_NAME)
 				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
 				.displayName(IMAP_TRASH_NAME)
 				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build()
 		);
 	}

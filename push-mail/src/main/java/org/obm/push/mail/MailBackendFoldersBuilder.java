@@ -8,7 +8,9 @@ import java.util.Set;
 
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MailboxFolders;
@@ -55,17 +57,17 @@ public class MailBackendFoldersBuilder {
 		return this;
 	}
 	
-	public BackendFolders<MailboxPath> build() {
+	public BackendFolders build() {
 		Map<MailboxPath, Node> pathToNode = Maps.newHashMap(); 
 		Node root = new Node();
 		
 		// Handle special mailboxes, don't search for parent
 		for (MailboxPath folder : specialMailboxes) {
-			Node node = new Node(BackendFolder.<MailboxPath>builder()
+			Node node = new Node(BackendFolder.builder()
 				.displayName(folder.asString())
 				.folderType(folderType(folder))
 				.backendId(folder)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build());
 			
 			root.children.add(node);
@@ -73,8 +75,8 @@ public class MailBackendFoldersBuilder {
 		}
 		
 		for (MailboxPath folder : mailboxes) {
-			Entry<Node, Optional<MailboxPath>> searchParent = searchParent(pathToNode, root, folder);
-			Node node = new Node(BackendFolder.<MailboxPath>builder()
+			Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, folder);
+			Node node = new Node(BackendFolder.builder()
 				.displayName(folder.asString())
 				.folderType(folderType(folder))
 				.backendId(folder)
@@ -87,14 +89,14 @@ public class MailBackendFoldersBuilder {
 		return new TreeBackendFolders(root);
 	}
 	
-	private Entry<Node, Optional<MailboxPath>> searchParent(Map<MailboxPath, Node> pathToNode,
+	private Entry<Node, Optional<BackendId>> searchParent(Map<MailboxPath, Node> pathToNode,
 			Node root, MailboxPath folder) {
 		
 		Optional<MailboxPath> find = Iterables.tryFind(folder.reducingPaths(), Predicates.in(pathToNode.keySet()));
 		if (!find.isPresent()) {
-			return Maps.immutableEntry(root, find);
+			return Maps.immutableEntry(root, Optional.<BackendId>absent());
 		}
-		return Maps.immutableEntry(pathToNode.get(find.get()), find);
+		return Maps.immutableEntry(pathToNode.get(find.get()), Optional.<BackendId>of(find.get()));
 	}
 
 	private FolderType folderType(MailboxPath path) {
@@ -104,13 +106,13 @@ public class MailBackendFoldersBuilder {
 	private static class Node {
 		
 		final Set<Node> children;
-		final Optional<BackendFolder<MailboxPath>> value;
+		final Optional<BackendFolder> value;
 
 		private Node() {
 			this(null);
 		}
 		
-		private Node(BackendFolder<MailboxPath> value) {
+		private Node(BackendFolder value) {
 			this.value = Optional.fromNullable(value);
 			this.children = Sets.newHashSet();
 		}
@@ -139,7 +141,7 @@ public class MailBackendFoldersBuilder {
 		}
 	}
 
-	private static class TreeBackendFolders implements BackendFolders<MailboxPath> {
+	private static class TreeBackendFolders implements BackendFolders {
 		
 		private final Node root;
 		
@@ -148,7 +150,7 @@ public class MailBackendFoldersBuilder {
 		}
 	
 		@Override
-		public Iterator<BackendFolder<MailboxPath>> iterator() {
+		public Iterator<BackendFolder> iterator() {
 			return new TreeTraverser<Node>() {
 	
 				@Override
@@ -164,10 +166,10 @@ public class MailBackendFoldersBuilder {
 					return input.value.isPresent();
 				}
 			})
-			.transform(new Function<Node, BackendFolder<MailboxPath>>() {
+			.transform(new Function<Node, BackendFolder>() {
 	
 				@Override
-				public BackendFolder<MailboxPath> apply(Node input) {
+				public BackendFolder apply(Node input) {
 					return input.value.get();
 				}
 			}).iterator();

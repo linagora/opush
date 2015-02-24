@@ -31,11 +31,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.json.mixin;
 
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.Optional;
 
 @JsonDeserialize(builder=Folder.Builder.class)
-public interface FolderMixIn {
+public abstract class FolderMixIn {
 
+	@JsonProperty("parentBackendId")
+	abstract BackendId getParentBackendId();
+
+	@JsonIgnore 
+	abstract Optional<BackendId> getParentBackendIdOpt();
 }

@@ -79,7 +79,9 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -965,7 +967,6 @@ public class MailBackendImplTest {
 		control.verify();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
@@ -975,39 +976,39 @@ public class MailBackendImplTest {
 		expect(mailboxService.listSubscribedFolders(udr)).andReturn(folders);
 		
 		control.replay();
-		BackendFolders<MailboxPath> currentFolders = testee.getBackendFolders(udr);
+		BackendFolders currentFolders = testee.getBackendFolders(udr);
 		control.verify();
 		
 		assertThat(currentFolders).containsOnly(
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
 				.displayName(IMAP_INBOX_NAME)
 				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
 				.displayName(IMAP_DRAFTS_NAME)
 				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_SENT_NAME))
 				.displayName(IMAP_SENT_NAME)
 				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
 				.displayName(IMAP_TRASH_NAME)
 				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build(),
-			BackendFolder.<MailboxPath>builder()
+			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/mail/box"))
 				.displayName("custom/mail/box")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<MailboxPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build()
 		);
 	}

@@ -29,31 +29,22 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.contacts;
+package org.obm.push.dao.testsuite;
 
-import org.obm.push.bean.BackendId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
 import com.google.common.base.Objects;
 
-public class AddressBookId implements BackendId {
+public class TestBackendId implements BackendId {
 
-	public static AddressBookId of(int id) {
-		return new AddressBookId(id);
-	}
-	
-	private final Id id;
-	
-	private AddressBookId(int id) {
-		this.id = Id.from(String.valueOf(id));
+	private final String id;
+
+	public TestBackendId(String id) {
+		this.id = id;
 	}
 	
 	@Override
 	public String asString() {
-		return id.asString();
-	}
-
-	@Override
-	public Id asId() {
 		return id;
 	}
 
@@ -64,8 +55,8 @@ public class AddressBookId implements BackendId {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof AddressBookId) {
-			AddressBookId that = (AddressBookId)obj;
+		if (obj instanceof TestBackendId) {
+			TestBackendId that = (TestBackendId)obj;
 			return Objects.equal(id, that.id);
 		}
 		return false;

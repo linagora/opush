@@ -29,13 +29,14 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.mail;
+package org.obm.push.bean.change.hierarchy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.TreeSet;
 
 import org.junit.Test;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 
 import com.google.common.collect.Sets;
 

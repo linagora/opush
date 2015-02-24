@@ -219,9 +219,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return PIMDataType.EMAIL;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public BackendFolders<MailboxPath> getBackendFolders(UserDataRequest udr) {
+	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		return new MailBackendFoldersBuilder()
 			.addFolders(mailboxService.listSubscribedFolders(udr))
 			.addSpecialFolders(SPECIAL_FOLDERS)

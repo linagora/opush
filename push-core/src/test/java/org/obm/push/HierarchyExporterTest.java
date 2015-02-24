@@ -46,7 +46,6 @@ import org.junit.Test;
 import org.obm.push.backend.FolderBackend;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
@@ -57,6 +56,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
@@ -282,13 +282,12 @@ public class HierarchyExporterTest {
 		IHierarchyExporter hierarchyExporter = buildHierarchyExporter(
 				folderExporter, mappingService, contactsBackend, calendarBackend, mailBackend);
 
-		BackendFolders<?> backendFolders = hierarchyExporter.getBackendFolders(userDataRequest);
+		BackendFolders backendFolders = hierarchyExporter.getBackendFolders(userDataRequest);
 		verify(mailBackend, calendarBackend, contactsBackend, mappingService);
 		
 		assertThat(backendFolders).isEmpty();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void getBackendFoldersShouldHaveAllElementsWhenEveryBackendHasFolder() {
 		FolderBackend folderExporter = createStrictMock(FolderBackend.class);
@@ -297,21 +296,21 @@ public class HierarchyExporterTest {
 		MailBackend mailBackend = createMock(MailBackend.class);
 		MappingService mappingService = createMock(MappingService.class);
 
-		BackendFolder<BackendId> addressBook = BackendFolder.builder()
+		BackendFolder addressBook = BackendFolder.builder()
 			.displayName("addressBook")
 			.backendId(new TestBackendId("12"))
 			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
 			.build();
 		
-		BackendFolder<BackendId> calendar = BackendFolder.builder()
+		BackendFolder calendar = BackendFolder.builder()
 			.displayName("calendar")
 			.backendId(new TestBackendId("15"))
 			.parentId(Optional.<BackendId>absent())
 			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 			.build();
 		
-		BackendFolder<BackendId> mailbox = BackendFolder.builder()
+		BackendFolder mailbox = BackendFolder.builder()
 			.displayName("mailbox")
 			.backendId(new TestBackendId("18"))
 			.parentId(Optional.<BackendId>absent())
@@ -327,18 +326,17 @@ public class HierarchyExporterTest {
 		IHierarchyExporter hierarchyExporter = buildHierarchyExporter(
 				folderExporter, mappingService, contactsBackend, calendarBackend, mailBackend);
 
-		BackendFolders<BackendId> backendFolders = (BackendFolders<BackendId>) 
-				hierarchyExporter.getBackendFolders(userDataRequest);
+		BackendFolders backendFolders = hierarchyExporter.getBackendFolders(userDataRequest);
 		verify(mailBackend, calendarBackend, contactsBackend, mappingService);
 		
 		assertThat(backendFolders).containsOnly(addressBook, calendar, mailbox);
 	}
 
-	private BackendFolders<BackendId> folders(final BackendFolder<BackendId> folder) {
-		return new BackendFolders<BackendId>() {
+	private BackendFolders folders(final BackendFolder folder) {
+		return new BackendFolders() {
 
 			@Override
-			public Iterator<BackendFolder<BackendId>> iterator() {
+			public Iterator<BackendFolder> iterator() {
 				return ImmutableSet.of(folder).iterator();
 			}};
 	}

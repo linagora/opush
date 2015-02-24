@@ -137,9 +137,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return PIMDataType.CONTACTS;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public BackendFolders<AddressBookId> getBackendFolders(UserDataRequest udr) {
+	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		return new ContactBackendFoldersBuilder()
 			.userDataRequest(udr)
 			.defaultAddressBookName(contactConfiguration.getDefaultAddressBookName())

@@ -47,7 +47,6 @@ import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarMeetingStatus;
@@ -81,7 +80,11 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
 import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
@@ -109,43 +112,285 @@ import com.google.common.collect.Lists;
 public class JSONServiceTest {
 	
 	@Test
-	public void testSerializeFolderWithParent() {
+	public void testSerializeMailboxPathFolderWithParent() {
 		Folder folder = Folder.builder()
-			.backendId(BackendId.Id.from("the backendId"))
-			.parentBackendId(Optional.of(BackendId.Id.from("parent")))
+			.backendId(MailboxPath.of("the backendId", '@'))
+			.parentBackendId(MailboxPath.of("parent/sub", '/'))
 			.displayName("the displayName")
 			.collectionId(CollectionId.of(5))
-			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.build();
 		
 		assertThat(new JSONService().serialize(folder)).isEqualTo(
 			"{" +
-				"\"backendId\":\"the backendId\"," + 
+				"\"backendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"the backendId\"," +
+					"\"separator\":\"@\"}," + 
 				"\"collectionId\":5," + 
 				"\"displayName\":\"the displayName\"," + 
-				"\"folderType\":\"8\"," + 
-				"\"parentBackendId\":\"parent\"" + 
+				"\"folderType\":\"2\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"parent/sub\"," +
+					"\"separator\":\"/\"}" +
+			"}");
+	}
+
+	@Test
+	public void testSerializeMailboxPathFolderWithoutParent() {
+		Folder folder = Folder.builder()
+			.backendId(MailboxPath.of("the backendId", '@'))
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.displayName("the displayName")
+			.collectionId(CollectionId.of(5))
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"the backendId\"," +
+					"\"separator\":\"@\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"2\"," + 
+				"\"parentBackendId\":null" +
 			"}");
 	}
 	
 	@Test
-	public void testDeserializeFolderWithParent() {
+	public void testDeserializeMailboxPathFolderWithParent() {
 		Folder folder = new JSONService().deserialize(Folder.class,
 			"{" +
-				"\"backendId\":\"the backendId\"," + 
+				"\"backendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"the backendId\"," +
+					"\"separator\":\"@\"}," + 
 				"\"collectionId\":5," + 
 				"\"displayName\":\"the displayName\"," + 
-				"\"folderType\":\"8\"," + 
-				"\"parentBackendId\":\"parent\"" + 
+				"\"folderType\":\"2\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"parent/sub\"," +
+					"\"separator\":\"/\"}" +
 			"}");
 		
 		assertThat(folder).isEqualTo(Folder.builder()
-			.backendId(BackendId.Id.from("the backendId"))
-			.parentBackendId(Optional.of(BackendId.Id.from("parent")))
+			.backendId(MailboxPath.of("the backendId", '@'))
+			.parentBackendId(MailboxPath.of("parent/sub", '/'))
 			.displayName("the displayName")
 			.collectionId(CollectionId.of(5))
-			.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
 			.build());
+	}
+	
+	@Test
+	public void testDeserializeMailboxPathFolderWithoutParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"EMAIL\"," +
+					"\"path\":\"the backendId\"," +
+					"\"separator\":\"@\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"2\"," + 
+				"\"parentBackendId\":null" +
+			"}");
+		
+		assertThat(folder).isEqualTo(Folder.builder()
+			.backendId(MailboxPath.of("the backendId", '@'))
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.displayName("the displayName")
+			.collectionId(CollectionId.of(5))
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.build());
+	}
+	
+	@Test
+	public void testSerializeAddressBookFolderWithParent() {
+		Folder folder = Folder.builder()
+				.backendId(AddressBookId.of(-7))
+				.parentBackendId(AddressBookId.of(2))
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":-7}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"9\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":2}" + 
+			"}");
+	}
+	
+	@Test
+	public void testSerializeAddressBookFolderWithoutParent() {
+		Folder folder = Folder.builder()
+				.backendId(AddressBookId.of(-7))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":-7}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"9\"," + 
+				"\"parentBackendId\":null" + 
+			"}");
+	}
+	
+	@Test
+	public void testDeserializeAddressBookFolderWithParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":-7}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"9\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":2}" + 
+			"}");
+		
+		assertThat(folder).isEqualTo(Folder.builder()
+				.backendId(AddressBookId.of(-7))
+				.parentBackendId(AddressBookId.of(2))
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build());
+	}
+
+	@Test
+	public void testDeserializeAddressBookFolderWithoutParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CONTACTS\"," +
+					"\"id\":-7}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"9\"," + 
+				"\"parentBackendId\":null" + 
+			"}");
+		
+		assertThat(folder).isEqualTo(Folder.builder()
+				.backendId(AddressBookId.of(-7))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build());
+	}
+	
+	@Test
+	public void testSerializeCalendarPathFolderWithParent() {
+		Folder folder = Folder.builder()
+				.backendId(CalendarPath.of("my calendar"))
+				.parentBackendId(CalendarPath.of("parent calendar"))
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"my calendar\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"parent calendar\"}" + 
+			"}");
+	}
+	
+	@Test
+	public void testSerializeCalendarPathFolderWithoutParent() {
+		Folder folder = Folder.builder()
+				.backendId(CalendarPath.of("my calendar"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build();
+		
+		assertThat(new JSONService().serialize(folder)).isEqualTo(
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"my calendar\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":null" + 
+			"}");
+	}
+	
+	@Test
+	public void testDeserializeCalendarPathFolderWithParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"my calendar\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"parent calendar\"}" + 
+			"}");
+		
+		assertThat(folder).isEqualTo(Folder.builder()
+				.backendId(CalendarPath.of("my calendar"))
+				.parentBackendId(CalendarPath.of("parent calendar"))
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build());
+	}
+
+	@Test
+	public void testDeserializeCalendarPathFolderWithoutParent() {
+		Folder folder = new JSONService().deserialize(Folder.class,
+			"{" +
+				"\"backendId\":{" +
+					"\"type\":\"CALENDAR\"," +
+					"\"path\":\"my calendar\"}," + 
+				"\"collectionId\":5," + 
+				"\"displayName\":\"the displayName\"," + 
+				"\"folderType\":\"8\"," + 
+				"\"parentBackendId\":null" + 
+			"}");
+
+		assertThat(folder).isEqualTo(Folder.builder()
+				.backendId(CalendarPath.of("my calendar"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("the displayName")
+				.collectionId(CollectionId.of(5))
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build());
 	}
 
 	@Test

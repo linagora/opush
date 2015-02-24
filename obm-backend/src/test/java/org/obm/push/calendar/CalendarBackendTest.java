@@ -84,7 +84,9 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
@@ -1782,16 +1784,16 @@ public class CalendarBackendTest {
 	@Test
 	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
 		mockControl.replay();
-		BackendFolders<?> currentFolders = calendarBackend.getBackendFolders(userDataRequest);
+		BackendFolders currentFolders = calendarBackend.getBackendFolders(userDataRequest);
 		mockControl.verify();
 		
 		assertThat(currentFolders).hasSize(1);
 		assertThat(currentFolders.iterator().next()).isEqualTo(
-			BackendFolder.<CalendarPath>builder()
+			BackendFolder.builder()
 				.backendId(CalendarPath.of("test"))
 				.displayName("test calendar")
 				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
-				.parentId(Optional.<CalendarPath>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build());
 	}
 }

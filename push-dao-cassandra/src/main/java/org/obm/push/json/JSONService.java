@@ -39,7 +39,6 @@ import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingEvent;
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.Credentials;
@@ -59,7 +58,11 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.TypedCommandsIndex;
 import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
 import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
@@ -67,9 +70,11 @@ import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestCategory;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
+import org.obm.push.json.mixin.AddressBookIdMixIn;
 import org.obm.push.json.mixin.AnalysedSyncCollectionMixIn;
 import org.obm.push.json.mixin.BackendIdMixIn;
 import org.obm.push.json.mixin.BodyPreferenceMixIn;
+import org.obm.push.json.mixin.CalendarPathMixIn;
 import org.obm.push.json.mixin.CollectionIdMixIn;
 import org.obm.push.json.mixin.CredentialsMixIn;
 import org.obm.push.json.mixin.DeviceIdMixIn;
@@ -90,6 +95,7 @@ import org.obm.push.json.mixin.MSEventUidMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestCategoryMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestRecurrenceMixIn;
+import org.obm.push.json.mixin.MailboxPathMixIn;
 import org.obm.push.json.mixin.ServerIdMixIn;
 import org.obm.push.json.mixin.SnapshotMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandRequestMixIn;
@@ -204,7 +210,10 @@ public class JSONService {
 			.setMixInAnnotation(IApplicationData.class, IApplicationDataMixIn.class)
 			.setMixInAnnotation(ItemChange.class, ItemChangeMixIn.class)
 			.setMixInAnnotation(ItemDeletion.class, ItemDeletionMixIn.class)
-			.setMixInAnnotation(BackendId.Id.class, BackendIdMixIn.class)
+			.setMixInAnnotation(BackendId.class, BackendIdMixIn.class)
+			.setMixInAnnotation(MailboxPath.class, MailboxPathMixIn.class)
+			.setMixInAnnotation(CalendarPath.class, CalendarPathMixIn.class)
+			.setMixInAnnotation(AddressBookId.class, AddressBookIdMixIn.class)
 			.setMixInAnnotation(CollectionId.class, CollectionIdMixIn.class)
 			.setMixInAnnotation(Credentials.class, CredentialsMixIn.class)
 			.setMixInAnnotation(Device.class, DeviceMixIn.class)

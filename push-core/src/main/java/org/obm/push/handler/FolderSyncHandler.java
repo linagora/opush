@@ -137,7 +137,7 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 		// NEW SYSTEM //
 		FolderSyncKey outgoingSyncKey = outgoingSyncState.getSyncKey();
 		FolderSnapshot knownSnapshot = folderSnapshotService.findFolderSnapshot(udr, folderSyncRequest.getSyncKey());
-		BackendFolders<?> backendFolders = hierarchyExporter.getBackendFolders(udr);
+		BackendFolders backendFolders = hierarchyExporter.getBackendFolders(udr);
 		FolderSnapshot currentSnapshot = folderSnapshotService.snapshot(udr, outgoingSyncKey, knownSnapshot, backendFolders);
 		FolderSyncResponse shoudBeTheResponse = FolderSyncResponse.builder()
 			.status(FolderSyncStatus.OK)

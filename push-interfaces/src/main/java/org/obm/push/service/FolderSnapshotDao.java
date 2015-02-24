@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.service;
 
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.exception.DaoException;
@@ -50,7 +50,7 @@ public interface FolderSnapshotDao {
 
 	Folder get(User user, Device device, CollectionId collectionId) throws CollectionNotFoundException;
 	
-	Folder get(User user, Device device, PIMDataType pimDataType, BackendId.Id backendId) throws CollectionNotFoundException;
+	Folder get(User user, Device device, PIMDataType pimDataType, BackendId backendId) throws CollectionNotFoundException;
 	
 	public static class FolderSnapshotNotFoundException extends Exception {
 

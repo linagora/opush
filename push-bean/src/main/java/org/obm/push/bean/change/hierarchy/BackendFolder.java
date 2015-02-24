@@ -31,24 +31,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.change.hierarchy;
 
-import org.obm.push.bean.BackendId;
 import org.obm.push.bean.FolderType;
+import org.obm.push.bean.Stringable;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class BackendFolder<T extends BackendId> {
+public class BackendFolder {
 	
-	public static <T extends BackendId> Builder<T> builder() {
-		return new Builder<T>();
+	public static Builder builder() {
+		return new Builder();
 	}
 	
-	public static class Builder<T extends BackendId> {
+	public static class Builder {
 
-		private T backendId;
-		private Optional<T> parentId;
+		private BackendId backendId;
+		private Optional<BackendId> parentId;
 		private String displayName;
 		private FolderType folderType;
 		
@@ -56,52 +56,52 @@ public class BackendFolder<T extends BackendId> {
 			super();
 		}
 
-		public Builder<T> backendId(T backendId) {
+		public Builder backendId(BackendId backendId) {
 			Preconditions.checkNotNull(backendId);
 			this.backendId = backendId;
 			return this;
 		}
 
-		public Builder<T> displayName(String displayName) {
+		public Builder displayName(String displayName) {
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			this.displayName = displayName;
 			return this;
 		}
 
-		public Builder<T> folderType(FolderType folderType) {
+		public Builder folderType(FolderType folderType) {
 			Preconditions.checkNotNull(folderType);
 			this.folderType = folderType;
 			return this;
 		}
 		
-		public Builder<T> parentId(Optional<T> parentId) {
+		public Builder parentId(Optional<BackendId> parentId) {
 			this.parentId = parentId;
 			return this;
 		}
 
-		public BackendFolder<T> build() {
+		public BackendFolder build() {
 			Preconditions.checkNotNull(backendId);
 			Preconditions.checkNotNull(parentId);
 			Preconditions.checkNotNull(folderType);
 			Preconditions.checkArgument(!Strings.isNullOrEmpty(displayName));
 			
-			return new BackendFolder<T>(backendId, parentId, displayName, folderType);
+			return new BackendFolder(backendId, parentId, displayName, folderType);
 		}
 	}
 	
-	private final T backendId;
-	private final Optional<T> parentId;
+	private final BackendId backendId;
+	private final Optional<BackendId> parentId;
 	private final String displayName;
 	private final FolderType folderType;
 	
-	public BackendFolder(T backendId, Optional<T> parentId, String displayName, FolderType folderType) {
+	public BackendFolder(BackendId backendId, Optional<BackendId> parentId, String displayName, FolderType folderType) {
 		this.backendId = backendId;
 		this.parentId = parentId;
 		this.displayName = displayName;
 		this.folderType = folderType;
 	}
 	
-	public T getBackendId() {
+	public BackendId getBackendId() {
 		return backendId;
 	}
 
@@ -113,7 +113,7 @@ public class BackendFolder<T extends BackendId> {
 		return folderType;
 	}
 
-	public Optional<T> getParentBackendId() {
+	public Optional<BackendId> getParentBackendId() {
 		return parentId;
 	}
 
@@ -125,7 +125,7 @@ public class BackendFolder<T extends BackendId> {
 	@Override
 	public final boolean equals(Object object){
 		if (object instanceof BackendFolder) {
-			BackendFolder<?> that = (BackendFolder<?>) object;
+			BackendFolder that = (BackendFolder) object;
 			return Objects.equal(this.backendId, that.backendId)
 				&& Objects.equal(this.displayName, that.displayName)
 				&& Objects.equal(this.folderType, that.folderType)
@@ -143,4 +143,8 @@ public class BackendFolder<T extends BackendId> {
 			.add("parentId", parentId)
 			.toString();
 	}
+	
+	public static interface BackendId extends Stringable {
+	}
+
 }

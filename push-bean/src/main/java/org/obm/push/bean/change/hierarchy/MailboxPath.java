@@ -29,35 +29,81 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push;
+package org.obm.push.bean.change.hierarchy;
+
+import java.util.List;
 
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.Iterables;
 
-public class TestBackendId implements BackendId {
+public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 
-	private final String id;
-
-	public TestBackendId(String id) {
-		this.id = id;
+	public static final char DEFAULT_SEPARATOR = '/';
+	
+	public static MailboxPath of(String path) {
+		return new MailboxPath(path, DEFAULT_SEPARATOR);
 	}
 	
+	public static MailboxPath of(String path, char separator) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(path));
+		return new MailboxPath(path, separator);
+	}
+	
+	private final String path;
+	private final char separator;
+	
+	private MailboxPath(String path, char separator) {
+		this.path = path;
+		this.separator = separator;
+	}
+
 	@Override
 	public String asString() {
-		return id;
+		return path;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public char getSeparator() {
+		return separator;
+	}
+
+	public Iterable<MailboxPath> reducingPaths() {
+		Builder<MailboxPath> paths = ImmutableList.builder();
+		List<String> pieces = Splitter.on(separator).omitEmptyStrings().splitToList(path);
+		for (int index = pieces.size() - 1 ; index > 0; index--) {
+			String path = Joiner.on(separator).join(Iterables.limit(pieces, index));
+			paths.add(MailboxPath.of(path, separator));
+		}
+		return paths.build();
+	}
+
+	@Override
+	public int compareTo(MailboxPath o) {
+		return asString().compareToIgnoreCase(o.asString());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(id);
+		return Objects.hashCode(path, separator);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof TestBackendId) {
-			TestBackendId that = (TestBackendId)obj;
-			return Objects.equal(id, that.id);
+		if (obj instanceof MailboxPath) {
+			MailboxPath that = (MailboxPath)obj;
+			return Objects.equal(path, that.path)
+				&& Objects.equal(separator, that.separator);
 		}
 		return false;
 	}
@@ -65,7 +111,8 @@ public class TestBackendId implements BackendId {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("id", id)
+			.add("path", path)
+			.add("separator", separator)
 			.toString();
 	}
 }

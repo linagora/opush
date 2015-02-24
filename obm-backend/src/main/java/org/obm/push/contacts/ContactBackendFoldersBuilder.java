@@ -37,7 +37,9 @@ import java.util.Set;
 
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.sync.book.Folder;
 
@@ -97,35 +99,35 @@ public class ContactBackendFoldersBuilder {
 		return isOwner && isDefaultAddressBookName;
 	}
 	
-	public BackendFolders<AddressBookId> build() {
-		final Builder<BackendFolder<AddressBookId>> backendFoldersBuilder = ImmutableSet.builder();
-		Optional<AddressBookId> parentId = parentFolder != null ? 
-				Optional.of(AddressBookId.of(parentFolder.getUid())) :
-				Optional.<AddressBookId>absent();
+	public BackendFolders build() {
+		final Builder<BackendFolder> backendFoldersBuilder = ImmutableSet.builder();
+		Optional<BackendId> parentId = parentFolder != null ? 
+				Optional.<BackendId>of(AddressBookId.of(parentFolder.getUid())) :
+				Optional.<BackendId>absent();
 		
 		if (parentFolder != null) {
-			backendFoldersBuilder.add(BackendFolder.<AddressBookId>builder()
+			backendFoldersBuilder.add(BackendFolder.builder()
 				.displayName(parentFolder.getName())
 				.folderType(findFolderType(udr, parentFolder))
 				.backendId(AddressBookId.of(parentFolder.getUid()))
-				.parentId(Optional.<AddressBookId>absent())
+				.parentId(Optional.<BackendId>absent())
 				.build());
 		}
 		
 		for (Folder folder : folders) {
-			backendFoldersBuilder.add(BackendFolder.<AddressBookId>builder()
+			backendFoldersBuilder.add(BackendFolder.builder()
 				.displayName(folder.getName())
 				.folderType(findFolderType(udr, folder))
 				.backendId(AddressBookId.of(folder.getUid()))
 				.parentId(parentId)
 				.build());
 		}
-		return new BackendFolders<AddressBookId>() {
+		return new BackendFolders() {
 			
-			Set<BackendFolder<AddressBookId>> backendFolders = backendFoldersBuilder.build();
+			Set<BackendFolder> backendFolders = backendFoldersBuilder.build();
 			
 			@Override
-			public Iterator<BackendFolder<AddressBookId>> iterator() {
+			public Iterator<BackendFolder> iterator() {
 				return backendFolders.iterator();
 			}
 		};
