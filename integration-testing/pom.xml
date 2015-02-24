@@ -32,11 +32,6 @@
 				<artifactId>spushnik-integration-testing</artifactId>
 				<version>${opush.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian.container</groupId>
-				<artifactId>arquillian-jetty-embedded-9</artifactId>
-				<version>1.0.0.CR2</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
