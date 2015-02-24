@@ -53,7 +53,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
@@ -72,6 +71,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.bean.ms.MSEmailBody;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.store.CollectionDao;
@@ -177,8 +177,8 @@ public class MailBackendHandlerTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.deleteEmail(decoder, syncEmailSyncKey, collectionId, serverId);
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_TRASH_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_TRASH_NAME, 1);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(1);

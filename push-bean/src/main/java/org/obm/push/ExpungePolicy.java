@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2013-2014  Linagora
+ * Copyright (C) 2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,39 +29,9 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store.jdbc;
+package org.obm.push;
 
-import org.junit.Rule;
-import org.obm.dao.utils.DaoTestModule;
-import org.obm.dao.utils.H2InMemoryDatabase;
-import org.obm.dao.utils.H2InMemoryDatabaseRule;
-import org.obm.dao.utils.H2TestClass;
-import org.obm.guice.GuiceModule;
-import org.obm.push.dao.testsuite.ItemTrackingDaoTest;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.ItemTrackingDao;
+public enum ExpungePolicy {
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-
-@GuiceModule(ItemTrackingDaoJdbcImplTest.Env.class)
-public class ItemTrackingDaoJdbcImplTest extends ItemTrackingDaoTest implements H2TestClass {
-
-	public static class Env extends AbstractModule {
-		@Override
-		protected void configure() {
-			install(new DaoTestModule());
-			bind(ItemTrackingDao.class).to(ItemTrackingDaoJdbcImpl.class);
-			bind(CollectionDao.class).to(CollectionDaoJdbcImpl.class);
-		}
-	}
-	
-	@Rule public H2InMemoryDatabaseRule dbRule = new H2InMemoryDatabaseRule(this, "sql/initialItemTrackingSchema.sql");
-
-	@Inject H2InMemoryDatabase db;
-	
-	@Override
-	public H2InMemoryDatabase getDb() {
-		return db;
-	}
+	ALWAYS, NEVER
 }

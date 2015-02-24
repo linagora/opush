@@ -36,7 +36,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
@@ -44,6 +43,7 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.bean.MailboxFolder;
@@ -89,9 +89,9 @@ public class SendMailboxServiceTest {
 		mailboxService.createFolder(udr, folder("Sent"));
 
 		String userSentFolder = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 		String parsedMailbox = mailboxService.parseMailBoxName(udr, userSentFolder);
-		Assertions.assertThat(parsedMailbox).isEqualTo(EmailConfiguration.IMAP_SENT_NAME);
+		Assertions.assertThat(parsedMailbox).isEqualTo(OpushEmailConfiguration.IMAP_SENT_NAME);
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public class SendMailboxServiceTest {
 		mailboxService.createFolder(udr, folder("SeNt"));
 
 		String userSentFolder = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 		String parsedMailbox = mailboxService.parseMailBoxName(udr, userSentFolder);
 		Assertions.assertThat(parsedMailbox).isEqualTo("SeNt");
 	}
@@ -111,9 +111,9 @@ public class SendMailboxServiceTest {
 		mailboxService.createFolder(udr, folder("AnotherSentfolder"));
 
 		String userSentFolder = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 		String parsedMailbox = mailboxService.parseMailBoxName(udr, userSentFolder);
-		Assertions.assertThat(parsedMailbox).isEqualTo(EmailConfiguration.IMAP_SENT_NAME);
+		Assertions.assertThat(parsedMailbox).isEqualTo(OpushEmailConfiguration.IMAP_SENT_NAME);
 	}
 	
 	@Test
@@ -123,9 +123,9 @@ public class SendMailboxServiceTest {
 		mailboxService.createFolder(udr, folder("Bo&AO4-tes partag&AOk-es.6968426.Sent"));
 
 		String userSentFolder = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 		String parsedMailbox = mailboxService.parseMailBoxName(udr, userSentFolder);
-		Assertions.assertThat(parsedMailbox).isEqualTo(EmailConfiguration.IMAP_SENT_NAME);
+		Assertions.assertThat(parsedMailbox).isEqualTo(OpushEmailConfiguration.IMAP_SENT_NAME);
 	}
 	
 	private MailboxFolder folder(String name) {

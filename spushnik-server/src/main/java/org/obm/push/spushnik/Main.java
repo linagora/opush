@@ -31,7 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik;
 
-import org.obm.configuration.VMArgumentsUtils;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;

@@ -40,14 +40,16 @@ import org.obm.guice.GuiceModule;
 import org.obm.push.dao.testsuite.CalendarDaoTest;
 import org.obm.push.store.CalendarDao;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 @GuiceModule(CalendarDaoJdbcImplTest.Env.class)
 public class CalendarDaoJdbcImplTest extends CalendarDaoTest implements H2TestClass {
 
-	public static class Env extends DaoTestModule {
+	public static class Env extends AbstractModule {
 		@Override
-		protected void configureImpl() {
+		protected void configure() {
+			install(new DaoTestModule());
 			bind(CalendarDao.class).to(CalendarDaoJdbcImpl.class);
 		}
 	}

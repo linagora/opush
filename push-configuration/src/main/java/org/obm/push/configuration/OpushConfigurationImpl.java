@@ -55,7 +55,8 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	@VisibleForTesting final static String ASCMD = "Microsoft-Server-ActiveSync";
 	@VisibleForTesting final static String EXTERNAL_URL_KEY = "external-url";
 	@VisibleForTesting final static String OBM_SYNC_PORT = "8080";
-	@VisibleForTesting final static String OBM_SYNC_APP_NAME = "obm-sync/services";
+	@VisibleForTesting final static String OBM_SYNC_APP_NAME = "obm-sync";
+	@VisibleForTesting final static String SERVICES_APP_NAME = "services";
 	@VisibleForTesting final static boolean IS_REQUEST_LOGGER_ENABLED = true;
 	
 	public static class Factory {
@@ -108,11 +109,6 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 		long transactionTimeoutInSeconds = transactionTimeoutUnit.toSeconds(transactionTimeout);
 		return Ints.checkedCast(transactionTimeoutInSeconds);
 	}
-	
-	@Override
-	public boolean usePersistentEhcacheStore() {
-		return true;
-	}
 
 	@Override
 	public ResourceBundle getResourceBundle(Locale locale) {
@@ -136,14 +132,19 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	private String getExternalUrl() {
 		return iniFile.getStringValue(EXTERNAL_URL_KEY);
 	}
-
-	@Override
-	public String getObmSyncUrl(String obmSyncHost) {
-		return "http://" + obmSyncHost + ":" + OBM_SYNC_PORT + "/" + OBM_SYNC_APP_NAME;
-	}
 	
 	@Override
 	public boolean isRequestLoggerEnabled() {
 		return IS_REQUEST_LOGGER_ENABLED;
+	}
+
+	@Override
+	public String getObmSyncBaseUrl(String obmSyncHost) {
+		return "http://" + obmSyncHost + ":" + OBM_SYNC_PORT + "/" + OBM_SYNC_APP_NAME;
+	}
+
+	@Override
+	public String getObmSyncServicesUrl(String obmSyncHost) {
+		return getObmSyncBaseUrl(obmSyncHost) + "/" + SERVICES_APP_NAME;
 	}
 }

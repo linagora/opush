@@ -35,9 +35,9 @@ import java.nio.file.Paths;
 
 import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.GlobalAppConfiguration;
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationLoader;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;

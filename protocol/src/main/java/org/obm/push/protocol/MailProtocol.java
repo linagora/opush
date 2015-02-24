@@ -37,9 +37,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.MailRequestStatus;
 import org.obm.push.bean.ServerId;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.QuotaExceededException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MailRequest;
@@ -58,10 +58,10 @@ import com.google.inject.Singleton;
 @Singleton
 public class MailProtocol {
 	
-	private final EmailConfiguration emailConfiguration;
+	private final OpushEmailConfiguration emailConfiguration;
 	
 	@Inject
-	/*package*/ MailProtocol(EmailConfiguration emailConfiguration) {
+	/*package*/ MailProtocol(OpushEmailConfiguration emailConfiguration) {
 		this.emailConfiguration = emailConfiguration;
 	}
 

@@ -31,10 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.impl;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -61,10 +61,10 @@ public class CollectionPathHelper implements ICollectionPathHelper {
 	private static final char BACKSLASH = '\\';
 	private static final String PROTOCOL = "obm:" + BACKSLASH + BACKSLASH;
 
-	private final EmailConfiguration emailConfiguration;
+	private final OpushEmailConfiguration emailConfiguration;
 	
 	@Inject
-	@VisibleForTesting CollectionPathHelper(EmailConfiguration emailConfiguration) {
+	@VisibleForTesting CollectionPathHelper(OpushEmailConfiguration emailConfiguration) {
 		this.emailConfiguration = emailConfiguration;
 	}
 	
@@ -142,11 +142,11 @@ public class CollectionPathHelper implements ICollectionPathHelper {
 	}
 
 	private String handleSpecificFolder(String folder) {
-		if (folder.equals(EmailConfiguration.IMAP_DRAFTS_NAME)) {
+		if (folder.equals(OpushEmailConfiguration.IMAP_DRAFTS_NAME)) {
 			return emailConfiguration.imapMailboxDraft();
-		} else if (folder.equals(EmailConfiguration.IMAP_SENT_NAME)) {
+		} else if (folder.equals(OpushEmailConfiguration.IMAP_SENT_NAME)) {
 			return emailConfiguration.imapMailboxSent();
-		} else if (folder.equals(EmailConfiguration.IMAP_TRASH_NAME)) {
+		} else if (folder.equals(OpushEmailConfiguration.IMAP_TRASH_NAME)) {
 			return emailConfiguration.imapMailboxTrash();
 		}
 		return folder;

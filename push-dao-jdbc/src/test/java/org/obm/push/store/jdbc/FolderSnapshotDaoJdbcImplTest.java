@@ -41,14 +41,16 @@ import org.obm.push.dao.testsuite.FolderSnapshotDaoTest;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSnapshotDao;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 @GuiceModule(FolderSnapshotDaoJdbcImplTest.Env.class)
 public class FolderSnapshotDaoJdbcImplTest extends FolderSnapshotDaoTest implements H2TestClass {
 
-	public static class Env extends DaoTestModule {
+	public static class Env extends AbstractModule {
 		@Override
-		protected void configureImpl() {
+		protected void configure() {
+			install(new DaoTestModule());
 			bind(FolderSnapshotDao.class).to(FolderSnapshotDaoJdbcImpl.class);
 			bind(CollectionDao.class).to(CollectionDaoJdbcImpl.class);
 		}

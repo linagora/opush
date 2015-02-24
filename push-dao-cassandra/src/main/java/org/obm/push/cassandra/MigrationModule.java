@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.dao.SchemaProducerImpl;
 import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
@@ -39,6 +38,7 @@ import org.obm.push.cassandra.migration.CodedMigrationService;
 import org.obm.push.cassandra.migration.CqlFilesMigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.Version;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;

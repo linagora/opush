@@ -19,7 +19,7 @@
 	</prerequisites>
 
 	<properties>
-		<obm.version>3.0.1-alpha3</obm.version>
+		<obm.version>3.1.2</obm.version>
 		<opush.release>3.1.0</opush.release>
 		<opush.version>${opush.release}-SNAPSHOT</opush.version>
 		<opush.packaging.version>${opush.release}~alpha0~git${mvngit.commit.committer.date}.${mvngit.commit.abbrev}</opush.packaging.version>
@@ -154,7 +154,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
-				<artifactId>healthcheck-api</artifactId>
+				<artifactId>healthcheck-api-jersey-1</artifactId>
 				<version>${obm.version}</version>
 			</dependency>
 			<dependency>

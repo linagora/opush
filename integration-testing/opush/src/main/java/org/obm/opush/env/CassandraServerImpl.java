@@ -31,9 +31,9 @@ package org.obm.opush.env;
 
 import org.cassandraunit.CassandraCQLUnit;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.EmptyKeyspaceDataset;
 import org.obm.push.cassandra.migration.CassandraMigrationService;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.datastax.driver.core.Session;
 import com.google.common.base.Objects;

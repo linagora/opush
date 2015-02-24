@@ -41,10 +41,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ImapMessageNotFoundException;
@@ -103,7 +103,7 @@ public class LinagoraMailboxService implements MailboxService {
 	private final ICollectionPathHelper collectionPathHelper;
 
 	@Inject
-	LinagoraMailboxService(EmailConfiguration emailConfiguration, 
+	LinagoraMailboxService(OpushEmailConfiguration emailConfiguration, 
 			LinagoraImapClientProvider imapClientProvider, 
 			ICollectionPathHelper collectionPathHelper) {
 		
@@ -357,7 +357,7 @@ public class LinagoraMailboxService implements MailboxService {
 		logger.info("Store mail in folder[SentBox]");
 		if (mailContent != null) {
 			String sentboxPath = 
-					collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+					collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 			storeInFolder(udr, mailContent, true, sentboxPath);
 		} else {
 			throw new MailException("The mail that user try to store in sent box is null.");
@@ -424,7 +424,7 @@ public class LinagoraMailboxService implements MailboxService {
 	public void storeInInbox(UserDataRequest udr, EmailReader mailContent, boolean isRead) throws MailException {
 		logger.info("Store mail in folder[Inbox]");
 		String inboxPath = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		storeInFolder(udr, mailContent, isRead, inboxPath);
 	}
 	
@@ -474,7 +474,7 @@ public class LinagoraMailboxService implements MailboxService {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
 			store.select( extractMailboxNameFromCollectionPath(udr, collectionPath) );
-			SearchQuery query = SearchQuery.builder().after(windows).build();
+			SearchQuery query = SearchQuery.builder().afterInclusive(windows).build();
 			MessageSet messages = store.uidSearch(query);
 			Collection<FastFetch> mails = fetchFast(udr, collectionPath, messages);
 			return EmailFactory.listEmailFromFastFetch(mails);

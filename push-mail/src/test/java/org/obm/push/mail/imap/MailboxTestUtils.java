@@ -37,17 +37,17 @@ import java.util.Set;
 
 import javax.mail.internet.MimeMessage;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
 import org.obm.push.exception.UnsupportedBackendFunctionException;
 import org.obm.push.mail.MailboxService;
-import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.Email;
+import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MessageSet;
 
@@ -112,13 +112,13 @@ public class MailboxTestUtils {
 			throws DaoException, MailException, ImapMessageNotFoundException, UnsupportedBackendFunctionException {
 		
 		Email sentEmail = sendEmailToInbox();
-		String inboxPath = mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inboxPath = mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		mailboxService.move(udr, inboxPath, mailboxPath(mailbox), MessageSet.singleton(sentEmail.getUid()));
 		return emailInMailbox(mailbox);
 	}
 
 	public Email emailInInbox() throws MailException {
-		return emailInMailbox(EmailConfiguration.IMAP_INBOX_NAME);
+		return emailInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 	
 	public Email emailInMailbox(String mailboxName) throws MailException {
@@ -145,7 +145,7 @@ public class MailboxTestUtils {
 	}
 
 	public MailboxFolder inbox() {
-		return folder(EmailConfiguration.IMAP_INBOX_NAME);
+		return folder(OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 
 	public InputStream getInputStreamFromFile(String name) {

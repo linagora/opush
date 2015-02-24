@@ -57,7 +57,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
@@ -78,6 +77,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
@@ -221,7 +221,7 @@ public class MailBackendGetChangedTest {
 					.isNew(true)
 					.build()));
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(1);
@@ -285,7 +285,7 @@ public class MailBackendGetChangedTest {
 		assertThat(firstInboxResponse.getItemChanges()).isEmpty();
 		assertThat(secondInboxResponse.getItemChanges()).isEmpty();
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -361,7 +361,7 @@ public class MailBackendGetChangedTest {
 						.isNew(true)
 						.build()));
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 4);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 4);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -420,7 +420,7 @@ public class MailBackendGetChangedTest {
 						.isNew(true)
 						.build()));
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(1);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(1);
@@ -489,7 +489,7 @@ public class MailBackendGetChangedTest {
 					.serverId(inboxCollectionId.serverId(1))
 					.build());
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -611,7 +611,7 @@ public class MailBackendGetChangedTest {
 		assertThat(deletions).hasSize(1);
 		SyncCollectionCommandResponse deletion = deletions.get(0);
 		assertThat(deletion.getServerId()).isEqualTo(CollectionId.of(1234).serverId(1));
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 	}
 	
 	@Test
@@ -670,7 +670,7 @@ public class MailBackendGetChangedTest {
 		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
 		mocksControl.verify();
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 3);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 3);
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
 		assertThat(inboxResponse.getItemDeletions()).isEmpty();
@@ -736,7 +736,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 		List<ServerId> deletions = inboxResponse.getResponses().deletions();
 		assertThat(deletions).containsOnly(inboxCollectionId.serverId(emailId1));
 	}
@@ -820,7 +820,7 @@ public class MailBackendGetChangedTest {
 						.isNew(true)
 						.build()));
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 	}
 	
 	@Test
@@ -874,7 +874,7 @@ public class MailBackendGetChangedTest {
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
-		MailFolder folder = imapHostManager.getFolder(greenMailUser, EmailConfiguration.IMAP_INBOX_NAME);
+		MailFolder folder = imapHostManager.getFolder(greenMailUser, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		folder.setFlags(new Flags(Flag.SEEN), true, 1, null, true);
 		
 		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
@@ -888,7 +888,7 @@ public class MailBackendGetChangedTest {
 						.isNew(false)
 						.build()));
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -949,7 +949,7 @@ public class MailBackendGetChangedTest {
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 		
-		MailFolder folder = imapHostManager.getFolder(greenMailUser, EmailConfiguration.IMAP_INBOX_NAME);
+		MailFolder folder = imapHostManager.getFolder(greenMailUser, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		folder.setFlags(new Flags(Flag.DELETED), true, 1, null, true);
 		
 		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
@@ -959,7 +959,7 @@ public class MailBackendGetChangedTest {
 		assertThat(inboxResponse.getItemDeletions()).containsOnly(
 				ItemDeletion.builder().serverId(serverId).build());
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -1038,7 +1038,7 @@ public class MailBackendGetChangedTest {
 		assertThat(lastInboxResponse.getItemChanges()).hasSize(numberOfEmails - windowSize);
 		assertThat(lastInboxResponse.getSyncKey()).isEqualTo(thirdAllocatedSyncKey);
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, numberOfEmails);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, numberOfEmails);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -1111,7 +1111,7 @@ public class MailBackendGetChangedTest {
 		SyncCollectionResponse lastInboxResponse = syncTestUtils.getCollectionWithId(syncResponseWithFetch, inboxCollectionId);
 		assertThat(lastInboxResponse.getSyncKey()).isEqualTo(newAllocatedSyncKey);
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 1);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 1);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);

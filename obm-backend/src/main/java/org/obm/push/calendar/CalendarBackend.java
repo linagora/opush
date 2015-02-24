@@ -90,6 +90,7 @@ import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
+import org.obm.sync.PermissionException;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
@@ -444,7 +445,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			EventObmId newEventId = chooseBackendChange(udr, msEvent, collectionPath, token, eventExtId, oldEvent, eventId, clientId);
 			
 			return getServerIdFor(collectionId, newEventId);
-		} catch (org.obm.sync.NotAllowedException e) {
+		} catch (org.obm.sync.NotAllowedException | PermissionException e) {
 			logger.warn(e.getMessage(), e);
 			throw new ItemNotFoundException(e);
 		} catch (ServerFault e) {
@@ -465,7 +466,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	private EventObmId chooseBackendChange(UserDataRequest udr, MSEvent msEvent,
 			CollectionPath collectionPath, AccessToken token,
 			EventExtId eventExtId, Event oldEvent, final EventObmId eventId, String clientId)
-			throws org.obm.sync.NotAllowedException, ServerFault {
+			throws org.obm.sync.NotAllowedException, ServerFault, PermissionException {
 		
 		if (isParticipationChangeUpdate(collectionPath, oldEvent)) {
 			updateUserStatus(oldEvent, AttendeeStatus.ACCEPT, token, collectionPath);
@@ -511,7 +512,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	private void updateEvent(AccessToken token, UserDataRequest udr, 
 			CollectionPath collectionPath, Event oldEvent, 
-			EventExtId eventExtId, MSEvent msEvent) throws ServerFault, org.obm.sync.NotAllowedException {
+			EventExtId eventExtId, MSEvent msEvent) throws ServerFault, org.obm.sync.NotAllowedException, PermissionException {
 		
 		boolean isInternal = eventConverter.isInternalEvent(oldEvent, eventExtId);
 		Event event = convertMSObjectToObmObject(udr, msEvent, oldEvent, isInternal);
@@ -533,7 +534,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	private EventObmId createEvent(UserDataRequest udr, AccessToken token,
 			CollectionPath collectionPath, Event oldEvent, MSEvent msEvent, EventExtId eventExtId, String clientId)
-			throws ServerFault, DaoException, org.obm.sync.NotAllowedException {
+			throws ServerFault, DaoException, org.obm.sync.NotAllowedException, PermissionException {
 		
 		boolean isInternal = eventConverter.isInternalEvent(oldEvent, eventExtId);
 		Event event = convertMSObjectToObmObject(udr, msEvent, oldEvent, isInternal);
@@ -616,7 +617,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			updateUserStatus(obmEvent, status, at, collectionPath);
 			CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
 			return getServerIdFor(collectionId, obmEvent.getObmId());
-		} catch (org.obm.sync.NotAllowedException e) {
+		} catch (org.obm.sync.NotAllowedException | PermissionException e) {
 			logger.warn(e.getMessage(), e);
 			throw new ItemNotFoundException(e);
 		} catch (UnexpectedObmSyncServerException e) {
@@ -628,7 +629,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	private Event createOrModifyInvitationEvent(AccessToken at, Event event, CollectionPath collectionPath) 
 		throws UnexpectedObmSyncServerException, EventNotFoundException, 
-			ConversionException, DaoException, org.obm.sync.NotAllowedException {
+			ConversionException, DaoException, org.obm.sync.NotAllowedException, PermissionException {
 		
 		try {
 			boolean internalEvent = event.isInternalEvent();

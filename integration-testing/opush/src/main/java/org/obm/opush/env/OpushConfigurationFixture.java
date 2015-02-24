@@ -32,6 +32,7 @@
 package org.obm.opush.env;
 
 import org.obm.Configuration;
+import org.obm.push.ExpungePolicy;
 
 import com.datastax.driver.core.SocketOptions;
 
@@ -52,6 +53,7 @@ public class OpushConfigurationFixture extends Configuration {
 		public int imapPort = 143;
 		public int maxMessageSize = 1024;
 		public int fetchBlockSize = 1 << 20;
+		public ExpungePolicy expungePolicy = ExpungePolicy.ALWAYS;
 	}	
 	
 	public static class RemoteConsole {

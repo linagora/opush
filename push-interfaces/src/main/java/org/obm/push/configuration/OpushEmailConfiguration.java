@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2013-2014  Linagora
+ * Copyright (C) 2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,39 +29,17 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store.jdbc;
+package org.obm.push.configuration;
 
-import org.junit.Rule;
-import org.obm.dao.utils.DaoTestModule;
-import org.obm.dao.utils.H2InMemoryDatabase;
-import org.obm.dao.utils.H2InMemoryDatabaseRule;
-import org.obm.dao.utils.H2TestClass;
-import org.obm.guice.GuiceModule;
-import org.obm.push.dao.testsuite.ItemTrackingDaoTest;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.ItemTrackingDao;
+import org.obm.configuration.EmailConfiguration;
+import org.obm.push.ExpungePolicy;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
+public interface OpushEmailConfiguration extends EmailConfiguration {
 
-@GuiceModule(ItemTrackingDaoJdbcImplTest.Env.class)
-public class ItemTrackingDaoJdbcImplTest extends ItemTrackingDaoTest implements H2TestClass {
-
-	public static class Env extends AbstractModule {
-		@Override
-		protected void configure() {
-			install(new DaoTestModule());
-			bind(ItemTrackingDao.class).to(ItemTrackingDaoJdbcImpl.class);
-			bind(CollectionDao.class).to(CollectionDaoJdbcImpl.class);
-		}
-	}
+	static final ExpungePolicy IMAP_EXPUNGE_POLICY_DEFAULT_VALUE = ExpungePolicy.ALWAYS;
+	static final int MESSAGE_MAX_SIZE_DEFAULT_VALUE = 10485760;
 	
-	@Rule public H2InMemoryDatabaseRule dbRule = new H2InMemoryDatabaseRule(this, "sql/initialItemTrackingSchema.sql");
-
-	@Inject H2InMemoryDatabase db;
+	ExpungePolicy expungePolicy();
 	
-	@Override
-	public H2InMemoryDatabase getDb() {
-		return db;
-	}
+	int getMessageMaxSize();
 }

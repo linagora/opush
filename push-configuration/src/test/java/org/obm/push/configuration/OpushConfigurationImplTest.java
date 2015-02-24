@@ -86,9 +86,15 @@ public class OpushConfigurationImplTest {
 	}
 	
 	@Test
-	public void testGetObmSyncUrl() {
+	public void testGetObmSyncBaseUrl() {
 		String host = "myhost";
-		assertThat(opushConfigurationImpl.getObmSyncUrl(host)).isEqualTo("http://" + host + ":" + OpushConfigurationImpl.OBM_SYNC_PORT + "/" + OpushConfigurationImpl.OBM_SYNC_APP_NAME);
+		assertThat(opushConfigurationImpl.getObmSyncBaseUrl(host)).isEqualTo("http://" + host + ":" + OpushConfigurationImpl.OBM_SYNC_PORT + "/" + OpushConfigurationImpl.OBM_SYNC_APP_NAME);
+	}
+	
+	@Test
+	public void testGetObmSyncServicesUrl() {
+		String host = "myhost";
+		assertThat(opushConfigurationImpl.getObmSyncServicesUrl(host)).isEqualTo("http://" + host + ":" + OpushConfigurationImpl.OBM_SYNC_PORT + "/" + OpushConfigurationImpl.OBM_SYNC_APP_NAME + "/" + OpushConfigurationImpl.SERVICES_APP_NAME);
 	}
 	
 	@Test

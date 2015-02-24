@@ -45,13 +45,14 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.sync.date.DateProvider;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 @GuiceModule(FolderSyncStateBackendMappingDaoJdbcImplTest.Env.class)
 public class FolderSyncStateBackendMappingDaoJdbcImplTest extends FolderSyncStateBackendMappingDaoTest implements H2TestClass {
 
 	
-	public static class Env extends DaoTestModule {
+	public static class Env extends AbstractModule {
 		
 		private final Iterator<Date> dateProviderValues;
 
@@ -60,7 +61,8 @@ public class FolderSyncStateBackendMappingDaoJdbcImplTest extends FolderSyncStat
 		}
 		
 		@Override
-		protected void configureImpl() {
+		protected void configure() {
+			install(new DaoTestModule());
 			bind(FolderSyncStateBackendMappingDao.class).to(FolderSyncStateBackendMappingDaoJdbcImpl.class);
 			bind(CollectionDao.class).to(CollectionDaoJdbcImpl.class);
 			bind(DateProvider.class).toInstance(new DateProvider() {

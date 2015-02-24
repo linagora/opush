@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
-import org.obm.configuration.EmailConfiguration;
-import org.obm.configuration.EmailConfigurationImpl;
 import org.obm.mail.imap.NoopImapMonitoringImpl;
 import org.obm.push.backend.ErrorsManager;
 import org.obm.push.backend.MailMonitoringBackend;
@@ -50,8 +48,8 @@ import org.obm.push.mail.smtp.SmtpProvider;
 import org.obm.push.mail.smtp.SmtpProviderImpl;
 import org.obm.push.mail.smtp.SmtpSenderImpl;
 import org.obm.push.mail.transformer.HtmlToText;
-import org.obm.push.mail.transformer.TextToHtml;
 import org.obm.push.mail.transformer.Identity;
+import org.obm.push.mail.transformer.TextToHtml;
 import org.obm.push.mail.transformer.Transformer;
 import org.obm.push.service.SmtpSender;
 
@@ -64,7 +62,6 @@ public class OpushMailModule extends AbstractModule {
 	protected void configure() {
 		bind(MailMonitoringBackend.class).to(NoopImapMonitoringImpl.class);
 		bind(MailBackend.class).to(MailBackendImpl.class);
-		bind(EmailConfiguration.class).to(EmailConfigurationImpl.class);
 		bind(SmtpProvider.class).to(SmtpProviderImpl.class);
 		bind(SmtpSender.class).to(SmtpSenderImpl.class);
 		Multibinder<PIMBackend> pimBackends = 

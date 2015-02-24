@@ -37,9 +37,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.obm.configuration.VMArgumentsUtils;
 import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.cassandra.schema.Version;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

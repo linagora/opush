@@ -32,7 +32,7 @@
 package org.obm.opush;
 
 import org.apache.mina.transport.socket.SocketConnector;
-import org.obm.configuration.EmailConfiguration;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapTimeoutException;
 import org.obm.push.exception.MailboxNotFoundException;
 import org.obm.push.mail.bean.ListResult;
@@ -53,7 +53,7 @@ public class CountingStoreClient extends StoreClientImpl {
 		private final ImapConnectionCounter counter;
 
 		@Inject
-		private Factory(ImapConnectionCounter counter, EmailConfiguration emailConfiguration, Provider<SocketConnector> socketConnectorProvider) {
+		private Factory(ImapConnectionCounter counter, OpushEmailConfiguration emailConfiguration, Provider<SocketConnector> socketConnectorProvider) {
 			super(emailConfiguration, socketConnectorProvider);
 			this.counter = counter;
 		}
@@ -67,7 +67,7 @@ public class CountingStoreClient extends StoreClientImpl {
 	}
 	
 	private CountingStoreClient(ImapConnectionCounter counter, String hostname, int port,
-			String login, char[] password, EmailConfiguration.MailboxNameCheckPolicy mailboxNameCheckPolicy, ClientSupport clientSupport) {
+			String login, char[] password, OpushEmailConfiguration.MailboxNameCheckPolicy mailboxNameCheckPolicy, ClientSupport clientSupport) {
 		super(hostname, port, login, password, mailboxNameCheckPolicy, clientSupport);
 		this.counter = counter;
 	}

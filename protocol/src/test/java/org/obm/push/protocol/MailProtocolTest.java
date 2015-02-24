@@ -31,19 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
-import org.obm.configuration.EmailConfigurationImpl;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.QuotaExceededException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.MailRequest;
@@ -57,7 +56,7 @@ public class MailProtocolTest {
 	
 	@Test
 	public void testWithBigMessageMaxSize() throws IOException, QuotaExceededException {
-		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
+		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
 		ActiveSyncRequest request = createMock(ActiveSyncRequest.class);
 		
 		expect(request.getParameter("CollectionId")).andReturn(CollectionId.of(1)).once();
@@ -75,7 +74,7 @@ public class MailProtocolTest {
 	
 	@Test(expected=QuotaExceededException.class)
 	public void testWithSmallMessageMaxSize() throws IOException, QuotaExceededException {
-		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
+		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
 		ActiveSyncRequest request = createMock(ActiveSyncRequest.class);
 		
 		expect(request.getParameter("CollectionId")).andReturn(CollectionId.of(1)).once();
@@ -98,7 +97,7 @@ public class MailProtocolTest {
 
 	@Test
 	public void testEncodeRequest() throws Exception {
-		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
+		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
 		byte[] mailContent = new byte[] {123, 54, 23, 87, 10, 23, 10, 23 };
 		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), CollectionId.of(23).serverId(12), true, mailContent);
 		
@@ -120,7 +119,7 @@ public class MailProtocolTest {
 
 	@Test(expected=QuotaExceededException.class)
 	public void testEncodeRequestMaxSizeException() throws Exception {
-		EmailConfiguration emailConfiguration = createMock(EmailConfigurationImpl.class);
+		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
 		MailRequest sendSimpleEmailRequest = new MailRequest(CollectionId.of(23), CollectionId.of(23).serverId(12), true, new byte[] {123, 54, 23, 87, 10, 23, 10, 23 });
 		
 		expect(emailConfiguration.getMessageMaxSize()).andReturn(2).once();

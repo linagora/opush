@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
+import org.obm.configuration.EmailConfiguration;
 import org.obm.configuration.SyncPermsConfigurationService;
 import org.obm.push.impl.OpushSyncPermsConfigurationService;
 
@@ -42,6 +43,10 @@ public class OpushConfigurationModule extends AbstractModule {
 	protected void configure() {
 		bind(SyncPermsConfigurationService.class).to(OpushSyncPermsConfigurationService.class);
 		bind(RemoteConsoleConfiguration.class).to(RemoteConsoleConfigurationFileImpl.class);
+		
+		OpushEmailConfigurationImpl opushEmailConfigurationImpl = new OpushEmailConfigurationImpl.Factory().create();
+		bind(OpushEmailConfiguration.class).toInstance(opushEmailConfigurationImpl);
+		bind(EmailConfiguration.class).toInstance(opushEmailConfigurationImpl);
 	}
 
 }

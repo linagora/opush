@@ -40,13 +40,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
 import org.obm.push.mail.MailEnvModule;
@@ -65,10 +65,10 @@ import com.icegreen.greenmail.util.ServerSetup;
 @GuiceModule(MailEnvModule.class)
 public class ImapDeleteAPITest {
 
-	private static final String INBOX = EmailConfiguration.IMAP_INBOX_NAME;
-	private static final String SENTBOX = EmailConfiguration.IMAP_SENT_NAME;
-	private static final String DRAFT = EmailConfiguration.IMAP_DRAFTS_NAME;
-	private static final String TRASH = EmailConfiguration.IMAP_TRASH_NAME;
+	private static final String INBOX = OpushEmailConfiguration.IMAP_INBOX_NAME;
+	private static final String SENTBOX = OpushEmailConfiguration.IMAP_SENT_NAME;
+	private static final String DRAFT = OpushEmailConfiguration.IMAP_DRAFTS_NAME;
+	private static final String TRASH = OpushEmailConfiguration.IMAP_TRASH_NAME;
 	
 	@Inject MailboxService mailboxService;
 	@Inject ICollectionPathHelper collectionPathHelper;

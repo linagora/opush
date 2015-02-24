@@ -55,7 +55,6 @@ import org.apache.james.mime4j.dom.Message;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.icalendar.ICalendar;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.bean.Address;
@@ -83,6 +82,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.MSEmail;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
@@ -128,7 +128,7 @@ public class MailBackendImplTest {
 	private MailBackendSyncDataFactory mailBackendSyncDataFactory;
 	private WindowingDao windowingDao;
 	private SmtpSender smtpSender;
-	private EmailConfiguration emailConfiguration;
+	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 
 	private MailBackendImpl testee;
@@ -155,7 +155,7 @@ public class MailBackendImplTest {
 		smtpSender = control.createMock(SmtpSender.class);
 		dateService = control.createMock(DateService.class);
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
-		emailConfiguration = control.createMock(EmailConfiguration.class);
+		emailConfiguration = control.createMock(OpushEmailConfiguration.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, snapshotDao,
 				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, null, mailBackendSyncDataFactory,

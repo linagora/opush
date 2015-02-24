@@ -36,15 +36,21 @@ import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.CountingMinigStoreClient;
 import org.obm.opush.CountingStoreClient;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.OpushLocatorException;
-import org.obm.push.mail.greenmail.GreenMailEmailConfiguration;
+import org.obm.push.mail.greenmail.GreenMailPortProvider;
 import org.obm.push.mail.greenmail.GreenMailProviderModule;
 import org.obm.push.mail.imap.MinigStoreClient;
 import org.obm.push.mail.smtp.SmtpProvider;
 import org.obm.push.minig.imap.StoreClient;
 import org.obm.push.service.OpushLocatorService;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.google.inject.util.Modules;
 
 public class GreenMailEnvModule extends AbstractOverrideModule {
 
@@ -54,7 +60,7 @@ public class GreenMailEnvModule extends AbstractOverrideModule {
 	
 	@Override
 	protected void configureImpl() {
-		install(new GreenMailProviderModule());
+		install(new OpushGreenMailProviderModule());
 		bind(OpushLocatorService.class).toInstance(new OpushLocatorService() {
 			
 			@Override
@@ -64,7 +70,7 @@ public class GreenMailEnvModule extends AbstractOverrideModule {
 			}
 		});
 		
-		bind(EmailConfiguration.class).to(GreenMailEmailConfiguration.class);
+		bind(OpushEmailConfiguration.class).to(OpushGreenMailEmailConfiguration.class);
 		bindImapTimeout();
 		bind(SmtpProvider.class).to(GreenMailSmtpProvider.class);
 
@@ -74,5 +80,44 @@ public class GreenMailEnvModule extends AbstractOverrideModule {
 	
 	protected void bindImapTimeout() {
 		bind(Integer.class).annotatedWith(Names.named("imapTimeout")).toInstance(360000);
+	}
+	
+	private static class OpushGreenMailProviderModule extends AbstractModule {
+
+		@Override
+		protected void configure() {
+			install(Modules.override(new GreenMailProviderModule())
+				.with(new AbstractModule() {
+					
+					@Override
+					protected void configure() {
+						bind(EmailConfiguration.class).to(OpushGreenMailEmailConfiguration.class);
+					}
+				}));
+		}
+	}
+
+	@Singleton
+	private static class OpushGreenMailEmailConfiguration extends OpushStaticConfiguration.Email {
+
+		private GreenMailPortProvider greenMailPortProvider;
+		private int imapTimeout;
+
+		@Inject
+		private OpushGreenMailEmailConfiguration(GreenMailPortProvider greenMailPortProvider, @Named("imapTimeout")int imapTimeout) {
+			super(new OpushConfigurationFixture().mail);
+			this.greenMailPortProvider = greenMailPortProvider;
+			this.imapTimeout = imapTimeout;
+		}
+
+		@Override
+		public int imapPort() {
+			return greenMailPortProvider.imapPort();
+		}
+
+		@Override
+		public int imapTimeoutInMilliseconds() {
+			return imapTimeout;
+		}
 	}
 }

@@ -52,7 +52,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
@@ -62,6 +61,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -200,7 +200,7 @@ public class MailBackendGetItemEstimateTest {
 		
 		assertThat(itemEstimateResponse.getEstimate()).isEqualTo(0);
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -245,7 +245,7 @@ public class MailBackendGetItemEstimateTest {
 		
 		assertThat(itemEstimateResponse.getStatus()).isEqualTo(GetItemEstimateStatus.INVALID_SYNC_KEY);
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);
@@ -291,7 +291,7 @@ public class MailBackendGetItemEstimateTest {
 		
 		assertThat(itemEstimateResponse.getEstimate()).isEqualTo(2);
 
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 4);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 4);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(2);

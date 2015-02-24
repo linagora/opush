@@ -40,14 +40,16 @@ import org.obm.guice.GuiceModule;
 import org.obm.push.dao.testsuite.HeartbeatDaoTest;
 import org.obm.push.store.HeartbeatDao;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 @GuiceModule(HeartbeatDaoJdbcImplTest.Env.class)
 public class HeartbeatDaoJdbcImplTest extends HeartbeatDaoTest implements H2TestClass {
 
-	public static class Env extends DaoTestModule {
+	public static class Env extends AbstractModule {
 		@Override
-		protected void configureImpl() {
+		protected void configure() {
+			install(new DaoTestModule());
 			bind(HeartbeatDao.class).to(HeartbeatDaoJdbcDaoImpl.class);
 		}
 	}

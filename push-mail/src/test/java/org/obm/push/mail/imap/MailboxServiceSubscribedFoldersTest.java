@@ -39,13 +39,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.MailException;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
@@ -110,9 +110,9 @@ public class MailboxServiceSubscribedFoldersTest {
 
 	@Test
 	public void testNoResultWhenRegularFoldersExist() throws MailException {
-		createUnsubscribedFolder(EmailConfiguration.IMAP_DRAFTS_NAME);
-		createUnsubscribedFolder(EmailConfiguration.IMAP_SENT_NAME);
-		createUnsubscribedFolder(EmailConfiguration.IMAP_TRASH_NAME);
+		createUnsubscribedFolder(OpushEmailConfiguration.IMAP_DRAFTS_NAME);
+		createUnsubscribedFolder(OpushEmailConfiguration.IMAP_SENT_NAME);
+		createUnsubscribedFolder(OpushEmailConfiguration.IMAP_TRASH_NAME);
 		
 		MailboxFolders subscribedFolders = mailboxService.listSubscribedFolders(udr);
 		
@@ -121,7 +121,7 @@ public class MailboxServiceSubscribedFoldersTest {
 
 	@Test
 	public void testNoResultWhenSubfolderExist() throws MailException {
-		createUnsubscribedFolder(EmailConfiguration.IMAP_INBOX_NAME + ".SUBFOLDER");
+		createUnsubscribedFolder(OpushEmailConfiguration.IMAP_INBOX_NAME + ".SUBFOLDER");
 		
 		MailboxFolders subscribedFolders = mailboxService.listSubscribedFolders(udr);
 

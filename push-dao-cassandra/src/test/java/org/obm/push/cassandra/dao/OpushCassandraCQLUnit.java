@@ -33,7 +33,7 @@ package org.obm.push.cassandra.dao;
 
 import org.cassandraunit.CassandraCQLUnit;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.obm.configuration.VMArgumentsUtils;
+import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;

@@ -52,7 +52,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.mail.StreamMailTestsUtils;
@@ -61,6 +60,7 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.RandomGeneratedInputStream;
@@ -81,7 +81,7 @@ import com.google.inject.Inject;
 public class MailboxMemoryAPITest {
 	
 	@Inject MailboxService mailboxService;
-	@Inject EmailConfiguration emailConfiguration;
+	@Inject OpushEmailConfiguration emailConfiguration;
 	@Inject OpushLocatorService locatorService;
 	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject ResourcesHolder resourcesHolder;
@@ -167,7 +167,7 @@ public class MailboxMemoryAPITest {
 	}
 
 	private InputStream uidFetchPart(long uid, String partToFetch) throws Exception {
-		return mailboxService.findAttachment(udr, EmailConfiguration.IMAP_INBOX_NAME, uid, 
+		return mailboxService.findAttachment(udr, OpushEmailConfiguration.IMAP_INBOX_NAME, uid, 
 						new MimeAddress(partToFetch));
 	}
 	

@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MailboxFolders;
 
@@ -28,10 +28,10 @@ import com.google.common.collect.TreeTraverser;
 public class MailBackendFoldersBuilder {
 	
 	private static final ImmutableMap<String, FolderType> SPECIAL_FOLDERS_TYPES = ImmutableMap.of(
-		EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
-		EmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
-		EmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
-		EmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
+		OpushEmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
+		OpushEmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
+		OpushEmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
+		OpushEmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
 
 	private Set<MailboxPath> mailboxes;
 	private Set<MailboxPath> specialMailboxes;

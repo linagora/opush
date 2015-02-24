@@ -33,7 +33,6 @@ package org.obm.push;
 
 import javax.servlet.ServletRequest;
 
-import org.eclipse.jetty.continuation.Continuation;
 import org.obm.servlet.filter.qos.QoSContinuationSupport;
 import org.obm.servlet.filter.qos.QoSContinuationSupportJettyUtils;
 
@@ -59,7 +58,7 @@ public class OpushContinuationSupport implements QoSContinuationSupport {
 	}
 	
 	@Override
-	public Continuation getContinuationFor(ServletRequest request) {
+	public QoSContinuation getContinuationFor(ServletRequest request) {
 		return continuationSupport.getContinuationFor(request);
 	}
 }

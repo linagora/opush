@@ -45,14 +45,16 @@ import org.obm.push.dao.testsuite.DeviceDaoTest;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 @GuiceModule(DeviceDaoJdbcImplTest.Env.class)
 public class DeviceDaoJdbcImplTest extends DeviceDaoTest implements H2TestClass {
 
-	public static class Env extends DaoTestModule {
+	public static class Env extends AbstractModule {
 		@Override
-		protected void configureImpl() {
+		protected void configure() {
+			install(new DaoTestModule());
 			bind(DeviceDao.class).to(DeviceDaoJdbcImpl.class);
 		}
 	}

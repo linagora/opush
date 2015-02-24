@@ -47,7 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
@@ -60,6 +59,7 @@ import org.obm.push.OpushServer;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.EventService;
 import org.obm.push.store.CollectionDao;
@@ -104,7 +104,7 @@ public class SmartForwardHandlerTest {
 		user = users.jaures;
 		greenMail.start();
 		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), String.valueOf(user.password));
-		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
+		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		cassandraServer.start();
 		
@@ -355,7 +355,7 @@ public class SmartForwardHandlerTest {
 
 	@Test
 	public void smartForwardShouldNotFailWhenNoSentFolder() throws Exception {
-		greenMail.getManagers().getImapHostManager().deleteMailbox(greenMailUser, EmailConfiguration.IMAP_SENT_NAME);
+		greenMail.getManagers().getImapHostManager().deleteMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
 		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		
 		mocksControl.replay();

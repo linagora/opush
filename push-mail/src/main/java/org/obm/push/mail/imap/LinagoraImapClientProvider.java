@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail.imap;
 
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.OpushLocatorException;
 import org.obm.push.mail.imap.idle.IdleClient;
 import org.obm.push.minig.imap.StoreClient;
@@ -61,7 +61,7 @@ public class LinagoraImapClientProvider {
 
 	@Inject
 	@VisibleForTesting LinagoraImapClientProvider(MinigStoreClient.Factory minigStoreClientFactory,
-			EmailConfiguration emailConfiguration, OpushLocatorService locatorService,
+			OpushEmailConfiguration emailConfiguration, OpushLocatorService locatorService,
 			IdleClient.Factory idleClientFactory, OpushResourcesHolder opushResourcesHolder) {
 		
 		this.minigStoreClientFactory = minigStoreClientFactory;

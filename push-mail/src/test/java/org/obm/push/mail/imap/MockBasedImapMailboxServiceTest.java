@@ -39,12 +39,12 @@ import static org.easymock.EasyMock.verify;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.minig.imap.StoreClient;
 
@@ -65,7 +65,7 @@ public class MockBasedImapMailboxServiceTest {
  	@Test
 	public void testParseSpecificINBOXCase() throws Exception {
 		String userINBOXFolder = "INBOX";
-		EmailConfiguration emailConfiguration = newEmailConfigurationMock();
+		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
 		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperExtractFolder(userINBOXFolder);
 		
 		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
@@ -80,14 +80,14 @@ public class MockBasedImapMailboxServiceTest {
 		String parsedMailbox = emailManager.parseMailBoxName(udr, collectionPath(userINBOXFolder));
 		verify(emailConfiguration, collectionPathHelper, imapClientProvider, storeClient);
 		
-		assertThat(parsedMailbox).isEqualTo(EmailConfiguration.IMAP_INBOX_NAME);
+		assertThat(parsedMailbox).isEqualTo(OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 
 	@Test
 	public void testParseSpecificINBOXCaseIsntCaseSensitive() throws Exception {
 		String userINBOXFolder = "InBoX";
 		String serverINBOXFolder = "INBOX";
-		EmailConfiguration emailConfiguration = newEmailConfigurationMock();
+		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
 		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperExtractFolder(userINBOXFolder);
 		
 		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
@@ -102,15 +102,15 @@ public class MockBasedImapMailboxServiceTest {
 		String parsedMailbox = emailManager.parseMailBoxName(udr, collectionPath(userINBOXFolder));
 		verify(emailConfiguration, collectionPathHelper, imapClientProvider, storeClient);
 		
-		assertThat(parsedMailbox).isEqualTo(EmailConfiguration.IMAP_INBOX_NAME);
+		assertThat(parsedMailbox).isEqualTo(OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 
 	@Test
 	public void testParseINBOXWithOtherFolderEndingByINBOX() throws Exception {
-		String folderEndingByINBOX = "userFolder" + EmailConfiguration.IMAP_INBOX_NAME;
+		String folderEndingByINBOX = "userFolder" + OpushEmailConfiguration.IMAP_INBOX_NAME;
 
 		ICollectionPathHelper collectionPathHelper = mockCollectionPathHelperExtractFolder(folderEndingByINBOX);
-		EmailConfiguration emailConfiguration = newEmailConfigurationMock();
+		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
 
 		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
 		StoreClient storeClient = createMock(StoreClient.class);
@@ -127,8 +127,8 @@ public class MockBasedImapMailboxServiceTest {
 		assertThat(parsedMailbox).isEqualTo(folderEndingByINBOX);
 	}
 
-	private EmailConfiguration newEmailConfigurationMock() {
-		EmailConfiguration emailConfiguration = createMock(EmailConfiguration.class);
+	private OpushEmailConfiguration newEmailConfigurationMock() {
+		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
 		expect(emailConfiguration.loginWithDomain()).andReturn(true).once();
 		expect(emailConfiguration.activateTls()).andReturn(false).once();
 		return emailConfiguration;

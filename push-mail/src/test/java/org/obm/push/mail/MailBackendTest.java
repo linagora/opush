@@ -50,8 +50,7 @@ import java.util.Set;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
-import org.obm.configuration.EmailConfiguration.ExpungePolicy;
+import org.obm.push.ExpungePolicy;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.CollectionPath.Builder;
 import org.obm.push.backend.OpushCollection;
@@ -69,6 +68,7 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.SendEmailException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -109,7 +109,7 @@ public class MailBackendTest {
 	private Provider<Builder> collectionPathBuilderProvider;
 	private CollectionPath.Builder collectionPathBuilder;
 	private SmtpSender smtpSender;
-	private EmailConfiguration emailConfiguration;
+	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 
 	private IMocksControl mocksControl;
@@ -134,7 +134,7 @@ public class MailBackendTest {
 		mappingService = mocksControl.createMock(MappingService.class);
 		windowingDao = mocksControl.createMock(WindowingDao.class);
 		smtpSender = mocksControl.createMock(SmtpSender.class);
-		emailConfiguration = mocksControl.createMock(EmailConfiguration.class);
+		emailConfiguration = mocksControl.createMock(OpushEmailConfiguration.class);
 		dateService = mocksControl.createMock(DateService.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, null, null, 
@@ -377,10 +377,10 @@ public class MailBackendTest {
 	@Test
 	public void collectionDisplayNameForSpecialMailboxes() {
 		Map<String, CollectionId> changedMailboxes = ImmutableMap.of(
-				EmailConfiguration.IMAP_INBOX_NAME, CollectionId.of(1),
-				EmailConfiguration.IMAP_DRAFTS_NAME, CollectionId.of(2),
-				EmailConfiguration.IMAP_SENT_NAME, CollectionId.of(3),
-				EmailConfiguration.IMAP_TRASH_NAME, CollectionId.of(4));
+				OpushEmailConfiguration.IMAP_INBOX_NAME, CollectionId.of(1),
+				OpushEmailConfiguration.IMAP_DRAFTS_NAME, CollectionId.of(2),
+				OpushEmailConfiguration.IMAP_SENT_NAME, CollectionId.of(3),
+				OpushEmailConfiguration.IMAP_TRASH_NAME, CollectionId.of(4));
 		
 		expectBuildMailboxesCollectionPaths(changedMailboxes);
 		
@@ -394,10 +394,10 @@ public class MailBackendTest {
 		assertThat(specialFolders).hasSize(4);
 		assertThat(Iterables.transform(specialFolders, toDisplayNameFunction()))
 			.containsOnly(
-				EmailConfiguration.IMAP_INBOX_NAME,
-				EmailConfiguration.IMAP_DRAFTS_NAME, 
-				EmailConfiguration.IMAP_SENT_NAME,
-				EmailConfiguration.IMAP_TRASH_NAME);
+				OpushEmailConfiguration.IMAP_INBOX_NAME,
+				OpushEmailConfiguration.IMAP_DRAFTS_NAME, 
+				OpushEmailConfiguration.IMAP_SENT_NAME,
+				OpushEmailConfiguration.IMAP_TRASH_NAME);
 	}
 
 	@Test
@@ -457,11 +457,11 @@ public class MailBackendTest {
 		int itemId = 2;
 		ServerId serverId = collectionId.serverId(itemId);
 		
-		MailCollectionPath trashCollectionPath = new MailCollectionPath(EmailConfiguration.IMAP_TRASH_NAME);
+		MailCollectionPath trashCollectionPath = new MailCollectionPath(OpushEmailConfiguration.IMAP_TRASH_NAME);
 		expect(mappingService.getCollectionPathFor(collectionId))
 			.andReturn(trashCollectionPath.collectionPath()).once();
 		
-		expect(collectionPathBuilder.backendName(EmailConfiguration.IMAP_TRASH_NAME))
+		expect(collectionPathBuilder.backendName(OpushEmailConfiguration.IMAP_TRASH_NAME))
 			.andReturn(collectionPathBuilder).once();
 		expect(collectionPathBuilder.build())
 			.andReturn(trashCollectionPath).once();

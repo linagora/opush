@@ -44,6 +44,7 @@ import org.obm.configuration.GlobalAppConfiguration;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.ActiveSyncServletModule;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,6 +164,16 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 			public String getJdbcOptions() {
 				return null;
 			}
+
+			@Override
+			public Integer getDatabasePort() {
+				return null;
+			}
+
+			@Override
+			public boolean isReadOnly() {
+				return false;
+			}
 		};
 	}
 	
@@ -174,7 +185,9 @@ public abstract class AbstractOpushEnv extends ActiveSyncServletModule {
 		return new AbstractModule() {
 			@Override
 			protected void configure() {
-				bind(EmailConfiguration.class).toInstance(new OpushStaticConfiguration.Email(configuration.mail));
+				OpushStaticConfiguration.Email opushStaticConfiguration = new OpushStaticConfiguration.Email(configuration.mail);
+				bind(OpushEmailConfiguration.class).toInstance(opushStaticConfiguration);
+				bind(EmailConfiguration.class).toInstance(opushStaticConfiguration);
 			}
 		};
 	}

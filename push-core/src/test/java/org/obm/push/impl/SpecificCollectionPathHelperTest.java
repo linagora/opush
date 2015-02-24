@@ -35,13 +35,13 @@ import org.assertj.core.api.Assertions;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 
 
@@ -55,14 +55,14 @@ public class SpecificCollectionPathHelperTest {
 	
 	@Before
 	public void setUp() {
-		EmailConfiguration emailConfiguration = mockEmailConfiguration();
+		OpushEmailConfiguration emailConfiguration = mockEmailConfiguration();
 		collectionPathHelper = new CollectionPathHelper(emailConfiguration);
 		User user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		udr = new UserDataRequest(new Credentials(user, "test".toCharArray()), null, null);
 	}
 	
-	private EmailConfiguration mockEmailConfiguration() {
-		EmailConfiguration emailConfiguration = EasyMock.createMock(EmailConfiguration.class);
+	private OpushEmailConfiguration mockEmailConfiguration() {
+		OpushEmailConfiguration emailConfiguration = EasyMock.createMock(OpushEmailConfiguration.class);
 		EasyMock.expect(emailConfiguration.imapMailboxDraft()).andReturn(SPECIFIC_MAILBOX_DRAFT);
 		EasyMock.expect(emailConfiguration.imapMailboxSent()).andReturn(SPECIFIC_MAILBOX_SENT);
 		EasyMock.expect(emailConfiguration.imapMailboxTrash()).andReturn(SPECIFIC_MAILBOX_TRASH);
@@ -74,7 +74,7 @@ public class SpecificCollectionPathHelperTest {
 	public void testParseSpecificFolderINBOX() throws CollectionPathException {
 		String collectionPath = "obm:\\\\user@domain\\email\\INBOX";
 		String parsedFolder = collectionPathHelper.extractFolder(udr, collectionPath, PIMDataType.EMAIL);
-		Assertions.assertThat(parsedFolder).isEqualTo(EmailConfiguration.IMAP_INBOX_NAME);
+		Assertions.assertThat(parsedFolder).isEqualTo(OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 	
 	@Test

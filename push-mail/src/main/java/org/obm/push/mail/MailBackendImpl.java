@@ -51,8 +51,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Message;
 import org.obm.breakdownduration.bean.Watch;
-import org.obm.configuration.EmailConfiguration;
-import org.obm.configuration.EmailConfiguration.ExpungePolicy;
+import org.obm.push.ExpungePolicy;
 import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushBackend;
@@ -86,6 +85,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
@@ -148,16 +148,16 @@ import com.sun.mail.util.QPDecoderStream;
 public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 	private static final ImmutableList<String> SPECIAL_FOLDERS = 
-			ImmutableList.of(EmailConfiguration.IMAP_INBOX_NAME,
-							EmailConfiguration.IMAP_DRAFTS_NAME,
-							EmailConfiguration.IMAP_SENT_NAME,
-							EmailConfiguration.IMAP_TRASH_NAME);
+			ImmutableList.of(OpushEmailConfiguration.IMAP_INBOX_NAME,
+							OpushEmailConfiguration.IMAP_DRAFTS_NAME,
+							OpushEmailConfiguration.IMAP_SENT_NAME,
+							OpushEmailConfiguration.IMAP_TRASH_NAME);
 	
 	private static final ImmutableMap<String, FolderType> SPECIAL_FOLDERS_TYPES = 
-			ImmutableMap.of(EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
-							EmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
-							EmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
-							EmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
+			ImmutableMap.of(OpushEmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
+							OpushEmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
+							OpushEmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
+							OpushEmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
@@ -174,7 +174,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final SmtpSender smtpSender;
 	private final DateService dateService;
 
-	private final EmailConfiguration emailConfiguration;
+	private final OpushEmailConfiguration emailConfiguration;
 
 	@Inject
 	/* package */ MailBackendImpl(MailboxService mailboxService, 
@@ -189,7 +189,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			MailBackendSyncDataFactory mailBackendSyncDataFactory,
 			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
-			EmailConfiguration emailConfiguration,
+			OpushEmailConfiguration emailConfiguration,
 			DateService dateService)  {
 
 		super(mappingService, collectionPathBuilderProvider);
@@ -313,7 +313,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	private CollectionPath getWasteBasketPath(UserDataRequest udr) {
-		return collectionPathBuilderProvider.get().pimType(PIMDataType.EMAIL).userDataRequest(udr).backendName(EmailConfiguration.IMAP_TRASH_NAME).build();
+		return collectionPathBuilderProvider.get().pimType(PIMDataType.EMAIL).userDataRequest(udr).backendName(OpushEmailConfiguration.IMAP_TRASH_NAME).build();
 	}
 
 	@Override

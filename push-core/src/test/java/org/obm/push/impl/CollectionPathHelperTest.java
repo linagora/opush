@@ -36,12 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 
 
@@ -63,9 +63,9 @@ public class CollectionPathHelperTest {
 						.createUser(mailbox, mailbox, null), password), null, null);
 	}
 	
-	private EmailConfiguration mockEmailConfiguration() {
-		EmailConfiguration emailConfiguration = EasyMock.createMock(EmailConfiguration.class);
-		EasyMock.expect(emailConfiguration.imapMailboxSent()).andReturn(EmailConfiguration.IMAP_SENT_NAME);
+	private OpushEmailConfiguration mockEmailConfiguration() {
+		OpushEmailConfiguration emailConfiguration = EasyMock.createMock(OpushEmailConfiguration.class);
+		EasyMock.expect(emailConfiguration.imapMailboxSent()).andReturn(OpushEmailConfiguration.IMAP_SENT_NAME);
 		EasyMock.replay(emailConfiguration);
 		return emailConfiguration;
 	}
@@ -162,7 +162,7 @@ public class CollectionPathHelperTest {
 	public void testBuildCollectionPathINBOX() {
 		String collectionPathExpected = PROTOCOL + "user@domain\\email\\INBOX";
 		String parsedFolder = collectionPathHelper.buildCollectionPath(
-				udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+				udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		assertThat(parsedFolder).isEqualTo(collectionPathExpected);
 	}
 
@@ -170,7 +170,7 @@ public class CollectionPathHelperTest {
 	public void testBuildCollectionPathSent() {
 		String collectionPathExpected = PROTOCOL + "user@domain\\email\\Sent";
 		String parsedFolder = collectionPathHelper.buildCollectionPath(
-				udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_SENT_NAME);
+				udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
 		assertThat(parsedFolder).isEqualTo(collectionPathExpected);
 	}
 
@@ -178,7 +178,7 @@ public class CollectionPathHelperTest {
 	public void testBuildCollectionPathWithSubFolder() {
 		String collectionPathExpected = PROTOCOL + "user@domain\\email\\INBOX\\Shared";
 		String parsedFolder = collectionPathHelper.buildCollectionPath(
-				udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME + "\\Shared");
+				udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME + "\\Shared");
 		assertThat(parsedFolder).isEqualTo(collectionPathExpected);
 	}
 
@@ -203,12 +203,12 @@ public class CollectionPathHelperTest {
 	
 	@Test(expected=NullPointerException.class)
 	public void testBuildCollectionPathWhenNullSession() {
-		collectionPathHelper.buildCollectionPath(null, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+		collectionPathHelper.buildCollectionPath(null, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void testBuildCollectionPathWhenNullDataType() {
-		collectionPathHelper.buildCollectionPath(udr, null, EmailConfiguration.IMAP_INBOX_NAME);
+		collectionPathHelper.buildCollectionPath(udr, null, OpushEmailConfiguration.IMAP_INBOX_NAME);
 	}
 
 	@Test(expected=NullPointerException.class)

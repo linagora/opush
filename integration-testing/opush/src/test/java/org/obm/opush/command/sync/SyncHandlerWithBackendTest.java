@@ -70,7 +70,6 @@ import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.annotations.transactional.TransactionProvider;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
@@ -104,6 +103,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.CollectionId;
@@ -349,7 +349,7 @@ public class SyncHandlerWithBackendTest {
 		assertThat(secondCollectionResponse.isMoreAvailable()).isFalse();
 		assertThat(thirdCollectionResponse.getItemChanges()).hasSize(0);
 		
-		assertEmailCountInMailbox(EmailConfiguration.IMAP_INBOX_NAME, 2);
+		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 2);
 		assertThat(pendingQueries.waitingClose(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(imapConnectionCounter.loginCounter.get()).isEqualTo(4);
 		assertThat(imapConnectionCounter.closeCounter.get()).isEqualTo(4);

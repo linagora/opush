@@ -32,9 +32,13 @@
 package org.obm.push.mail;
 
 import org.easymock.EasyMock;
+import org.obm.configuration.EmailConfiguration;
+import org.obm.push.ExpungePolicy;
 import org.obm.push.LinagoraImapClientModule;
 import org.obm.push.bean.ICollectionPathHelper;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.OpushLocatorException;
+import org.obm.push.mail.greenmail.GreenMailPortProvider;
 import org.obm.push.mail.greenmail.GreenMailProviderModule;
 import org.obm.push.mail.greenmail.GreenMailSmtpProvider;
 import org.obm.push.mail.imap.LinagoraMailboxService;
@@ -51,12 +55,16 @@ import org.obm.push.service.OpushLocatorService;
 import org.obm.sync.client.login.LoginService;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Scope;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.RequestScoped;
+import com.google.inject.util.Modules;
 
 public class MailEnvModule extends AbstractModule {
 
@@ -72,7 +80,8 @@ public class MailEnvModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
-		install(new GreenMailProviderModule());
+		install(new OpushGreenMailProviderModule());
+		bind(OpushEmailConfiguration.class).to(OpushGreenMailEmailConfiguration.class);
 		bind(SmtpProvider.class).to(GreenMailSmtpProvider.class);
 
 		install(new LinagoraImapClientModule());
@@ -116,5 +125,83 @@ public class MailEnvModule extends AbstractModule {
 		Multibinder<Transformer.Factory> transformers = 
 				Multibinder.newSetBinder(binder(), Transformer.Factory.class);
 		transformers.addBinding().to(Identity.Factory.class);
+	}
+	
+	private static class OpushGreenMailProviderModule extends AbstractModule {
+
+		@Override
+		protected void configure() {
+			install(Modules.override(new GreenMailProviderModule())
+				.with(new AbstractModule() {
+					
+					@Override
+					protected void configure() {
+						bind(EmailConfiguration.class).to(OpushGreenMailEmailConfiguration.class);
+					}
+				}));
+		}
+	}
+	
+	@Singleton
+	private static class OpushGreenMailEmailConfiguration implements OpushEmailConfiguration {
+
+		private GreenMailPortProvider greenMailPortProvider;
+		private int imapTimeout;
+
+		@Inject
+		private OpushGreenMailEmailConfiguration(GreenMailPortProvider greenMailPortProvider, @Named("imapTimeout")int imapTimeout) {
+			this.greenMailPortProvider = greenMailPortProvider;
+			this.imapTimeout = imapTimeout;
+		}
+
+		@Override
+		public boolean activateTls() {
+			return false;
+		}
+
+		@Override
+		public boolean loginWithDomain() {
+			return true;
+		}
+
+		@Override
+		public int imapPort() {
+			return greenMailPortProvider.imapPort();
+		}
+
+		@Override
+		public int imapTimeoutInMilliseconds() {
+			return imapTimeout;
+		}
+
+		@Override
+		public String imapMailboxDraft() {
+			return IMAP_DRAFTS_NAME;
+		}
+
+		@Override
+		public String imapMailboxSent() {
+			return IMAP_SENT_NAME;
+		}
+
+		@Override
+		public String imapMailboxTrash() {
+			return IMAP_TRASH_NAME;
+		}
+
+		@Override
+		public MailboxNameCheckPolicy mailboxNameCheckPolicy() {
+			return MailboxNameCheckPolicy.ALWAYS;
+		}
+		
+		@Override
+		public ExpungePolicy expungePolicy() {
+			return OpushEmailConfiguration.IMAP_EXPUNGE_POLICY_DEFAULT_VALUE;
+		}
+
+		@Override
+		public int getMessageMaxSize() {
+			return OpushEmailConfiguration.MESSAGE_MAX_SIZE_DEFAULT_VALUE;
+		}
 	}
 }

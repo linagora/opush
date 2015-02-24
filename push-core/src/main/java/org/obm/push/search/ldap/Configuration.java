@@ -54,15 +54,15 @@ class Configuration {
 	
 	private final Logger logger;
 	
-	private static final String LDAP_CONF_FILE = "/etc/opush/ldap_conf.ini";
-	private static final String SEARCH_LDAP_URL = "search.ldap.url";
-	private static final String SEARCH_LDAP_BASE = "search.ldap.basedn";
-	private static final String SEARCH_LDAP_FILTER = "search.ldap.filter";
-	private static final String SEARCH_LDAP_LIMIT = "search.ldap.limit";
+	@VisibleForTesting static final String LDAP_CONF_FILE = "/etc/opush/ldap_conf.ini";
+	@VisibleForTesting static final String SEARCH_LDAP_URL = "search.ldap.url";
+	@VisibleForTesting static final String SEARCH_LDAP_BASE = "search.ldap.basedn";
+	@VisibleForTesting static final String SEARCH_LDAP_FILTER = "search.ldap.filter";
+	@VisibleForTesting static final String SEARCH_LDAP_LIMIT = "search.ldap.limit";
 	private static final String PROTOCOL_LDAP = "ldap";
 	private static final String PROTOCOL_LDAPS = "ldaps";
 	private static final String PROTOCOL_DEFAULT = PROTOCOL_LDAP;
-	private static final int DEFAULT_SEARCH_LDAP_LIMIT = 100;
+	@VisibleForTesting static final int DEFAULT_SEARCH_LDAP_LIMIT = 100;
 
 	private final String url;
 	private final String baseDn;
@@ -77,9 +77,9 @@ class Configuration {
 		IniFile ini = iniFileFactory.build(LDAP_CONF_FILE);
 
 		logger = configurationLogger;
-		url = validUrlOrNull(ini.getData().get(SEARCH_LDAP_URL));
-		baseDn = Strings.emptyToNull(ini.getData().get(SEARCH_LDAP_BASE));
-		filter = Strings.emptyToNull(ini.getData().get(SEARCH_LDAP_FILTER));
+		url = validUrlOrNull(ini.getStringValue(SEARCH_LDAP_URL));
+		baseDn = Strings.emptyToNull(ini.getStringValue(SEARCH_LDAP_BASE));
+		filter = Strings.emptyToNull(ini.getStringValue(SEARCH_LDAP_FILTER));
 		limit = getValidLimit(ini);
 		settings = buildSettings();
 		isValidConfiguration = checkConfigurationValidity();

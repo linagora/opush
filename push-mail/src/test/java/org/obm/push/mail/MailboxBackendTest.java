@@ -52,7 +52,6 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
@@ -68,6 +67,7 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.mail.bean.Address;
 import org.obm.push.mail.bean.Email;
@@ -120,7 +120,7 @@ public class MailboxBackendTest {
 	private SnapshotDao snapshotDao;
 	private WindowingDao windowingDao;
 	private SmtpSender smtpSender;
-	private EmailConfiguration emailConfiguration;
+	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 
 	@Before
@@ -145,7 +145,7 @@ public class MailboxBackendTest {
 		snapshotDao = mocks.createMock(SnapshotDao.class);
 		windowingDao = mocks.createMock(WindowingDao.class);
 		smtpSender = mocks.createMock(SmtpSender.class);
-		emailConfiguration = mocks.createMock(EmailConfiguration.class);
+		emailConfiguration = mocks.createMock(OpushEmailConfiguration.class);
 		dateService = mocks.createMock(DateService.class);
 		
 		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, 

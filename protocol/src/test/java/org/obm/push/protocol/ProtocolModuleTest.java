@@ -32,7 +32,7 @@
 package org.obm.push.protocol;
 
 import org.easymock.EasyMock;
-import org.obm.configuration.EmailConfiguration;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.protocol.data.TimeZoneConverter;
 import org.obm.push.protocol.data.TimeZoneEncoder;
 
@@ -43,7 +43,7 @@ public class ProtocolModuleTest extends AbstractModule {
 	
 	@Override
 	protected void configure() {
-		bind(EmailConfiguration.class).toInstance(EasyMock.createMock(EmailConfiguration.class));
+		bind(OpushEmailConfiguration.class).toInstance(EasyMock.createMock(OpushEmailConfiguration.class));
 		bind(TimeZoneConverter.class).toInstance(EasyMock.createMock(TimeZoneConverter.class));
 		bind(TimeZoneEncoder.class).toInstance(EasyMock.createMock(TimeZoneEncoder.class));
 	}

@@ -50,7 +50,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.BodyPreference;
@@ -60,6 +59,7 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
@@ -98,7 +98,7 @@ public class MailboxFetchAPITest {
 
 	@Inject MailboxService mailboxService;
 	
-	@Inject EmailConfiguration emailConfig;
+	@Inject OpushEmailConfiguration emailConfig;
 	@Inject GreenMail greenMail;
 	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject ResourcesHolder resourcesHolder;
@@ -146,7 +146,7 @@ public class MailboxFetchAPITest {
 		EmailReader readableEmail = MailTestsUtils.readableEmail("plainText.eml");
 		mailboxService.storeInInbox(udr, readableEmail, true);
 		
-		Collection<UIDEnvelope> uidEnvelopes = mailboxService.fetchEnvelope(udr, testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME), MessageSet.singleton(1l));
+		Collection<UIDEnvelope> uidEnvelopes = mailboxService.fetchEnvelope(udr, testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), MessageSet.singleton(1l));
 
 		assertThat(uidEnvelopes).isNotNull().containsExactly(new UIDEnvelope(1l, envelope));
 	}
@@ -156,7 +156,7 @@ public class MailboxFetchAPITest {
 		EmailReader readableEmail = MailTestsUtils.readableEmail("plainText.eml");
 		mailboxService.storeInInbox(udr, readableEmail, true);
 		
-		mailboxService.fetchEnvelope(udr, testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME), MessageSet.singleton(2l));
+		mailboxService.fetchEnvelope(udr, testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), MessageSet.singleton(2l));
 	}
 	
 	@Test
@@ -165,7 +165,7 @@ public class MailboxFetchAPITest {
 		Email emailWillBeDeleted = testUtils.sendEmailToInbox();
 		Email email3 = testUtils.sendEmailToInbox();
 		
-		String mailboxPath = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String mailboxPath = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		mailboxService.delete(udr, mailboxPath, MessageSet.singleton(emailWillBeDeleted.getUid()));
 		
 		Collection<UIDEnvelope> uidEnvelopes = mailboxService.fetchEnvelope(udr, mailboxPath, MessageSet.singleton(email3.getUid()));
@@ -175,14 +175,14 @@ public class MailboxFetchAPITest {
 	
 	@Test
 	public void testFetchFastNoUid() throws MailException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Collection<FastFetch> result = mailboxService.fetchFast(udr, inbox, MessageSet.empty());
 		assertThat(result).isEmpty();
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void testFetchFastNullUids() throws MailException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		mailboxService.fetchFast(udr, inbox, null);
 	}
 
@@ -193,7 +193,7 @@ public class MailboxFetchAPITest {
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, internalDate);
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Collection<FastFetch> result = mailboxService.fetchFast(udr, inbox, MessageSet.singleton(1L));
 		assertThat(result).hasSize(1);
 		FastFetch onlyElement = Iterables.getOnlyElement(result);
@@ -204,7 +204,7 @@ public class MailboxFetchAPITest {
 		
 	@Test
 	public void testFetchFastAnsweredMessage() throws MailException, AddressException, MessagingException, UserException, ImapMessageNotFoundException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Date internalDate = new Date(1234);
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
@@ -217,7 +217,7 @@ public class MailboxFetchAPITest {
 
 	@Test
 	public void testFetchFastDeletedMessage() throws MailException, AddressException, MessagingException, UserException, ImapMessageNotFoundException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Date internalDate = new Date(1234);
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
@@ -229,14 +229,14 @@ public class MailboxFetchAPITest {
 	
 	@Test
 	public void testFetchBodyStructureNoUid() throws MailException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Collection<org.obm.push.mail.mime.MimeMessage> result = mailboxService.fetchBodyStructure(udr, inbox, MessageSet.empty());
 		assertThat(result).isEmpty();
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void testFetchBodyStructureNullUids() throws MailException {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		mailboxService.fetchBodyStructure(udr, inbox, null);
 	}
 	
@@ -245,7 +245,7 @@ public class MailboxFetchAPITest {
 		String messageContent = "message content";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(mailbox, "subject", messageContent, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, new Date());
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<org.obm.push.mail.mime.MimeMessage> collections = mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(1l));
 		org.obm.push.mail.mime.MimeMessage onlyElement = Iterables.getOnlyElement(collections);
@@ -263,7 +263,7 @@ public class MailboxFetchAPITest {
 		InputStream messageInputStream = MailTestsUtils.loadEmail("multipartMixed.eml");
 		testUtils.deliverToUserInbox(greenMailUser, 
 				GreenMailUtil.newMimeMessage(messageInputStream), new Date());
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<org.obm.push.mail.mime.MimeMessage> collections = mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(1l));
 		org.obm.push.mail.mime.MimeMessage onlyElement = Iterables.getOnlyElement(collections);
@@ -303,7 +303,7 @@ public class MailboxFetchAPITest {
 		InputStream messageInputStream = MailTestsUtils.loadEmail("multipartAlternative.eml");
 		testUtils.deliverToUserInbox(greenMailUser, 
 				GreenMailUtil.newMimeMessage(messageInputStream), new Date());
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<org.obm.push.mail.mime.MimeMessage> collections = mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(1l));
 		org.obm.push.mail.mime.MimeMessage onlyElement = Iterables.getOnlyElement(collections);
@@ -341,14 +341,14 @@ public class MailboxFetchAPITest {
 		InputStream messageInputStream = MailTestsUtils.loadEmail("messageRfc822ContentType.eml");
 		testUtils.deliverToUserInbox(greenMailUser, 
 				GreenMailUtil.newMimeMessage(messageInputStream), new Date());
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(1l));
 	}
 	
 	@Test
 	public void testFetchUIDNextEmptyMailbox() {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		long uIDNext = mailboxService.fetchUIDNext(udr, inbox);
 		assertThat(uIDNext).isEqualTo(1);
@@ -359,7 +359,7 @@ public class MailboxFetchAPITest {
 		testUtils.sendEmailToInbox();
 		testUtils.sendEmailToInbox();
 		testUtils.sendEmailToInbox();
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		long uIDNext = mailboxService.fetchUIDNext(udr, inbox);
 		assertThat(uIDNext).isEqualTo(4);
@@ -385,7 +385,7 @@ public class MailboxFetchAPITest {
 	
 	@Test
 	public void testFetchUIDValidity() {
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		long uIDValidity = mailboxService.fetchUIDValidity(udr, inbox);
 		assertThat(uIDValidity).isGreaterThan(-1);
@@ -398,7 +398,7 @@ public class MailboxFetchAPITest {
 		String from = "user@thilaire.lng.org";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(from, "subject", content, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, internalDate);
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		mailboxService.fetchEmailMetadata(udr, inbox, 15l);
 	}
@@ -410,7 +410,7 @@ public class MailboxFetchAPITest {
 		String from = "user@thilaire.lng.org";
 		javax.mail.internet.MimeMessage message = GreenMailUtil.buildSimpleMessage(from, "subject", content, smtpServerSetup);
 		testUtils.deliverToUserInbox(greenMailUser, message, internalDate);
-		String inbox = testUtils.mailboxPath(EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		EmailMetadata emailMetadata = mailboxService.fetchEmailMetadata(udr, inbox, 1l);
 
@@ -438,7 +438,7 @@ public class MailboxFetchAPITest {
 	@Test
 	public void testFetchMimePartData() throws MailException, IOException {
 		Email sentEmail = testUtils.sendEmailToInbox(loadEmail("multipartAlternative.eml"));
-		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<MimeMessage> mimeMessages = 
 				mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(sentEmail.getUid()));
@@ -461,7 +461,7 @@ public class MailboxFetchAPITest {
 		final int truncationSize = 5;
 		
 		Email sentEmail = testUtils.sendEmailToInbox(loadEmail("multipartAlternative.eml"));
-		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<MimeMessage> mimeMessages = 
 				mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(sentEmail.getUid()));
@@ -483,7 +483,7 @@ public class MailboxFetchAPITest {
 	@Test
 	public void testFetchMimePartDataWithNullMimePart() throws MailException, IOException {
 		Email sentEmail = testUtils.sendEmailToInbox(loadEmail("multipartAlternative.eml"));
-		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, EmailConfiguration.IMAP_INBOX_NAME);
+		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		
 		Collection<MimeMessage> mimeMessages = 
 				mailboxService.fetchBodyStructure(udr, inbox, MessageSet.singleton(sentEmail.getUid()));

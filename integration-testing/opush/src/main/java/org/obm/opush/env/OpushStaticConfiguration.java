@@ -39,10 +39,11 @@ import java.util.ResourceBundle;
 
 import org.obm.Configuration;
 import org.obm.StaticLocatorConfiguration;
-import org.obm.configuration.EmailConfiguration;
 import org.obm.configuration.SyncPermsConfigurationService;
+import org.obm.push.ExpungePolicy;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
 
 import com.google.common.base.Throwables;
@@ -58,7 +59,7 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		this.configuration = configuration;
 	}
 
-	public static class Email implements EmailConfiguration {
+	public static class Email implements OpushEmailConfiguration {
 
 		private final OpushConfigurationFixture.Mail configuration;
 
@@ -75,11 +76,6 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		public int imapTimeoutInMilliseconds() {
 			return configuration.timeoutInMilliseconds;
 		}
-
-		@Override
-		public ExpungePolicy expungePolicy() {
-			return ExpungePolicy.ALWAYS;
-		}
 		
 		@Override
 		public int imapPort() {
@@ -88,27 +84,17 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 
 		@Override
 		public String imapMailboxTrash() {
-			return EmailConfiguration.IMAP_TRASH_NAME;
+			return OpushEmailConfiguration.IMAP_TRASH_NAME;
 		}
 
 		@Override
 		public String imapMailboxSent() {
-			return EmailConfiguration.IMAP_SENT_NAME;
+			return OpushEmailConfiguration.IMAP_SENT_NAME;
 		}
 
 		@Override
 		public String imapMailboxDraft() {
-			return EmailConfiguration.IMAP_DRAFTS_NAME;
-		}
-
-		@Override
-		public int getMessageMaxSize() {
-			return configuration.maxMessageSize;
-		}
-
-		@Override
-		public int getImapFetchBlockSize() {
-			return configuration.fetchBlockSize;
+			return OpushEmailConfiguration.IMAP_DRAFTS_NAME;
 		}
 
 		@Override
@@ -119,6 +105,16 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		@Override
 		public MailboxNameCheckPolicy mailboxNameCheckPolicy() {
 			return MailboxNameCheckPolicy.ALWAYS;
+		}
+
+		@Override
+		public ExpungePolicy expungePolicy() {
+			return configuration.expungePolicy;
+		}
+
+		@Override
+		public int getMessageMaxSize() {
+			return configuration.maxMessageSize;
 		}
 
 	}
@@ -219,11 +215,6 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		}
 		throw new IllegalStateException();
 	}
-	
-	@Override
-	public boolean usePersistentEhcacheStore() {
-		return configuration.transaction.usePersistentCache;
-	}
 
 	@Override
 	public ResourceBundle getResourceBundle(Locale locale) {
@@ -241,8 +232,13 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 	}
 
 	@Override
-	public String getObmSyncUrl(String obmSyncHost) {
-		return obmSyncHost + configuration.obmSyncServices;
+	public String getObmSyncBaseUrl(String obmSyncHost) {
+		return obmSyncHost + configuration.obmUiBaseUrl;
+	}
+	
+	@Override
+	public String getObmSyncServicesUrl(String obmSyncHost) {
+		return getObmSyncBaseUrl(obmSyncHost) + "/" + configuration.obmSyncServices;
 	}
 	
 	@Override
