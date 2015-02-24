@@ -52,36 +52,49 @@ import com.datastax.driver.core.Session;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Stage;
 import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
 
-public class WindowingModule extends AbstractModule {
+import cucumber.api.guice.CucumberModules;
+import cucumber.runtime.java.guice.InjectorSource;
 
-	private final Logger logger;
+public class WindowingInjector implements InjectorSource {
 
-	public WindowingModule() {
-		logger = LoggerFactory.getLogger(getClass());
+	@Override
+	public Injector getInjector() {
+		return Guice.createInjector(Stage.PRODUCTION, CucumberModules.SCENARIO, new WindowingModule());
 	}
 	
-	@Override
-	protected void configure() {
-		OpushConfigurationFixture configuration = configuration();
-		install(Modules.override(new OpushCassandraModule())
-				.with(new org.obm.opush.env.OpushCassandraModule(createControl())));
-		bind(Session.class).toProvider(CassandraSessionProvider.class);
-		bind(OpushConfiguration.class).toInstance(new OpushStaticConfiguration(configuration));
-		bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));
-		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
-		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(logger);
-		bind(Logger.class).annotatedWith(Names.named(LoggerModule.CASSANDRA)).toInstance(logger);
-		bind(Logger.class).annotatedWith(Names.named(LoggerModule.MIGRATION)).toInstance(logger);
-	}		
-
-	protected OpushConfigurationFixture configuration() {
-		OpushConfigurationFixture configuration = new OpushConfigurationFixture();
-		configuration.transaction.timeoutInSeconds = Ints.checkedCast(TimeUnit.MINUTES.toSeconds(10));
-		configuration.dataDir = Files.createTempDir();
-		return configuration;
+	private static class WindowingModule extends AbstractModule {
+		
+		private final Logger logger;
+		
+		public WindowingModule() {
+			logger = LoggerFactory.getLogger(getClass());
+		}
+	
+		@Override
+		protected void configure() {
+			OpushConfigurationFixture configuration = configuration();
+			install(Modules.override(new OpushCassandraModule())
+					.with(new org.obm.opush.env.OpushCassandraModule(createControl())));
+			bind(Session.class).toProvider(CassandraSessionProvider.class);
+			bind(OpushConfiguration.class).toInstance(new OpushStaticConfiguration(configuration));
+			bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));
+			bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);
+			bind(Logger.class).annotatedWith(Names.named(LoggerModule.CONFIGURATION)).toInstance(logger);
+			bind(Logger.class).annotatedWith(Names.named(LoggerModule.CASSANDRA)).toInstance(logger);
+			bind(Logger.class).annotatedWith(Names.named(LoggerModule.MIGRATION)).toInstance(logger);
+		}		
+	
+		protected OpushConfigurationFixture configuration() {
+			OpushConfigurationFixture configuration = new OpushConfigurationFixture();
+			configuration.transaction.timeoutInSeconds = Ints.checkedCast(TimeUnit.MINUTES.toSeconds(10));
+			configuration.dataDir = Files.createTempDir();
+			return configuration;
+		}
 	}
-
 }
