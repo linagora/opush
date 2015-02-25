@@ -32,6 +32,7 @@
 package org.obm.push;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -43,8 +44,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.easymock.internal.MocksControl;
-import org.easymock.internal.MocksControl.MockType;
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.backend.IBackend;
@@ -66,7 +66,7 @@ import org.slf4j.Logger;
 
 public class ActiveSyncServletTest {
 
-	private MocksControl mocksControl;
+	private IMocksControl mocksControl;
 	private User user;
 	private HttpServletRequest request;
 	private HttpServletResponse response;
@@ -82,7 +82,7 @@ public class ActiveSyncServletTest {
 	
 	@Before
 	public void setUp() throws DaoException {
-		mocksControl = new MocksControl(MockType.DEFAULT);
+		mocksControl = createControl();
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		
 		activeSyncRequest = mocksControl.createMock(ActiveSyncRequest.class);
@@ -175,11 +175,11 @@ public class ActiveSyncServletTest {
 	private Logger createLogger() {
 		Logger logger = mocksControl.createMock(Logger.class);
 		logger.info(anyObject(String.class), eq(user.getEmail()), eq(deviceType));
-		mocksControl.anyTimes();
+		expectLastCall().anyTimes();
 		logger.debug(anyObject(String.class));
-		mocksControl.anyTimes();
+		expectLastCall().anyTimes();
 		logger.warn(anyObject(String.class));
-		mocksControl.anyTimes();
+		expectLastCall().anyTimes();
 		return logger;
 	}
 

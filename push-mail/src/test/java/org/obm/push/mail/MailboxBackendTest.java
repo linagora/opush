@@ -38,6 +38,7 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
 import static org.obm.DateUtils.date;
 
 import java.io.ByteArrayInputStream;
@@ -286,7 +287,7 @@ public class MailboxBackendTest {
 		ServerId serverId = collectionId.serverId(itemId);
 		String collectionPath = "INBOX";
 
-		final Capture<InputStream> capturedStream = new Capture<InputStream>();
+		final Capture<InputStream> capturedStream = newCapture();
 		expect(transformer.targetType()).andReturn(MSEmailBodyType.MIME);
 		expect(transformer.transform(capture(capturedStream), eq(Charsets.UTF_8)))
 			.andAnswer(new IAnswer<InputStream>() {

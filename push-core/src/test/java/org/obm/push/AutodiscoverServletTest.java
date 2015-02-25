@@ -32,6 +32,7 @@
 package org.obm.push;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isNull;
@@ -43,8 +44,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.easymock.internal.MocksControl;
-import org.easymock.internal.MocksControl.MockType;
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.backend.IContinuation;
@@ -65,11 +65,11 @@ public class AutodiscoverServletTest {
 	private Responder responder;
 	private UserDataRequest userDataRequest;
 	private Credentials credentials;
-	private MocksControl mocksControl;
+	private IMocksControl mocksControl;
 	
 	@Before
 	public void setUp() {
-		mocksControl = new MocksControl(MockType.DEFAULT);
+		mocksControl = createControl();
 		
 		credentials = mocksControl.createMock(Credentials.class);
 		
