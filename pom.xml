@@ -47,6 +47,7 @@
 		<mail.version>1.4.7</mail.version>
 		<maven-clean-plugin.version>2.6.1</maven-clean-plugin.version>
 		<maven-compiler-plugin.version>3.2</maven-compiler-plugin.version>
+		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 		<mina-core.version>2.0.9</mina-core.version>
 		<powermock.version>1.6.1</powermock.version>
 		<resteasy.version>3.0.10.Final</resteasy.version>
@@ -634,7 +635,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<version>2.6</version>
+					<version>${maven-dependency-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
