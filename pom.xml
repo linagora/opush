@@ -44,7 +44,6 @@
 		<resteasy.version>3.0.10.Final</resteasy.version>
 		<scala.version>2.10.4</scala.version>
 		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
-		<shrinkwrap.resolvers.version>2.0.0</shrinkwrap.resolvers.version>
 		<slf4j.version>1.7.5</slf4j.version>
 	</properties>
 
