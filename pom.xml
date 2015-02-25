@@ -51,6 +51,7 @@
 		<maven-compiler-plugin.version>3.2</maven-compiler-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+		<maven-graph-plugin.version>1.35</maven-graph-plugin.version>
 		<maven-install-plugin.version>2.5.2</maven-install-plugin.version>
 		<maven-jar-plugin.version>2.5</maven-jar-plugin.version>
 		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
@@ -842,7 +843,7 @@ dot reactor-graph.png.dot -Tpng -oobm.png -Gsplines=ortho -Glandscape=true
 					<plugin>
 						<groupId>org.fusesource.mvnplugins</groupId>
 						<artifactId>maven-graph-plugin</artifactId>
-						<version>1.30</version>
+						<version>${maven-graph-plugin.version}</version>
 						<configuration>
                                                 	<hideTransitive>true</hideTransitive>
                                                 	<hideScopes>test</hideScopes>
