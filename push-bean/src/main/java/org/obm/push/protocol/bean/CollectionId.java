@@ -49,8 +49,7 @@ public class CollectionId implements Serializable {
 	}
 
 	public static CollectionId of(int collectionId) {
-		// TODO: to be reworked by OP-53, this is blocking initial sync (collectionId = -1)
-		//		Preconditions.checkArgument(collectionId >= 0);
+		Preconditions.checkArgument(collectionId >= 0);
 		return new CollectionId(collectionId);
 	}
 	
