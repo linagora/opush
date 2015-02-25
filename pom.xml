@@ -51,6 +51,7 @@
 		<scala.version>2.10.4</scala.version>
 		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
 		<slf4j.version>1.7.10</slf4j.version>
+		<xmlunit.version>1.6</xmlunit.version>
 	</properties>
 
 	<repositories>
@@ -592,7 +593,7 @@
 			<dependency>
 				<groupId>xmlunit</groupId>
 				<artifactId>xmlunit</artifactId>
-				<version>1.5</version>
+				<version>${xmlunit.version}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
