@@ -46,6 +46,7 @@
 		<junit.version>4.12</junit.version>
 		<logback.version>1.1.2</logback.version>
 		<mail.version>1.4.7</mail.version>
+		<mavanagaiata.version>0.7.1</mavanagaiata.version>
 		<maven-clean-plugin.version>2.6.1</maven-clean-plugin.version>
 		<maven-compiler-plugin.version>3.2</maven-compiler-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
@@ -811,7 +812,7 @@ org.eclipse.jdt.core.compiler.source=1.7
 			<plugin>
 				<groupId>com.github.koraktor</groupId>
 				<artifactId>mavanagaiata</artifactId>
-				<version>0.7.0</version>
+				<version>${mavanagaiata.version}</version>
 				<configuration>
 					<dirtyFlag>false</dirtyFlag>
 					<dateFormat>yyyyMMdd.HHmmss</dateFormat>
