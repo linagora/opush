@@ -34,7 +34,7 @@
 		<cucumber.version>1.2.2</cucumber.version>
 		<guava.version>16.0</guava.version>
 		<guice.version>3.0</guice.version>
-		<httpclient.version>4.3</httpclient.version>
+		<httpclient.version>4.4</httpclient.version>
 		<jackson.version>2.3.1</jackson.version>
 		<jersey.version>1.17.1</jersey.version>
 		<jetty.version>9.1.2.v20140210</jetty.version>

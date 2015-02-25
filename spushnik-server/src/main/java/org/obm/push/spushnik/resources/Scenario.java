@@ -38,7 +38,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.obm.push.bean.DeviceId;
@@ -100,7 +100,7 @@ public abstract class Scenario {
 		}
 		return httpClientBuilder
 				.setSslcontext(SSLContextFactory.TRUST_ALL)
-				.setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+				.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
 				.build();
 	}
 
