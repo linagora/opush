@@ -30,9 +30,9 @@
 		<apache-mime4j.version>0.7.2</apache-mime4j.version>
 		<asm.version>4.1</asm.version>
 		<btm.version>3.0.0-1a33e59482fd29f6993ef3dfb5fab12efa0b24d2</btm.version>
-		<cassandra-unit.version>2.0.2.2-64472982fecb</cassandra-unit.version>
+		<cassandra-unit.version>2.0.2.3-lng1</cassandra-unit.version>
 		<cucumber.version>1.2.2</cucumber.version>
-		<guava.version>15.0</guava.version>
+		<guava.version>16.0</guava.version>
 		<guice.version>3.0</guice.version>
 		<httpclient.version>4.3</httpclient.version>
 		<jackson.version>2.3.1</jackson.version>
