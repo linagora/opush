@@ -30,6 +30,7 @@
 		<apache-mime4j.version>0.7.2</apache-mime4j.version>
 		<asm.version>4.1</asm.version>
 		<assertj-core.version>1.7.1</assertj-core.version>
+		<assertj-guava.version>1.3.1</assertj-guava.version>
 		<btm.version>3.0.0-1a33e59482fd29f6993ef3dfb5fab12efa0b24d2</btm.version>
 		<cassandra-unit.version>2.0.2.3-lng1</cassandra-unit.version>
 		<cucumber.version>1.2.2</cucumber.version>
@@ -477,7 +478,7 @@
 			<dependency>
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-guava</artifactId>
-				<version>1.2.0</version>
+				<version>${assertj-guava.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
