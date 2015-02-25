@@ -48,11 +48,6 @@ public class AddressBookId implements BackendId {
 	}
 	
 	@Override
-	public String asString() {
-		return String.valueOf(id);
-	}
-
-	@Override
 	public int hashCode() {
 		return Objects.hashCode(id);
 	}

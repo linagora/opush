@@ -51,11 +51,6 @@ public class CalendarPath implements BackendId {
 	}
 
 	@Override
-	public String asString() {
-		return path;
-	}
-
-	@Override
 	public int hashCode() {
 		return Objects.hashCode(path);
 	}

@@ -32,7 +32,6 @@
 package org.obm.push.bean.change.hierarchy;
 
 import org.obm.push.bean.FolderType;
-import org.obm.push.bean.Stringable;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -144,7 +143,7 @@ public class BackendFolder {
 			.toString();
 	}
 	
-	public static interface BackendId extends Stringable {
+	public static interface BackendId {
 	}
 
 }

@@ -65,11 +65,6 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 		this.separator = separator;
 	}
 
-	@Override
-	public String asString() {
-		return path;
-	}
-
 	public String getPath() {
 		return path;
 	}
@@ -90,7 +85,7 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 
 	@Override
 	public int compareTo(MailboxPath o) {
-		return asString().compareToIgnoreCase(o.asString());
+		return path.compareToIgnoreCase(o.path);
 	}
 
 	@Override

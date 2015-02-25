@@ -64,7 +64,7 @@ public class MailBackendFoldersBuilder {
 		// Handle special mailboxes, don't search for parent
 		for (MailboxPath folder : specialMailboxes) {
 			Node node = new Node(BackendFolder.builder()
-				.displayName(folder.asString())
+				.displayName(folder.getPath())
 				.folderType(folderType(folder))
 				.backendId(folder)
 				.parentId(Optional.<BackendId>absent())
@@ -77,7 +77,7 @@ public class MailBackendFoldersBuilder {
 		for (MailboxPath folder : mailboxes) {
 			Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, folder);
 			Node node = new Node(BackendFolder.builder()
-				.displayName(folder.asString())
+				.displayName(folder.getPath())
 				.folderType(folderType(folder))
 				.backendId(folder)
 				.parentId(searchParent.getValue())
@@ -100,7 +100,7 @@ public class MailBackendFoldersBuilder {
 	}
 
 	private FolderType folderType(MailboxPath path) {
-		return Objects.firstNonNull(SPECIAL_FOLDERS_TYPES.get(path.asString()), FolderType.USER_CREATED_EMAIL_FOLDER);
+		return Objects.firstNonNull(SPECIAL_FOLDERS_TYPES.get(path.getPath()), FolderType.USER_CREATED_EMAIL_FOLDER);
 	}
 	
 	private static class Node {

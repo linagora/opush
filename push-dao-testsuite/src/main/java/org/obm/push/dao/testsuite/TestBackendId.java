@@ -44,11 +44,6 @@ public class TestBackendId implements BackendId {
 	}
 	
 	@Override
-	public String asString() {
-		return id;
-	}
-
-	@Override
 	public int hashCode() {
 		return Objects.hashCode(id);
 	}

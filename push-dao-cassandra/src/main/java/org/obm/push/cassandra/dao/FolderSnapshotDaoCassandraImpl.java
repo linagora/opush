@@ -117,7 +117,7 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 				.value(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId())
 				.value(FolderMapping.Columns.COLLECTION_ID, folder.getCollectionId().asInt())
 				.value(FolderMapping.Columns.DATA_TYPE, folder.getFolderType().getPIMDataType().asXmlValue())
-				.value(FolderMapping.Columns.BACKEND_ID, folder.getBackendId().asString())
+				.value(FolderMapping.Columns.BACKEND_ID, jsonService.serialize(folder.getBackendId()))
 				.value(FolderMapping.Columns.FOLDER, jsonService.serialize(folder));
 			logger.debug("Batch will insert mapping {}", query.getQueryString());
 			batch.add(query);
@@ -171,7 +171,7 @@ public class FolderSnapshotDaoCassandraImpl extends AbstractCassandraDao impleme
 			.where(eq(FolderMapping.Columns.USER, user.getLoginAtDomain()))
 			.and(eq(FolderMapping.Columns.DEVICE_ID, device.getDevId().getDeviceId()))
 			.and(eq(FolderMapping.Columns.DATA_TYPE, pimDataType.asXmlValue()))
-			.and(eq(FolderMapping.Columns.BACKEND_ID, backendId.asString()));
+			.and(eq(FolderMapping.Columns.BACKEND_ID, jsonService.serialize(backendId)));
 		
 		logger.debug("Getting folder {}", query.getQueryString());
 		ResultSet resultSet = getSession().execute(query);
