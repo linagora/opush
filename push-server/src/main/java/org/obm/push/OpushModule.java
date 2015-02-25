@@ -65,8 +65,7 @@ public class OpushModule extends AbstractModule {
 		install(new ObmBackendModule());
 		install(new LoggerModule());
 		install(new OpushCrashModule());
-		install(new HealthCheckModule());
-		install(new HealthCheckDefaultHandlersModule());
+		install(new HealthCheckModule(new HealthCheckDefaultHandlersModule()));
 		install(new OpushCassandraModule());
 		install(new JdbcDaoModule(databaseModule));
 		bind(Boolean.class).annotatedWith(Names.named("enable-push")).toInstance(false);

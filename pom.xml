@@ -152,7 +152,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
-				<artifactId>healthcheck-api-jersey-1</artifactId>
+				<artifactId>healthcheck-api-jersey-2</artifactId>
 				<version>${obm.version}</version>
 			</dependency>
 			<dependency>
