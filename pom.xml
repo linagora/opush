@@ -52,6 +52,7 @@
 		<maven-install-plugin.version>2.5.2</maven-install-plugin.version>
 		<maven-jar-plugin.version>2.5</maven-jar-plugin.version>
 		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
+		<maven-site-plugin.version>3.4</maven-site-plugin.version>
 		<mina-core.version>2.0.9</mina-core.version>
 		<powermock.version>1.6.1</powermock.version>
 		<resteasy.version>3.0.10.Final</resteasy.version>
@@ -771,7 +772,7 @@ org.eclipse.jdt.core.compiler.source=1.7
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-site-plugin</artifactId>
-					<version>3.2</version>
+					<version>${maven-site-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
