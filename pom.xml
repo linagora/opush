@@ -38,7 +38,7 @@
 		<jackson.version>2.5.1</jackson.version>
 		<jersey.version>1.17.1</jersey.version>
 		<jetty.version>9.2.8.v20150217</jetty.version>
-		<logback.version>1.0.13</logback.version>
+		<logback.version>1.1.2</logback.version>
 		<mail.version>1.4.7</mail.version>
 		<powermock.version>1.5.1</powermock.version>
 		<resteasy.version>3.0.4.Final</resteasy.version>
