@@ -39,6 +39,7 @@
 		<jersey.version>1.17.1</jersey.version>
 		<jetty.version>9.2.8.v20150217</jetty.version>
 		<joda-time.version>2.7</joda-time.version>
+		<junit.version>4.12</junit.version>
 		<logback.version>1.1.2</logback.version>
 		<mail.version>1.4.7</mail.version>
 		<powermock.version>1.6.1</powermock.version>
@@ -388,7 +389,7 @@
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.11</version>
+				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
