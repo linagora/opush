@@ -38,6 +38,7 @@
 		<jackson.version>2.5.1</jackson.version>
 		<jersey.version>1.17.1</jersey.version>
 		<jetty.version>9.2.8.v20150217</jetty.version>
+		<joda-time.version>2.7</joda-time.version>
 		<logback.version>1.1.2</logback.version>
 		<mail.version>1.4.7</mail.version>
 		<powermock.version>1.6.1</powermock.version>
@@ -382,7 +383,7 @@
 			<dependency>
 				<groupId>joda-time</groupId>
 				<artifactId>joda-time</artifactId>
-				<version>2.3</version>
+				<version>${joda-time.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
