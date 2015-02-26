@@ -33,7 +33,6 @@ package org.obm.push.impl;
 
 import java.util.Date;
 
-import org.obm.push.backend.CollectionPath.Builder;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushBackend;
 import org.obm.push.backend.PIMBackend;
@@ -65,21 +64,19 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import com.google.inject.Provider;
 
 public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWithData> extends OpushBackend implements PIMBackend {
 
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
-	protected String obmSyncHost;
 	private final WindowingDao windowingDao;
 	private final DateService dateService;
 	protected final OpushResourcesHolder opushResourcesHolder;
 
-	protected ObmSyncBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider, 
+	protected ObmSyncBackend(MappingService mappingService,  
 			WindowingDao windowingDao, DateService dateService, 
 			OpushResourcesHolder opushResourcesHolder) {
-		super(mappingService, collectionPathBuilderProvider);
+		super(mappingService);
 		this.windowingDao = windowingDao;
 		this.dateService = dateService;
 		this.opushResourcesHolder = opushResourcesHolder;

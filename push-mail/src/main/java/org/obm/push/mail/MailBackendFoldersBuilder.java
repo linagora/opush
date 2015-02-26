@@ -39,7 +39,7 @@ public class MailBackendFoldersBuilder {
 	private Set<MailboxPath> specialMailboxes;
 	
 	public MailBackendFoldersBuilder() {
-		mailboxes = Sets.newHashSet();
+		mailboxes = Sets.newTreeSet();
 		specialMailboxes = Sets.newHashSet();
 	}
 	
@@ -74,7 +74,7 @@ public class MailBackendFoldersBuilder {
 			pathToNode.put(folder, node);
 		}
 		
-		for (MailboxPath folder : mailboxes) {
+		for (MailboxPath folder : Sets.difference(mailboxes, specialMailboxes)) {
 			Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, folder);
 			Node node = new Node(BackendFolder.builder()
 				.displayName(folder.getPath())

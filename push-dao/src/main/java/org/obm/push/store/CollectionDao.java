@@ -32,26 +32,14 @@
 package org.obm.push.store;
 
 import java.util.Date;
-import java.util.List;
 
-import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.state.FolderSyncKey;
 
 public interface CollectionDao {
-
-	CollectionId addCollectionMapping(Device device, String collection) throws DaoException;
-
-	CollectionId getCollectionMapping(Device device, String collection) throws DaoException;
-
-	String getCollectionPath(CollectionId collectionId)
-			throws CollectionNotFoundException, DaoException;
 
 	void resetCollection(Device device, CollectionId collectionId) throws DaoException;
 	
@@ -61,17 +49,8 @@ public interface CollectionDao {
 	 */
 	ItemSyncState updateState(Device device, CollectionId collectionId, SyncKey syncKey, Date syncDate) throws DaoException;
 
-	FolderSyncState allocateNewFolderSyncState(Device device, FolderSyncKey folderSyncKey) throws DaoException;
-	
 	ItemSyncState findItemStateForKey(SyncKey syncKey) throws DaoException ;
-	
-	FolderSyncState findFolderStateForKey(FolderSyncKey newSyncKey) throws DaoException ;
-
-	ChangedCollections getCalendarChangedCollections(Date lastSync) throws DaoException;
-
-	ChangedCollections getContactChangedCollections(Date lastSync) throws DaoException;
 
 	ItemSyncState lastKnownState(Device device, CollectionId collectionId) throws DaoException;
 
-	List<String> getUserCollections(FolderSyncState folderSyncState) throws DaoException;
 }

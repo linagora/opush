@@ -65,6 +65,7 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
@@ -75,6 +76,10 @@ import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.configuration.OpushEmailConfiguration;
@@ -83,12 +88,15 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.commands.Sync;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -119,15 +127,18 @@ public class MailBackendGetChangedTest {
 	@Inject private CollectionDao collectionDao;
 	@Inject private DateService dateService;
 	@Inject private SyncTestUtils syncTestUtils;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private String mailbox;
-	private String inboxCollectionPath;
+	private MailboxPath inboxPath;
 	private CollectionId inboxCollectionId;
-	private String trashCollectionPath;
+	private Folder inboxFolder;
+	private MailboxPath trashPath;
 	private CollectionId trashCollectionId;
+	private Folder trashFolder;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -141,19 +152,30 @@ public class MailBackendGetChangedTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
+		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		inboxCollectionId = CollectionId.of(1234);
-		trashCollectionPath = testUtils.buildEmailTrashCollectionPath(user);
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+		trashPath = MailboxPath.of(OpushEmailConfiguration.IMAP_TRASH_NAME);
 		trashCollectionId = CollectionId.of(1645);
+		trashFolder = Folder.builder()
+				.backendId(trashPath)
+				.collectionId(trashCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("Trash")
+				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+				.build();
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder, trashFolder)));
 		
-		bindCollectionIdToPath();
-
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
-	}
-
-	private void bindCollectionIdToPath() throws Exception {
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
-		expect(collectionDao.getCollectionPath(trashCollectionId)).andReturn(trashCollectionPath).anyTimes();
 	}
 
 	@After

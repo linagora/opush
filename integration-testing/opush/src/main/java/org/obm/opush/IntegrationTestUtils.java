@@ -34,11 +34,9 @@ package org.obm.opush;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
 
@@ -48,14 +46,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.IContentsExporter;
-import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -68,7 +65,6 @@ import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.state.StateMachine;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.sync.client.login.LoginClient;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.WBXMLOPClient;
@@ -77,7 +73,6 @@ import org.obm.sync.push.client.XMLOPClient;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -89,7 +84,6 @@ public class IntegrationTestUtils {
 	@Inject LoginClient loginClient;
 	@Inject StateMachine stateMachine;
 	@Inject CollectionDao collectionDao;
-	@Inject FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
 	@Inject LinagoraMailboxService mailboxService;
 	@Inject IContentsExporter contentsExporter;
 	
@@ -97,8 +91,7 @@ public class IntegrationTestUtils {
 		expect(stateMachine.getItemSyncState(syncKey)).andReturn(syncState).anyTimes();
 	}
 	
-	public void expectUserCollectionsNeverChange(OpushUser user, Collection<CollectionId> unchangedCollectionsIds)
-			throws DaoException, CollectionNotFoundException {
+	public void expectUserCollectionsNeverChange() throws DaoException, CollectionNotFoundException {
 		
 		Date lastSync = new Date();
 		ItemSyncState syncState = ItemSyncState.builder()
@@ -106,30 +99,6 @@ public class IntegrationTestUtils {
 				.syncKey(new SyncKey("sync state"))
 				.build();
 		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).anyTimes();
-		ChangedCollections changed = new ChangedCollections(lastSync, ImmutableSet.<String>of());
-		expect(collectionDao.getContactChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
-		expect(collectionDao.getCalendarChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
-
-		CollectionId otherCollectionId = anyObject(CollectionId.class);
-		for (CollectionId unchangedCollectionId : unchangedCollectionsIds) {
-			String collectionPath = buildEmailInboxCollectionPath(user);  
-			expect(collectionDao.getCollectionPath(unchangedCollectionId)).andReturn(collectionPath).anyTimes();
-		}
-		expect(collectionDao.getCollectionPath(otherCollectionId)).andThrow(new CollectionNotFoundException()).anyTimes();
-	}
-
-	public void expectAllocateFolderState(Device device, FolderSyncState folderSyncState) throws DaoException {
-		expect(collectionDao.allocateNewFolderSyncState(device, folderSyncState.getSyncKey())).andReturn(folderSyncState);
-	}
-	
-	public void expectGetCollectionPath(CollectionId collectionId, String serverId) throws CollectionNotFoundException, DaoException {
-		expect(collectionDao.getCollectionPath(collectionId))
-			.andReturn(serverId);
-	}
-
-	public void expectCreateFolderMappingState() throws DaoException {
-		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), anyObject(FolderSyncState.class));
-		expectLastCall().anyTimes();
 	}
 
 	public OPClient buildOpushClient(OpushUser user, int port, CloseableHttpClient httpClient) {
@@ -157,30 +126,6 @@ public class IntegrationTestUtils {
 		return buildWBXMLOpushClient(user, port, ProtocolVersion.V121, httpClient);
 	}
 
-	public String buildCalendarCollectionPath(OpushUser opushUser) {
-		return buildCollectionPath(opushUser, "calendar", opushUser.user.getLoginAtDomain());
-	}
-
-	public String buildContactCollectionPath(OpushUser opushUser, CollectionId collectionId) {
-		return buildCollectionPath(opushUser, "contacts", collectionId.asString());
-	}
-	
-	public String buildEmailInboxCollectionPath(OpushUser opushUser) {
-		return buildCollectionPath(opushUser, "email", "INBOX");
-	}
-	
-	public String buildEmailSentCollectionPath(OpushUser opushUser) {
-		return buildCollectionPath(opushUser, "email", "Sent");
-	}
-	
-	public String buildEmailTrashCollectionPath(OpushUser opushUser) {
-		return buildCollectionPath(opushUser, "email", "Trash");
-	}
-	
-	private String buildCollectionPath(OpushUser opushUser, String dataType, String collectionName) {
-		return "obm:\\\\" + opushUser.user.getLoginAtDomain() + "\\" + dataType + "\\" + collectionName;
-	}
-
 	public void appendToINBOX(GreenMailUser greenMailUser, String emailPath) throws Exception {
 		Properties props = new Properties();
 		Session session = Session.getDefaultInstance(props, null);
@@ -203,27 +148,27 @@ public class IntegrationTestUtils {
 		return ClassLoader.getSystemResourceAsStream(emailPath);
 	}
 
-	public void expectFetchFlags(UserDataRequest udr, String collectionName, long uid, FlagsList value) {
-		expect(mailboxService.fetchFlags(udr, collectionName, MessageSet.singleton(uid))).andReturn(ImmutableMap.of(uid, value));
+	public void expectFetchFlags(UserDataRequest udr, MailboxPath path, long uid, FlagsList value) {
+		expect(mailboxService.fetchFlags(udr, path, MessageSet.singleton(uid))).andReturn(ImmutableMap.of(uid, value));
 	}
 
-	public void expectFetchEnvelope(UserDataRequest udr, String collectionName, int uid, UIDEnvelope envelope) {
-		expect(mailboxService.fetchEnvelope(udr, collectionName, MessageSet.singleton(uid)))
+	public void expectFetchEnvelope(UserDataRequest udr, MailboxPath path, int uid, UIDEnvelope envelope) {
+		expect(mailboxService.fetchEnvelope(udr, path, MessageSet.singleton(uid)))
 			.andReturn(ImmutableList.of(envelope));
 	}
 
-	public void expectFetchBodyStructure(UserDataRequest udr, String collectionName, int uid, MimeMessage mimeMessage) {
-		expect(mailboxService.fetchBodyStructure(udr, collectionName, MessageSet.singleton(uid)))
+	public void expectFetchBodyStructure(UserDataRequest udr, MailboxPath path, int uid, MimeMessage mimeMessage) {
+		expect(mailboxService.fetchBodyStructure(udr, path, MessageSet.singleton(uid)))
 			.andReturn(ImmutableList.of(mimeMessage));
 	}
 
-	public void expectFetchMailStream(UserDataRequest udr, String collectionName, int uid, InputStream mailStream) {
-		expect(mailboxService.fetchMailStream(udr, collectionName, uid))
+	public void expectFetchMailStream(UserDataRequest udr, MailboxPath path, int uid, InputStream mailStream) {
+		expect(mailboxService.fetchMailStream(udr, path, uid))
 				.andReturn(mailStream);
 	}
 
-	public void expectFetchMimePartStream(UserDataRequest udr, String collectionName, int uid, InputStream mailStream, MimeAddress partAddress) {
-		expect(mailboxService.fetchMimePartStream(udr, collectionName, uid, partAddress))
+	public void expectFetchMimePartStream(UserDataRequest udr, MailboxPath path, int uid, InputStream mailStream, MimeAddress partAddress) {
+		expect(mailboxService.fetchMimePartStream(udr, path, uid, partAddress))
 			.andReturn(mailStream);
 	}
 	

@@ -49,7 +49,6 @@ import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IListenerRegistration;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
@@ -66,6 +65,7 @@ import org.obm.push.bean.change.client.SyncClientCommands.Add;
 import org.obm.push.bean.change.client.SyncClientCommands.Deletion;
 import org.obm.push.bean.change.client.SyncClientCommands.Fetch;
 import org.obm.push.bean.change.client.SyncClientCommands.Update;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
@@ -95,9 +95,9 @@ import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncAnalyser;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.StateMachine;
 import org.obm.push.state.SyncKeyFactory;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.wbxml.WBXMLTools;
@@ -121,7 +121,6 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final SyncProtocol syncProtocol;
 	private final MonitoredCollectionDao monitoredCollectionService;
 	private final ItemTrackingDao itemTrackingDao;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final ContinuationService continuationService;
 	private final boolean enablePush;
 	private final SyncKeyFactory syncKeyFactory;
@@ -132,13 +131,14 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	private final IContentsExporter contentsExporter;
 	private final IBackend backend;
 	private final StateMachine stMachine;
-	private final CollectionDao collectionDao;
+	private final FolderSnapshotDao folderSnapshotDao;
 
 	@Inject SyncHandler(IBackend backend, IContentsImporter contentsImporter, IContentsExporter contentsExporter,
 			StateMachine stMachine,
 			MonitoredCollectionDao monitoredCollectionService, SyncProtocol syncProtocol,
-			CollectionDao collectionDao, ItemTrackingDao itemTrackingDao,
-			WBXMLTools wbxmlTools, DOMDumper domDumper, ICollectionPathHelper collectionPathHelper,
+			ItemTrackingDao itemTrackingDao,
+			FolderSnapshotDao folderSnapshotDao,
+			WBXMLTools wbxmlTools, DOMDumper domDumper,
 			ContinuationService continuationService,
 			@Named("enable-push") boolean enablePush,
 			SyncKeyFactory syncKeyFactory,
@@ -153,9 +153,8 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		this.stMachine = stMachine;
 		this.monitoredCollectionService = monitoredCollectionService;
 		this.syncProtocol = syncProtocol;
-		this.collectionDao = collectionDao;
 		this.itemTrackingDao = itemTrackingDao;
-		this.collectionPathHelper = collectionPathHelper;
+		this.folderSnapshotDao = folderSnapshotDao;
 		this.continuationService = continuationService;
 		this.enablePush = enablePush;
 		this.syncKeyFactory = syncKeyFactory;
@@ -246,8 +245,8 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 		}
 		
 		for (AnalysedSyncCollection sc: syncRequest.getCollections()) {
-			String collectionPath = collectionDao.getCollectionPath(sc.getCollectionId());
-			PIMDataType dataClass = collectionPathHelper.recognizePIMDataType(collectionPath);
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), sc.getCollectionId());
+			PIMDataType dataClass = folder.getFolderType().getPIMDataType();
 			if (dataClass == PIMDataType.EMAIL) {
 				backend.startEmailMonitoring(udr, sc.getCollectionId());
 				break;

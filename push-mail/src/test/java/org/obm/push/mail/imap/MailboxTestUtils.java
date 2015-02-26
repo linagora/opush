@@ -37,9 +37,8 @@ import java.util.Set;
 
 import javax.mail.internet.MimeMessage;
 
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ImapMessageNotFoundException;
@@ -63,18 +62,16 @@ public class MailboxTestUtils {
 	private final UserDataRequest udr;
 	private final String mailbox;
 	private final Date beforeTest;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final ServerSetup smtpServerSetup;
 
 	public MailboxTestUtils(MailboxService mailboxService,
 			UserDataRequest udr, String mailbox, Date beforeTest,
-			ICollectionPathHelper collectionPathHelper, ServerSetup smtpServerSetup) {
+			ServerSetup smtpServerSetup) {
 		
 		this.mailboxService = mailboxService;
 		this.udr = udr;
 		this.mailbox = mailbox;
 		this.beforeTest = beforeTest;
-		this.collectionPathHelper = collectionPathHelper;
 		this.smtpServerSetup = smtpServerSetup;
 	}
 	
@@ -112,8 +109,8 @@ public class MailboxTestUtils {
 			throws DaoException, MailException, ImapMessageNotFoundException, UnsupportedBackendFunctionException {
 		
 		Email sentEmail = sendEmailToInbox();
-		String inboxPath = mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
-		mailboxService.move(udr, inboxPath, mailboxPath(mailbox), MessageSet.singleton(sentEmail.getUid()));
+		MailboxPath inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
+		mailboxService.move(udr, inboxPath, MailboxPath.of(mailbox), MessageSet.singleton(sentEmail.getUid()));
 		return emailInMailbox(mailbox);
 	}
 
@@ -127,17 +124,13 @@ public class MailboxTestUtils {
 	}
 	
 	public Set<Email> mailboxEmails(String mailboxName) throws MailException {
-		return mailboxService.fetchEmails(udr, mailboxPath(mailboxName), beforeTest);
+		return mailboxService.fetchEmails(udr, MailboxPath.of(mailboxName), beforeTest);
 	}
 
 	public void createFolders(String...folderNames) throws MailException {
 		for (String folderName : folderNames) {
 			mailboxService.createFolder(udr, folder(folderName));
 		}
-	}
-
-	public String mailboxPath(String mailboxName) {
-		return collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, mailboxName);
 	}
 	
 	public MailboxFolder folder(String name) {

@@ -88,7 +88,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 			this.collectionPath = collectionPath;
 			return this;
 		}
-		
+
 		public Builder deletesAsMoves(Boolean deletesAsMoves) {
 			this.deletesAsMoves = deletesAsMoves;
 			return this;

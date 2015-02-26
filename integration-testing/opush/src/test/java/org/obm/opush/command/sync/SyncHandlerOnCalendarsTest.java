@@ -68,6 +68,7 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventException;
@@ -84,6 +85,10 @@ import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
@@ -91,6 +96,8 @@ import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -104,6 +111,7 @@ import org.obm.sync.items.EventChanges;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.commands.Sync;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -129,10 +137,12 @@ public class SyncHandlerOnCalendarsTest {
 	@Inject private CalendarClient calendarClient;
 	@Inject private DateService dateService;
 	@Inject private SyncTestUtils syncTestUtils;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	private OpushUser user;
-	private String calendarCollectionPath;
 	private CollectionId calendarCollectionId;
+	private CalendarPath calendarPath;
+	private Folder calendarFolder;
 
 	private CloseableHttpClient httpClient;
 
@@ -142,10 +152,20 @@ public class SyncHandlerOnCalendarsTest {
 		cassandraServer.start();
 		user = users.jaures;
 
-		calendarCollectionPath = testUtils.buildCalendarCollectionPath(user);
 		calendarCollectionId = CollectionId.of(5678);
+		calendarPath = CalendarPath.of("jaures@sfio.fr");
+		calendarFolder = Folder.builder()
+				.backendId(calendarPath)
+				.collectionId(calendarCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("calendar")
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build();
 
-		expect(collectionDao.getCollectionPath(calendarCollectionId)).andReturn(calendarCollectionPath).anyTimes();
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(calendarFolder)));
+		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
 

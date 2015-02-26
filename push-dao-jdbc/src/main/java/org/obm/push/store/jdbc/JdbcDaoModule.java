@@ -35,7 +35,6 @@ import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.FolderSnapshotDao;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.sync.date.DateProvider;
@@ -58,7 +57,6 @@ public class JdbcDaoModule extends AbstractModule{
 		bind(DeviceDao.class).to(DeviceDaoJdbcImpl.class);
 		bind(HeartbeatDao.class).to(HeartbeatDaoJdbcDaoImpl.class);
 		bind(CalendarDao.class).to(CalendarDaoJdbcImpl.class);
-		bind(FolderSyncStateBackendMappingDao.class).to(FolderSyncStateBackendMappingDaoJdbcImpl.class);
 		bind(FolderSnapshotDao.class).to(FolderSnapshotDaoJdbcImpl.class);
 		bind(ItemTrackingDao.class).to(ItemTrackingDaoJdbcImpl.class);
 		bind(DateProvider.class).to(TransactionDateProvider.class);

@@ -45,20 +45,23 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.ICollectionPathHelper;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.MonitoredCollectionDao;
 import org.obm.push.utils.DateUtils;
@@ -70,14 +73,13 @@ public class PingAnalyserTest {
 	private UserDataRequest udr;
 	private User user;
 	private Credentials credentials;
-	private String collectionPath;
+	private Folder folder;
 	private CollectionId collectionId;
 	
 	private IMocksControl mocks;
-	private CollectionDao collectionDao;
 	private HeartbeatDao heartbeatDao;
 	private MonitoredCollectionDao monitoredCollectionDao;
-	private ICollectionPathHelper collectionPathHelper;
+	private FolderSnapshotDao folderSnapshotDao;
 	private StateMachine stateMachine;
 	private OpushConfiguration configuration;
 	
@@ -89,19 +91,23 @@ public class PingAnalyserTest {
 		user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
 		credentials = new Credentials(user, "test".toCharArray());
 		udr = new UserDataRequest(credentials, "Sync", device);
-		collectionPath = "INBOX";
 		collectionId = CollectionId.of(5);
-
+		folder = Folder.builder()
+			.displayName("INBOX")
+			.collectionId(collectionId)
+			.backendId(MailboxPath.of("INBOX"))
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.build();
 
 		mocks = createControl();
-		collectionDao = mocks.createMock(CollectionDao.class);
 		heartbeatDao = mocks.createMock(HeartbeatDao.class);
 		monitoredCollectionDao = mocks.createMock(MonitoredCollectionDao.class);
-		collectionPathHelper = mocks.createMock(ICollectionPathHelper.class);
 		stateMachine = mocks.createMock(StateMachine.class);
 		configuration = mocks.createMock(OpushConfiguration.class);
+		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		
-		pingAnalyser = new PingAnalyser(collectionDao, heartbeatDao, monitoredCollectionDao, collectionPathHelper, stateMachine, configuration);
+		
+		pingAnalyser = new PingAnalyser(heartbeatDao, monitoredCollectionDao, stateMachine, folderSnapshotDao, configuration);
 	}
 	
 	@Test
@@ -115,17 +121,10 @@ public class PingAnalyserTest {
 				.build();
 		
 		long heartbeat = 100;
-		expect(heartbeatDao.findLastHeartbeat(device))
-			.andReturn(heartbeat).once();
-
-		expect(collectionDao.getCollectionPath(collectionId))
-			.andReturn(collectionPath).once();
-		
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath))
-			.andReturn(PIMDataType.EMAIL).once();
-
-		expect(stateMachine.lastKnownState(device, collectionId))
-			.andReturn(null).once();
+	
+		expect(heartbeatDao.findLastHeartbeat(device)).andReturn(heartbeat);
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
+		expect(stateMachine.lastKnownState(device, collectionId)).andReturn(null).once();
 		
 		expect(configuration.defaultWindowSize())
 			.andReturn(50).once();
@@ -139,7 +138,6 @@ public class PingAnalyserTest {
 				.heartbeatInterval(heartbeat)
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
-						.collectionPath(collectionPath)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
 						.windowSize(50)
@@ -185,14 +183,9 @@ public class PingAnalyserTest {
 		heartbeatDao.updateLastHeartbeat(device, PingAnalyser.MIN_SANE_HEARTBEAT_VALUE);
 		expectLastCall().once();
 		
-		expect(collectionDao.getCollectionPath(collectionId))
-			.andReturn(collectionPath).once();
-		
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath))
-			.andReturn(PIMDataType.EMAIL).once();
-
 		expect(stateMachine.lastKnownState(device, collectionId))
 			.andReturn(null).once();
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		
 		expect(configuration.defaultWindowSize())
 			.andReturn(50).once();
@@ -206,7 +199,6 @@ public class PingAnalyserTest {
 				.heartbeatInterval(PingAnalyser.MIN_SANE_HEARTBEAT_VALUE)
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
-						.collectionPath(collectionPath)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
 						.windowSize(50)
@@ -226,13 +218,7 @@ public class PingAnalyserTest {
 		
 		long heartbeat = 100;
 		expect(heartbeatDao.findLastHeartbeat(device))
-			.andReturn(heartbeat).once();
-
-		expect(collectionDao.getCollectionPath(collectionId))
-			.andReturn(collectionPath).once();
-		
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath))
-			.andReturn(PIMDataType.EMAIL).once();
+			.andReturn(heartbeat);
 
 		SyncKey knownSyncKey = new SyncKey("456");
 		ItemSyncState itemSyncState = ItemSyncState.builder()
@@ -241,6 +227,7 @@ public class PingAnalyserTest {
 				.build();
 		expect(stateMachine.lastKnownState(device, collectionId))
 			.andReturn(itemSyncState).once();
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		
 		expect(configuration.defaultWindowSize())
 			.andReturn(50).once();
@@ -254,7 +241,6 @@ public class PingAnalyserTest {
 				.heartbeatInterval(heartbeat)
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
-						.collectionPath(collectionPath)
 						.syncKey(knownSyncKey)
 						.dataType(PIMDataType.EMAIL)
 						.windowSize(50)
@@ -281,17 +267,6 @@ public class PingAnalyserTest {
 		expect(heartbeatDao.findLastHeartbeat(device))
 			.andReturn(heartbeat).once();
 
-		expect(collectionDao.getCollectionPath(collectionId))
-			.andReturn(collectionPath).once();
-		String collectionPath2 = "CONTACT";
-		expect(collectionDao.getCollectionPath(collectionId2))
-			.andReturn(collectionPath2 ).once();
-		
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath))
-			.andReturn(PIMDataType.EMAIL).once();
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath2))
-			.andReturn(PIMDataType.CONTACTS).once();
-
 		SyncKey knownSyncKey = new SyncKey("456");
 		ItemSyncState itemSyncState = ItemSyncState.builder()
 				.syncKey(knownSyncKey)
@@ -301,6 +276,13 @@ public class PingAnalyserTest {
 			.andReturn(itemSyncState).once();
 		expect(stateMachine.lastKnownState(device, collectionId2))
 			.andReturn(null).once();
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
+		expect(folderSnapshotDao.get(user, device, collectionId2)).andReturn(Folder.builder()
+			.displayName("address book")
+			.collectionId(collectionId2)
+			.backendId(AddressBookId.of(8))
+			.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+			.build());
 		
 		expect(configuration.defaultWindowSize())
 			.andReturn(50).times(2);
@@ -314,14 +296,12 @@ public class PingAnalyserTest {
 				.heartbeatInterval(heartbeat)
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId)
-						.collectionPath(collectionPath)
 						.syncKey(knownSyncKey)
 						.dataType(PIMDataType.EMAIL)
 						.windowSize(50)
 						.build())
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId2)
-						.collectionPath(collectionPath2)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.CONTACTS)
 						.windowSize(50)

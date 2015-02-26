@@ -40,9 +40,7 @@ import static org.obm.push.bean.FilterType.THREE_DAYS_BACK;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -58,6 +56,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.HierarchyChangesTestUtils;
@@ -74,7 +73,7 @@ import org.obm.push.backend.IContentsImporter;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
@@ -87,7 +86,11 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -107,6 +110,7 @@ import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.task.TaskBackend;
@@ -116,9 +120,9 @@ import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @GuiceModule(SyncHandlerTestModule.class)
@@ -140,6 +144,7 @@ public class SyncHandlerTest {
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private SyncTestUtils syncTestUtils;
 	@Inject private CollectionDao collectionDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	@Inject CalendarBackend calendarBackend;
 	@Inject TaskBackend taskBackend;
@@ -148,6 +153,8 @@ public class SyncHandlerTest {
 	
 	private List<OpushUser> userAsList;
 	private CloseableHttpClient httpClient;
+	private Folder inboxFolder;
+	private CollectionId inboxCollectionId;
 
 	@Before
 	public void init() throws Exception {
@@ -155,6 +162,19 @@ public class SyncHandlerTest {
 		cassandraServer.start();
 		userAsList = Arrays.asList(users.jaures);
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
+
+		inboxCollectionId = CollectionId.of(1);
+		inboxFolder = Folder.builder()
+			.collectionId(inboxCollectionId)
+			.backendId(MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.displayName(EmailConfiguration.IMAP_INBOX_NAME)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
+		
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(users.jaures.user, users.jaures.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 	}
 	
 	@After
@@ -168,7 +188,6 @@ public class SyncHandlerTest {
 	public void testSyncDefaultMailFolderUnchange() throws Exception {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
@@ -177,11 +196,8 @@ public class SyncHandlerTest {
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -200,18 +216,14 @@ public class SyncHandlerTest {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		FolderSyncKey firstSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstSyncKey);
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -244,11 +256,8 @@ public class SyncHandlerTest {
 
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2342"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -272,17 +281,13 @@ public class SyncHandlerTest {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		SyncKey syncEmailSyncKey = new SyncKey("13424");
-		CollectionId syncEmailCollectionId = CollectionId.of(432);
 
-		testUtils.expectUserCollectionsNeverChange(users.jaures, ImmutableList.of(syncEmailCollectionId));
-		syncTestUtils.mockCollectionDaoForEmailSync(syncEmailSyncKey, ImmutableList.of(syncEmailCollectionId));
+		testUtils.expectUserCollectionsNeverChange();
+		syncTestUtils.mockCollectionDaoForEmailSync(syncEmailSyncKey);
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2342"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
 		userAccessUtils.mockUsersAccess(userAsList);
 		
 		expect(contentsExporter.getChanged(
@@ -327,11 +332,8 @@ public class SyncHandlerTest {
 
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2342"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 
 		mocksControl.replay();
 		opushServer.start();
@@ -370,11 +372,8 @@ public class SyncHandlerTest {
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -410,11 +409,8 @@ public class SyncHandlerTest {
 
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("23455"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -460,12 +456,9 @@ public class SyncHandlerTest {
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
 		testUtils.expectContentExporterFetching(userDataRequest, itemChange);
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, ImmutableList.of(syncEmailCollectionId), delta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -488,9 +481,6 @@ public class SyncHandlerTest {
 	
 	@Test
 	public void testSyncWithUnknownSyncKeyReturnsInvalidSyncKeyStatus() throws Exception {
-		CollectionId collectionId = CollectionId.of(1);
-		String collectionPath = testUtils.buildEmailInboxCollectionPath(users.jaures); 
-		
 		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("456");
 		Date initialUpdateStateDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
@@ -499,24 +489,23 @@ public class SyncHandlerTest {
 		userAccessUtils.mockUsersAccess(userAsList);
 
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2342"));
-		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).times(2);
 		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(null);
 		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class), anyObject(SyncKey.class), anyObject(Date.class)))
 			.andReturn(firstItemSyncState)
 			.anyTimes();
-		collectionDao.resetCollection(users.jaures.device, collectionId);
+		collectionDao.resetCollection(users.jaures.device, inboxCollectionId);
 		expectLastCall();
-		contentsExporter.initialize(users.jaures.deviceId, collectionId, PIMDataType.EMAIL, THREE_DAYS_BACK, new SyncKey("2342"));
+		contentsExporter.initialize(users.jaures.deviceId, inboxCollectionId, PIMDataType.EMAIL, THREE_DAYS_BACK, new SyncKey("2342"));
 		expectLastCall();
 		
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		opClient.syncEmail(decoder, initialSyncKey, collectionId, THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondSyncKey, collectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
-		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, collectionId);
+		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
 		assertThat(inboxResponse.getStatus()).isEqualTo(SyncStatus.INVALID_SYNC_KEY);
 	}
 
@@ -524,7 +513,6 @@ public class SyncHandlerTest {
 	public void testSyncWithoutOptionsAndNoOptionsInCacheTakeThePreviousOne() throws Exception {
 		OpushUser user = users.jaures;
 		CollectionId collectionId = CollectionId.of(1);
-		String collectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		FolderSyncKey initialFolderSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey secondSyncKey = new SyncKey("13424");
@@ -544,10 +532,7 @@ public class SyncHandlerTest {
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"), new SyncKey("3345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
 		expect(contentsExporter.getChanged(
 				anyObject(UserDataRequest.class),
 				anyObject(ItemSyncState.class),
@@ -557,7 +542,6 @@ public class SyncHandlerTest {
 		contentsExporter.initialize(users.jaures.deviceId, collectionId, PIMDataType.EMAIL, THREE_DAYS_BACK, new SyncKey("2345"));
 		expectLastCall();
 		
-		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();
 		expect(collectionDao.findItemStateForKey(secondSyncKey)).andReturn(secondRequestSyncState);
 		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class),
 				anyObject(SyncKey.class), anyObject(Date.class))).andReturn(secondRequestSyncState).times(2);
@@ -578,20 +562,10 @@ public class SyncHandlerTest {
 		syncTestUtils.checkMailFolderHasNoChange(syncWithoutOptions, inbox.getCollectionId());
 	}
 
-	private FolderSyncState newSyncState(FolderSyncKey folderSyncKey) {
-		return FolderSyncState.builder()
-				.syncKey(folderSyncKey)
-				.build();
-	}
-	
 	public void testPartialSyncWhenNoPreviousSendError13() throws Exception {
 		FolderSyncKey initialFolderSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
-		FolderSyncKey nextFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		
 		userAccessUtils.mockUsersAccess(userAsList);
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(nextFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
 		mocksControl.replay();
 		opushServer.start();
 
@@ -606,7 +580,6 @@ public class SyncHandlerTest {
 	@Test
 	public void testPartialSyncWhenValidPreviousSync() throws Exception {
 		FolderSyncKey initialFolderSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
-		FolderSyncKey nextFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 
 		SyncKey initialSyncKey = new SyncKey("1234");
 		CollectionId syncEmailCollectionId = CollectionId.of(12);
@@ -615,10 +588,7 @@ public class SyncHandlerTest {
 			.syncKey(new SyncKey("123"))
 			.build();
 		
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(nextFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(initialSyncKey, ImmutableSet.of(syncEmailCollectionId), emptyDelta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(initialSyncKey, emptyDelta, userAsList);
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
@@ -645,14 +615,12 @@ public class SyncHandlerTest {
 	@Test
 	public void testSyncOnUnexistingCollection() throws Exception {
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		java.util.Collection<CollectionId> existingCollections = Collections.emptySet();
 		CollectionId syncEmailUnexistingCollectionId = CollectionId.of(15105);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, existingCollections, delta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncEmailSyncKey, delta, userAsList);
 		mocksControl.replay();
 		opushServer.start();
 
@@ -666,19 +634,16 @@ public class SyncHandlerTest {
 	@Test
 	public void testSyncDataClassAtCalendarButRecognizedAsEmail() throws Exception {
 		SyncKey syncKey = new SyncKey("1");
-		CollectionId collectionId = CollectionId.of(15105);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, delta, userAsList);
 		mocksControl.replay();
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
-		SyncResponse syncResponse = opClient.sync(decoder, syncKey, collectionId, PIMDataType.CALENDAR);
+		SyncResponse syncResponse = opClient.sync(decoder, syncKey, inboxCollectionId, PIMDataType.CALENDAR);
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
 	}
@@ -687,17 +652,13 @@ public class SyncHandlerTest {
 	public void testSyncOnHierarchyChangedException() throws Exception {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
 		userAccessUtils.mockUsersAccess(userAsList);
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		mockEmailSyncThrowsException(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), 
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		mockEmailSyncThrowsException(syncEmailSyncKey, 
 				new HierarchyChangedException(new NotAllowedException("Not allowed")));
 
 		mocksControl.replay();
@@ -705,7 +666,7 @@ public class SyncHandlerTest {
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.folderSync(initialSyncKey);
-		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, syncEmailCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 
 		assertThat(syncEmailResponse).isNotNull();
 		assertThat(syncEmailResponse.getStatus()).isEqualTo(SyncStatus.HIERARCHY_CHANGED);
@@ -715,35 +676,30 @@ public class SyncHandlerTest {
 	public void testSyncOnIllegalArgumentException() throws Exception {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		SyncKey syncEmailSyncKey = new SyncKey("1");
-		CollectionId syncEmailCollectionId = CollectionId.of(4);
 		
 		FolderSyncKey firstFolderSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstFolderSyncKey);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectAllocateFolderState(users.jaures.device, newSyncState(firstFolderSyncKey));
-		testUtils.expectCreateFolderMappingState();
 		userAccessUtils.mockUsersAccess(userAsList);
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		mockEmailSyncThrowsException(syncEmailSyncKey, Sets.newHashSet(syncEmailCollectionId), 
-				new IllegalArgumentException("Illegal"));
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		mockEmailSyncThrowsException(syncEmailSyncKey, new IllegalArgumentException("Illegal"));
 
 		mocksControl.replay();
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		opClient.folderSync(initialSyncKey);
-		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, syncEmailCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse syncEmailResponse = opClient.syncEmail(decoder, syncEmailSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
 
 		assertThat(syncEmailResponse).isNotNull();
 		assertThat(syncEmailResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
 	}
 
-	private void mockEmailSyncThrowsException(SyncKey syncKey, HashSet<CollectionId> hashSet, Throwable throwable)
+	private void mockEmailSyncThrowsException(SyncKey syncKey, Throwable throwable)
 			throws DaoException, ConversionException, FilterTypeChangedException {
 
-		testUtils.expectUserCollectionsNeverChange(users.jaures, hashSet);
-		syncTestUtils.mockCollectionDaoForEmailSync(syncKey, hashSet);
+		testUtils.expectUserCollectionsNeverChange();
+		syncTestUtils.mockCollectionDaoForEmailSync(syncKey);
 		
 		syncTestUtils.mockItemTrackingDao();
 		
@@ -767,25 +723,22 @@ public class SyncHandlerTest {
 
 	private void testSyncWithGivenCommandButWithoutApplicationDataGetsProtocolError(SyncCommand command) throws Exception {
 		SyncKey syncKey = new SyncKey("1");
-		CollectionId collectionId = CollectionId.of(15);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		DataDelta delta = DataDelta.builder()
 			.syncDate(new Date())
 			.syncKey(new SyncKey("123"))
 			.build();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, delta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, delta, userAsList);
 
 		mocksControl.replay();
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
-				.collection(AnalysedSyncCollection.builder().collectionId(collectionId).syncKey(syncKey)
-							.dataType(PIMDataType.EMAIL)
-							.command(SyncCollectionCommandRequest.builder().type(command).serverId(collectionId.serverId(51)).build())
-							.build())
-				.build());
+			.collection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId).syncKey(syncKey)
+				.dataType(PIMDataType.EMAIL)
+				.command(SyncCollectionCommandRequest.builder().type(command).serverId(inboxCollectionId.serverId(51)).build())
+				.build())
+			.build());
 
 		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.PROTOCOL_ERROR);
 	}
@@ -797,7 +750,6 @@ public class SyncHandlerTest {
 		
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		ServerId serverId = collectionId.serverId(1);
 		String clientId = "156";
 
@@ -815,9 +767,7 @@ public class SyncHandlerTest {
 			.build();
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2342"));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, serverDataDelta, userAsList);
 		
 		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
 		expect(contentsImporter.importMessageChange(udr, collectionId, serverId, clientId, clientData))
@@ -849,7 +799,6 @@ public class SyncHandlerTest {
 		
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		ServerId serverId = CollectionId.of(432).serverId(1456);
 		String clientId = null;
 
@@ -867,9 +816,7 @@ public class SyncHandlerTest {
 			.build();
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, serverDataDelta, userAsList);
 		
 		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
 		expect(contentsImporter.importMessageChange(udr, collectionId, serverId, clientId, clientData))
@@ -897,7 +844,6 @@ public class SyncHandlerTest {
 	public void deleteWithZeroServerIdShouldBeIgnored() throws Exception {
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		ServerId serverId = collectionId.serverId(1456);
 		String clientId = "94953";
 
@@ -916,9 +862,7 @@ public class SyncHandlerTest {
 		
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, serverDataDelta, userAsList);
 		
 		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
 		expect(contentsImporter.importMessageChange(udr, collectionId, null, clientId, clientData))
@@ -946,7 +890,6 @@ public class SyncHandlerTest {
 	public void deleteWithItemBelongingToAnotherCollectionShouldBeIgnored() throws Exception {
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		ServerId serverId = collectionId.serverId(1456);
 		String clientId = "94953";
 
@@ -965,9 +908,7 @@ public class SyncHandlerTest {
 		
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		syncTestUtils.mockEmailSyncClasses(syncKey, serverDataDelta, userAsList);
 		
 		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
 		expect(contentsImporter.importMessageChange(udr, collectionId, null, clientId, clientData))
@@ -995,7 +936,6 @@ public class SyncHandlerTest {
 	public void syncShouldAcceptSyncRequestWithoutDataClass() throws Exception {
 		SyncKey syncKey = new SyncKey("13424");
 		CollectionId collectionId = CollectionId.of(1);
-		List<CollectionId> existingCollections = ImmutableList.of(collectionId);
 		ServerId serverId = collectionId.serverId(1456);
 		String clientId = "156";
 
@@ -1013,10 +953,8 @@ public class SyncHandlerTest {
 			.build();
 		
 		syncKeyTestUtils.mockNextGeneratedSyncKey(new SyncKey("2345"));
-		testUtils.expectCreateFolderMappingState();
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		syncTestUtils.mockEmailSyncClasses(syncKey, existingCollections, serverDataDelta, userAsList);
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
+		syncTestUtils.mockEmailSyncClasses(syncKey, serverDataDelta, userAsList);
 		
 		UserDataRequest udr = new UserDataRequest(users.jaures.credentials, "Sync", users.jaures.device);
 		expect(contentsImporter.importMessageChange(udr, collectionId, null, clientId, clientData))

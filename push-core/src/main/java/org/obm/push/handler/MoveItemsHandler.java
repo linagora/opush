@@ -34,12 +34,12 @@ package org.obm.push.handler;
 import org.obm.push.SummaryLoggerService;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.MoveItem;
 import org.obm.push.bean.MoveItemsStatus;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnsupportedBackendFunctionException;
@@ -56,7 +56,7 @@ import org.obm.push.protocol.bean.MoveItemsItem;
 import org.obm.push.protocol.bean.MoveItemsRequest;
 import org.obm.push.protocol.bean.MoveItemsResponse;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
@@ -72,24 +72,23 @@ import com.google.inject.Singleton;
 public class MoveItemsHandler extends WbxmlRequestHandler {
 
 	private final MoveItemsProtocol moveItemsProtocol;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final SummaryLoggerService summaryLoggerService;
 	private final IContentsImporter contentsImporter;
-	private final CollectionDao collectionDao;
+	private final FolderSnapshotDao folderSnapshotDao;
 
 	@Inject
-	protected MoveItemsHandler(IContentsImporter contentsImporter, MoveItemsProtocol moveItemsProtocol,
-			CollectionDao collectionDao, WBXMLTools wbxmlTools, DOMDumper domDumper,
-			ICollectionPathHelper collectionPathHelper,
-			SummaryLoggerService summaryLoggerService) {
+	protected MoveItemsHandler(IContentsImporter contentsImporter, 
+			MoveItemsProtocol moveItemsProtocol,
+			WBXMLTools wbxmlTools, DOMDumper domDumper,
+			SummaryLoggerService summaryLoggerService,
+			FolderSnapshotDao folderSnapshotDao) {
 		
 		super(wbxmlTools, domDumper);
 		this.contentsImporter = contentsImporter;
 		
 		this.moveItemsProtocol = moveItemsProtocol;
-		this.collectionDao = collectionDao;
-		this.collectionPathHelper = collectionPathHelper;
 		this.summaryLoggerService = summaryLoggerService;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 
 	// <?xml version="1.0" encoding="UTF-8"?>
@@ -140,12 +139,12 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 		MoveItemsResponse.Builder moveItemsResponseBuilder = MoveItemsResponse.builder();
 		for (MoveItem item: moveItemsRequest.getMoveItems()) {
 			
-			StatusForItem statusForItem = getStatusForItem(item);
+			StatusForItem statusForItem = getStatusForItem(udr, item);
 			MoveItemsStatus status = statusForItem.status;
 			ServerId newDstId = null;
 			if (statusForItem.status == null) {
 				try {
-					PIMDataType dataClass = collectionPathHelper.recognizePIMDataType(statusForItem.srcCollection);
+					PIMDataType dataClass = statusForItem.srcCollection.getFolderType().getPIMDataType();
 					newDstId = contentsImporter.importMoveItem(udr, dataClass, statusForItem.srcCollection, statusForItem.dstCollection, item.getSourceMessageId());
 					
 					status = MoveItemsStatus.SUCCESS;
@@ -182,19 +181,19 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 	}
 
 	private static class StatusForItem {
-		public String srcCollection;
-		public String dstCollection;
+		public Folder srcCollection;
+		public Folder dstCollection;
 		public CollectionId srcCollectionId;
 		public CollectionId dstCollectionId;
 		public MoveItemsStatus status;
 	}
 	
-	private StatusForItem getStatusForItem(MoveItem item) {
+	private StatusForItem getStatusForItem(UserDataRequest udr, MoveItem item) {
 		StatusForItem status = new StatusForItem();
 		try {
 			try {
 				status.dstCollectionId = item.getDestinationFolderId();
-				status.dstCollection = collectionDao.getCollectionPath(status.dstCollectionId);
+				status.dstCollection = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), status.dstCollectionId);
 			} catch (CollectionNotFoundException ex) {
 				status.status = MoveItemsStatus.INVALID_DESTINATION_COLLECTION_ID;
 				logger.warn("Invalid destination collection", ex);
@@ -202,7 +201,7 @@ public class MoveItemsHandler extends WbxmlRequestHandler {
 
 			try {
 				status.srcCollectionId = item.getSourceFolderId();
-				status.srcCollection = collectionDao.getCollectionPath(status.srcCollectionId);
+				status.srcCollection = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), status.srcCollectionId);
 			} catch (CollectionNotFoundException ex) {
 				status.status = MoveItemsStatus.INVALID_SOURCE_COLLECTION_ID;
 				logger.warn("Invalid source collection", ex);

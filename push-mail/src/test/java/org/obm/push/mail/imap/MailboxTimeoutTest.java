@@ -43,10 +43,9 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
@@ -71,7 +70,6 @@ public class MailboxTimeoutTest {
 	
 	@Inject MailboxService mailboxService;
 	@Inject GreenMail greenMail;
-	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject ResourcesHolder resourcesHolder;
 	
 	private UserDataRequest udr;
@@ -97,7 +95,7 @@ public class MailboxTimeoutTest {
 	
 	@Test(expected=TimeoutException.class)
 	public void fetchTooSlow() throws InterruptedException {
-		String inboxPath = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, IMAP_INBOX_NAME);
+		MailboxPath inboxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		//This one is for warming the stack
 		mailboxService.fetchUIDNext(udr, inboxPath);
 		greenMail.lockGreenmailAndReleaseAfter(20);

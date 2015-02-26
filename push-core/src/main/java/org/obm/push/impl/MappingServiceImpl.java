@@ -32,72 +32,25 @@
 package org.obm.push.impl;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
-import org.obm.push.backend.CollectionPath;
-import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.item.ItemDeletion;
-import org.obm.push.exception.CollectionPathException;
-import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
-import org.obm.push.store.CollectionDao;
-import org.obm.push.store.FolderSnapshotDao;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
 public class MappingServiceImpl implements MappingService {
 
-	private final CollectionDao collectionDao;
-	private final FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
-	private final Provider<CollectionPath.Builder> collectionPathBuilderProvider;
-	private final FolderSnapshotDao folderSnapshotDao;
-
 	@Inject
-	@VisibleForTesting MappingServiceImpl(CollectionDao collectionDao,
-			FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao,
-			FolderSnapshotDao folderSnapshotDao,
-			Provider<CollectionPath.Builder> collectionPathBuilderProvider) {
-		this.collectionDao = collectionDao;
-		this.folderSyncStateBackendMappingDao = folderSyncStateBackendMappingDao;
-		this.folderSnapshotDao = folderSnapshotDao;
-		this.collectionPathBuilderProvider = collectionPathBuilderProvider;
-	}
-
-	@Override
-	public CollectionId createCollectionMapping(Device device, String col) throws DaoException {
-		return collectionDao.addCollectionMapping(device, col);
-	}
-
-	@Override
-	public void createBackendMapping(PIMDataType pimDataType, FolderSyncState outgoingSyncState) throws DaoException {
-		folderSyncStateBackendMappingDao.createMapping(pimDataType, outgoingSyncState);
-	}
-
-	@Override
-	public Date getLastBackendMapping(PIMDataType dataType, FolderSyncState lastKnownState) throws DaoException {
-		return folderSyncStateBackendMappingDao.getLastSyncDate(dataType, lastKnownState);
-	}
-	
-	@Override
-	public String getCollectionPathFor(CollectionId collectionId) throws CollectionNotFoundException, DaoException {
-		return collectionDao.getCollectionPath(collectionId);
+	@VisibleForTesting MappingServiceImpl() {
 	}
 	
 	@Override
@@ -117,44 +70,6 @@ public class MappingServiceImpl implements MappingService {
 			return null;
 		}
 		return collectionId.serverId(Integer.valueOf(clientId));
-	}
-	
-	@Override
-	public CollectionId getCollectionIdFor(Device device, String collection) throws CollectionNotFoundException, DaoException {
-		CollectionId collectionId = collectionDao.getCollectionMapping(device, collection);
-		if (collectionId == null) {
-			throw new CollectionNotFoundException("Collection {" + collection + "} not found.");
-		}
-		return collectionId;
-	}
-
-	@Override
-	public List<CollectionPath> listCollections(final UserDataRequest udr, FolderSyncState folderSyncState)
-			throws DaoException {
-		
-		List<String> userCollections = collectionDao.getUserCollections(folderSyncState);
-		return Lists.transform(userCollections, new Function<String, CollectionPath>(){
-
-			@Override
-			public CollectionPath apply(String fullyQualifiedCollectionPath) {
-				try {
-					return collectionPathBuilderProvider.get()
-						.userDataRequest(udr)
-						.fullyQualifiedCollectionPath(fullyQualifiedCollectionPath)
-						.build();
-				} catch (IndexOutOfBoundsException e) {
-					// Guava Lists.transform translates IndexOutOfBoundsException into NoSuchElementException 
-					throw new CollectionPathException("Unbuildable collection path : " + fullyQualifiedCollectionPath, e);
-				}
-			}
-		});
-	}
-
-	@Override
-	public void snapshotCollections(FolderSyncState outgoingSyncState, Set<CollectionId> collectionIds)
-			throws DaoException {
-
-		folderSnapshotDao.createFolderSnapshot(outgoingSyncState.getId(), collectionIds);
 	}
 
 }

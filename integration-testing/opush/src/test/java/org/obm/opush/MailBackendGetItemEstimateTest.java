@@ -58,20 +58,29 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
@@ -97,6 +106,7 @@ public class MailBackendGetItemEstimateTest {
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	
 	@Inject private ItemTrackingDao itemTrackingDao;
 	@Inject private CollectionDao collectionDao;
@@ -107,7 +117,8 @@ public class MailBackendGetItemEstimateTest {
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private String mailbox;
-	private String inboxCollectionPath;
+	private MailboxPath inboxPath;
+	private Folder inboxFolder;
 	private CollectionId inboxCollectionId;
 	private CloseableHttpClient httpClient;
 
@@ -122,17 +133,22 @@ public class MailBackendGetItemEstimateTest {
 		greenMailUser = greenMail.setUser(mailbox, String.valueOf(user.password));
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
-		
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
+
+		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		inboxCollectionId = CollectionId.of(1234);
-		
-		bindCollectionIdToPath();
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
-	}
-
-	private void bindCollectionIdToPath() throws Exception {
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
 	}
 
 	@After

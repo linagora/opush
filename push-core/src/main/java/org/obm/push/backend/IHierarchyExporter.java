@@ -31,23 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.backend;
 
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
-import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 
-/**
- * The exporter API fetches data from the backend store and returns it to the
- * mobile device
- * 
- */
 public interface IHierarchyExporter {
 
-	String getRootFolderUrl(UserDataRequest udr);
-
-	HierarchyCollectionChanges getChanged(UserDataRequest udr, FolderSyncState incomingSyncState, FolderSyncState outgoingSyncState) throws DaoException, InvalidSyncKeyException;
-
 	BackendFolders getBackendFolders(UserDataRequest udr);
+	
 }

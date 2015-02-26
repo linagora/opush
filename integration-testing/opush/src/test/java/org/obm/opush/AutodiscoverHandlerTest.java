@@ -34,7 +34,6 @@ package org.obm.opush;
 import static org.easymock.EasyMock.expect;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Locale;
 
 import javax.xml.transform.TransformerException;
@@ -55,7 +54,6 @@ import org.obm.guice.GuiceRunner;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Document;
@@ -97,7 +95,7 @@ public class AutodiscoverHandlerTest {
 	public void testAutodiscoverCommand() throws Exception {
 		userAccessUtils.expectUserDeviceAccess(users.jaures);
 		userAccessUtils.expectUserLoginFromOpush(users.jaures);
-		testUtils.expectUserCollectionsNeverChange(users.jaures, Collections.<CollectionId>emptySet());
+		testUtils.expectUserCollectionsNeverChange();
 		
 		String externalUrl = "https://external-url/Microsoft-Server-ActiveSync";
 		configuration.activeSyncServletUrl = externalUrl;

@@ -61,6 +61,7 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.exception.MailException;
@@ -127,7 +128,7 @@ public class EmailViewPartsFetcherImplTest {
 	}
 	
 	private MessageFixture messageFixture;
-	private String messageCollectionName;
+	private MailboxPath messageCollectionPath;
 	private CollectionId messageCollectionId;
 	private String mailbox;
 	private char[] password;
@@ -147,7 +148,7 @@ public class EmailViewPartsFetcherImplTest {
 		messageFixture = new MessageFixture();
 		messageFixture.attachment = Resources.getResource("ics/attendee.ics").openStream();
 		messageFixture.attachmentDecoded = Resources.getResource("ics/attendee.ics").openStream();
-		messageCollectionName = IMAP_INBOX_NAME;
+		messageCollectionPath = MailboxPath.of(IMAP_INBOX_NAME);
 		messageCollectionId = CollectionId.of(1);
 		mimeAddress = new MimeAddress("address");
 		control = createControl();
@@ -780,7 +781,7 @@ public class EmailViewPartsFetcherImplTest {
 		expect(mimeMessage.listLeaves(true, true)).andReturn(ImmutableList.<MimePart> of(mimePart));
 
 		MailboxService mailboxService = control.createMock(MailboxService.class);
-		expect(mailboxService.fetchEmailMetadata(udr, messageCollectionName, messageFixture.uid))
+		expect(mailboxService.fetchEmailMetadata(udr, messageCollectionPath, messageFixture.uid))
 			.andReturn(EmailMetadata.builder()
 					.uid(messageFixture.uid)
 					.size(messageFixture.estimatedDataSize)
@@ -789,7 +790,7 @@ public class EmailViewPartsFetcherImplTest {
 					.mimeMessage(mimeMessage)
 					.build());
 		
-		expect(mailboxService.findAttachment(udr, messageCollectionName, messageFixture.uid, mimeAddress))
+		expect(mailboxService.findAttachment(udr, messageCollectionPath, messageFixture.uid, mimeAddress))
 			.andReturn(messageFixture.attachment).anyTimes();
 		return mailboxService;
 	}
@@ -799,7 +800,7 @@ public class EmailViewPartsFetcherImplTest {
 		Envelope fetchingEnvelopeFromFixture = buildFetchingEnvelopeFromFixture();
 
 		MailboxService mailboxService = control.createMock(MailboxService.class);
-		expect(mailboxService.fetchEmailMetadata(udr, messageCollectionName, messageFixture.uid))
+		expect(mailboxService.fetchEmailMetadata(udr, messageCollectionPath, messageFixture.uid))
 			.andReturn(EmailMetadata.builder()
 					.uid(messageFixture.uid)
 					.size(messageFixture.estimatedDataSize)
@@ -840,7 +841,7 @@ public class EmailViewPartsFetcherImplTest {
 		if (messageFixture.estimatedDataSize != 0) {
 			expect(mailboxService.fetchPartialMimePartStream(
 					anyObject(UserDataRequest.class),
-					anyObject(String.class),
+					anyObject(MailboxPath.class),
 					anyLong(),
 					anyObject(MimeAddress.class),
 					anyInt()))
@@ -848,13 +849,13 @@ public class EmailViewPartsFetcherImplTest {
 		} else {
 			expect(mailboxService.fetchMimePartStream(
 					anyObject(UserDataRequest.class),
-					anyObject(String.class),
+					anyObject(MailboxPath.class),
 					anyLong(),
 					anyObject(MimeAddress.class)))
 				.andReturn(messageFixture.bodyData).once();
 		}
 		
-		expect(mailboxService.findAttachment(udr, messageCollectionName, messageFixture.uid, mimeAddress))
+		expect(mailboxService.findAttachment(udr, messageCollectionPath, messageFixture.uid, mimeAddress))
 			.andReturn(messageFixture.attachment).anyTimes();
 	}
 
@@ -936,7 +937,7 @@ public class EmailViewPartsFetcherImplTest {
 		return new EmailViewPartsFetcherImpl(
 				identityMailTransformerFactory(),
 				mailboxServiceMock, bodyPreferences(),
-				udr, messageCollectionName, messageCollectionId);
+				udr, messageCollectionPath, messageCollectionId);
 	}
 
 	private TransformersFactory identityMailTransformerFactory() {
@@ -1038,7 +1039,8 @@ public class EmailViewPartsFetcherImplTest {
 		TransformersFactory transformer = null;
 		MailboxService mailboxService = null;
 		List<BodyPreference> preferences = null;
-		return new EmailViewPartsFetcherImpl(transformer, mailboxService, preferences, udr, "collectionPath", CollectionId.of(15));
+		return new EmailViewPartsFetcherImpl(transformer, mailboxService, preferences, 
+				udr, MailboxPath.of("collectionPath"), CollectionId.of(15));
 	}
 	
 	@Test

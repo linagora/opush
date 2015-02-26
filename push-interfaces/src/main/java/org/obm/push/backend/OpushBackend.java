@@ -31,124 +31,13 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.backend;
 
-import java.util.List;
-import java.util.Set;
-
-import org.obm.push.backend.CollectionPath.Builder;
-import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.PIMDataType;
-import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.hierarchy.CollectionChange;
-import org.obm.push.bean.change.hierarchy.CollectionDeletion;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
-import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.impl.MappingService;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Provider;
 
 public abstract class OpushBackend implements PIMTyped {
 
 	protected final MappingService mappingService;
-	protected final Provider<Builder> collectionPathBuilderProvider;
 
-	protected OpushBackend(MappingService mappingService, Provider<Builder> collectionPathBuilderProvider) {
+	protected OpushBackend(MappingService mappingService) {
 		this.mappingService = mappingService;
-		this.collectionPathBuilderProvider = collectionPathBuilderProvider;
 	}
-	
-	protected void snapshotHierarchy(UserDataRequest udr, Iterable<CollectionPath> collections,
-			FolderSyncState outgoingSyncState) throws DaoException {
-
-		Set<CollectionId> collectionIds = Sets.newHashSet();
-		for (CollectionPath collection: collections) {
-			collectionIds.add(getOrCreateCollectionId(udr.getDevice(), collection));
-		}
-		if (!collectionIds.isEmpty()) {
-			mappingService.snapshotCollections(outgoingSyncState, collectionIds);
-		}
-	}
-	
-	private CollectionId getOrCreateCollectionId(Device device, CollectionPath collection)
-			throws DaoException {
-		
-		try {
-			return mappingService.getCollectionIdFor(device, collection.collectionPath());
-		} catch (CollectionNotFoundException e) {
-			return mappingService.createCollectionMapping(device, collection.collectionPath());
-		}
-	}
-
-	protected ImmutableSet<CollectionPath> lastKnownCollectionPath(UserDataRequest udr,
-			FolderSyncState lastKnownState, final PIMDataType filterPimDataType) throws DaoException {
-		
-		return FluentIterable
-				.from(mappingService.listCollections(udr, lastKnownState))
-				.filter(
-						new Predicate<CollectionPath>() {
-							@Override
-							public boolean apply(CollectionPath collectionPath) {
-								return collectionPath.pimType() == filterPimDataType;
-							}
-						})
-				.toSet();
-	}
-
-	protected Iterable<OpushCollection> addedCollections(
-			Set<CollectionPath> lastKnownCollections, PathsToCollections changedCollections) {
-		
-		final Set<CollectionPath> addedPaths = Sets.difference(changedCollections.pathKeys(), lastKnownCollections);
-		return FluentIterable
-				.from(changedCollections.collections())
-				.filter(new Predicate<OpushCollection>() {
-
-					@Override
-					public boolean apply(OpushCollection collection) {
-						return addedPaths.contains(collection.collectionPath());
-					}
-				});
-	}
-
-	protected HierarchyCollectionChanges buildHierarchyItemsChanges(UserDataRequest udr,
-			Iterable<OpushCollection> changedCollections, Iterable<CollectionPath> deletedCollections)
-					throws DaoException, CollectionNotFoundException {
-		
-		return HierarchyCollectionChanges.builder()
-			.changes(collectionsChanged(udr, changedCollections))
-			.deletions(collectionsDeleted(udr, deletedCollections))
-			.build();
-	}
-
-
-	private List<CollectionChange> collectionsChanged(UserDataRequest udr, Iterable<OpushCollection> changedCollections)
-			throws DaoException, CollectionNotFoundException {
-		List<CollectionChange> changes = Lists.newArrayList();
-		for (OpushCollection collectionPath: changedCollections) {
-			changes.add(createCollectionChange(udr, collectionPath));
-		}
-		return changes;
-	}
-
-	private List<CollectionDeletion> collectionsDeleted(UserDataRequest udr, Iterable<CollectionPath> deletedCollections)
-			throws DaoException, CollectionNotFoundException {
-		List<CollectionDeletion> deletes = Lists.newArrayList();
-		for (CollectionPath collectionPath: deletedCollections) {
-			deletes.add(createCollectionDeletion(udr, collectionPath));
-		}
-		return deletes;
-	}
-	
-	protected abstract CollectionChange createCollectionChange(UserDataRequest udr, OpushCollection collection)
-			throws DaoException, CollectionNotFoundException;
-
-	protected abstract CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
-			throws DaoException, CollectionNotFoundException;
-	
 }

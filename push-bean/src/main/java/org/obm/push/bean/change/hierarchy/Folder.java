@@ -146,7 +146,12 @@ public class Folder {
 	public BackendId getBackendId() {
 		return backendId;
 	}
-
+	
+	@SuppressWarnings("unchecked")
+	public <T extends BackendId> T getTypedBackendId() {
+		return (T) backendId;
+	}
+	
 	public Optional<BackendId> getParentBackendIdOpt() {
 		return Optional.fromNullable(parentBackendId);
 	}

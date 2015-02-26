@@ -32,6 +32,7 @@
 package org.obm.push.mail.imap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.obm.configuration.EmailConfiguration.IMAP_INBOX_NAME;
 import static org.obm.push.mail.MailTestsUtils.loadEmail;
 
 import java.io.IOException;
@@ -46,14 +47,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.mail.StreamMailTestsUtils;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
@@ -79,7 +80,6 @@ import com.icegreen.greenmail.util.ServerSetup;
 public class MailboxServiceTest {
 
 	@Inject MailboxService mailboxService;
-	@Inject ICollectionPathHelper collectionPathHelper;
 
 	@Inject GreenMail greenMail;
 	@Inject ResourcesHolder resourcesHolder;
@@ -102,7 +102,7 @@ public class MailboxServiceTest {
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
-		testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, collectionPathHelper, smtpServerSetup);
+		testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, smtpServerSetup);
 	}
 	
 	@After
@@ -116,7 +116,7 @@ public class MailboxServiceTest {
 		Date before = new Date();
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
 		greenMail.waitForIncomingEmail(1);
-		Set<Email> emails = mailboxService.fetchEmails(udr, mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), before);
+		Set<Email> emails = mailboxService.fetchEmails(udr, MailboxPath.of(IMAP_INBOX_NAME), before);
 		assertThat(emails).isNotNull().hasSize(1);
 	}
 	
@@ -149,8 +149,7 @@ public class MailboxServiceTest {
 	
 	@Test
 	public void testUpdateMailFlag() throws Exception {
-		String mailBox = OpushEmailConfiguration.IMAP_INBOX_NAME;
-		String mailBoxPath = mailboxPath(mailBox);
+		MailboxPath mailBoxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		Date date = DateUtils.getMidnightCalendar().getTime();
 
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
@@ -166,8 +165,7 @@ public class MailboxServiceTest {
 	
 	@Test
 	public void testUpdateSeveralMailsFlag() throws Exception {
-		String mailBox = OpushEmailConfiguration.IMAP_INBOX_NAME;
-		String mailBoxPath = mailboxPath(mailBox);
+		MailboxPath mailBoxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		Date date = DateUtils.getMidnightCalendar().getTime();
 
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
@@ -188,13 +186,12 @@ public class MailboxServiceTest {
 	@Test(expected=ImapMessageNotFoundException.class)
 	public void testUpdateMailFlagWithBadUID() throws Exception {
 		long mailUIDNotExist = 1l;
-		mailboxService.updateReadFlag(udr, mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), MessageSet.singleton(mailUIDNotExist), true);
+		mailboxService.updateReadFlag(udr, MailboxPath.of(IMAP_INBOX_NAME), MessageSet.singleton(mailUIDNotExist), true);
 	}
 	
 	@Test
 	public void testUpdateReadMailFlag() throws Exception {
-		String mailBox = OpushEmailConfiguration.IMAP_INBOX_NAME;
-		String mailBoxPath = mailboxPath(mailBox);
+		MailboxPath mailBoxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		Date date = DateUtils.getMidnightCalendar().getTime();
 		
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
@@ -216,8 +213,7 @@ public class MailboxServiceTest {
 	
 	@Test
 	public void testSetAnsweredFlag() throws Exception {
-		String mailBox = OpushEmailConfiguration.IMAP_INBOX_NAME;
-		String mailBoxPath = testUtils.mailboxPath(mailBox);
+		MailboxPath mailBoxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		Date date = DateUtils.getMidnightCalendar().getTime();
 		
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
@@ -239,8 +235,7 @@ public class MailboxServiceTest {
 
 	@Test
 	public void testSetDeletedFlag() throws Exception {
-		String mailBox = OpushEmailConfiguration.IMAP_INBOX_NAME;
-		String mailBoxPath = testUtils.mailboxPath(mailBox);
+		MailboxPath mailBoxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		Date date = DateUtils.getMidnightCalendar().getTime();
 		
 		GreenMailUtil.sendTextEmail(mailbox, "from@localhost.com", "subject", "body", smtpServerSetup);
@@ -262,7 +257,7 @@ public class MailboxServiceTest {
 
 		MailboxTestUtils.storeInInbox(udr, mailboxService, tinyInputStream);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(IMAP_INBOX_NAME), 1l);
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("test\r\n\r\n");
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);
 	}
@@ -275,7 +270,7 @@ public class MailboxServiceTest {
 		InputStream inputStream = StreamMailTestsUtils.newInputStreamFromString("mail sent");
 		MailboxTestUtils.storeInSent(udr, mailboxService, inputStream);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, mailboxPath(OpushEmailConfiguration.IMAP_SENT_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(EmailConfiguration.IMAP_SENT_NAME), 1l);
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("mail sent\r\n\r\n");
 
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);
@@ -328,7 +323,7 @@ public class MailboxServiceTest {
 
 		mailboxService.storeInSent(udr, reader);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, mailboxPath(OpushEmailConfiguration.IMAP_SENT_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(OpushEmailConfiguration.IMAP_SENT_NAME), 1l);
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("mail sent\r\n\r\n");
 
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);
@@ -343,12 +338,12 @@ public class MailboxServiceTest {
 		Reader tinyReader = StreamMailTestsUtils.newReaderFromString("test");
 		mailboxService.storeInInbox(udr, new EmailReader(tinyReader), true);
 		
-		String inboxCollectionName = testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
-		String trashCollectionName = testUtils.mailboxPath(trash);
+		MailboxPath inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
+		MailboxPath trashPath = MailboxPath.of(trash);
 		
-		MessageSet newUid = mailboxService.move(udr, inboxCollectionName, trashCollectionName, MessageSet.singleton(1l));
-		assertThat(mailboxService.fetchEmails(udr, inboxCollectionName, newUid)).isEmpty();
-		Collection<Email> trashEmails = mailboxService.fetchEmails(udr, trashCollectionName, newUid);
+		MessageSet newUid = mailboxService.move(udr, inboxPath, trashPath, MessageSet.singleton(1l));
+		assertThat(mailboxService.fetchEmails(udr, inboxPath, newUid)).isEmpty();
+		Collection<Email> trashEmails = mailboxService.fetchEmails(udr, trashPath, newUid);
 		assertThat(trashEmails).hasSize(1);
 		assertThat(Iterables.getFirst(trashEmails, null).getUid()).isEqualTo(Iterables.getOnlyElement(newUid));
 	}
@@ -360,7 +355,7 @@ public class MailboxServiceTest {
 		MailboxFolder trashFolder = folder(trash);
 		mailboxService.createFolder(udr, trashFolder);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME), testUtils.mailboxPath(trash), MessageSet.singleton(1));
+		mailboxService.move(udr, MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME), MailboxPath.of(trash), MessageSet.singleton(1));
 	}
 
 	@Test
@@ -375,8 +370,7 @@ public class MailboxServiceTest {
 		
 		GreenMailUtil.sendTextEmail(user, "from@localhost.com", "subject", "body", smtpServerSetup);
 		greenMail.waitForIncomingEmail(1);
-		String mailBoxPath = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, collectionPathHelper, smtpServerSetup)
-			.mailboxPath(OpushEmailConfiguration.IMAP_INBOX_NAME);
+		MailboxPath mailBoxPath = MailboxPath.of(IMAP_INBOX_NAME);
 		
 		Set<Email> emails = mailboxService.fetchEmails(udr, mailBoxPath, fromDate);
 		
@@ -387,8 +381,8 @@ public class MailboxServiceTest {
 	public void testUidFetchPartFindAttachment() throws Exception {
 		InputStream emailStream = loadEmail("multipartAlternative.eml");
 		mailboxService.storeInInbox(udr, new EmailReader(emailStream), false);
-		
-		String inbox = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
+
+		MailboxPath inbox = MailboxPath.of(IMAP_INBOX_NAME);
 		
 		InputStream attachment = mailboxService.findAttachment(udr, inbox, 1l, new MimeAddress("3"));
 		
@@ -399,10 +393,6 @@ public class MailboxServiceTest {
 		while (inputStream.read() != -1) {
 			// consume Inputstream
 		}		
-	}
-
-	private String mailboxPath(String boxName) {
-		return testUtils.mailboxPath(boxName);
 	}
 
 	private MailboxFolder folder(String name) {

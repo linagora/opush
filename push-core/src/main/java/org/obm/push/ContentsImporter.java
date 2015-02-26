@@ -35,11 +35,11 @@ import javax.naming.NoPermissionException;
 
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -59,12 +59,10 @@ import com.google.inject.Singleton;
 public class ContentsImporter implements IContentsImporter {
 
 	private final Backends backends;
-	private final ICollectionPathHelper collectionPathHelper;
 
 	@Inject
-	private ContentsImporter(Backends backends, ICollectionPathHelper collectionPathHelper) {
+	private ContentsImporter(Backends backends) {
 		this.backends = backends;
-		this.collectionPathHelper = collectionPathHelper;
 	}
 
 	@Override
@@ -86,20 +84,19 @@ public class ContentsImporter implements IContentsImporter {
 	}
 
 	public ServerId importMoveItem(UserDataRequest udr, PIMDataType type,
-			String srcFolder, String dstFolder, ServerId serverId)
+			Folder srcFolder, Folder dstFolder, ServerId serverId)
 					throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		PIMBackend backend = backends.getBackend(type);
 		return backend.move(udr, srcFolder, dstFolder, serverId);
 	}
 
 	@Override
-	public void emptyFolderContent(UserDataRequest udr, String collectionPath, boolean deleteSubFolder) 
+	public void emptyFolderContent(UserDataRequest udr, Folder folder, boolean deleteSubFolder) 
 			throws CollectionNotFoundException, NotAllowedException, DaoException, 
 			ProcessingEmailException, CollectionPathException {
 
-		PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-		PIMBackend backend = backends.getBackend(dataType);
-		backend.emptyFolderContent(udr, collectionPath, deleteSubFolder);
+		PIMBackend backend = backends.getBackend(folder.getFolderType().getPIMDataType());
+		backend.emptyFolderContent(udr, folder, deleteSubFolder);
 	}
 
 }

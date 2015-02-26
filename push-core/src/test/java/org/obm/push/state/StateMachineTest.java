@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.state;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -45,7 +44,6 @@ import org.obm.push.ProtocolVersion;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
@@ -58,7 +56,6 @@ import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
-import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -86,70 +83,6 @@ public class StateMachineTest {
 		udr = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
 		
 		control = createControl();
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetFolderSyncStateWithNullKey() throws Exception {
-		StateMachine stateMachine = new StateMachine(null , null, syncKeyFactory);
-		
-		stateMachine.getFolderSyncState(null);
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetFolderSyncStateWithEmptyKey() throws Exception {
-		StateMachine stateMachine = new StateMachine(null , null, syncKeyFactory);
-		
-		stateMachine.getFolderSyncState(new FolderSyncKey(""));
-	}
-
-	@Test
-	public void testGetFolderSyncStateWithInitialKey() throws Exception {
-		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
-
-		StateMachine stateMachine = new StateMachine(null , null, syncKeyFactory);
-		FolderSyncState folderSyncState = stateMachine.getFolderSyncState(initialSyncKey);
-		
-		assertThat(folderSyncState.getSyncKey()).isEqualTo(initialSyncKey);
-		assertThat(folderSyncState.isInitialFolderSync()).isTrue();
-	}
-
-	@Test
-	public void testGetFolderSyncStateWithKnownKey() throws Exception {
-		FolderSyncKey knownSyncKey = new FolderSyncKey("1234");
-		int knownSyncStateId = 156;
-		FolderSyncState knownFolderSyncState = FolderSyncState.builder()
-				.syncKey(knownSyncKey)
-				.id(knownSyncStateId)
-				.build();
-		
-		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.findFolderStateForKey(knownSyncKey)).andReturn(knownFolderSyncState).once();
-		
-		control.replay();
-		StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
-		FolderSyncState folderSyncState = stateMachine.getFolderSyncState(knownSyncKey);
-		control.verify();
-
-		assertThat(folderSyncState.getId()).isEqualTo(knownSyncStateId);
-		assertThat(folderSyncState.getSyncKey()).isEqualTo(knownSyncKey);
-		assertThat(folderSyncState.isInitialFolderSync()).isFalse();
-	}
-
-	@Test(expected=InvalidFolderSyncKeyException.class)
-	public void testGetFolderSyncStateWithUnknownKey() throws Exception {
-		FolderSyncKey unknownSyncKey = new FolderSyncKey("1234");
-		
-		CollectionDao collectionDao = control.createMock(CollectionDao.class);
-		expect(collectionDao.findFolderStateForKey(unknownSyncKey)).andReturn(null).once();
-
-		try {
-			control.replay();
-			StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
-			stateMachine.getFolderSyncState(unknownSyncKey);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
 	}
 
 	@Test
@@ -205,7 +138,7 @@ public class StateMachineTest {
 		expectLastCall();
 		
 		control.replay();
-		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao, syncKeyFactory);
+		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao);
 		stateMachine.allocateNewSyncState(udr, collectionId, lastSync, response, newSyncKey);
 		control.verify();
 	}
@@ -263,7 +196,7 @@ public class StateMachineTest {
 		expectLastCall();
 		
 		control.replay();
-		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao, syncKeyFactory);
+		StateMachine stateMachine = new StateMachine(collectionDao , itemTrackingDao);
 		stateMachine.allocateNewSyncState(udr, collectionId, lastSync, response, newSyncKey);
 		control.verify();
 	}
@@ -282,7 +215,7 @@ public class StateMachineTest {
 					.build());
 		
 		control.replay();
-		StateMachine stateMachine = new StateMachine(collectionDao , null, syncKeyFactory);
+		StateMachine stateMachine = new StateMachine(collectionDao , null);
 		stateMachine.allocateNewSyncStateWithoutTracking(udr, collectionId, lastSync, newSyncKey);
 		control.verify();
 	}

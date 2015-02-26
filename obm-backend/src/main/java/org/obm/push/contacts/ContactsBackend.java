@@ -40,17 +40,11 @@ import javax.naming.NoPermissionException;
 
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.configuration.ContactConfiguration;
-import org.obm.push.backend.CollectionPath;
-import org.obm.push.backend.OpushCollection;
-import org.obm.push.backend.PathsToCollections;
-import org.obm.push.backend.PathsToCollections.Builder;
 import org.obm.push.backend.WindowingContact;
 import org.obm.push.backend.WindowingContactChanges;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
@@ -59,17 +53,14 @@ import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.CollectionChange;
-import org.obm.push.bean.change.hierarchy.CollectionDeletion;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
@@ -78,28 +69,21 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
-import org.obm.sync.book.Folder;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.ContactChanges;
-import org.obm.sync.items.FolderChanges;
 import org.obm.sync.services.IAddressBook;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -111,25 +95,27 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	private final ClientIdService clientIdService;
 	private final ContactConverter contactConverter;
 	private final ContactCreationIdempotenceService creationIdempotenceService;
+	private FolderSnapshotDao folderSnapshotDao;
 	
 	@Inject
 	@VisibleForTesting ContactsBackend(MappingService mappingService, 
 			BookClient.Factory bookClientFactory, 
 			ContactConfiguration contactConfiguration,
-			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
 			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			ContactConverter contactConverter,
 			DateService dateService,
 			OpushResourcesHolder opushResourcesHolder,
-			ContactCreationIdempotenceService creationIdempotenceService) {
+			ContactCreationIdempotenceService creationIdempotenceService,
+			FolderSnapshotDao folderSnapshotDao) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
+		super(mappingService, windowingDao, dateService, opushResourcesHolder);
 		this.bookClientFactory = bookClientFactory;
 		this.contactConfiguration = contactConfiguration;
 		this.clientIdService = clientIdService;
 		this.contactConverter = contactConverter;
 		this.creationIdempotenceService = creationIdempotenceService;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 
 	@Override
@@ -146,7 +132,7 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			.build();
 	}
 
-	private Set<Folder> listAllAddressBooks() throws UnexpectedObmSyncServerException {
+	private Set<org.obm.sync.book.Folder> listAllAddressBooks() throws UnexpectedObmSyncServerException {
 		AccessToken token = getAccessToken();
 		Date lastSyncDate = DateUtils.getEpochCalendar().getTime();
 		try {
@@ -156,156 +142,6 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
-	}
-	
-	@Override
-	public HierarchyCollectionChanges getHierarchyChanges(UserDataRequest udr, 
-			FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
-			throws DaoException {
-
-		try {
-			FolderChanges folderChanges = listAddressBooksChanged(lastKnownState);
-			Set<CollectionPath> lastKnownCollections = lastKnownCollectionPath(udr, lastKnownState, getPIMDataType());
-			
-			PathsToCollections changedCollections = changedCollections(udr, folderChanges);
-			Set<CollectionPath> deletedCollections = deletedCollections(udr, folderChanges, lastKnownCollections, changedCollections);
-			Iterable<OpushCollection> addCollections = addedCollections(lastKnownCollections, changedCollections);
-			snapshotHierarchy(udr, lastKnownCollections, changedCollections, deletedCollections, outgoingSyncState);
-
-			return buildHierarchyItemsChanges(udr, addCollections, deletedCollections);
-		} catch (CollectionNotFoundException e) {
-			throw new HierarchyChangesException(e);
-		}
-	}
-
-	private Date backendLastSyncDate(FolderSyncState lastKnownState) throws DaoException {
-
-		if (lastKnownState.isInitialFolderSync()) {
-			return DateUtils.getEpochCalendar().getTime();
-		} else {
-			return getLastSyncDateFromSyncState(lastKnownState);
-		}
-	}
-
-	private Date getLastSyncDateFromSyncState(FolderSyncState lastKnownState)
-			throws DaoException {
-		
-		Date lastSyncDate = mappingService.getLastBackendMapping(getPIMDataType(), lastKnownState);
-		if (lastSyncDate != null) {
-			return lastSyncDate;
-		}
-		throw new InvalidFolderSyncKeyException(lastKnownState.getSyncKey());
-	}
-
-	private void snapshotHierarchy(UserDataRequest udr, Set<CollectionPath> lastKnownCollections,
-			PathsToCollections changedCollections, Set<CollectionPath> deletedCollections,
-			FolderSyncState outgoingSyncState) throws DaoException {
-
-		Set<CollectionPath> remainingKnownCollections = Sets.difference(lastKnownCollections, deletedCollections);
-		Set<CollectionPath> currentCollections = Sets.union(remainingKnownCollections, changedCollections.pathKeys());
-		snapshotHierarchy(udr, currentCollections, outgoingSyncState);
-	}
-
-	@Override
-	protected CollectionChange createCollectionChange(UserDataRequest udr, OpushCollection collection)
-			throws DaoException, CollectionNotFoundException {
-		
-		CollectionPath collectionPath = collection.collectionPath();
-		return CollectionChange.builder()
-				.collectionId(getCollectionIdFromCollectionPath(udr, collectionPath.collectionPath()))
-				.parentCollectionId(CollectionId.of(contactConfiguration.getDefaultParentId()))
-				.folderType(getFolderType(udr, collection))
-				.displayName(collection.displayName())
-				.isNew(true)
-				.build();
-	}
-
-	@Override
-	protected CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
-			throws CollectionNotFoundException, DaoException {
-		
-		return CollectionDeletion.builder()
-				.collectionId(getCollectionIdFromCollectionPath(udr, collectionPath.collectionPath()))
-				.build();
-	}
-
-	@VisibleForTesting Set<CollectionPath> deletedCollections(UserDataRequest udr, FolderChanges folderChanges, 
-			Set<CollectionPath> lastKnownCollections, PathsToCollections changedCollections) {
-		
-		PathsToCollections removedCollections = foldersToCollection(udr, folderChanges.getRemoved());
-		return FluentIterable
-				.from(removedCollections.pathKeys())
-				.filter(Predicates.in(lastKnownCollections))
-				.filter(Predicates.not(Predicates.in(changedCollections.pathKeys())))
-				.toSet();
-	}
-
-	@VisibleForTesting PathsToCollections changedCollections(UserDataRequest udr, FolderChanges folderChanges) {
-		Iterable<Folder> folderChangesSorted = 
-				sortedFolderChangesByDefaultAddressBook(folderChanges, contactConfiguration.getDefaultAddressBookName());
-		return foldersToCollection(udr, folderChangesSorted);
-	}
-
-	private PathsToCollections foldersToCollection(final UserDataRequest udr, Iterable<Folder> folders) {
-		Builder builder = PathsToCollections.builder();
-		for (Folder folder : folders) {
-			OpushCollection collection = collectionFromFolder(udr, folder);
-			builder.put(collection.collectionPath(), collection);
-		}
-		return builder.build();
-	}
-
-	protected OpushCollection collectionFromFolder(UserDataRequest udr, Folder folder) {
-		String backendName = ContactCollectionPath.backendName(folder);
-		return OpushCollection.builder()
-				.collectionPath(collectionPathBuilderProvider.get()
-						.userDataRequest(udr)
-						.pimType(getPIMDataType())
-						.backendName(backendName)
-						.build())
-				.ownerLoginAtDomain(folder.getOwnerLoginAtDomain())
-				.displayName(folder.getName())
-				.build();
-	}
-
-	@VisibleForTesting Iterable<Folder> sortedFolderChangesByDefaultAddressBook(FolderChanges folderChanges, String defaultAddressBookName) {
-		return ImmutableSortedSet
-				.orderedBy(new ComparatorUsingFolderName(defaultAddressBookName))
-				.addAll(folderChanges.getUpdated())
-				.build();
-	}
-
-	private FolderChanges listAddressBooksChanged(FolderSyncState lastKnownState)
-			throws UnexpectedObmSyncServerException, DaoException {
-		
-		AccessToken token = getAccessToken();
-		Date lastSyncDate = backendLastSyncDate(lastKnownState);
-		try {
-			return getBookClient().listAddressBooksChanged(token, lastSyncDate);
-		} catch (ServerFault e) {
-			throw new UnexpectedObmSyncServerException(e);
-		}
-	}
-	
-	private CollectionId getCollectionIdFromCollectionPath(UserDataRequest udr, String collectionPath)
-			throws DaoException, CollectionNotFoundException {
-		
-		return mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
-	}
-	
-	private FolderType getFolderType(UserDataRequest udr, OpushCollection collection) {
-		if (isDefaultFolder(udr, collection)) {
-			return FolderType.DEFAULT_CONTACTS_FOLDER;
-		} else {
-			return FolderType.USER_CREATED_CONTACTS_FOLDER;
-		}
-	}
-	
-	@VisibleForTesting boolean isDefaultFolder(UserDataRequest udr, OpushCollection collection) {
-		String folderName = ContactCollectionPath.folderName(collection.collectionPath());
-		boolean isOwner = udr.getUser().getLoginAtDomain().equalsIgnoreCase(collection.getOwnerLoginAtDomain());
-		boolean isDefaultAddressBookName = folderName.equalsIgnoreCase(contactConfiguration.getDefaultAddressBookName());
-		return isOwner && isDefaultAddressBookName;
 	}
 	
 	@Override
@@ -324,8 +160,9 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 
 	@Override
 	protected WindowingChangesDelta<WindowingContact> getAllChanges(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions) {
-		
-		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
+
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		AddressBookId addressBookId = folder.getTypedBackendId();
 		ContactChanges contactChanges = listContactsChanged(state, addressBookId);
 		
 		WindowingContactChanges.Builder builder  = WindowingContactChanges.builder();
@@ -347,47 +184,14 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 				.windowingChanges(builder.build())
 				.build();
 	}
-	
-	private Integer findAddressBookIdFromCollectionId(UserDataRequest udr, CollectionId collectionId) 
-			throws UnexpectedObmSyncServerException, DaoException, CollectionNotFoundException {
-		
-		List<AddressBook> addressBooks = listAddressBooks();
-		for (AddressBook addressBook: addressBooks) {
-			String backendName = ContactCollectionPath.backendName(addressBook);
-			String collectionPath = collectionPathBuilderProvider.get()
-					.userDataRequest(udr)
-					.pimType(getPIMDataType())
-					.backendName(backendName)
-					.build()
-					.collectionPath();
-			try {
-				CollectionId addressBookCollectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
-				if (addressBookCollectionId.equals(collectionId)) {
-					return addressBook.getUid().getId();
-				}
-			} catch (CollectionNotFoundException e) {
-				logger.warn(e.getMessage());
-			}
-		}
-		throw new CollectionNotFoundException(collectionId);
-	}
-	
-	private List<AddressBook> listAddressBooks() throws UnexpectedObmSyncServerException {
-		AccessToken token = getAccessToken();
-		try {
-			return getBookClient().listAllBooks(token);
-		} catch (ServerFault e) {
-			throw new UnexpectedObmSyncServerException(e);
-		}
-	}
 
-	private ContactChanges listContactsChanged(ItemSyncState state, Integer addressBookId) throws UnexpectedObmSyncServerException {
+	private ContactChanges listContactsChanged(ItemSyncState state, AddressBookId addressBookId) throws UnexpectedObmSyncServerException {
 		AccessToken token = getAccessToken();
 		try {
 			if (state.isInitial()) {
-				return getBookClient().firstListContactsChanged(token, state.getSyncDate(), addressBookId);
+				return getBookClient().firstListContactsChanged(token, state.getSyncDate(), addressBookId.getId());
 			}
-			return getBookClient().listContactsChanged(token, state.getSyncDate(), addressBookId);
+			return getBookClient().listContactsChanged(token, state.getSyncDate(), addressBookId.getId());
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -408,11 +212,13 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			ItemNotFoundException, NoPermissionException {
 
 		MSContact contact = (MSContact) data;
+
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
 		
 		if (isUpdate(serverId)) {
-			return storeContact(udr, collectionId, serverId, clientId, contact);
+			return storeContact(udr, folder, serverId, clientId, contact);
 		}
-		return createContact(udr, collectionId, serverId, clientId, contact);
+		return createContact(udr, folder, serverId, clientId, contact);
 	}
 
 	private boolean isUpdate(ServerId serverId) {
@@ -436,37 +242,37 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return clientIdService.hash(udr, clientId);
 	}
 
-	private ServerId createContact(UserDataRequest udr, CollectionId colId, 
+	private ServerId createContact(UserDataRequest udr, Folder folder, 
 				ServerId serverId, String clientId, MSContact contact)
 			throws UnexpectedObmSyncServerException, NoPermissionException {
 		
-		Optional<ServerId> alreadyCreatedServerId = creationIdempotenceService.find(udr, colId, contact);
-		if(alreadyCreatedServerId.isPresent() && contactExists(udr, colId, alreadyCreatedServerId.get())) {
+		Optional<ServerId> alreadyCreatedServerId = creationIdempotenceService.find(udr, folder.getCollectionId(), contact);
+		if(alreadyCreatedServerId.isPresent() && contactExists(folder, alreadyCreatedServerId.get())) {
 			logger.warn("A creation is discarded as a recent similar creation has been found");
 			return alreadyCreatedServerId.get();
 		}
-		return creationIdempotenceService.registerCreation(udr, contact, storeContact(udr, colId, serverId, clientId, contact));
+		return creationIdempotenceService.registerCreation(udr, contact, storeContact(udr, folder, serverId, clientId, contact));
 	}
 
-	private boolean contactExists(UserDataRequest udr, CollectionId collectionId, ServerId serverId) {
+	private boolean contactExists(Folder folder, ServerId serverId) {
 		try {
-			int addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
-			return getBookClient().getContactFromId(getAccessToken(), addressBookId, serverId.getItemId()) != null;
+			AddressBookId addressBookId = folder.getTypedBackendId();
+			return getBookClient().getContactFromId(getAccessToken(), addressBookId.getId(), serverId.getItemId()) != null;
 		} catch (ServerFault | ContactNotFoundException e) {
 			logger.info("This contact has not been found by obm-sync", e);
 		}
 		return false;
 	}
 
-	private ServerId storeContact(UserDataRequest udr, CollectionId collectionId, 
+	private ServerId storeContact(UserDataRequest udr, Folder folder, 
 				ServerId serverId, String clientId, MSContact msContact)
 			throws UnexpectedObmSyncServerException, NoPermissionException {
 		
 		try {
-			int addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
+			AddressBookId addressBookId = folder.getTypedBackendId();
 			Contact contact = convertContact(serverId, msContact);
-			Contact storedContact = getBookClient().storeContact(getAccessToken(), addressBookId, contact, hashClientId(udr, clientId));
-			return mappingService.getServerIdFor(collectionId, String.valueOf(storedContact.getUid()));
+			Contact storedContact = getBookClient().storeContact(getAccessToken(), addressBookId.getId(), contact, hashClientId(udr, clientId));
+			return mappingService.getServerIdFor(folder.getCollectionId(), String.valueOf(storedContact.getUid()));
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		} catch (ContactNotFoundException e) {
@@ -480,7 +286,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 			UnexpectedObmSyncServerException, ItemNotFoundException {
 		
 		Integer contactId = serverId.getItemId();
-		Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		AddressBookId addressBookId = folder.getTypedBackendId();
 		try {
 			removeContact(addressBookId, contactId);
 		} catch (NoPermissionException e) {
@@ -495,12 +302,12 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		}
 	}
 
-	private Contact removeContact(Integer addressBookId, Integer contactId) 
+	private Contact removeContact(AddressBookId addressBookId, Integer contactId) 
 			throws UnexpectedObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
 		AccessToken token = getAccessToken();
 		try {
-			return getBookClient().removeContact(token, addressBookId, contactId);
+			return getBookClient().removeContact(token, addressBookId.getId(), contactId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -518,13 +325,14 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException {
 		
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		AddressBookId addressBookId = folder.getTypedBackendId();
+		
 		List<ItemChange> ret = new LinkedList<ItemChange>();
 		for (ServerId serverId: fetchServerIds) {
 			try {
-
-				Integer contactId = serverId.getItemId();
-				Integer addressBookId = findAddressBookIdFromCollectionId(udr, collectionId);
 				
+				Integer contactId = serverId.getItemId();
 				Contact contact = getContactFromId(addressBookId, contactId);
 				ret.add( convertContactToItemChange(collectionId, contact) );
 				
@@ -535,12 +343,12 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 		return ret;
 	}
 
-	private Contact getContactFromId(Integer addressBookId, Integer contactId) 
+	private Contact getContactFromId(AddressBookId addressBookId, Integer contactId) 
 			throws UnexpectedObmSyncServerException, ContactNotFoundException {
 		
 		AccessToken token = getAccessToken();
 		try {
-			return getBookClient().getContactFromId(token, addressBookId, contactId);
+			return getBookClient().getContactFromId(token, addressBookId.getId(), contactId);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		}
@@ -551,18 +359,18 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 	
 	@Override
-	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+	public ServerId move(UserDataRequest udr, Folder srcFolder, Folder dstFolder,
 			ServerId messageId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
 	}
 
 	@Override
-	public void emptyFolderContent(UserDataRequest udr, String collectionPath,
+	public void emptyFolderContent(UserDataRequest udr, Folder folder,
 			boolean deleteSubFolder) throws NotAllowedException {
 		throw new NotAllowedException(
 				"emptyFolderContent is only supported for emails, collection was "
-						+ collectionPath);
+						+ folder.getBackendId());
 	}
 	
 	@Override

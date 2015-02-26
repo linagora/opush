@@ -36,7 +36,6 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -147,27 +146,22 @@ public class SyncTestUtils {
 				}).get();
 	}
 
-	public void mockEmailSyncClasses(
-			SyncKey syncEmailSyncKey, Collection<CollectionId> syncEmailCollectionsIds, DataDelta delta, 
+	public void mockEmailSyncClasses(SyncKey syncEmailSyncKey, DataDelta delta, 
 			List<OpushUser> fakeTestUsers)
 			throws DaoException, CollectionNotFoundException, ProcessingEmailException, UnexpectedObmSyncServerException, AuthFault,
 			ConversionException, FilterTypeChangedException, HierarchyChangedException {
 		
 		userAccessUtils.mockUsersAccess(fakeTestUsers);
-		mockEmailSync(syncEmailSyncKey, syncEmailCollectionsIds, delta, fakeTestUsers);
+		mockEmailSync(syncEmailSyncKey, delta);
 	}
 	
-	private void mockEmailSync(SyncKey syncEmailSyncKey, Collection<CollectionId> syncEmailCollectionsIds, DataDelta delta,
-			List<OpushUser> fakeTestUsers)
+	private void mockEmailSync(SyncKey syncEmailSyncKey, DataDelta delta)
 			throws DaoException, CollectionNotFoundException, ProcessingEmailException, UnexpectedObmSyncServerException,
 			ConversionException, FilterTypeChangedException, HierarchyChangedException {
 		
 		mockContentsExporter(delta);
-
-		for (OpushUser user: fakeTestUsers) {
-			testUtils.expectUserCollectionsNeverChange(user, syncEmailCollectionsIds);
-		}
-		mockCollectionDaoForEmailSync(syncEmailSyncKey, syncEmailCollectionsIds);
+		testUtils.expectUserCollectionsNeverChange();
+		mockCollectionDaoForEmailSync(syncEmailSyncKey);
 		mockItemTrackingDao();
 	}
 
@@ -179,13 +173,7 @@ public class SyncTestUtils {
 		expect(itemTrackingDao.isServerIdSynced(anyObject(ItemSyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
 	}
 
-	public void mockCollectionDaoForEmailSync(SyncKey syncEmailSyncKey,
-			Collection<CollectionId> syncEmailCollectionsIds) throws DaoException {
-		
-		for (CollectionId syncEmailCollectionId : syncEmailCollectionsIds) {
-			expect(collectionDao.getCollectionMapping(anyObject(Device.class), anyObject(String.class)))
-				.andReturn(syncEmailCollectionId).anyTimes();
-		}
+	public void mockCollectionDaoForEmailSync(SyncKey syncEmailSyncKey) throws DaoException {
 		expect(collectionDao.updateState(anyObject(Device.class), anyObject(CollectionId.class), anyObject(SyncKey.class), anyObject(Date.class)))
 				.andReturn(ItemSyncState.builder()
 						.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())

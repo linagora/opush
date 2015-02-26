@@ -34,24 +34,16 @@ package org.obm.opush;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
-import java.util.Arrays;
-
-import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.FolderType;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.CollectionChange;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
-import org.obm.push.exception.DaoException;
-import org.obm.push.exception.UnexpectedObmSyncServerException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.mail.MailBackend;
-import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.mail.MailBackendFoldersBuilder;
 import org.obm.push.task.TaskBackend;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 public class HierarchyChangesTestUtils {
@@ -61,74 +53,44 @@ public class HierarchyChangesTestUtils {
 	@Inject ContactsBackend contactsBackend;
 	@Inject MailBackend mailBackend;
 
-	public void mockHierarchyChangesOnlyInbox()
-			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
-		
-		mockHierarchyChangesForMailboxes(
-			HierarchyCollectionChanges.builder()
-				.changes(Arrays.asList(inboxFolder()))
-				.build());
-	}
-	
-	public CollectionChange inboxFolder() {
-		return CollectionChange.builder()
-				.collectionId(CollectionId.of(1))
-				.parentCollectionId(CollectionId.ROOT)
-				.displayName("INBOX")
-				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
-				.isNew(true)
-				.build();
-	}
-
-	public void mockHierarchyChangesForMailboxes(HierarchyCollectionChanges mailboxesChanges)
-			throws DaoException, UnexpectedObmSyncServerException, InvalidSyncKeyException {
-		
-		mockCalendarHierarchyChangesReturnNoChange();
-		mockTaskHierarchyChangesReturnNoChange();
-		mockContactsHierarchyChangesReturnNoChange();
-		mockMailBackendHierarchyChanges(mailboxesChanges);
-	}
-
-	private void mockCalendarHierarchyChangesReturnNoChange() {
-		mockBackendHierarchyChangesReturnNoChange(calendarBackend);
-	}
-	
-	private void mockTaskHierarchyChangesReturnNoChange() throws DaoException {
-		mockBackendHierarchyChangesReturnNoChange(taskBackend);
-	}
-	
-	private void mockContactsHierarchyChangesReturnNoChange() {
-		mockBackendHierarchyChangesReturnNoChange(contactsBackend);
-	}
-	
-	private void mockBackendHierarchyChangesReturnNoChange(PIMBackend backend) {
-		mockBackendHierarchyChanges(backend, emptyChange());
-	}
-
-	public void mockMailBackendHierarchyChanges(HierarchyCollectionChanges hierarchyMailboxesChanges) {
-		mockBackendHierarchyChanges(mailBackend, hierarchyMailboxesChanges);
-	}
-	
-	private void mockBackendHierarchyChanges(PIMBackend backend, HierarchyCollectionChanges changes) {
-		expect(backend.getHierarchyChanges(anyObject(UserDataRequest.class),
-				anyObject(FolderSyncState.class), anyObject(FolderSyncState.class)))
-			.andReturn(changes);
-	}
-	
-	private HierarchyCollectionChanges emptyChange() {
-		return HierarchyCollectionChanges.builder().build();
-	}
-
 	public void mockGetBackendFoldersUnchanged() {
-		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
-			.andReturn(BackendFolders.EMPTY.instance());
-		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
-			.andReturn(BackendFolders.EMPTY.instance());
+		expectEmptyContactFolders();
+		expectEmptyCalendarFolders();
+		expectEmptyMailFolders();
+		expectEmptyTaskFolders();
+	}
+	
+	public void mockGetBackendFoldersWithNewMailboxes(BackendFolders mailboxes) {
+		expectEmptyContactFolders();
+		expectEmptyCalendarFolders();
+		expectEmptyTaskFolders();
 		expect(mailBackend.getBackendFolders(anyObject(UserDataRequest.class)))
-			.andReturn(BackendFolders.EMPTY.instance());
+			.andReturn(mailboxes);
+	}
+	
+	public void mockGetBackendFoldersWithINBOX() {
+		mockGetBackendFoldersWithNewMailboxes(new MailBackendFoldersBuilder()
+			.addSpecialFolders(ImmutableSet.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.build());
+	}
+
+	private void expectEmptyTaskFolders() {
 		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance());
 	}
-	
 
+	private void expectEmptyMailFolders() {
+		expect(mailBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance());
+	}
+
+	private void expectEmptyCalendarFolders() {
+		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance());
+	}
+
+	private void expectEmptyContactFolders() {
+		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+			.andReturn(BackendFolders.EMPTY.instance());
+	}
 }

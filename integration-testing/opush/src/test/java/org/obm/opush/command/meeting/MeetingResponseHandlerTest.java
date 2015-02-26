@@ -37,7 +37,6 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
 import java.io.IOException;
-import java.util.Date;
 
 import javax.xml.transform.TransformerException;
 
@@ -63,7 +62,6 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AttendeeStatus;
-import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
@@ -101,7 +99,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -414,17 +411,11 @@ public class MeetingResponseHandlerTest {
 	}
 
 	private void expectCollectionDaoUnchange() throws DaoException {
-		Date dateFirstSyncFromASSpecs = new Date(0);
-		
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(new SyncKey("sync state"))
 				.build();
 		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).anyTimes();
-		
-		ChangedCollections noChangeCollections = new ChangedCollections(dateFirstSyncFromASSpecs, ImmutableSet.<String>of());
-		expect(collectionDao.getContactChangedCollections(dateFirstSyncFromASSpecs)).andReturn(noChangeCollections).anyTimes();
-		expect(collectionDao.getCalendarChangedCollections(dateFirstSyncFromASSpecs)).andReturn(noChangeCollections).anyTimes();
 	}
 
 	private String buildMeetingResponseCommandSuccess() throws TransformerException {

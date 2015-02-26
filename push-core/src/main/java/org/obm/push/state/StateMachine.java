@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommandResponse;
@@ -51,9 +50,7 @@ import org.obm.push.bean.change.item.ASItem;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.InvalidServerId;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
@@ -62,9 +59,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -78,14 +73,11 @@ public class StateMachine implements IStateMachine {
 	
 	private final CollectionDao collectionDao;
 	private final ItemTrackingDao itemTrackingDao;
-	private final FolderSyncKeyFactory folderSyncKeyFactory;
 
 	@Inject
-	@VisibleForTesting StateMachine(CollectionDao collectionDao, ItemTrackingDao itemTrackingDao,
-			FolderSyncKeyFactory folderSyncKeyFactory) {
+	@VisibleForTesting StateMachine(CollectionDao collectionDao, ItemTrackingDao itemTrackingDao) {
 		this.collectionDao = collectionDao;
 		this.itemTrackingDao = itemTrackingDao;
-		this.folderSyncKeyFactory = folderSyncKeyFactory;
 	}
 
 	@Override
@@ -97,37 +89,7 @@ public class StateMachine implements IStateMachine {
 	public ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException {
 		return collectionDao.findItemStateForKey(syncKey);
 	}
-	
-	@Override
-	public FolderSyncState getFolderSyncState(FolderSyncKey folderSyncKey) throws DaoException, InvalidSyncKeyException {
-		Preconditions.checkArgument(folderSyncKey != null && !Strings.isNullOrEmpty(folderSyncKey.asString()));
-		
-		if (folderSyncKey.isInitialFolderSync()) {
-			return FolderSyncState.builder()
-					.syncKey(folderSyncKey)
-					.build();
-		} else {
-			return findFolderSyncState(folderSyncKey);
-		}
-	}
 
-	private FolderSyncState findFolderSyncState(FolderSyncKey folderSyncKey) throws DaoException, InvalidSyncKeyException {
-		FolderSyncState folderSyncStateForKey = collectionDao.findFolderStateForKey(folderSyncKey);
-		if (folderSyncStateForKey == null) {
-			throw new InvalidFolderSyncKeyException(folderSyncKey);
-		}
-		return folderSyncStateForKey;
-	}
-	
-	@Override
-	public FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException {
-		FolderSyncKey newSk = folderSyncKeyFactory.randomSyncKey();
-		FolderSyncState newFolderState = collectionDao.allocateNewFolderSyncState(udr.getDevice(), newSk);
-		
-		log(udr, newFolderState);
-		return newFolderState;
-	}
-	
 	@Override
 	public void allocateNewSyncState(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
 			throws DaoException, InvalidServerId {
@@ -216,11 +178,5 @@ public class StateMachine implements IStateMachine {
 		String collectionPath = "obm:\\\\" + udr.getUser().getLoginAtDomain();
 		logger.info("Allocate new synckey {} for collectionPath {} with {} last sync", 
 				newState.getSyncKey(), collectionPath, newState.getSyncDate());
-	}
-	
-	private void log(UserDataRequest udr, FolderSyncState newState) {
-		String collectionPath = "obm:\\\\" + udr.getUser().getLoginAtDomain();
-		logger.info("Allocate new synckey {} for collectionPath {}", 
-				newState.getSyncKey(), collectionPath);
 	}
 }

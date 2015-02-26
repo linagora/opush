@@ -41,9 +41,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
@@ -78,7 +78,6 @@ import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
 import org.obm.push.minig.imap.CommandIOException;
 import org.obm.push.minig.imap.StoreClient;
-import org.obm.push.protocol.bean.CollectionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,25 +99,22 @@ public class LinagoraMailboxService implements MailboxService {
 	private final boolean activateTLS;
 	private final boolean loginWithDomain;
 	private final LinagoraImapClientProvider imapClientProvider;
-	private final ICollectionPathHelper collectionPathHelper;
 
 	@Inject
 	LinagoraMailboxService(OpushEmailConfiguration emailConfiguration, 
-			LinagoraImapClientProvider imapClientProvider, 
-			ICollectionPathHelper collectionPathHelper) {
+			LinagoraImapClientProvider imapClientProvider) {
 		
 		this.imapClientProvider = imapClientProvider;
-		this.collectionPathHelper = collectionPathHelper;
 		this.activateTLS = emailConfiguration.activateTls();
 		this.loginWithDomain = emailConfiguration.loginWithDomain();
 	}
 
 	@Override
-	public EmailMetadata fetchEmailMetadata(UserDataRequest udr, String collectionPath, long uid)
+	public EmailMetadata fetchEmailMetadata(UserDataRequest udr, MailboxPath path, long uid)
 			throws MailException, ItemNotFoundException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			EmailMetadata response = store.uidFetchEmailMetadata(uid);
 			if (response != null) {
 				return response;
@@ -136,10 +132,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public Map<Long, FlagsList> fetchFlags(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException {
+	public Map<Long, FlagsList> fetchFlags(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			Map<Long, FlagsList> fetchFlags = store.uidFetchFlags(messages);
 			return fetchFlags;
 		} catch (OpushLocatorException e) {
@@ -207,24 +203,23 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public void updateReadFlag(UserDataRequest udr, String collectionPath, MessageSet messages, boolean read) 
+	public void updateReadFlag(UserDataRequest udr, MailboxPath path, MessageSet messages, boolean read) 
 			throws MailException, ImapMessageNotFoundException {
 		
-		updateMailFlag(udr, collectionPath, messages, Flag.SEEN, read);
+		updateMailFlag(udr, path, messages, Flag.SEEN, read);
 	}
 
-	private void updateMailFlag(UserDataRequest udr, String collectionPath, MessageSet messages, Flag flag, 
+	private void updateMailFlag(UserDataRequest udr, MailboxPath path, MessageSet messages, Flag flag, 
 			boolean status) throws MailException {
 		
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
+			store.select(path.getPath());
 			FlagsList fl = new FlagsList();
 			fl.add(flag);
 			store.uidStore(messages, fl, status);
 			logger.info("Change flag for mail with UID {} in {} ( {}:{} )",
-					messages, mailboxName, flag.asCommandValue(), status);
+					messages, path.getPath(), flag.asCommandValue(), status);
 		} catch (IMAPException e) {
 			throw new MailException(e);
 		} catch (MailboxNotFoundException e) {
@@ -235,10 +230,9 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public String parseMailBoxName(UserDataRequest udr, String collectionPath) throws MailException {
+	public String parseMailBoxName(UserDataRequest udr, MailboxPath path) throws MailException {
 		try {
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			return imapClientProvider.getImapClient(udr).findMailboxNameWithServerCase(mailboxName);
+			return imapClientProvider.getImapClient(udr).findMailboxNameWithServerCase(path.getPath());
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
 		} catch (IMAPException e) {
@@ -249,20 +243,14 @@ public class LinagoraMailboxService implements MailboxService {
 			throw new TimeoutException(e);
 		}
 	}
-
-	private String extractMailboxNameFromCollectionPath(UserDataRequest udr, String collectionPath) {
-		return collectionPathHelper.extractFolder(udr, collectionPath, PIMDataType.EMAIL);
-	}
-	
 	 
 	@Override
-	public void delete(UserDataRequest udr, String collectionPath, MessageSet messages) 
+	public void delete(UserDataRequest udr, MailboxPath path, MessageSet messages) 
 			throws MailException, ImapMessageNotFoundException {
 
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
+			store.select(path.getPath());
 			FlagsList fl = new FlagsList();
 			fl.add(Flag.DELETED);
 			logger.info("delete conv id = {}", messages);
@@ -279,7 +267,7 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public MessageSet move(UserDataRequest udr, String srcFolder, String dstFolder, MessageSet messages)
+	public MessageSet move(UserDataRequest udr, MailboxPath srcFolder, MailboxPath dstFolder, MessageSet messages)
 			throws DaoException, MailException, ImapMessageNotFoundException, UnsupportedBackendFunctionException {
 		
 		try {
@@ -289,11 +277,8 @@ public class LinagoraMailboxService implements MailboxService {
 			logger.debug("Moving email, USER:{} UIDs:{} SRC:{} DST:{}",
 					udr.getUser().getLoginAtDomain(), messages, srcFolder, dstFolder);
 			
-			String srcMailBox = extractMailboxNameFromCollectionPath(udr, srcFolder);
-			String dstMailBox = extractMailboxNameFromCollectionPath(udr, dstFolder);
-
-			store.select(srcMailBox);
-			MessageSet newUids = store.uidCopy(messages, dstMailBox);
+			store.select(srcFolder.getPath());
+			MessageSet newUids = store.uidCopy(messages, dstFolder.getPath());
 			deleteMessage(store, messages);
 			
 			return newUids;
@@ -320,16 +305,15 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public InputStream fetchMailStream(UserDataRequest udr, String collectionPath, long uid) throws MailException {
-		return getMessageInputStream(udr, collectionPath, uid);
+	public InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid) throws MailException {
+		return getMessageInputStream(udr, path, uid);
 	}
 
-	private InputStream getMessageInputStream(UserDataRequest udr, String collectionPath, long messageUID) 
+	private InputStream getMessageInputStream(UserDataRequest udr, MailboxPath path, long messageUID) 
 			throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
+			store.select(path.getPath());
 			return store.uidFetchMessage(messageUID);
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
@@ -343,21 +327,20 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public void setAnsweredFlag(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException, ImapMessageNotFoundException {
-		updateMailFlag(udr, collectionPath, messages, Flag.ANSWERED, true);
+	public void setAnsweredFlag(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException, ImapMessageNotFoundException {
+		updateMailFlag(udr, path, messages, Flag.ANSWERED, true);
 	}
 
 	@Override
-	public void setDeletedFlag(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException, ImapMessageNotFoundException {
-		updateMailFlag(udr, collectionPath, messages, Flag.DELETED, true);
+	public void setDeletedFlag(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException, ImapMessageNotFoundException {
+		updateMailFlag(udr, path, messages, Flag.DELETED, true);
 	}	
 	
 	@Override
 	public void storeInSent(UserDataRequest udr, EmailReader mailContent) throws MailException {
 		logger.info("Store mail in folder[SentBox]");
 		if (mailContent != null) {
-			String sentboxPath = 
-					collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_SENT_NAME);
+			MailboxPath sentboxPath = MailboxPath.of(EmailConfiguration.IMAP_SENT_NAME);
 			storeInFolder(udr, mailContent, true, sentboxPath);
 		} else {
 			throw new MailException("The mail that user try to store in sent box is null.");
@@ -374,13 +357,12 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public InputStream findAttachment(UserDataRequest udr, String collectionPath, Long mailUid, MimeAddress mimePartAddress)
+	public InputStream findAttachment(UserDataRequest udr, MailboxPath path, Long mailUid, MimeAddress mimePartAddress)
 			throws MailException {
 		
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
+			store.select(path.getPath());
 			return store.uidFetchPart(mailUid, Objects.firstNonNull(mimePartAddress.getAddress(), ""));
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
@@ -394,22 +376,21 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, CollectionId collectionId) 
+	public MessageSet purgeFolder(UserDataRequest udr, Integer devId, MailboxPath path) 
 			throws DaoException, MailException {
 		
 		long time = System.currentTimeMillis();
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
-			logger.info("Mailbox folder[ {} ] will be purged...", collectionPath);
+			store.select(path.getPath());
+			logger.info("Mailbox folder[ {} ] will be purged...", path.getPath());
 			MessageSet messages = store.uidSearch(SearchQuery.MATCH_ALL);
 			FlagsList fl = new FlagsList();
 			fl.add(Flag.DELETED);
 			store.uidStore(messages, fl, true);
 			time = System.currentTimeMillis() - time;
 			logger.info("Mailbox folder[ {} ] was purged in {} millisec. {} messages have been deleted",
-					collectionPath, time, Iterables.size(messages));
+					path.getPath(), time, Iterables.size(messages));
 			return messages;
 		} catch (IMAPException e) {
 			throw new MailException(e);
@@ -423,24 +404,22 @@ public class LinagoraMailboxService implements MailboxService {
 	@Override
 	public void storeInInbox(UserDataRequest udr, EmailReader mailContent, boolean isRead) throws MailException {
 		logger.info("Store mail in folder[Inbox]");
-		String inboxPath = 
-				collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, OpushEmailConfiguration.IMAP_INBOX_NAME);
+		MailboxPath inboxPath = MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME);
 		storeInFolder(udr, mailContent, isRead, inboxPath);
 	}
 	
-	private void storeInFolder(UserDataRequest udr, Reader mailContent, boolean isRead, String collectionPath) 
+	private void storeInFolder(UserDataRequest udr, Reader mailContent, boolean isRead, MailboxPath path) 
 			throws MailException {
 
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String folderName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(folderName);
+			store.select(path.getPath());
 			FlagsList fl = new FlagsList();
 			if(isRead){
 				fl.add(Flag.SEEN);
 			}
 			resetInputStream(mailContent);
-			store.append(folderName, mailContent, fl);
+			store.append(path.getPath(), mailContent, fl);
 		} catch (IMAPException e) {
 			throw new MailException(e);
 		} catch (CommandIOException e) {
@@ -465,18 +444,18 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public Collection<Email> fetchEmails(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException {
-		return EmailFactory.listEmailFromFastFetch(fetchFast(udr, collectionPath, messages));
+	public Collection<Email> fetchEmails(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException {
+		return EmailFactory.listEmailFromFastFetch(fetchFast(udr, path, messages));
 	}
 	
 	@Override
-	public Set<Email> fetchEmails(UserDataRequest udr, String collectionPath, Date windows) throws MailException {
+	public Set<Email> fetchEmails(UserDataRequest udr, MailboxPath path, Date windows) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select( extractMailboxNameFromCollectionPath(udr, collectionPath) );
+			store.select(path.getPath());
 			SearchQuery query = SearchQuery.builder().afterInclusive(windows).build();
 			MessageSet messages = store.uidSearch(query);
-			Collection<FastFetch> mails = fetchFast(udr, collectionPath, messages);
+			Collection<FastFetch> mails = fetchFast(udr, path, messages);
 			return EmailFactory.listEmailFromFastFetch(mails);
 		} catch (IMAPException e) {
 			throw new MailException(e);
@@ -488,11 +467,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public Collection<UIDEnvelope> fetchEnvelope(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException {
+	public Collection<UIDEnvelope> fetchEnvelope(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailboxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailboxName);
+			store.select(path.getPath());
 			return store.uidFetchEnvelope(messages);
 		} catch (NoSuchElementException e) {
 			throw new MailException(e);
@@ -508,10 +486,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public Collection<FastFetch> fetchFast(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException {
+	public Collection<FastFetch> fetchFast(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			return FluentIterable
 					.from(store.uidFetchFast(messages))
 					.filter(new Predicate<FastFetch>() {
@@ -532,10 +510,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public Collection<MimeMessage> fetchBodyStructure(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException {
+	public Collection<MimeMessage> fetchBodyStructure(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			return store.uidFetchBodyStructure(messages);
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
@@ -549,12 +527,12 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public InputStream fetchMimePartStream(UserDataRequest udr, String collectionPath, long uid, MimeAddress partAddress)
+	public InputStream fetchMimePartStream(UserDataRequest udr, MailboxPath path, long uid, MimeAddress partAddress)
 			throws MailException {
 		Preconditions.checkNotNull(partAddress);
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			
 			String addressAsString = Objects.firstNonNull(partAddress.getAddress(), "");
 			return store.uidFetchPart(uid, addressAsString);
@@ -571,12 +549,12 @@ public class LinagoraMailboxService implements MailboxService {
 	
 	@Override
 	public InputStream fetchPartialMimePartStream(UserDataRequest udr,
-			String collectionPath, long uid, MimeAddress partAddress, int limit)
+			MailboxPath path, long uid, MimeAddress partAddress, int limit)
 			throws MailException {
 		Preconditions.checkNotNull(partAddress);
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			store.select(extractMailboxNameFromCollectionPath(udr, collectionPath));
+			store.select(path.getPath());
 			
 			String addressAsString = Objects.firstNonNull(partAddress.getAddress(), "");
 			return store.uidFetchPart(uid, addressAsString, limit);
@@ -592,15 +570,15 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public Map<Long, IMAPHeaders> fetchPartHeaders(UserDataRequest udr, String collectionPath, MessageSet messages, MimePart mimePart) throws IOException {
+	public Map<Long, IMAPHeaders> fetchPartHeaders(UserDataRequest udr, MailboxPath path, MessageSet messages, MimePart mimePart) throws IOException {
 		ImmutableMap.Builder<Long, IMAPHeaders> builder = ImmutableMap.builder();
 		for (long uid: messages) {
-			builder.put(uid, fetchPartHeaders(udr, collectionPath, uid, mimePart));
+			builder.put(uid, fetchPartHeaders(udr, path, uid, mimePart));
 		}
 		return builder.build();
 	}
 
-	private IMAPHeaders fetchPartHeaders(UserDataRequest udr, String collectionPath, long uid, MimePart mimePart) throws IOException {
+	private IMAPHeaders fetchPartHeaders(UserDataRequest udr, MailboxPath path, long uid, MimePart mimePart) throws IOException {
 		MimeAddress address = mimePart.getAddress();
 		String part = null;
 		if (address == null) {
@@ -608,16 +586,15 @@ public class LinagoraMailboxService implements MailboxService {
 		} else {
 			part = address.getAddress() + ".HEADER";
 		}
-		InputStream is = fetchMimePartStream(udr, collectionPath, uid, new MimeAddress(part));
+		InputStream is = fetchMimePartStream(udr, path, uid, new MimeAddress(part));
 		return mimePart.decodeHeaders(is);
 	}
 	
 	@Override
-	public long fetchUIDNext(UserDataRequest udr, String collectionPath) throws MailException {
+	public long fetchUIDNext(UserDataRequest udr, MailboxPath path) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailBoxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			return store.uidNext(mailBoxName);
+			return store.uidNext(path.getPath());
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
 		} catch (IMAPException e) {
@@ -630,11 +607,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public long fetchUIDValidity(UserDataRequest udr, String collectionPath) throws MailException {
+	public long fetchUIDValidity(UserDataRequest udr, MailboxPath path) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailBoxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			return store.uidValidity(mailBoxName);
+			return store.uidValidity(path.getPath());
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
 		} catch (IMAPException e) {
@@ -647,11 +623,10 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
-	public void expunge(UserDataRequest udr, String collectionPath) {
+	public void expunge(UserDataRequest udr, MailboxPath path) {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			String mailBoxName = extractMailboxNameFromCollectionPath(udr, collectionPath);
-			store.select(mailBoxName);
+			store.select(path.getPath());
 			store.expunge();
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);

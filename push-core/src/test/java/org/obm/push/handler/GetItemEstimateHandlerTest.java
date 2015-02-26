@@ -88,7 +88,7 @@ public class GetItemEstimateHandlerTest {
 		stMachine = control.createMock(StateMachine.class);
 		windowingDao = control.createMock(WindowingDao.class);
 		
-		testee = new GetItemEstimateHandler(contentsExporter, stMachine, windowingDao, null, null, null, null, null);
+		testee = new GetItemEstimateHandler(contentsExporter, stMachine, windowingDao, null, null, null, null);
 		
 	}
 	
@@ -110,7 +110,7 @@ public class GetItemEstimateHandlerTest {
 		expect(stMachine.getItemSyncState(syncKey))
 			.andReturn(syncState);
 		expect(contentsExporter.getItemEstimateSize(udr, PIMDataType.EMAIL, syncCollection, syncState))
-			.andThrow(new FilterTypeChangedException(collectionId, FilterType.THREE_DAYS_BACK, FilterType.ONE_MONTHS_BACK));
+			.andThrow(new FilterTypeChangedException(FilterType.THREE_DAYS_BACK, FilterType.ONE_MONTHS_BACK));
 		expect(windowingDao.countPendingChanges(new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey)))
 			.andReturn(0l);
 		

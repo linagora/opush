@@ -55,20 +55,16 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Message;
 import org.obm.breakdownduration.bean.Watch;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.push.ExpungePolicy;
-import org.obm.push.backend.CollectionPath;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.OpushBackend;
-import org.obm.push.backend.OpushCollection;
-import org.obm.push.backend.PathsToCollections;
 import org.obm.push.bean.Address;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSAttachementData;
@@ -82,9 +78,8 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.CollectionChange;
-import org.obm.push.bean.change.hierarchy.CollectionDeletion;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.MSEmailChanges;
 import org.obm.push.bean.ms.UidMSEmail;
@@ -93,7 +88,6 @@ import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
-import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
 import org.obm.push.exception.OpushLocatorException;
@@ -110,7 +104,6 @@ import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
-import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.conversation.EmailView;
@@ -121,6 +114,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -133,7 +127,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
@@ -145,7 +138,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.sun.mail.util.QPDecoderStream;
 
@@ -159,12 +151,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 							OpushEmailConfiguration.IMAP_SENT_NAME,
 							OpushEmailConfiguration.IMAP_TRASH_NAME);
 	
-	private static final ImmutableMap<String, FolderType> SPECIAL_FOLDERS_TYPES = 
-			ImmutableMap.of(OpushEmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
-							OpushEmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
-							OpushEmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
-							OpushEmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
-
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private final MailboxService mailboxService;
@@ -179,8 +165,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final WindowingDao windowingDao;
 	private final SmtpSender smtpSender;
 	private final DateService dateService;
+	private final FolderSnapshotDao folderSnapshotDao;
 
 	private final OpushEmailConfiguration emailConfiguration;
+
 
 	@Inject
 	/* package */ MailBackendImpl(MailboxService mailboxService, 
@@ -191,14 +179,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			MappingService mappingService,
 			MSEmailFetcher msEmailFetcher,
 			TransformersFactory transformersFactory,
-			Provider<CollectionPath.Builder> collectionPathBuilderProvider,
 			MailBackendSyncDataFactory mailBackendSyncDataFactory,
 			WindowingDao windowingDao,
 			SmtpSender smtpSender, 
 			OpushEmailConfiguration emailConfiguration,
-			DateService dateService)  {
+			DateService dateService,
+			FolderSnapshotDao folderSnapshotDao)  {
 
-		super(mappingService, collectionPathBuilderProvider);
+		super(mappingService);
 		this.mailboxService = mailboxService;
 		this.mime4jUtils = mime4jUtils;
 		this.opushConfiguration = opushConfiguration;
@@ -212,6 +200,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		this.smtpSender = smtpSender;
 		this.emailConfiguration = emailConfiguration;
 		this.dateService = dateService;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 
 	@Override
@@ -226,107 +215,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			.addSpecialFolders(SPECIAL_FOLDERS)
 			.build();
 	}
-	
-	@Override
-	public HierarchyCollectionChanges getHierarchyChanges(UserDataRequest udr, 
-			FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
-			throws DaoException, MailException {
-		
-		try {
-			PathsToCollections currentSubscribedFolders = PathsToCollections.builder()
-					.putAll(listSpecialFolders(udr))
-					.putAll(listSubscribedFolders(udr))
-					.build();
-			snapshotHierarchy(udr, currentSubscribedFolders.pathKeys(), outgoingSyncState);
-			return computeChanges(udr, lastKnownState, currentSubscribedFolders);
-		} catch (CollectionNotFoundException e) {
-			throw new HierarchyChangesException(e);
-		}
-	}
-	
-	@VisibleForTesting PathsToCollections listSpecialFolders(UserDataRequest udr) {
-		return imapFolderNamesToCollectionPath(udr, SPECIAL_FOLDERS);
-	}
-	
-	private PathsToCollections imapFolderNamesToCollectionPath(UserDataRequest udr, Iterable<String> imapFolderNames) {
-		PathsToCollections.Builder builder = PathsToCollections.builder();
-		for (String imapFolderName: imapFolderNames) {
-			CollectionPath collectionPath = collectionPathBuilderProvider.get()
-					.userDataRequest(udr)
-					.pimType(PIMDataType.EMAIL)
-					.backendName(imapFolderName)
-					.build();
-			builder.put(collectionPath, OpushCollection.builder()
-					.collectionPath(collectionPath)
-					.displayName(imapFolderName)
-					.build());
-		}
-		return builder.build();
-	}
-	
-	@VisibleForTesting PathsToCollections listSubscribedFolders(UserDataRequest udr) throws MailException {
-		return imapFolderNamesToCollectionPath(udr,
-					FluentIterable
-					.from(
-						mailboxService.listSubscribedFolders(udr))
-					.transform(
-							new Function<MailboxFolder, String>() {
-								@Override
-								public String apply(MailboxFolder input) {
-									return input.getName();
-								}})
-					.toList());
-	}
-
-	private HierarchyCollectionChanges computeChanges(UserDataRequest udr, FolderSyncState lastKnownState,
-			PathsToCollections currentSubscribedFolders) throws DaoException, CollectionNotFoundException {
-		
-		Set<CollectionPath> previousEmailCollections = lastKnownCollectionPath(udr, lastKnownState, getPIMDataType());
-		Set<CollectionPath> deletedFolders = Sets.difference(previousEmailCollections, currentSubscribedFolders.pathKeys());
-		Iterable<OpushCollection> newFolders = addedCollections(previousEmailCollections, currentSubscribedFolders);
-		
-		return buildHierarchyItemsChanges(udr, newFolders, deletedFolders);
-	}
-
-	private FolderType folderType(String folder) {
-		return Objects.firstNonNull(SPECIAL_FOLDERS_TYPES.get(folder), FolderType.USER_CREATED_EMAIL_FOLDER);
-	}
-	
-	@Override
-	protected CollectionChange createCollectionChange(UserDataRequest udr, OpushCollection imapFolder)
-			throws DaoException, CollectionNotFoundException {
-		
-		CollectionPath collectionPath = imapFolder.collectionPath();
-		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
-		return CollectionChange.builder()
-			.collectionId(collectionId)
-			.parentCollectionId(CollectionId.ROOT)
-			.displayName(imapFolder.displayName())
-			.folderType(folderType(imapFolder.displayName()))
-			.isNew(true)
-			.build();
-	}
-
-	@Override
-	protected CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath imapFolder)
-			throws CollectionNotFoundException, DaoException {
-
-		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), imapFolder.collectionPath());
-		return CollectionDeletion.builder()
-				.collectionId(collectionId)
-				.build();
-	}
-	
-	private CollectionPath getWasteBasketPath(UserDataRequest udr) {
-		return collectionPathBuilderProvider.get().pimType(PIMDataType.EMAIL).userDataRequest(udr).backendName(OpushEmailConfiguration.IMAP_TRASH_NAME).build();
-	}
 
 	@Override
 	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 			SyncCollectionOptions options) throws ProcessingEmailException, 
 			CollectionNotFoundException, DaoException, FilterTypeChangedException {
 		
-		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, state, collectionId, options);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, state, folder, options);
 		return syncData.getEmailChanges().sumOfChanges();
 	}
 
@@ -341,6 +237,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		try {
 			CollectionId collectionId = syncCollection.getCollectionId();
 			SyncKey syncKey = syncCollection.getSyncKey();
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
 			WindowingKey windowingKey = new WindowingKey(udr.getUser(), udr.getDevId(), collectionId, syncKey);
 			
 			if (windowingDao.hasPendingChanges(windowingKey)) {
@@ -349,45 +246,43 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 						.deviceId(udr.getDevId())
 						.syncKey(syncKey).build());
 				
-				return continueWindowing(udr, syncCollection, windowingKey, newSyncKey);
+				return continueWindowing(udr, syncCollection, folder, windowingKey, newSyncKey);
 			} else {
-				return startWindowing(udr, syncState, syncCollection, windowingKey, newSyncKey);
+				return startWindowing(udr, syncState, syncCollection, folder, windowingKey, newSyncKey);
 			}
 		} catch (EmailViewPartsFetcherException e) {
 			throw new ProcessingEmailException(e);
 		}
 	}
 
-	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
-			throws EmailViewPartsFetcherException {
+	private DataDelta startWindowing(UserDataRequest udr, ItemSyncState syncState, AnalysedSyncCollection collection,
+			Folder folder, WindowingKey key, SyncKey newSyncKey) throws EmailViewPartsFetcherException {
 		
-		CollectionId collectionId = collection.getCollectionId();
-		SyncCollectionOptions options = collection.getOptions();
-		
-		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, collectionId, options);
-		takeSnapshot(udr, collectionId, collection.getOptions(), syncData, newSyncKey);
+		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, folder, collection.getOptions());
+		takeSnapshot(udr, collection.getCollectionId(), collection.getOptions(), syncData, newSyncKey);
 		
 		if (syncData.getEmailChanges().hasChanges()) {
 			windowingDao.pushPendingChanges(key, syncData.getEmailChanges(), PIMDataType.EMAIL);
 		}
 		
-		return continueWindowing(udr, collection, key, newSyncKey);
+		return continueWindowing(udr, collection, folder, key, newSyncKey);
 	}
 
-	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
-		throws DaoException, EmailViewPartsFetcherException {
+	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, Folder folder,
+			WindowingKey key, SyncKey newSyncKey) throws DaoException, EmailViewPartsFetcherException {
 
-		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize().get(), newSyncKey, EmailChanges.builder()).build();
-		return fetchChanges(udr, collection, key, newSyncKey, pendingChanges);
+		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(
+				key, collection.getWindowSize().get(), newSyncKey, EmailChanges.builder()).build();
+		return fetchChanges(udr, collection, folder, key, newSyncKey, pendingChanges);
 	}
 	
-	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key,
-			SyncKey newSyncKey, WindowingChanges<Email> pendingChanges)
+	private DataDelta fetchChanges(UserDataRequest udr, AnalysedSyncCollection collection, Folder folder, 
+			WindowingKey key, SyncKey newSyncKey, WindowingChanges<Email> pendingChanges)
 		throws EmailViewPartsFetcherException {
 		
-		CollectionId collectionId = collection.getCollectionId();
-		MSEmailChanges serverItemChanges = emailChangesFetcher.fetch(udr, collectionId,
-				mappingService.getCollectionPathFor(collectionId), collection.getOptions().getBodyPreferences(), pendingChanges);
+		MailboxPath path = folder.getTypedBackendId();
+		MSEmailChanges serverItemChanges = emailChangesFetcher.fetch(udr, collection.getCollectionId(),
+				path, collection.getOptions().getBodyPreferences(), pendingChanges);
 		
 		return DataDelta.builder()
 				.changes(serverItemChanges.getItemChanges())
@@ -427,18 +322,19 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return ret;
 	}
 
-	private List<ItemChange> fetchItems(UserDataRequest udr, CollectionId collectionId, Collection<Long> uids, 
+	private List<ItemChange> fetchItems(UserDataRequest udr, Folder folder, Collection<Long> uids, 
 			List<BodyPreference> bodyPreferences) throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
-			final Builder<ItemChange> ret = ImmutableList.builder();
-			final String collectionPath = mappingService.getCollectionPathFor(collectionId);
-			final List<UidMSEmail> emails = 
-					msEmailFetcher.fetch(udr, collectionId, collectionPath, uids, bodyPreferences);
+			Builder<ItemChange> ret = ImmutableList.builder();
+			MailboxPath path = folder.getTypedBackendId();
 			
-			for (final UidMSEmail email: emails) {
+			List<UidMSEmail> emails = 
+					msEmailFetcher.fetch(udr, folder.getCollectionId(), path, uids, bodyPreferences);
+			
+			for (UidMSEmail email: emails) {
 				ItemChange ic = ItemChange.builder()
-					.serverId(mappingService.getServerIdFor(collectionId, String.valueOf(email.getUid())))
+					.serverId(mappingService.getServerIdFor(folder.getCollectionId(), String.valueOf(email.getUid())))
 					.data(email)
 					.build();
 				ret.add(ic);
@@ -465,16 +361,16 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				logger.info("delete serverId {}", serverId);
 			}
 			if (serverId != null) {
-				final Long uid = getEmailUidFromServerId(serverId);
-				final String destinationCollectionPath = mappingService.getCollectionPathFor(collectionId);
-
-				CollectionPath wasteBasketPath = getWasteBasketPath(udr);
-				if (trash && !wasteBasketPath.collectionPath().equals(destinationCollectionPath)) {
-					mailboxService.move(udr, destinationCollectionPath, wasteBasketPath.collectionPath(), MessageSet.singleton(uid));
+				Long uid = getEmailUidFromServerId(serverId);
+				Folder sourceFolder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+				MailboxPath sourcePath = sourceFolder.getTypedBackendId();
+				MailboxPath destinationPath = MailboxPath.of(EmailConfiguration.IMAP_TRASH_NAME);
+				if (trash && !destinationPath.equals(sourcePath)) {
+					mailboxService.move(udr, sourcePath, destinationPath, MessageSet.singleton(uid));
 				} else {
-					mailboxService.delete(udr, destinationCollectionPath, MessageSet.singleton(uid));
+					mailboxService.delete(udr, sourcePath, MessageSet.singleton(uid));
 				}
-				expunge(udr, destinationCollectionPath);
+				expunge(udr, sourcePath);
 			}	
 		} catch (MailException e) {
 			throw new ProcessingEmailException(e);
@@ -499,11 +395,12 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		
 		org.obm.push.bean.ms.MSEmail msEmail = (org.obm.push.bean.ms.MSEmail)data;
 		try {
-			String collectionPath = mappingService.getCollectionPathFor(collectionId);
-			logger.info("createOrUpdate( {}, {}, {} )", collectionPath, serverId, clientId);
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			MailboxPath path = folder.getTypedBackendId();
+			logger.info("createOrUpdate( {}, {}, {} )", folder.getBackendId(), serverId, clientId);
 			if (serverId != null) {
 				MessageSet messages = MessageSet.singleton(getEmailUidFromServerId(serverId));
-				mailboxService.updateReadFlag(udr, collectionPath, messages, msEmail.isRead());
+				mailboxService.updateReadFlag(udr, path, messages, msEmail.isRead());
 			}
 			return serverId;
 		} catch (MailException e) {
@@ -516,17 +413,18 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder, ServerId serverId) 
+	public ServerId move(UserDataRequest udr, Folder srcFolder, Folder dstFolder, ServerId serverId) 
 			throws CollectionNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException {
 		
 		try {
-			logger.info("move( messageId =  {}, from = {}, to = {} )", serverId, srcFolder, dstFolder);
-			final Long currentMailUid = getEmailUidFromServerId(serverId);
-			final CollectionId dstFolderId = mappingService.getCollectionIdFor(udr.getDevice(), dstFolder);
-			MessageSet messages = mailboxService.move(udr, srcFolder, dstFolder, MessageSet.singleton(currentMailUid));
+			MailboxPath srcFolderPath = srcFolder.getTypedBackendId();
+			MailboxPath dstFolderPath = dstFolder.getTypedBackendId();
+			logger.info("move( messageId =  {}, from = {}, to = {} )", serverId, srcFolderPath, dstFolderPath);
+			Long currentMailUid = getEmailUidFromServerId(serverId);
+			MessageSet messages = mailboxService.move(udr, srcFolderPath, dstFolderPath, MessageSet.singleton(currentMailUid));
 			if (!messages.isEmpty()) {
-				expunge(udr, srcFolder);
-				return ServerId.of(dstFolderId, Ints.checkedCast(Iterables.getOnlyElement(messages)));	
+				expunge(udr, srcFolderPath);
+				return dstFolder.getCollectionId().serverId(Ints.checkedCast(Iterables.getOnlyElement(messages)));	
 			}
 			throw new ItemNotFoundException("The item to move may not exists anymore");
 		} catch (MailException e) {
@@ -561,25 +459,26 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throws ProcessingEmailException, CollectionNotFoundException, ItemNotFoundException {
 		
 		try {
-			String collectionPath = "";
+			MailboxPath path = null;
 			if (collectionId != null) {
-				collectionPath = mappingService.getCollectionPathFor(collectionId);
+				Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+				path = folder.getTypedBackendId();
 			}
 			
-			if (serverId != null) {
-				collectionId = serverId.getCollectionId();
-				collectionPath = mappingService.getCollectionPathFor(collectionId);
+			if (path == null && serverId != null) {
+				Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), serverId.getCollectionId());
+				path = folder.getTypedBackendId();
 			}
 			
 			Long uid = getEmailUidFromServerId(serverId);
-			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionId, collectionPath, uid);
+			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionId, path, uid);
 
 			if (emailViews.size() > 0) {
 				Message message = mime4jUtils.parseMessage(mailContent);
 				ReplyEmail replyEmail = new ReplyEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message,
 						ImmutableMap.<String, MSAttachementData>of());
 				send(udr, replyEmail, saveInSent);
-				mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));
+				mailboxService.setAnsweredFlag(udr, path, MessageSet.singleton(uid));
 			} else {
 				sendEmail(udr, mailContent, saveInSent);
 			}
@@ -607,10 +506,11 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throws ProcessingEmailException, CollectionNotFoundException {
 		
 		try {
-			String collectionPath = mappingService.getCollectionPathFor(collectionId);
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			MailboxPath path = folder.getTypedBackendId();
 			Long uid = getEmailUidFromServerId(serverId);
 
-			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionId, collectionPath, uid);
+			Map<MSEmailBodyType, EmailView> emailViews = fetchMailInHTMLThenText(udr, collectionId, path, uid);
 			if (emailViews.size() > 0) {
 				Message message = mime4jUtils.parseMessage(mailContent);
 				
@@ -623,7 +523,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 						new ForwardEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message, originalMailAttachments);
 				send(udr, forwardEmail, saveInSent);
 				try{
-					mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));
+					mailboxService.setAnsweredFlag(udr, path, MessageSet.singleton(uid));
 				} catch (Throwable e) {
 					logger.info("Can't set Answered Flag to mail["+uid+"]");
 				}
@@ -650,27 +550,27 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	@VisibleForTesting Map<MSEmailBodyType, EmailView> fetchMailInHTMLThenText(UserDataRequest udr, CollectionId collectionId, 
-			String collectionPath, Long uid) throws EmailViewPartsFetcherException {
+			MailboxPath path, Long uid) throws EmailViewPartsFetcherException {
 		
 		ImmutableMap.Builder<MSEmailBodyType, EmailView> emailViews = ImmutableMap.builder();
 		try {
-			emailViews.put(MSEmailBodyType.HTML, fetchBodyType(udr, collectionId, collectionPath, uid, MSEmailBodyType.HTML));
+			emailViews.put(MSEmailBodyType.HTML, fetchBodyType(udr, collectionId, path, uid, MSEmailBodyType.HTML));
 		} catch (EmailViewBuildException e) {
 			try {
-				emailViews.put(MSEmailBodyType.PlainText, fetchBodyType(udr, collectionId, collectionPath, uid, MSEmailBodyType.PlainText));
+				emailViews.put(MSEmailBodyType.PlainText, fetchBodyType(udr, collectionId, path, uid, MSEmailBodyType.PlainText));
 			} catch (EmailViewBuildException e2) {
 			}
 		}
 		return emailViews.build();
 	}
 
-	private EmailView fetchBodyType(UserDataRequest udr, CollectionId collectionId, String collectionPath, Long uid, MSEmailBodyType bodyType)
+	private EmailView fetchBodyType(UserDataRequest udr, CollectionId collectionId, MailboxPath path, Long uid, MSEmailBodyType bodyType)
 			throws EmailViewPartsFetcherException, EmailViewBuildException {
 		
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
 				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, 
 						ImmutableList.of(BodyPreference.builder().bodyType(bodyType).build()), 
-						udr, collectionPath, collectionId);
+						udr, path, collectionId);
 		return emailViewPartsFetcherImpl.fetch(uid, new StrictMatchBodyPreferencePolicy());
 	}
 	
@@ -777,11 +677,12 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	@Override
 	public UidMSEmail getEmail(UserDataRequest udr, CollectionId collectionId, ServerId serverId) throws CollectionNotFoundException, ProcessingEmailException {
 		try {
-			String collectionName = mappingService.getCollectionPathFor(collectionId);
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			MailboxPath path = folder.getTypedBackendId();
 			Long uid = getEmailUidFromServerId(serverId);
 			Set<Long> uids = new HashSet<Long>();
 			uids.add(uid);
-			List<UidMSEmail> emails = msEmailFetcher.fetch(udr, collectionId, collectionName, uids, null);
+			List<UidMSEmail> emails = msEmailFetcher.fetch(udr, collectionId, path, uids, null);
 			if (emails.size() > 0) {
 				return emails.get(0);
 			}
@@ -816,9 +717,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 	
 	private org.obm.icalendar.ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, Long uid) throws DaoException, EmailViewPartsFetcherException {
-		
-		final String collectionPath = mappingService.getCollectionPathFor(collectionId);
-		return msEmailFetcher.fetchInvitation(udr, collectionId, collectionPath, uid);
+
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		MailboxPath path = folder.getTypedBackendId();
+		return msEmailFetcher.fetchInvitation(udr, collectionId, path, uid);
 	}
 
 	@Override
@@ -843,9 +745,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 						+ "] [contentTransferEncoding"
 						+ contentTransferEncoding + "]");
 
-				String collectionName = mappingService.getCollectionPathFor(CollectionId.of(collectionId));
+				Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), CollectionId.of(collectionId));
+				MailboxPath path = folder.getTypedBackendId();
 				InputStream is = mailboxService.findAttachment(udr,
-						collectionName, Long.parseLong(messageId),
+						path, Long.parseLong(messageId),
 						new MimeAddress(mimePartAddress));
 
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -881,19 +784,18 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public void emptyFolderContent(UserDataRequest udr, String collectionPath,
-			boolean deleteSubFolder) throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException {
+	public void emptyFolderContent(UserDataRequest udr, Folder folder, boolean deleteSubFolder)
+			throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
-			CollectionPath wasteBasketPath = getWasteBasketPath(udr);
-			if (!wasteBasketPath.collectionPath().equals(collectionPath)) {
+			MailboxPath wasteBasketPath = MailboxPath.of(EmailConfiguration.IMAP_TRASH_NAME);
+			if (!folder.getBackendId().equals(wasteBasketPath)) {
 				throw new NotAllowedException(
 						"Only the Trash folder can be purged.");
 			}
 			final Integer devDbId = udr.getDevice().getDatabaseId();
-			CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath);
-			mailboxService.purgeFolder(udr, devDbId, collectionPath, collectionId);
-			expunge(udr, collectionPath);
+			mailboxService.purgeFolder(udr, devDbId, wasteBasketPath);
+			expunge(udr, wasteBasketPath);
 			if (deleteSubFolder) {
 				logger.warn("deleteSubFolder isn't implemented because opush doesn't yet manage folders");
 			}	
@@ -906,9 +808,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		}
 	}
 
-	private void expunge(UserDataRequest udr, String collectionPath) {
+	private void expunge(UserDataRequest udr, MailboxPath path) {
 		if (ExpungePolicy.NEVER != emailConfiguration.expungePolicy()) {
-			mailboxService.expunge(udr, collectionPath);
+			mailboxService.expunge(udr, path);
 		}
 	}
 	
@@ -928,13 +830,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		
 		LinkedList<ItemChange> fetchs = new LinkedList<ItemChange>();
 		Map<CollectionId, Collection<Long>> emailUids = getEmailUidByCollectionId(itemIds);
-		for (Entry<CollectionId, Collection<Long>> entry : emailUids.entrySet()) {
-			Collection<Long> uids = entry.getValue();
-			try {
-				fetchs.addAll(fetchItems(udr, collectionId, uids, collectionOptions.getBodyPreferences()));
-			} catch (CollectionNotFoundException e) {
-				logger.error("fetchItems : collection {} not found !", collectionId);
+		try {
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			for (Entry<CollectionId, Collection<Long>> entry : emailUids.entrySet()) {
+				Collection<Long> uids = entry.getValue();
+				fetchs.addAll(fetchItems(udr, folder, uids, collectionOptions.getBodyPreferences()));
 			}
+		} catch (CollectionNotFoundException e) {
+			logger.error("fetchItems : collection {} not found !", collectionId);
 		}
 		return fetchs;
 	}

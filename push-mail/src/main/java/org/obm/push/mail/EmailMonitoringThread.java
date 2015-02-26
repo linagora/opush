@@ -34,6 +34,7 @@ package org.obm.push.mail;
 import org.obm.push.backend.MonitoringService;
 import org.obm.push.backend.PushMonitoringManager;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.ImapTimeoutException;
 import org.obm.push.exception.MailException;
 import org.obm.push.exception.activesync.TimeoutException;
@@ -90,7 +91,7 @@ public class EmailMonitoringThread implements MonitoringService {
 	 */
 	protected MailboxService emailManager;
 	private final UserDataRequest udr;
-	private final String collectionPath;
+	private final MailboxPath path;
 	private Boolean remainConnected;  
 	private IdleClient store;
 	private final LinagoraImapClientProvider imapClientProvider;
@@ -100,16 +101,16 @@ public class EmailMonitoringThread implements MonitoringService {
 	public EmailMonitoringThread(
 			PushMonitoringManager pushMonitorManager,
 			UserDataRequest udr,
-			String collectionPath, MailboxService emailManager, 
+			MailboxPath path, MailboxService emailManager, 
 			LinagoraImapClientProvider imapClientProvider) throws MailException {
 		
 		this.pushMonitorManager = pushMonitorManager;
-		this.collectionPath = collectionPath;
+		this.path = path;
 		this.imapClientProvider = imapClientProvider;
 		this.remainConnected = false;
 		this.emailManager = emailManager;
 		this.udr = udr;
-		mailBoxName = emailManager.parseMailBoxName(udr, collectionPath);
+		mailBoxName = emailManager.parseMailBoxName(udr, path);
 	}
 
 	public synchronized void startIdle() throws IMAPException, ImapTimeoutException {
@@ -120,7 +121,7 @@ public class EmailMonitoringThread implements MonitoringService {
 			store.startIdle(new Callback());
 		}
 		remainConnected = true;
-		logger.info("Start monitoring for collection : '{}'", collectionPath);
+		logger.info("Start monitoring for collection : '{}'", path);
 	}
 	
 	public synchronized void stopIdle() {
@@ -131,7 +132,7 @@ public class EmailMonitoringThread implements MonitoringService {
 				store = null;
 			}
 			remainConnected = false;
-			logger.info("Stop monitoring for collection : '{}'", collectionPath);
+			logger.info("Stop monitoring for collection : '{}'", path);
 		} catch (ImapTimeoutException e) {
 			throw new TimeoutException(e);
 		}

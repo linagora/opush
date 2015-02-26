@@ -61,12 +61,17 @@ import org.obm.push.OpushServer;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemChangesBuilder;
 import org.obm.push.bean.ms.MSEmail;
@@ -74,6 +79,8 @@ import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
@@ -81,7 +88,8 @@ import org.obm.push.utils.SerializableInputStream;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
@@ -109,6 +117,7 @@ public class MailBackendHandlerTest {
 	@Inject private IContentsExporter contentsExporter;
 	@Inject private CollectionDao collectionDao;
 	@Inject private ItemTrackingDao itemTrackingDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	
 	private ServerSetup smtpServerSetup;
 	private String mailbox;
@@ -116,6 +125,9 @@ public class MailBackendHandlerTest {
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private CloseableHttpClient httpClient;
+	private MailboxPath inboxPath;
+	private CollectionId inboxCollectionId;
+	private Folder inboxFolder;
 
 	@Before
 	public void init() throws Exception {
@@ -129,6 +141,20 @@ public class MailBackendHandlerTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
+		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
+		inboxCollectionId = CollectionId.of(1234);
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
+		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
 
@@ -201,19 +227,13 @@ public class MailBackendHandlerTest {
 	}
 	
 	private void mockCollectionDao(CollectionId serverId, ItemSyncState syncState) throws Exception {
-		expect(collectionDao.getCollectionPath(serverId))
-			.andReturn(testUtils.buildEmailInboxCollectionPath(users.jaures)).anyTimes();
-		
 		expect(collectionDao.findItemStateForKey(anyObject(SyncKey.class)))
 			.andReturn(syncState).anyTimes();
 		
 		expect(collectionDao.updateState(eq(user.device), eq(serverId), anyObject(SyncKey.class), anyObject(Date.class)))
 			.andReturn(syncState).anyTimes();
 		
-		expect(collectionDao.getCollectionMapping(eq(user.device), anyObject(String.class)))
-			.andReturn(serverId).anyTimes();
-		
-		testUtils.expectUserCollectionsNeverChange(users.jaures, ImmutableList.of(serverId));
+		testUtils.expectUserCollectionsNeverChange();
 	}
 
 	private void mockItemTrackingDao() throws Exception {

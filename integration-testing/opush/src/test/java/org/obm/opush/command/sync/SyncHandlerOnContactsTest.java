@@ -59,6 +59,7 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.PIMDataType;
@@ -69,12 +70,17 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.sync.base.EmailAddress;
 import org.obm.sync.book.AddressBook;
@@ -85,6 +91,7 @@ import org.obm.sync.items.ContactChanges;
 import org.obm.sync.push.client.WBXMLOPClient;
 import org.obm.sync.push.client.commands.Sync;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -108,13 +115,14 @@ public class SyncHandlerOnContactsTest {
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private SyncTestUtils syncTestUtils;
 	@Inject private ItemTrackingDao itemTrackingDao;
-	@Inject private CollectionDao collectionDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private BookClient bookClient;
 	@Inject private DateService dateService;
 
 	private OpushUser user;
-	private String contactCollectionPath;
 	private CollectionId contactCollectionId;
+	private AddressBookId contactBook;
+	private Folder contactFolder;
 
 	private CloseableHttpClient httpClient;
 
@@ -125,9 +133,18 @@ public class SyncHandlerOnContactsTest {
 		user = users.jaures;
 
 		contactCollectionId = CollectionId.of(7891);
-		contactCollectionPath = testUtils.buildContactCollectionPath(user, contactCollectionId);
-		
-		expect(collectionDao.getCollectionPath(contactCollectionId)).andReturn(contactCollectionPath).anyTimes();
+		contactBook = AddressBookId.of(5);
+		contactFolder = Folder.builder()
+				.backendId(contactBook)
+				.collectionId(contactCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("book")
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build();
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(contactFolder)));
 		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
@@ -184,18 +201,8 @@ public class SyncHandlerOnContactsTest {
 		
 		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
-
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -270,17 +277,7 @@ public class SyncHandlerOnContactsTest {
 		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		// first sync
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -304,28 +301,18 @@ public class SyncHandlerOnContactsTest {
 		createdContact.setLastname("lastname");
 		createdContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId).times(2);
-		
 		Contact storedContact = new Contact();
 		storedContact.setFirstname("firstname");
 		storedContact.setLastname("lastname");
 		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		storedContact.setUid(uid);
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), createdContact, hashedClientId))
+		expect(bookClient.storeContact(user.accessToken, contactBook.getId(), createdContact, hashedClientId))
 			.andReturn(storedContact);
 		
 		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(storedContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -404,17 +391,7 @@ public class SyncHandlerOnContactsTest {
 		expectLastCall().once();
 
 		// first sync
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -434,23 +411,13 @@ public class SyncHandlerOnContactsTest {
 		modifiedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		modifiedContact.setPhones(ImmutableMap.of("HOME;FAX;X-OBM-Ref1", new Phone("4567")));
 		
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId).times(2);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
 		String clientId = null;
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), modifiedContact, clientId))
+		expect(bookClient.storeContact(user.accessToken, contactBook.getId(), modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
@@ -528,17 +495,7 @@ public class SyncHandlerOnContactsTest {
 		expectLastCall().once();
 
 		// first sync
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -556,23 +513,13 @@ public class SyncHandlerOnContactsTest {
 		modifiedContact.setLastname("lastname");
 		modifiedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 		
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build())).times(2);
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId).times(2);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
 					syncDate));
 		
 		String clientId = null;
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), modifiedContact, clientId))
+		expect(bookClient.storeContact(user.accessToken, contactBook.getId(), modifiedContact, clientId))
 			.andReturn(modifiedContact);
 		
 		mocksControl.replay();
@@ -651,17 +598,7 @@ public class SyncHandlerOnContactsTest {
 		itemTrackingDao.markAsSynced(thirdAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall();
 
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
-		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(initialContact),
 					ImmutableSet.<Integer> of(),
 					syncDate));
@@ -772,13 +709,11 @@ public class SyncHandlerOnContactsTest {
 		expect(bookClient.listAllBooks(user.accessToken))
 			.andReturn(ImmutableList.<AddressBook> of(AddressBook.builder()
 					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
+					.uid(AddressBook.Id.valueOf(contactBook.getId()))
 					.readOnly(false)
 					.build())).anyTimes();
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId).anyTimes();
 		
-		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactCollectionId.asInt()))
+		expect(bookClient.listContactsChanged(user.accessToken, syncDate, contactBook.getId()))
 			.andReturn(new ContactChanges(
 					ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),
@@ -801,8 +736,8 @@ public class SyncHandlerOnContactsTest {
 		storedContact.setLastname("lastname");
 		storedContact.setEmails(ImmutableMap.of("INTERNET;X-OBM-Ref1", EmailAddress.loginAtDomain("contact@mydomain.org")));
 
-		expect(bookClient.getContactFromId(user.accessToken, contactCollectionId.asInt(), serverId.getItemId())).andReturn(storedContact);
-		expect(bookClient.storeContact(user.accessToken, contactCollectionId.asInt(), convertedContact, hashedClientId1))
+		expect(bookClient.getContactFromId(user.accessToken, contactBook.getId(), serverId.getItemId())).andReturn(storedContact);
+		expect(bookClient.storeContact(user.accessToken, contactBook.getId(), convertedContact, hashedClientId1))
 			.andReturn(storedContact);
 		
 		mocksControl.replay();

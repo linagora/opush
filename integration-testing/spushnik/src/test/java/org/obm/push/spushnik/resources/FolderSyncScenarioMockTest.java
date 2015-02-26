@@ -54,7 +54,6 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.User;
 import org.obm.push.spushnik.SpushnikScenarioTestUtils;
 import org.obm.push.spushnik.bean.CheckResult;
@@ -62,7 +61,6 @@ import org.obm.push.spushnik.bean.CheckStatus;
 import org.obm.push.spushnik.bean.Credentials;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.state.FolderSyncKeyFactory;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 
@@ -81,7 +79,6 @@ public class FolderSyncScenarioMockTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private DeviceDao deviceDao;
-	@Inject private CollectionDao collectionDao;
 	@Inject private SpushnikScenarioTestUtils spushnikScenarioTestUtils;
 	@Inject private FolderSyncKeyFactory folderSyncKeyFactory;
 	
@@ -150,12 +147,6 @@ public class FolderSyncScenarioMockTest {
 		FolderSyncKey syncKey = new FolderSyncKey("123");
 		expect(folderSyncKeyFactory.randomSyncKey())
 			.andReturn(syncKey).once();
-		FolderSyncState syncState = FolderSyncState.builder()
-				.syncKey(syncKey)
-				.id(1)
-				.build();
-		expect(collectionDao.allocateNewFolderSyncState(device, syncKey))
-			.andReturn(syncState).once();
 		
 		mocksControl.replay();
 		opushServer.start();

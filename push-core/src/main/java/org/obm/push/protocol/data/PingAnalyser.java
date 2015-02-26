@@ -34,10 +34,10 @@ package org.obm.push.protocol.data;
 import java.util.Set;
 
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
@@ -45,8 +45,8 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.PingRequest;
 import org.obm.push.protocol.bean.SyncCollection;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.MonitoredCollectionDao;
 
@@ -61,22 +61,23 @@ public class PingAnalyser {
 
 	protected static final long MIN_SANE_HEARTBEAT_VALUE = 5L;
 	
-	private final CollectionDao collectionDao;
 	private final HeartbeatDao heartbeatDao;
 	private final MonitoredCollectionDao monitoredCollectionDao;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final StateMachine stateMachine;
+	private final FolderSnapshotDao folderSnapshotDao;
 	private final OpushConfiguration configuration;
 
 	@Inject
-	protected PingAnalyser(CollectionDao collectionDao, HeartbeatDao heartbeatDao, MonitoredCollectionDao monitoredCollectionDao,
-			ICollectionPathHelper collectionPathHelper, StateMachine stateMachine, OpushConfiguration configuration) {
+	protected PingAnalyser(HeartbeatDao heartbeatDao,
+			MonitoredCollectionDao monitoredCollectionDao,
+			StateMachine stateMachine,
+			FolderSnapshotDao folderSnapshotDao,
+			OpushConfiguration configuration) {
 		
-		this.collectionDao = collectionDao;
 		this.heartbeatDao = heartbeatDao;
 		this.monitoredCollectionDao = monitoredCollectionDao;
-		this.collectionPathHelper = collectionPathHelper;
 		this.stateMachine = stateMachine;
+		this.folderSnapshotDao = folderSnapshotDao;
 		this.configuration = configuration;
 	}
 
@@ -128,17 +129,16 @@ public class PingAnalyser {
 	private Set<AnalysedSyncCollection> loadSyncKeys(UserDataRequest udr, Set<SyncCollection> syncCollections) {
 		Set<AnalysedSyncCollection> analysedSyncCollections = Sets.newHashSet();
 		for (SyncCollection collection: syncCollections) {
-			String collectionPath = collectionDao.getCollectionPath(collection.getCollectionId());
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collection.getCollectionId());
 			
 			AnalysedSyncCollection.Builder syncCollectionRequestBuilder = AnalysedSyncCollection.builder()
-					.dataType(collection.getDataType())
 					.syncKey(collection.getSyncKey())
 					.collectionId(collection.getCollectionId())
 					.deletesAsMoves(collection.getDeletesAsMoves())
 					.changes(collection.isChanges())
 					.options(collection.getOptions())
-					.collectionPath(collectionPath)
-					.dataType(collectionPathHelper.recognizePIMDataType(collectionPath));
+					.dataType(folder.getFolderType().getPIMDataType());
+
 			
 			Optional<Integer> windowSize = collection.getWindowSize();
 			if (windowSize.isPresent()) {

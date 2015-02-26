@@ -35,7 +35,6 @@ import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.GetItemEstimateStatus;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -43,7 +42,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingKey;
-import org.obm.push.exception.CollectionPathException;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
@@ -61,8 +60,8 @@ import org.obm.push.protocol.bean.Estimate;
 import org.obm.push.protocol.bean.GetItemEstimateRequest;
 import org.obm.push.protocol.bean.GetItemEstimateResponse;
 import org.obm.push.protocol.request.ActiveSyncRequest;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.StateMachine;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.WindowingDao;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
@@ -76,26 +75,27 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 
 	private final WindowingDao windowingDao;
 	private final GetItemEstimateProtocol protocol;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final IContentsExporter contentsExporter;
 	private final StateMachine stMachine;
-	private final CollectionDao collectionDao;
+	private final FolderSnapshotDao folderSnapshotDao;
 
 	@Inject
 	protected GetItemEstimateHandler(
-			IContentsExporter contentsExporter, StateMachine stMachine,
-			WindowingDao windowingDao, CollectionDao collectionDao,
-			GetItemEstimateProtocol protocol, WBXMLTools wbxmlTools, DOMDumper domDumper,
-			ICollectionPathHelper collectionPathHelper) {
+			IContentsExporter contentsExporter, 
+			StateMachine stMachine,
+			WindowingDao windowingDao, 
+			GetItemEstimateProtocol protocol, 
+			WBXMLTools wbxmlTools, 
+			DOMDumper domDumper,
+			FolderSnapshotDao folderSnapshotDao) {
 		
 		super(wbxmlTools, domDumper);
 		
 		this.contentsExporter = contentsExporter;
 		this.stMachine = stMachine;
 		this.windowingDao = windowingDao;
-		this.collectionDao = collectionDao;
 		this.protocol = protocol;
-		this.collectionPathHelper = collectionPathHelper;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 
 	@Override
@@ -150,17 +150,13 @@ public class GetItemEstimateHandler extends WbxmlRequestHandler {
 		for (AnalysedSyncCollection syncCollection: request.getSyncCollections()) {
 			
 			CollectionId collectionId = syncCollection.getCollectionId();
-			String collectionPath = collectionDao.getCollectionPath(collectionId);
-			try {
-				PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-				SyncCollectionResponse.Builder builder = SyncCollectionResponse.builder()
-						.collectionId(collectionId)
-						.dataType(dataType)
-						.status(SyncStatus.OK);
-				getItemEstimateResponseBuilder.add(computeEstimate(udr, syncCollection, dataType, builder));
-			} catch (CollectionPathException e) {
-				throw new CollectionNotFoundException("Collection path {" + collectionPath + "} not found.");
-			}			
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			PIMDataType dataType = folder.getFolderType().getPIMDataType();
+			SyncCollectionResponse.Builder builder = SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.dataType(dataType)
+					.status(SyncStatus.OK);
+			getItemEstimateResponseBuilder.add(computeEstimate(udr, syncCollection, dataType, builder));
 		}
 		
 		return getItemEstimateResponseBuilder.build();

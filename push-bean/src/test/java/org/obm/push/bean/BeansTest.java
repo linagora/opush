@@ -123,7 +123,6 @@ public class BeansTest {
 					.add(DeviceId.class)
 					.add(SyncKey.class)
 					.add(SyncKeysKey.class)
-					.add(FolderSyncState.class)
 					.add(MoveItem.class)
 					.add(SyncClientCommands.class)
 					.add(SyncClientCommands.Add.class)

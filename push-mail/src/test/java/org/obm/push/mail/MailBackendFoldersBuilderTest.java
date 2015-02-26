@@ -192,6 +192,40 @@ public class MailBackendFoldersBuilderTest {
 				.build()
 		);
 	}
+
+	@Test
+	public void buildShouldReturnRightParentIsWhenSubMailboxUnordered() {
+		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
+			new MailboxFolder("test/sub", DEFAULT_SEPARATOR),
+			new MailboxFolder("test", DEFAULT_SEPARATOR),
+			new MailboxFolder("test/sub2", DEFAULT_SEPARATOR)
+		));
+
+		BackendFolders backendFolders = new MailBackendFoldersBuilder()
+			.addFolders(folders)
+			.build();
+		
+		assertThat(backendFolders).containsOnly(
+			BackendFolder.builder()
+				.backendId(MailboxPath.of("test", DEFAULT_SEPARATOR))
+				.displayName("test")
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.parentId(Optional.<BackendId>absent())
+				.build(),
+			BackendFolder.builder()
+				.backendId(MailboxPath.of("test/sub", DEFAULT_SEPARATOR))
+				.displayName("test/sub")
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.parentId(Optional.<BackendId>of(MailboxPath.of("test", DEFAULT_SEPARATOR)))
+				.build(),
+			BackendFolder.builder()
+				.backendId(MailboxPath.of("test/sub2", DEFAULT_SEPARATOR))
+				.displayName("test/sub2")
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.parentId(Optional.<BackendId>of(MailboxPath.of("test", DEFAULT_SEPARATOR)))
+				.build()
+		);
+	}
 	
 	@Test
 	public void buildShouldReturnRightParentIsWhenSubMailbox() {

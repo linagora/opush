@@ -41,7 +41,6 @@ import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
@@ -50,12 +49,11 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
@@ -108,7 +106,7 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+	public ServerId move(UserDataRequest udr, Folder srcFolder, Folder dstFolder,
 			ServerId serverId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
@@ -122,22 +120,12 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public void emptyFolderContent(UserDataRequest udr, String collectionPath,
+	public void emptyFolderContent(UserDataRequest udr, Folder folder,
 			boolean deleteSubFolder) throws NotAllowedException {
 	}
 
 	@Override
-	public HierarchyCollectionChanges getHierarchyChanges(
-			UserDataRequest userDataRequest, FolderSyncState lastKnownState,
-			FolderSyncState outgoingSyncState) throws DaoException {
-		
-		return HierarchyCollectionChanges.builder().build();
-	}
-
-	@Override
-	public BackendFolders getBackendFolders(UserDataRequest udr)
-			throws DaoException, InvalidSyncKeyException {
-		
+	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		return BackendFolders.EMPTY.instance();
 	}
 	

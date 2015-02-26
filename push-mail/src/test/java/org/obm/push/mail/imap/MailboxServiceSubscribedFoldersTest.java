@@ -42,7 +42,6 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.configuration.OpushEmailConfiguration;
@@ -61,7 +60,6 @@ import com.icegreen.greenmail.util.GreenMail;
 public class MailboxServiceSubscribedFoldersTest {
 
 	@Inject MailboxService mailboxService;
-	@Inject ICollectionPathHelper collectionPathHelper;
 
 	@Inject GreenMail greenMail;
 	@Inject ResourcesHolder resourcesHolder;
@@ -82,7 +80,7 @@ public class MailboxServiceSubscribedFoldersTest {
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
-		testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, collectionPathHelper,
+		testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest,
 				greenMail.getSmtp().getServerSetup());
 	}
 	

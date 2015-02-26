@@ -44,7 +44,6 @@ import org.obm.push.exception.DaoException;
 import org.obm.push.service.PushNotification;
 import org.obm.push.service.PushPublishAndSubscribe;
 import org.obm.push.state.IStateMachine;
-import org.obm.push.store.CollectionDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +52,6 @@ import com.google.common.collect.ImmutableSet;
 public abstract class MonitoringThread implements Runnable {
 	
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
-	protected final CollectionDao collectionDao;
 	private final Set<ICollectionChangeListener> ccls;
 	private final long freqMillisec;
 	private final PushPublishAndSubscribe pushPublishAndSubscribe;
@@ -63,7 +61,7 @@ public abstract class MonitoringThread implements Runnable {
 	
 	protected MonitoringThread(long freqMillisec,
 			Set<ICollectionChangeListener> ccls,
-			CollectionDao collectionDao, PIMBackend backend,
+			PIMBackend backend,
 			PushPublishAndSubscribe.Factory pubSubFactory, IContentsExporter contentsExporter,
 			IStateMachine stateMachine) {
 		super();
@@ -72,7 +70,6 @@ public abstract class MonitoringThread implements Runnable {
 		this.freqMillisec = freqMillisec;
 		this.stopped = false;
 		this.ccls = ccls;
-		this.collectionDao = collectionDao;
 	}
 	
 	@Override

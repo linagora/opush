@@ -61,10 +61,12 @@ public abstract class ItemTrackingDaoTest {
 	@Inject protected ItemTrackingDao itemTrackingDao;
 	
 	private Device device;
-
+	private CollectionId colId;
+	
 	@Before
 	public void setUp() {
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), ProtocolVersion.V121);
+		colId = CollectionId.of(5);
 	}
 	
 	@Test(expected=DaoException.class)
@@ -79,7 +81,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSynced() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -89,7 +90,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithSyncedAndWrongServerId() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -99,7 +99,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithSyncedAndWrongState() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -115,7 +114,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedTwice() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -136,7 +134,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeleted() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -146,7 +143,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithDeletedAndWrongServerId() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -156,7 +152,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testServerIdSyncedWithDeletedAndWrongState() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -171,7 +166,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedTwice() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -182,7 +176,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedThenAsDeletedWithSameStateReturnsSynced() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsSynced(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -193,7 +186,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsSyncedThenAsDeletedWithOtherStateDependsOnLastSyncDate() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
 		itemTrackingDao.markAsSynced(stateSynced, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));
@@ -208,7 +200,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedThenAsSyncedWithSameStateReturnsDeleted() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState state = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-15T11:15:10Z"));
 		
 		itemTrackingDao.markAsDeleted(state, ImmutableSet.of(ServerId.of("9:1")));
@@ -219,7 +210,6 @@ public abstract class ItemTrackingDaoTest {
 	
 	@Test
 	public void testMarkAsDeletedThenAsSyncedWithOtherStateDependsOnLastSyncDate() {
-		CollectionId colId = collectionDao.addCollectionMapping(device, "collection");
 		ItemSyncState stateDeleted = collectionDao.updateState(device, colId, new SyncKey("123"), dateUTC("2005-10-17T11:15:10Z"));
 		itemTrackingDao.markAsDeleted(stateDeleted, ImmutableSet.of(ServerId.of("9:1")));
 		ItemSyncState stateSynced = collectionDao.updateState(device, colId, new SyncKey("456"), dateUTC("2005-10-15T11:15:10Z"));

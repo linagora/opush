@@ -32,7 +32,6 @@
 package org.obm.opush;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
@@ -50,27 +49,29 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.GetItemEstimateStatus;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MeetingResponseStatus;
 import org.obm.push.bean.MoveItemsStatus;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.DaoException;
@@ -85,7 +86,6 @@ import org.obm.push.service.DateService;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.task.TaskBackend;
 import org.obm.push.utils.DateUtils;
@@ -95,6 +95,8 @@ import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 import org.obm.sync.push.client.commands.MoveItemsCommand.Move;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -117,7 +119,6 @@ public class MailBackendImapTimeoutTest {
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private CollectionDao collectionDao;
-	@Inject private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
 	@Inject private HeartbeatDao heartbeatDao;
 	@Inject private DateService dateService;
 	@Inject private IntegrationTestUtils testUtils;
@@ -129,10 +130,10 @@ public class MailBackendImapTimeoutTest {
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private String mailbox;
-	private String inboxCollectionPath;
 	private CollectionId inboxCollectionId;
-	private String trashCollectionPath;
 	private CollectionId trashCollectionId;
+	private Folder inboxFolder;
+	private Folder trashFolder;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -146,19 +147,24 @@ public class MailBackendImapTimeoutTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
 		inboxCollectionId = CollectionId.of(1234);
-		trashCollectionPath = testUtils.buildEmailTrashCollectionPath(user);
 		trashCollectionId = CollectionId.of(1645);
+		inboxFolder = Folder.builder()
+			.collectionId(inboxCollectionId)
+			.backendId(MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.displayName(EmailConfiguration.IMAP_INBOX_NAME)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
+		trashFolder = Folder.builder()
+			.collectionId(trashCollectionId)
+			.backendId(MailboxPath.of(EmailConfiguration.IMAP_TRASH_NAME))
+			.displayName(EmailConfiguration.IMAP_TRASH_NAME)
+			.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
 		
-		bindCollectionIdToPath();
-
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
-	}
-
-	private void bindCollectionIdToPath() throws Exception {
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
-		expect(collectionDao.getCollectionPath(trashCollectionId)).andReturn(trashCollectionPath).anyTimes();
 	}
 
 	@After
@@ -176,6 +182,10 @@ public class MailBackendImapTimeoutTest {
 		SyncKey secondAllocatedSyncKey = new SyncKey("c8c5f1ba-abec-429c-9742-14e50f613060");
 		int allocatedStateId = 3;
 		int allocatedStateId2 = 4;
+		
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(user.user, user.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 		
 		userAccessUtils.mockUsersAccess(user);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
@@ -211,45 +221,18 @@ public class MailBackendImapTimeoutTest {
 	@Test
 	public void testFolderSyncHandler() throws Exception {
 		FolderSyncKey syncKey = new FolderSyncKey("cf32d2cb-2f09-425b-b840-bee03c1dd18e");
-		FolderSyncKey secondSyncKey = new FolderSyncKey("768380e9-c6d5-45c1-baaa-19c7405daffb");
 		folderSnapshotDao.create(user.user, user.device, syncKey, FolderSnapshot.empty());
-		int stateId = 3;
-		int stateId2 = 4;
 		
 		userAccessUtils.mockUsersAccess(user);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(syncKey);
 		
-		FolderSyncState folderSyncState = FolderSyncState.builder()
-				.syncKey(syncKey)
-				.id(stateId)
-				.build();
-		FolderSyncState secondFolderSyncState = FolderSyncState.builder()
-				.syncKey(secondSyncKey)
-				.id(stateId2)
-				.build();
-		
-		expect(collectionDao.allocateNewFolderSyncState(user.device, syncKey))
-			.andReturn(secondFolderSyncState).anyTimes();
-		expect(collectionDao.allocateNewFolderSyncState(user.device, secondSyncKey))
-			.andReturn(secondFolderSyncState).anyTimes();
-		
 		UserDataRequest udr = new UserDataRequest(user.credentials, "FolderSync", user.device);
-		expect(contactsBackend.getHierarchyChanges(udr, folderSyncState, secondFolderSyncState))
-			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
-		expect(taskBackend.getHierarchyChanges(udr, folderSyncState, secondFolderSyncState))
-			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
-		expect(calendarBackend.getHierarchyChanges(udr, folderSyncState, secondFolderSyncState))
-			.andReturn(HierarchyCollectionChanges.builder().build()).anyTimes();
-
-		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+		expect(contactsBackend.getBackendFolders(udr))
 			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
-		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+		expect(calendarBackend.getBackendFolders(udr))
 			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
-		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
+		expect(taskBackend.getBackendFolders(udr))
 			.andReturn(BackendFolders.EMPTY.instance()).anyTimes();
-		
-		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), anyObject(FolderSyncState.class));
-		expectLastCall().anyTimes();
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -266,6 +249,10 @@ public class MailBackendImapTimeoutTest {
 	public void testGetItemEstimateHandler() throws Exception {
 		SyncKey syncKey = new SyncKey("a7a6b55c-71d2-4754-98df-af6465a91481");
 		int stateId = 3;
+
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(user.user, user.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 		
 		userAccessUtils.mockUsersAccess(user);
 		
@@ -295,6 +282,10 @@ public class MailBackendImapTimeoutTest {
 	@Test
 	public void testItemOperationsHandler() throws Exception {
 		userAccessUtils.mockUsersAccess(user);
+
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(user.user, user.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -310,6 +301,10 @@ public class MailBackendImapTimeoutTest {
 	@Test
 	public void testMeetingResponseHandler() throws Exception {
 		userAccessUtils.mockUsersAccess(user);
+
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(user.user, user.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -326,8 +321,9 @@ public class MailBackendImapTimeoutTest {
 	public void testMoveItemsHandler() throws Exception {
 		userAccessUtils.mockUsersAccess(user);
 
-		expect(collectionDao.getCollectionMapping(user.device, trashCollectionPath))
-			.andReturn(trashCollectionId).anyTimes();
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(user.user, user.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder, trashFolder)));
 		
 		mocksControl.replay();
 		opushServer.start();

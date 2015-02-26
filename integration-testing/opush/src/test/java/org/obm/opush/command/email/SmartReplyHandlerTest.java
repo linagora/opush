@@ -58,14 +58,22 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ServerId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.sync.client.user.UserClient;
 import org.obm.sync.date.DateProvider;
 import org.obm.sync.push.client.OPClient;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.store.SimpleStoredMessage;
@@ -86,13 +94,14 @@ public class SmartReplyHandlerTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private CollectionDao collectionDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private UserClient userClient;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
-	private String inboxCollectionPath;
+	private MailboxPath inboxPath;
 	private CollectionId inboxCollectionId;
+	private Folder folder;
 	private MailFolder inboxFolder;
 	private MailFolder sentFolder;
 	private ServerId serverId;
@@ -108,12 +117,22 @@ public class SmartReplyHandlerTest {
 		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
 		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
 		
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
-		inboxCollectionId = CollectionId.of(1);
+		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
+		inboxCollectionId = CollectionId.of(1234);
+		folder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
 		serverId = inboxCollectionId.serverId(1);
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
 		
 		userAccessUtils.mockUsersAccess(user);
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
 		expect(userClient.getUserEmail(user.accessToken)).andReturn(user.user.getLoginAtDomain()).anyTimes();
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration").anyTimes();
 	}

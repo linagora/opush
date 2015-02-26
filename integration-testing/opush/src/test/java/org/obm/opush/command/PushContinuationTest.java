@@ -54,6 +54,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.IntegrationTestUtils;
@@ -68,22 +69,31 @@ import org.obm.push.backend.DataDelta;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.push.client.OPClient;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
@@ -103,6 +113,7 @@ public class PushContinuationTest {
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private HeartbeatDao heartbeatDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private MailBackend mailBackend;
 	
 	private static final SyncKey INCOMING_SYNC_KEY = new SyncKey("132");
@@ -112,6 +123,8 @@ public class PushContinuationTest {
 	
 	private OpushUser user;
 	private CollectionId inboxCollectionId;
+	private MailboxPath inboxPath;
+	private Folder inboxFolder;
 	
 	private final static int TIMEOUT_IN_SECONDS = 15;
 	private ExecutorService threadpool;
@@ -127,7 +140,19 @@ public class PushContinuationTest {
 		
 		user = users.jaures;
 		inboxCollectionId = CollectionId.of(1234);
+		inboxPath = MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME);
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
 
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
+		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
 	
@@ -168,8 +193,6 @@ public class PushContinuationTest {
 	private void expectSyncWithoutChanges() {
 		Credentials credentials = new Credentials(user.user, user.password);
 		
-		expect(collectionDao.getCollectionPath(inboxCollectionId))
-			.andReturn("obm:\\\\" + user.user.getLoginAtDomain() + "\\email\\INBOX").anyTimes();
 		ItemSyncState itemSyncState = ItemSyncState.builder()
 				.syncKey(INCOMING_SYNC_KEY)
 				.syncDate(DateUtils.getCurrentDate())

@@ -33,22 +33,15 @@ package org.obm.push.mail.exception;
 
 import org.obm.push.bean.FilterType;
 import org.obm.push.exception.activesync.ActiveSyncException;
-import org.obm.push.protocol.bean.CollectionId;
 
 public class FilterTypeChangedException extends ActiveSyncException {
 	
-	private final CollectionId collectionId;
-
-	public FilterTypeChangedException(CollectionId collectionId, FilterType first, FilterType second) {
+	public FilterTypeChangedException(FilterType first, FilterType second) {
 		super(buildMessage(first, second));
-		this.collectionId = collectionId;
 	}
 	
 	private static String buildMessage(FilterType first, FilterType second) {
 		return String.format("FilterType changed, first:%s second:%s", first, second);
 	}
 
-	public CollectionId getCollectionId() {
-		return collectionId;
-	}
 }

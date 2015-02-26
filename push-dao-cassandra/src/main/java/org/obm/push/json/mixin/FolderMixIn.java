@@ -47,4 +47,7 @@ public abstract class FolderMixIn {
 
 	@JsonIgnore 
 	abstract Optional<BackendId> getParentBackendIdOpt();
+	
+	@JsonIgnore 
+	abstract <T extends BackendId> T getTypedBackendId();
 }

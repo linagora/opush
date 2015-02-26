@@ -47,10 +47,9 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.MailException;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
@@ -70,14 +69,13 @@ public class MailboxStoreAPITest {
 
 	@Inject MailboxService mailboxService;
 
-	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject GreenMail greenMail;
 	@Inject ResourcesHolder resourcesHolder;
 
 	private String mailbox;
 	private char[] password;
 	private UserDataRequest udr;
-	private String inboxPath;
+	private MailboxPath inboxPath;
 
 	@Before
 	public void setUp() {
@@ -88,7 +86,7 @@ public class MailboxStoreAPITest {
 		udr = new UserDataRequest(
     				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
-		inboxPath = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, IMAP_INBOX_NAME);
+		inboxPath = MailboxPath.of(IMAP_INBOX_NAME);
 	}
 	
 	@After

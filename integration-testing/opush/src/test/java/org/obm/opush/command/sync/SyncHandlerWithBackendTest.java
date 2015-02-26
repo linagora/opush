@@ -86,6 +86,7 @@ import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSAttachement;
 import org.obm.push.bean.MSEvent;
@@ -101,6 +102,12 @@ import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.AddressBookId;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.CalendarPath;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.configuration.OpushEmailConfiguration;
@@ -111,6 +118,8 @@ import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
@@ -135,6 +144,7 @@ import org.obm.sync.push.client.commands.Sync;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -182,17 +192,21 @@ public class SyncHandlerWithBackendTest {
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private LoginClient loginClient;
 	@Inject private DeviceDao deviceDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private SyncTestUtils syncTestUtils;
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private String mailbox;
-	private String inboxCollectionPath;
-	private String calendarCollectionPath;
-	private String contactCollectionPath;
+	private MailboxPath inboxPath;
+	private CalendarPath calendarPath;
+	private AddressBookId contactPath;
 	private CollectionId inboxCollectionId;
 	private CollectionId calendarCollectionId;
 	private CollectionId contactCollectionId;
+	private Folder inboxFolder;
+	private Folder calendarFolder;
+	private Folder contactFolder;
 
 	private CloseableHttpClient httpClient;
 
@@ -207,23 +221,43 @@ public class SyncHandlerWithBackendTest {
 		imapHostManager = greenMail.getManagers().getImapHostManager();
 		imapHostManager.createMailbox(greenMailUser, "Trash");
 
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
+		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		inboxCollectionId = CollectionId.of(1234);
-		calendarCollectionPath = testUtils.buildCalendarCollectionPath(user);
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("displayName")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+		
+		calendarPath = CalendarPath.of("jaures@sfio.fr");
 		calendarCollectionId = CollectionId.of(5678);
+		calendarFolder = Folder.builder()
+				.backendId(calendarPath)
+				.collectionId(calendarCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("cal")
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
+				.build();
+		
 		contactCollectionId = CollectionId.of(7891);
-		contactCollectionPath = testUtils.buildContactCollectionPath(user, contactCollectionId);
+		contactPath = AddressBookId.of(contactCollectionId.asInt());
+		contactFolder = Folder.builder()
+				.backendId(contactPath)
+				.collectionId(contactCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("contacts")
+				.folderType(FolderType.DEFAULT_CONTACTS_FOLDER)
+				.build();
 
-		bindCollectionIdToPath();
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder, calendarFolder, contactFolder)));
 		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
 	}
 
-	private void bindCollectionIdToPath() throws Exception {
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
-		expect(collectionDao.getCollectionPath(calendarCollectionId)).andReturn(calendarCollectionPath).anyTimes();
-		expect(collectionDao.getCollectionPath(contactCollectionId)).andReturn(contactCollectionPath).anyTimes();
-	}
 
 	@After
 	public void shutdown() throws Exception {
@@ -617,8 +651,6 @@ public class SyncHandlerWithBackendTest {
 					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
 					.readOnly(false)
 					.build())).anyTimes();
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId).anyTimes();
 		
 		expect(bookClient.firstListContactsChanged(user.accessToken, initialDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.of(contact, contact2),
@@ -1115,15 +1147,6 @@ public class SyncHandlerWithBackendTest {
 		expect(calendarClient.getUserEmail(user.accessToken))
 			.andReturn(user.user.getLoginAtDomain());
 		
-		expect(bookClient.listAllBooks(user.accessToken))
-			.andReturn(ImmutableList.<AddressBook> of(AddressBook
-					.builder()
-					.name("contacts")
-					.uid(AddressBook.Id.valueOf(contactCollectionId.asInt()))
-					.readOnly(false)
-					.build()));
-		expect(collectionDao.getCollectionMapping(user.device, contactCollectionPath + ":" + "contacts"))
-			.andReturn(contactCollectionId);
 		expect(bookClient.listContactsChanged(user.accessToken, firstDate, contactCollectionId.asInt()))
 			.andReturn(new ContactChanges(ImmutableList.<Contact> of(),
 					ImmutableSet.<Integer> of(),

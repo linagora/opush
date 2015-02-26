@@ -54,8 +54,6 @@ import org.obm.push.service.DateService;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 
-import com.google.inject.Provider;
-
 public class ObmSyncBackendTest {
 
 	private IMocksControl mocks;
@@ -69,7 +67,6 @@ public class ObmSyncBackendTest {
 		mappingService = mocks.createMock(MappingService.class);
 		testee = createMockBuilder(ObmSyncBackend.class)
 				.withConstructor(mappingService, 
-						mocks.createMock(Provider.class), 
 						mocks.createMock(WindowingDao.class),
 						mocks.createMock(DateService.class),
 						mocks.createMock(OpushResourcesHolder.class))

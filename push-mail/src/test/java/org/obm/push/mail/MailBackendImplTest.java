@@ -81,6 +81,7 @@ import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
@@ -101,6 +102,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -118,10 +120,11 @@ public class MailBackendImplTest {
 
 	private UserDataRequest udr;
 	private CollectionId collectionId;
-	private String collectionPath;
+	private MailboxPath collectionPath;
 	private DeviceId devId;
 	private Device device;
 	private User user;
+	private Folder folder;
 
 	private IMocksControl control;
 	private MailboxService mailboxService;
@@ -136,16 +139,25 @@ public class MailBackendImplTest {
 	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 	private AuthenticationService authenticationService;
+	private FolderSnapshotDao folderSnapshotDao;
+
 	private MailBackendImpl testee;
 
 	@Before
-	public void setup() throws Exception {
+	public void setup() {
 		collectionId = CollectionId.of(13411);
-		collectionPath = "mailboxCollectionPath";
+		collectionPath = MailboxPath.of("mailboxCollectionPath");
 		user = Factory.create().createUser("user@domain", "user@domain", "user@domain");
 		devId = new DeviceId("my phone");
 		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", devId, null);
 		udr = new UserDataRequest(new Credentials(user, "password".toCharArray()),  null, device);
+		folder = Folder.builder()
+			.collectionId(collectionId)
+			.backendId(collectionPath)
+			.displayName(collectionPath.getPath())
+			.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
 		
 		control = createControl();
 		
@@ -159,13 +171,13 @@ public class MailBackendImplTest {
 		windowingDao = control.createMock(WindowingDao.class);
 		smtpSender = control.createMock(SmtpSender.class);
 		dateService = control.createMock(DateService.class);
-		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
 		emailConfiguration = control.createMock(OpushEmailConfiguration.class);
 		authenticationService = control.createMock(AuthenticationService.class);
+		folderSnapshotDao = control.createMock(FolderSnapshotDao.class);
 		
 		testee = new MailBackendImpl(mailboxService, authenticationService, null, null, snapshotDao,
-				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, null, mailBackendSyncDataFactory,
-				windowingDao, smtpSender, emailConfiguration, dateService);
+				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, mailBackendSyncDataFactory,
+				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 	}
 	
 	@Test
@@ -214,6 +226,8 @@ public class MailBackendImplTest {
 				.windowSize(windowSize)
 				.options(syncCollectionOptions)
 				.build();
+
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
@@ -245,6 +259,9 @@ public class MailBackendImplTest {
 		SyncKey newSyncKey = new SyncKey("1234");
 		long uidNext = 45612;
 		int windowSize = 10;
+		
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
+		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 
 		Set<Email> previousEmailsInServer = ImmutableSet.of();
@@ -294,6 +311,8 @@ public class MailBackendImplTest {
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.<BodyPreference>of();
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).bodyPreferences(bodyPreferences).build();
 
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
+		
 		long snapedEmailUID = 5;
 		long deletedEmailUID = 6;
 		Email snapedEmail = Email.builder()
@@ -423,6 +442,7 @@ public class MailBackendImplTest {
 				.syncKey(syncKey)
 				.build();
 
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
 		
 		control.replay();
@@ -450,7 +470,8 @@ public class MailBackendImplTest {
 		Set<Email> previousEmailsInServer = ImmutableSet.of();
 		Set<Email> actualEmailsInServer = ImmutableSet.of(email1, email2);
 		EmailChanges emailChanges = EmailChanges.builder().additions(actualEmailsInServer).build();
-		
+
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
 		
 		control.replay();
@@ -482,7 +503,8 @@ public class MailBackendImplTest {
 				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
 				.syncKey(syncKey)
 				.build();
-		
+
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, snapshot, emailsInServer, emailsInServer, emailChanges, fromDate, syncState);
 		
 		control.replay();
@@ -523,6 +545,7 @@ public class MailBackendImplTest {
 				.syncKey(syncKey)
 				.build();
 
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, snapshot, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
 		
 		control.replay();
@@ -584,6 +607,8 @@ public class MailBackendImplTest {
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
+		
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
 		
 		control.replay();
@@ -606,7 +631,10 @@ public class MailBackendImplTest {
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
 		Date syncDataDate = date("2004-12-14T22:00:00");
+		
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expect(dateService.getCurrentDate()).andReturn(syncDataDate);
+		
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(syncDataDate).syncKey(previousSyncKey).build();
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
@@ -671,6 +699,7 @@ public class MailBackendImplTest {
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(date("2004-12-14T22:00:00")).syncKey(previousSyncKey).build();
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 		AnalysedSyncCollection syncCollectionRequest = AnalysedSyncCollection.builder()
@@ -722,7 +751,10 @@ public class MailBackendImplTest {
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
 		Date syncDataDate = date("2004-12-14T22:00:00");
+		
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expect(dateService.getCurrentDate()).andReturn(syncDataDate);
+		
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(syncDataDate).syncKey(previousSyncKey).build();
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
@@ -773,6 +805,8 @@ public class MailBackendImplTest {
 		SyncKey previousSyncKey = new SyncKey("132");
 		SyncKey newSyncKey = new SyncKey("546");
 		ItemSyncState syncState = ItemSyncState.builder().syncDate(date("2004-12-14T22:00:00")).syncKey(previousSyncKey).build();
+
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
 		AnalysedSyncCollection syncCollectionRequest = AnalysedSyncCollection.builder()
@@ -851,7 +885,7 @@ public class MailBackendImplTest {
 			EmailChanges emailChanges, Date fromDate, ItemSyncState syncState)
 			throws Exception {
 		MailBackendSyncData syncData = new MailBackendSyncData(fromDate, collectionPath, uidNext, snapshot, previousEmailsInServer, actualEmailsInServer, emailChanges);
-		expect(mailBackendSyncDataFactory.create(udr, syncState, collectionId, syncCollectionOptions))
+		expect(mailBackendSyncDataFactory.create(udr, syncState, folder, syncCollectionOptions))
 			.andReturn(syncData).once();
 	}
 	
@@ -877,7 +911,8 @@ public class MailBackendImplTest {
 		int itemId = 1;
 		
 		ICalendar expectedCalendar = control.createMock(ICalendar.class);
-		
+
+		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
 		expect(msEmailFetcher.fetchInvitation(udr, collectionId, collectionPath, Long.valueOf(itemId)))
 			.andReturn(expectedCalendar);
 		

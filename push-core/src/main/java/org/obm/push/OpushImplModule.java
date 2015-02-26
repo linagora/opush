@@ -40,11 +40,9 @@ import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PolicyConfigurationService;
 import org.obm.push.backend.PolicyConfigurationServiceFileImpl;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationModule;
 import org.obm.push.impl.ClientIdServiceImpl;
-import org.obm.push.impl.CollectionPathHelper;
 import org.obm.push.impl.ContinuationServiceImpl;
 import org.obm.push.impl.DateServiceImpl;
 import org.obm.push.impl.DeviceServiceImpl;
@@ -128,7 +126,6 @@ public class OpushImplModule extends AbstractModule {
 		bind(QoSContinuationSupport.class).to(OpushContinuationSupport.class);
 		bind(String.class).annotatedWith(Names.named("opushPolicyConfigurationFile")).toInstance("/etc/opush/policy.ini");
 		bind(PolicyConfigurationService.class).to(PolicyConfigurationServiceFileImpl.class);
-		bind(ICollectionPathHelper.class).to(CollectionPathHelper.class);
 		
 		Multibinder<ISearchSource> searchSources = Multibinder.newSetBinder(binder(), ISearchSource.class);
 		searchSources.addBinding().to(BookSource.class);

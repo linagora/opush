@@ -37,6 +37,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -59,10 +60,10 @@ public interface IContentsImporter {
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ProcessingEmailException,
 			ItemNotFoundException, UnsupportedBackendFunctionException;
 
-	ServerId importMoveItem(UserDataRequest udr, PIMDataType type, String srcFolder, String dstFolder, ServerId messageId)
+	ServerId importMoveItem(UserDataRequest udr, PIMDataType type, Folder srcFolder, Folder dstFolder, ServerId messageId)
 			throws CollectionNotFoundException, DaoException, ProcessingEmailException, UnsupportedBackendFunctionException;
 
-	void emptyFolderContent(UserDataRequest udr, String collectionPath, boolean deleteSubFolder) 
+	void emptyFolderContent(UserDataRequest udr, Folder folder, boolean deleteSubFolder) 
 			throws CollectionNotFoundException, NotAllowedException, DaoException, ProcessingEmailException, CollectionPathException;
 	
 }

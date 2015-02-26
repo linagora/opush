@@ -54,27 +54,32 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
-import org.obm.push.exception.DaoException;
 import org.obm.push.mail.MailBackend;
+import org.obm.push.mail.MailBackendFoldersBuilder;
+import org.obm.push.mail.bean.MailboxFolder;
+import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.task.TaskBackend;
 import org.obm.sync.push.client.OPClient;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
@@ -91,7 +96,6 @@ public class FolderSyncHandlerTest {
 	@Inject private HierarchyChangesTestUtils hierarchyChangesTestUtils;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
-	@Inject private CollectionDao collectionDao;
 	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	@Inject CalendarBackend calendarBackend;
@@ -122,15 +126,10 @@ public class FolderSyncHandlerTest {
 	public void testInitialFolderSyncContainsINBOX() throws Exception {
 		FolderSyncKey initialSyncKey = FolderSyncKey.INITIAL_FOLDER_SYNC_KEY;
 		FolderSyncKey newGeneratedSyncKey = new FolderSyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
-		FolderSyncState newMappingSyncState = FolderSyncState.builder().syncKey(newGeneratedSyncKey).build();
-		folderSnapshotDao.create(user.user, user.device, newGeneratedSyncKey, FolderSnapshot.empty());
 		
 		userAccessUtils.mockUsersAccess(user);
-		hierarchyChangesTestUtils.mockHierarchyChangesOnlyInbox();
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithINBOX();
 		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
-		expectCollectionDaoAllocateFolderSyncState(newGeneratedSyncKey, newMappingSyncState);
-		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		
@@ -152,18 +151,26 @@ public class FolderSyncHandlerTest {
 	@Test
 	public void testFolderSyncHasNoChange() throws Exception {
 		FolderSyncKey newSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
-		folderSnapshotDao.create(user.user, user.device, newSyncKey, FolderSnapshot.empty());
+		CollectionId collectionId = CollectionId.of(4);
+		
+		folderSnapshotDao.create(user.user, user.device, newSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("same folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("same folder")
+				.collectionId(collectionId)
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		BackendFolders mailboxChanges = new MailBackendFoldersBuilder()
+			.addFolders(new MailboxFolders(ImmutableList.of(new MailboxFolder("same folder", '/'))))
+			.build();
 
 		FolderSyncKey newGeneratedSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
-		int newSyncStateId = 1156;
-		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
 		
 		userAccessUtils.mockUsersAccess(user);
-		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(buildHierarchyItemsChangeEmpty());
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithNewMailboxes(mailboxChanges);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
-		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		
@@ -183,33 +190,27 @@ public class FolderSyncHandlerTest {
 	@Test
 	public void testFolderSyncHasChanges() throws Exception {
 		FolderSyncKey newSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
-		folderSnapshotDao.create(user.user, user.device, newSyncKey, FolderSnapshot.empty());
-
 		FolderSyncKey newGeneratedSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
-		int newSyncStateId = 1156;
-		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
-		
 		CollectionId collectionId = CollectionId.of(4);
-		CollectionId parentId = CollectionId.of(23);
 		
-		org.obm.push.bean.FolderType itemChangeType = org.obm.push.bean.FolderType.USER_CREATED_EMAIL_FOLDER;
-		HierarchyCollectionChanges mailboxChanges = HierarchyCollectionChanges.builder()
-			.changes(Lists.newArrayList(
-					CollectionChange.builder()
-						.collectionId(collectionId)
-						.parentCollectionId(parentId)
-						.displayName("aNewImapFolder")
-						.folderType(itemChangeType)
-						.isNew(true)
-						.build()))
+		folderSnapshotDao.create(user.user, user.device, newSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("same folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("same folder")
+				.collectionId(collectionId)
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		BackendFolders mailboxChanges = new MailBackendFoldersBuilder()
+			.addFolders(new MailboxFolders(ImmutableList.of(
+				new MailboxFolder("same folder", '/'), 
+				new MailboxFolder("aNewImapFolder", '/'))))
 			.build();
 		
 		userAccessUtils.mockUsersAccess(user);
-		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
-		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
+		hierarchyChangesTestUtils.mockGetBackendFoldersWithNewMailboxes(mailboxChanges);
 		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
-		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		
@@ -232,25 +233,21 @@ public class FolderSyncHandlerTest {
 	@Test
 	public void testFolderSyncHasDeletions() throws Exception {
 		FolderSyncKey newSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
-		folderSnapshotDao.create(user.user, user.device, newSyncKey, FolderSnapshot.empty());
-
 		FolderSyncKey newGeneratedSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
-		int newSyncStateId = 1156;
-		FolderSyncState newSyncState = newFolderSyncState(newGeneratedSyncKey, newSyncStateId);
-
 		CollectionId collectionId = CollectionId.of(4);
 		
-		HierarchyCollectionChanges mailboxChanges = HierarchyCollectionChanges.builder()
-			.deletions(Lists.newArrayList(
-					CollectionDeletion.builder().collectionId(collectionId).build()))
-			.build();
-		
+		folderSnapshotDao.create(user.user, user.device, newSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("old folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("old folder")
+				.collectionId(collectionId)
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+
 		userAccessUtils.mockUsersAccess(user);
-		hierarchyChangesTestUtils.mockHierarchyChangesForMailboxes(mailboxChanges);
 		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
 		syncKeyTestUtils.mockNextGeneratedSyncKey(newGeneratedSyncKey);
-		expectCollectionDaoFindFolderSyncState(newSyncKey, newSyncState);
-		testUtils.expectCreateFolderMappingState();
 		
 		mocksControl.replay();
 		opushServer.start();
@@ -266,28 +263,5 @@ public class FolderSyncHandlerTest {
 		assertThat(folderSyncResponse.getCollectionsDeleted()).hasSize(1);
 		CollectionDeletion inbox = Iterables.getOnlyElement(folderSyncResponse.getCollectionsDeleted());
 		assertThat(inbox.getCollectionId()).isEqualTo(collectionId);
-	}
-
-	private HierarchyCollectionChanges buildHierarchyItemsChangeEmpty() {
-		return HierarchyCollectionChanges.builder().build();
-	}
-
-	private void expectCollectionDaoAllocateFolderSyncState(FolderSyncKey folderSyncKey, FolderSyncState newSyncState) 
-			throws DaoException {
-	
-		expect(collectionDao.allocateNewFolderSyncState(user.device, folderSyncKey)).andReturn(newSyncState);
-	}
-
-	private void expectCollectionDaoFindFolderSyncState(FolderSyncKey newSyncKey, FolderSyncState newSyncState) throws DaoException {
-		
-		expect(collectionDao.findFolderStateForKey(newSyncKey)).andReturn(FolderSyncState.builder().syncKey(newSyncKey).build());
-		expectCollectionDaoAllocateFolderSyncState(newSyncState.getSyncKey(), newSyncState);
-	}
-
-	private FolderSyncState newFolderSyncState(FolderSyncKey newGeneratedSyncKey, int newSyncStateId) {
-		return FolderSyncState.builder()
-				.id(newSyncStateId)
-				.syncKey(newGeneratedSyncKey)
-				.build();
 	}
 }

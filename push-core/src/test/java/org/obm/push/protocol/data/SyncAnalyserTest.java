@@ -49,7 +49,7 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.ICollectionPathHelper;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.Sync;
@@ -59,6 +59,9 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
@@ -66,7 +69,7 @@ import org.obm.push.exception.activesync.PartialException;
 import org.obm.push.exception.activesync.ServerErrorException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncRequest;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
@@ -81,38 +84,41 @@ public class SyncAnalyserTest {
 	private UserDataRequest udr;
 	private User user;
 	private Credentials credentials;
-	private String collectionPath;
 	private CollectionId collectionId;
 	
 	private IMocksControl mocks;
 	private SyncedCollectionDao syncedCollectionDao;
-	private CollectionDao collectionDao;
-	private ICollectionPathHelper collectionPathHelper;
 	private OpushConfiguration configuration;
 
 	private SyncDecoder syncDecoder;
 	private SyncAnalyser syncAnalyser;
+	private FolderSnapshotDao folderSnapshotDao;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		device = new Device(1, "devType", new DeviceId("devId"), new Properties(), null);
 		user = Factory.create().createUser("adrien@test.tlse.lngr", "email@test.tlse.lngr", "Adrien");
 		credentials = new Credentials(user, "test".toCharArray());
 		udr = new UserDataRequest(credentials, "Sync", device);
-		collectionPath = "INBOX";
 		collectionId = CollectionId.of(5);
 
 		mocks = createControl();
 		syncedCollectionDao = mocks.createMock(SyncedCollectionDao.class);
-		collectionDao = mocks.createMock(CollectionDao.class);
-		collectionPathHelper = mocks.createMock(ICollectionPathHelper.class);
+		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		configuration = mocks.createMock(OpushConfiguration.class);
 
 		syncDecoder = new SyncDecoder(null);
-		syncAnalyser = new SyncAnalyser(syncedCollectionDao, collectionDao, collectionPathHelper, null, configuration);
+		syncAnalyser = new SyncAnalyser(syncedCollectionDao, folderSnapshotDao, null, configuration);
 		
-		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();
-		expect(collectionPathHelper.recognizePIMDataType(collectionPath)).andReturn(PIMDataType.EMAIL).anyTimes();
+		expect(folderSnapshotDao.get(user, device, collectionId))
+			.andReturn(Folder.builder()
+				.displayName("displayName")
+				.collectionId(collectionId)
+				.backendId(MailboxPath.of("box"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build())
+			.anyTimes();
 	}
 	
 	@Test
@@ -305,7 +311,6 @@ public class SyncAnalyserTest {
 				.build();
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 			.collectionId(collectionId)
-			.collectionPath(collectionPath)
 			.dataType(PIMDataType.EMAIL)
 			.options(syncCollectionOptions)
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
@@ -357,7 +362,6 @@ public class SyncAnalyserTest {
 				.build();
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 				.collectionId(collectionId)
-				.collectionPath(collectionPath)
 				.dataType(PIMDataType.EMAIL)
 				.options(syncCollectionOptions)
 				.syncKey(SyncKey.INITIAL_SYNC_KEY)
@@ -398,7 +402,6 @@ public class SyncAnalyserTest {
 	public void testRequestWithSameDataClassThanRecognizedDataType() throws Exception {
 		AnalysedSyncCollection syncCollection = AnalysedSyncCollection.builder()
 				.collectionId(collectionId)
-				.collectionPath(collectionPath)
 				.dataType(PIMDataType.EMAIL)
 				.syncKey(new SyncKey("1234"))
 				.status(SyncStatus.OK)
@@ -456,7 +459,6 @@ public class SyncAnalyserTest {
 	private AnalysedSyncCollection buildRequestCollectionWithOptions(SyncCollectionOptions options, String syncKey) {
 		return AnalysedSyncCollection.builder()
 			.collectionId(collectionId)
-			.collectionPath(collectionPath)
 			.dataType(PIMDataType.EMAIL)
 			.options(options)
 			.syncKey(new SyncKey(syncKey))

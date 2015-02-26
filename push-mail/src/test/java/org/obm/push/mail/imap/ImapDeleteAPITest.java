@@ -43,9 +43,9 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
@@ -71,7 +71,6 @@ public class ImapDeleteAPITest {
 	private static final String TRASH = OpushEmailConfiguration.IMAP_TRASH_NAME;
 	
 	@Inject MailboxService mailboxService;
-	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject ResourcesHolder resourcesHolder;
 	
 	@Inject GreenMail greenMail;
@@ -95,7 +94,7 @@ public class ImapDeleteAPITest {
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
 
-	    testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, collectionPathHelper, smtpServerSetup);
+	    testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, smtpServerSetup);
 	    testUtils.createFolders(TRASH);
 	}
 	
@@ -110,7 +109,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToInbox();
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(INBOX);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(INBOX), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(INBOX), MessageSet.singleton(sentEmail.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(INBOX);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(1);
@@ -123,7 +122,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToMailbox(DRAFT);
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(DRAFT);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(DRAFT), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(DRAFT), MessageSet.singleton(sentEmail.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(DRAFT);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(1);
@@ -136,7 +135,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToMailbox(SENTBOX);
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(SENTBOX);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(SENTBOX), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(SENTBOX), MessageSet.singleton(sentEmail.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(SENTBOX);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(1);
@@ -148,7 +147,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToMailbox(TRASH);
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(TRASH);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(TRASH), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(TRASH), MessageSet.singleton(sentEmail.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(TRASH);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(1);
@@ -162,7 +161,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToMailbox(otherFolder);
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(otherFolder);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(otherFolder), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(otherFolder), MessageSet.singleton(sentEmail.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(otherFolder);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(1);
@@ -178,7 +177,7 @@ public class ImapDeleteAPITest {
 		Set<Email> mailboxEmailsBefore = testUtils.mailboxEmails(INBOX);
 		Email anEmailFromMailbox = Iterables.get(mailboxEmailsBefore, 2);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(INBOX), MessageSet.singleton(anEmailFromMailbox.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(INBOX), MessageSet.singleton(anEmailFromMailbox.getUid()));
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(INBOX);
 		Assertions.assertThat(mailboxEmailsBefore).hasSize(3);
@@ -196,7 +195,7 @@ public class ImapDeleteAPITest {
 		Email firstEmailFromMailbox = Iterables.get(mailboxEmailsBefore, 1);
 		Email secondEmailFromMailbox = Iterables.get(mailboxEmailsBefore, 2);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(INBOX), 
+		mailboxService.delete(udr, MailboxPath.of(INBOX), 
 				MessageSet.builder().add(firstEmailFromMailbox.getUid()).add(secondEmailFromMailbox.getUid()).build());
 		
 		Set<Email> mailboxEmailsAfter = testUtils.mailboxEmails(INBOX);
@@ -211,7 +210,7 @@ public class ImapDeleteAPITest {
 		Email sentEmail = testUtils.sendEmailToInbox();
 		long nonExistingEmailUid = sentEmail.getUid() + 1;
 
-		mailboxService.delete(udr, testUtils.mailboxPath(INBOX), MessageSet.singleton(nonExistingEmailUid));
+		mailboxService.delete(udr, MailboxPath.of(INBOX), MessageSet.singleton(nonExistingEmailUid));
 	}
 
 	@Ignore("Greenmail replied that the command succeed")
@@ -221,14 +220,14 @@ public class ImapDeleteAPITest {
 		String otherFolder = "ANYFOLDER";
 		testUtils.createFolders(otherFolder);
 		
-		mailboxService.delete(udr, testUtils.mailboxPath(otherFolder), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.delete(udr, MailboxPath.of(otherFolder), MessageSet.singleton(sentEmail.getUid()));
 	}
 
 	@Ignore("Greenmail replied that the command succeed")
 	@Test(expected=ImapMessageNotFoundException.class)
 	public void testDeleteAttemptedTwiceOnSameEmailTriggersAnException() throws Exception {
 		Email sentEmail = testUtils.sendEmailToInbox();
-		String inboxPath = testUtils.mailboxPath(INBOX);
+		MailboxPath inboxPath = MailboxPath.of(INBOX);
 		
 		mailboxService.delete(udr, inboxPath, MessageSet.singleton(sentEmail.getUid()));
 		mailboxService.delete(udr, inboxPath, MessageSet.singleton(sentEmail.getUid()));

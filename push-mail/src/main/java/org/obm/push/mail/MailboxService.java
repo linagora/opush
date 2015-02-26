@@ -39,13 +39,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.MailException;
 import org.obm.push.exception.UnsupportedBackendFunctionException;
-import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailMetadata;
+import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.FastFetch;
 import org.obm.push.mail.bean.FlagsList;
 import org.obm.push.mail.bean.IMAPHeaders;
@@ -56,30 +57,29 @@ import org.obm.push.mail.bean.UIDEnvelope;
 import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
-import org.obm.push.protocol.bean.CollectionId;
 
 public interface MailboxService {
 	
 	MailboxFolders listSubscribedFolders(UserDataRequest udr) throws MailException;
 	
-	void updateReadFlag(UserDataRequest udr, String collectionPath, MessageSet messages, boolean read) throws MailException, ImapMessageNotFoundException;
+	void updateReadFlag(UserDataRequest udr, MailboxPath path, MessageSet messages, boolean read) throws MailException, ImapMessageNotFoundException;
 
-	String parseMailBoxName(UserDataRequest udr, String collectionName) throws MailException;
+	String parseMailBoxName(UserDataRequest udr, MailboxPath path) throws MailException;
 
-	void delete(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException, ImapMessageNotFoundException;
+	void delete(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException, ImapMessageNotFoundException;
 
-	MessageSet move(UserDataRequest udr, String srcFolder, String dstFolder, MessageSet messages)
+	MessageSet move(UserDataRequest udr, MailboxPath srcFolder, MailboxPath dstFolder, MessageSet messages)
 			throws MailException, DaoException, ImapMessageNotFoundException, UnsupportedBackendFunctionException;
 
-	InputStream fetchMailStream(UserDataRequest udr, String collectionPath, long uid) throws MailException;
+	InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid) throws MailException;
 
-	void setAnsweredFlag(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException, ImapMessageNotFoundException;
+	void setAnsweredFlag(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException, ImapMessageNotFoundException;
 
-	void setDeletedFlag(UserDataRequest udr, String collectionPath, MessageSet messages);
+	void setDeletedFlag(UserDataRequest udr, MailboxPath path, MessageSet messages);
 	
-	InputStream findAttachment(UserDataRequest udr, String collectionPath, Long mailUid, MimeAddress mimePartAddress) throws MailException;
+	InputStream findAttachment(UserDataRequest udr, MailboxPath path, Long mailUid, MimeAddress mimePartAddress) throws MailException;
 
-	MessageSet purgeFolder(UserDataRequest udr, Integer devId, String collectionPath, CollectionId collectionId) throws MailException, DaoException;
+	MessageSet purgeFolder(UserDataRequest udr, Integer devId, MailboxPath path) throws MailException, DaoException;
 
 	/**
 	 * Store the mail's inputstream in INBOX.
@@ -91,37 +91,37 @@ public interface MailboxService {
 
 	boolean getActivateTLS();
 	
-	Collection<Email> fetchEmails(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException;
+	Collection<Email> fetchEmails(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 
-	Set<Email> fetchEmails(UserDataRequest udr, String collectionPath, Date windows) throws MailException;
+	Set<Email> fetchEmails(UserDataRequest udr, MailboxPath path, Date windows) throws MailException;
 
 	MailboxFolders listAllFolders(UserDataRequest udr) throws MailException;
 	
 	void createFolder(UserDataRequest udr, MailboxFolder folder) throws MailException;
 	
-	Collection<FastFetch> fetchFast(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException;
+	Collection<FastFetch> fetchFast(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 
-	Collection<MimeMessage> fetchBodyStructure(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException;
+	Collection<MimeMessage> fetchBodyStructure(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 
-	Map<Long, FlagsList> fetchFlags(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException;
+	Map<Long, FlagsList> fetchFlags(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 	
-	EmailMetadata fetchEmailMetadata(UserDataRequest udr, String collectionPath, long uid) throws MailException;
+	EmailMetadata fetchEmailMetadata(UserDataRequest udr, MailboxPath path, long uid) throws MailException;
 
-	InputStream fetchPartialMimePartStream(UserDataRequest udr, String collectionPath, long uid, MimeAddress partAddress, int limit) 
+	InputStream fetchPartialMimePartStream(UserDataRequest udr, MailboxPath path, long uid, MimeAddress partAddress, int limit) 
 			throws MailException;
 
-	InputStream fetchMimePartStream(UserDataRequest udr, String collectionPath, long uid, MimeAddress partAddress) 
+	InputStream fetchMimePartStream(UserDataRequest udr, MailboxPath path, long uid, MimeAddress partAddress) 
 			throws MailException;
 	
-	Collection<UIDEnvelope> fetchEnvelope(UserDataRequest udr, String collectionPath, MessageSet messages) throws MailException;
+	Collection<UIDEnvelope> fetchEnvelope(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 
-	Map<Long, IMAPHeaders> fetchPartHeaders(UserDataRequest udr, String collectionPath, MessageSet uid, MimePart mimePart) throws IOException;
+	Map<Long, IMAPHeaders> fetchPartHeaders(UserDataRequest udr, MailboxPath path, MessageSet uid, MimePart mimePart) throws IOException;
 
 	void storeInSent(UserDataRequest udr, EmailReader mailContent) throws MailException;
 
-	long fetchUIDNext(UserDataRequest udr, String collectionPath) throws MailException;
+	long fetchUIDNext(UserDataRequest udr, MailboxPath path) throws MailException;
 	
-	long fetchUIDValidity(UserDataRequest udr, String collectionPath) throws MailException;
+	long fetchUIDValidity(UserDataRequest udr, MailboxPath path) throws MailException;
 
-	void expunge(UserDataRequest udr, String collectionPath);
+	void expunge(UserDataRequest udr, MailboxPath path);
 }

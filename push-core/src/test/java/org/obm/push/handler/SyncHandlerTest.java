@@ -89,7 +89,7 @@ public class SyncHandlerTest {
 		summaryLoggerService = mocks.createMock(SummaryLoggerService.class);
 		
 		testee = new SyncHandler(null, contentsImporter, contentsExporter, null, null, null,
-				null, null, null, null, null, null, false, null, null, null, summaryLoggerService);
+				null, null, null, null, null, false, null, null, null, summaryLoggerService);
 	}
 
 	@Test

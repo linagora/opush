@@ -35,7 +35,6 @@ import org.easymock.EasyMock;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.push.ExpungePolicy;
 import org.obm.push.LinagoraImapClientModule;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.OpushLocatorException;
 import org.obm.push.mail.greenmail.GreenMailPortProvider;
@@ -107,7 +106,6 @@ public class MailEnvModule extends AbstractModule {
 		bind(MinigStoreClient.Factory.class).to(MinigStoreClientImpl.Factory.class);
 		bind(IdleClient.Factory.class).to(IdleClientImpl.Factory.class);
 		
-		bind(ICollectionPathHelper.class).to(TestingCollectionPathHelper.class);
 		bind(EventService.class).toInstance(EasyMock.createMock(EventService.class));
 		bind(LoginService.class).toInstance(EasyMock.createMock(LoginService.class));
 		bind(OpushLocatorService.class).toInstance(new OpushLocatorService() {

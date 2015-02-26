@@ -32,7 +32,6 @@
 package org.obm.push.calendar;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -46,17 +45,12 @@ import org.obm.icalendar.Ical4jHelper;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.Ical4jUser.Factory;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
-import org.obm.push.backend.CollectionPath;
-import org.obm.push.backend.OpushCollection;
-import org.obm.push.backend.PathsToCollections;
-import org.obm.push.backend.PathsToCollections.Builder;
 import org.obm.push.backend.WindowingEvent;
 import org.obm.push.backend.WindowingEventChanges;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
@@ -70,13 +64,10 @@ import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.CalendarPath;
-import org.obm.push.bean.change.hierarchy.CollectionChange;
-import org.obm.push.bean.change.hierarchy.CollectionDeletion;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
-import org.obm.push.exception.HierarchyChangesException;
 import org.obm.push.exception.ICalendarConverterException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -90,6 +81,7 @@ import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.ClientIdService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
 import org.obm.sync.PermissionException;
@@ -98,7 +90,6 @@ import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.calendar.Attendee;
-import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.ContactAttendee;
 import org.obm.sync.calendar.DeletedEvent;
 import org.obm.sync.calendar.Event;
@@ -117,16 +108,13 @@ import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
 @Watch(BreakdownGroups.EVENT)
 public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements org.obm.push.ICalendarBackend {
 
-	private static final CollectionId DEFAULT_CALENDAR_PARENT_ID = CollectionId.ROOT;
 	private static final String DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX = " calendar";
 	
 	private final EventConverter eventConverter;
@@ -137,22 +125,24 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	private final ClientIdService clientIdService;
 	private final Ical4jHelper ical4jHelper;
 	private final Factory ical4jUserFactory;
+	private final FolderSnapshotDao folderSnapshotDao;
 	
 	@Inject
 	@VisibleForTesting CalendarBackend(MappingService mappingService, 
 			CalendarClient.Factory calendarClientFactory, 
 			EventConverter eventConverter, 
 			EventService eventService,
-			Provider<CollectionPath.Builder> collectionPathBuilderProvider, ConsistencyEventChangesLogger consistencyLogger,
+			ConsistencyEventChangesLogger consistencyLogger,
 			EventExtId.Factory eventExtIdFactory,
 			WindowingDao windowingDao,
 			ClientIdService clientIdService,
 			Ical4jHelper ical4jHelper, 
 			Ical4jUser.Factory ical4jUserFactory,
 			DateService dateService,
-			OpushResourcesHolder opushResourcesHolder) {
+			OpushResourcesHolder opushResourcesHolder,
+			FolderSnapshotDao folderSnapshotDao) {
 		
-		super(mappingService, collectionPathBuilderProvider, windowingDao, dateService, opushResourcesHolder);
+		super(mappingService, windowingDao, dateService, opushResourcesHolder);
 		this.calendarClientFactory = calendarClientFactory;
 		this.eventConverter = eventConverter;
 		this.eventService = eventService;
@@ -161,6 +151,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		this.clientIdService = clientIdService;
 		this.ical4jHelper = ical4jHelper;
 		this.ical4jUserFactory = ical4jUserFactory;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 	
 	@Override
@@ -174,123 +165,22 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 			@Override
 			public Iterator<BackendFolder> iterator() {
-				return Iterators.singletonIterator(BackendFolder.builder()
-						.parentId(Optional.<BackendId>absent())
-						.backendId(CalendarPath.of(udr.getUser().getLogin()))
-						.displayName(udr.getUser().getLogin() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
-						.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
-						.build());
+				return Iterators.singletonIterator(defaultCalendar(udr));
 			}
 		};
 	}
 
-	@Override
-	public HierarchyCollectionChanges getHierarchyChanges(UserDataRequest udr, 
-			FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
-			throws DaoException {
-
-		try {
-			PathsToCollections contactsCollections = null;
-			if (!udr.checkHint("hint.multipleCalendars", false)) {
-				contactsCollections = getDefaultCalendarCollectionPaths(udr);
-			} else {
-				contactsCollections = getCalendarCollectionPaths(udr);
-			}
-			snapshotHierarchy(udr, contactsCollections.pathKeys(), outgoingSyncState);
-			return computeChanges(udr, lastKnownState, contactsCollections);
-		} catch (CollectionNotFoundException e) {
-			throw new HierarchyChangesException(e);
-		}
-	}
-
-	private HierarchyCollectionChanges computeChanges(UserDataRequest udr, FolderSyncState lastKnownState,
-			PathsToCollections contactsCollections) throws DaoException, CollectionNotFoundException {
-
-		Set<CollectionPath> lastKnownCollections = lastKnownCollectionPath(udr, lastKnownState, getPIMDataType());
-		
-		Set<CollectionPath> deletedContactCollections = Sets.difference(lastKnownCollections, contactsCollections.pathKeys());
-		Iterable<OpushCollection> newContactCollections = addedCollections(lastKnownCollections, contactsCollections);
-
-		return buildHierarchyItemsChanges(udr, newContactCollections, deletedContactCollections);
-	}
-
-	private PathsToCollections getCalendarCollectionPaths(UserDataRequest udr) {
-		
-		Builder builder = PathsToCollections.builder();
-		AccessToken token = getAccessToken();
-		try {
-			Collection<CalendarInfo> cals = getCalendarClient().listCalendars(token, null, null, null);
-			for (CalendarInfo ci : cals) {
-				CollectionPath collectionPath = collectionPathOfCalendar(udr, ci.getUid());
-				builder.put(collectionPath, OpushCollection.builder()
-							.collectionPath(collectionPath)
-							.displayName(ci.getUid() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
-							.build());
-			}
-		} catch (ServerFault e) {
-			throw new UnexpectedObmSyncServerException(e);
-		}
-		return builder.build();
-	}
-
-	private PathsToCollections getDefaultCalendarCollectionPaths(UserDataRequest udr) {
-		CollectionPath collectionPath = defaultCalendar(udr);
-		return PathsToCollections.builder()
-				.put(collectionPath, OpushCollection.builder()
-						.collectionPath(collectionPath)
-						.displayName(udr.getUser().getLogin() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
-						.build())
+	private BackendFolder defaultCalendar(UserDataRequest udr) {
+		return BackendFolder.builder()
+				.parentId(Optional.<BackendId>absent())
+				.backendId(defaultCalendarPath(udr))
+				.displayName(udr.getUser().getLogin() + DEFAULT_CALENDAR_DISPLAYNAME_SUFFIX)
+				.folderType(FolderType.DEFAULT_CALENDAR_FOLDER)
 				.build();
 	}
 
-	@Override
-	protected CollectionChange createCollectionChange(UserDataRequest udr, OpushCollection collection)
-			throws CollectionNotFoundException, DaoException {
-		
-		CollectionPath collectionPath = collection.collectionPath();
-		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
-		
-		return CollectionChange.builder()
-				.collectionId(collectionId)
-				.parentCollectionId(DEFAULT_CALENDAR_PARENT_ID)
-				.displayName(collection.displayName())
-				.folderType(getCollectionFolderType(udr, collectionPath))
-				.isNew(true)
-				.build();
-	}
-
-	private FolderType getCollectionFolderType(UserDataRequest udr, CollectionPath collectionPath) {
-		if (isDefaultCalendarCollectionPath(udr, collectionPath)) {
-			return FolderType.DEFAULT_CALENDAR_FOLDER;
-		} else {
-			return FolderType.USER_CREATED_CALENDAR_FOLDER;
-		}
-	}
-
-	@Override
-	protected CollectionDeletion createCollectionDeletion(UserDataRequest udr, CollectionPath collectionPath)
-			throws CollectionNotFoundException, DaoException {
-		
-		CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
-		return CollectionDeletion.builder()
-				.collectionId(collectionId)
-				.build();
-	}
-	
-	private boolean isDefaultCalendarCollectionPath(UserDataRequest udr, CollectionPath collectionPath) {
-		return udr.getUser().getLogin().equalsIgnoreCase(collectionPath.backendName());
-	}
-
-	private CollectionPath defaultCalendar(UserDataRequest udr) {
-		return collectionPathOfCalendar(udr, udr.getUser().getLogin());
-	}
-
-	private CollectionPath collectionPathOfCalendar(UserDataRequest udr, String calendar) {
-		return collectionPathBuilderProvider.get()
-			.userDataRequest(udr)
-			.pimType(PIMDataType.CALENDAR)
-			.backendName(calendar)
-			.build();
+	private CalendarPath defaultCalendarPath(UserDataRequest udr) {
+		return CalendarPath.of(udr.getUser().getLogin());
 	}
 
 	@Override
@@ -308,7 +198,8 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 	@Override
 	protected WindowingChangesDelta<WindowingEvent> getAllChanges(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, SyncCollectionOptions collectionOptions) {
-		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		CalendarPath calendar = folder.getTypedBackendId();
 		AccessToken token = getAccessToken();
 		
 		try {
@@ -316,9 +207,9 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			Date filteredSyncDate = state.getFilteredSyncDate(collectionOptions.getFilterType());
 			boolean syncFiltered = filteredSyncDate != state.getSyncDate();
 			if (state.isInitial()) {
-				changes = initialSync(collectionPath, token, filteredSyncDate, syncFiltered);
+				changes = initialSync(calendar, token, filteredSyncDate, syncFiltered);
 			} else {
-				changes = sync(collectionPath, token, filteredSyncDate, syncFiltered);
+				changes = sync(calendar, token, filteredSyncDate, syncFiltered);
 			}
 			
 			consistencyLogger.log(logger, changes);
@@ -344,22 +235,22 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		}
 	}
 	
-	private EventChanges initialSync(CollectionPath collectionPath, AccessToken token, Date filteredSyncDate, boolean syncFiltered)
+	private EventChanges initialSync(CalendarPath calendar, AccessToken token, Date filteredSyncDate, boolean syncFiltered)
 			throws ServerFault, org.obm.sync.NotAllowedException {
 		
 		if (syncFiltered) {
-			return getCalendarClient().getFirstSyncEventDate(token, collectionPath.backendName(), filteredSyncDate);
+			return getCalendarClient().getFirstSyncEventDate(token, calendar.getPath(), filteredSyncDate);
 		} 
-		return getCalendarClient().getFirstSync(token, collectionPath.backendName(), filteredSyncDate);
+		return getCalendarClient().getFirstSync(token, calendar.getPath(), filteredSyncDate);
 	}
 
-	private EventChanges sync(CollectionPath collectionPath, AccessToken token, Date filteredSyncDate, boolean syncFiltered) 
+	private EventChanges sync(CalendarPath calendar, AccessToken token, Date filteredSyncDate, boolean syncFiltered) 
 			throws ServerFault, org.obm.sync.NotAllowedException {
 		
 		if (syncFiltered) {
-			return getCalendarClient().getSyncEventDate(token, collectionPath.backendName(), filteredSyncDate);
+			return getCalendarClient().getSyncEventDate(token, calendar.getPath(), filteredSyncDate);
 		} 
-		return getCalendarClient().getSync(token, collectionPath.backendName(), filteredSyncDate);
+		return getCalendarClient().getSync(token, calendar.getPath(), filteredSyncDate);
 	}
 	
 	@VisibleForTesting <B extends WindowingEventChanges.Builder> void appendChangesToBuilder(UserDataRequest udr, AccessToken token, EventChanges changes, B builder) 
@@ -402,14 +293,6 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		}
 		return true;
 	}
-	
-	private CollectionPath buildCollectionPath(UserDataRequest udr, CollectionId collectionId) {
-		return collectionPathBuilderProvider
-			.get()
-			.userDataRequest(udr)
-			.fullyQualifiedCollectionPath(mappingService.getCollectionPathFor(collectionId))
-			.build();
-	}
 
 	private ItemChange createItemChangeToAddFromEvent(final UserDataRequest udr, final Event event, ServerId serverId)
 			throws DaoException, ConversionException {
@@ -433,17 +316,18 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 
 		MSEvent msEvent = (MSEvent) data;
 
-		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		CalendarPath calendar = folder.getTypedBackendId();
 		AccessToken token = getAccessToken();
 		
-		logger.info("createOrUpdate( calendar = {}, serverId = {} )", collectionPath.backendName(), serverId);
+		logger.info("createOrUpdate( calendar = {}, serverId = {} )", folder.getBackendId(), serverId);
 		
 		try {
 			EventExtId eventExtId = getEventExtId(udr, msEvent);
-			Event oldEvent = fetchReferenceEvent(token, serverId, eventExtId, collectionPath);
+			Event oldEvent = fetchReferenceEvent(token, serverId, eventExtId, calendar);
 			EventObmId eventId = getEventId(oldEvent);
 			
-			EventObmId newEventId = chooseBackendChange(udr, msEvent, collectionPath, token, eventExtId, oldEvent, eventId, clientId);
+			EventObmId newEventId = chooseBackendChange(udr, msEvent, calendar, token, eventExtId, oldEvent, eventId, clientId);
 			
 			return getServerIdFor(collectionId, newEventId);
 		} catch (org.obm.sync.NotAllowedException | PermissionException e) {
@@ -465,18 +349,18 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	private EventObmId chooseBackendChange(UserDataRequest udr, MSEvent msEvent,
-			CollectionPath collectionPath, AccessToken token,
+			CalendarPath calendar, AccessToken token,
 			EventExtId eventExtId, Event oldEvent, final EventObmId eventId, String clientId)
 			throws org.obm.sync.NotAllowedException, ServerFault, PermissionException {
 		
-		if (isParticipationChangeUpdate(collectionPath, oldEvent)) {
-			updateUserStatus(oldEvent, AttendeeStatus.ACCEPT, token, collectionPath);
+		if (isParticipationChangeUpdate(calendar, oldEvent)) {
+			updateUserStatus(oldEvent, AttendeeStatus.ACCEPT, token, calendar);
 			return eventId;
 		} else if (isEventModification(eventId)){
-			updateEvent(token, udr, collectionPath, oldEvent, eventExtId, msEvent);
+			updateEvent(token, udr, calendar, oldEvent, eventExtId, msEvent);
 			return eventId;
 		} else {
-			return createEvent(udr, token, collectionPath, oldEvent, msEvent, eventExtId, clientId);
+			return createEvent(udr, token, calendar, oldEvent, msEvent, eventExtId, clientId);
 		}
 	}
 
@@ -491,19 +375,19 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return null;
 	}
 
-	private Event fetchReferenceEvent(AccessToken token, ServerId serverId, EventExtId eventExtId, CollectionPath collectionPath)
+	private Event fetchReferenceEvent(AccessToken token, ServerId serverId, EventExtId eventExtId, CalendarPath calendar)
 					throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
 		if (serverId != null) {
 			EventObmId id = convertServerIdToEventObmId(serverId);
-			return getCalendarClient().getEventFromId(token, collectionPath.backendName(), id);	
+			return getCalendarClient().getEventFromId(token, calendar.getPath(), id);	
 		} else if (eventExtId != null && !Strings.isNullOrEmpty(eventExtId.getExtId())) {
-			return getEventFromExtId(token, eventExtId, collectionPath);
+			return getEventFromExtId(token, eventExtId, calendar);
 		}
 		return null;
 	}
 
-	@VisibleForTesting boolean isParticipationChangeUpdate(CollectionPath collectionPath, Event oldEvent) {
-		return oldEvent != null && !belongsToCalendar(oldEvent, collectionPath.backendName());
+	@VisibleForTesting boolean isParticipationChangeUpdate(CalendarPath calendar, Event oldEvent) {
+		return oldEvent != null && !belongsToCalendar(oldEvent, calendar.getPath());
 	}
 
 	@VisibleForTesting boolean belongsToCalendar(Event oldEvent, String calendarName) {
@@ -512,7 +396,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	private void updateEvent(AccessToken token, UserDataRequest udr, 
-			CollectionPath collectionPath, Event oldEvent, 
+			CalendarPath calendar, Event oldEvent, 
 			EventExtId eventExtId, MSEvent msEvent) throws ServerFault, org.obm.sync.NotAllowedException, PermissionException {
 		
 		boolean isInternal = eventConverter.isInternalEvent(oldEvent, eventExtId);
@@ -522,7 +406,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		if (event.getExtId() == null || event.getExtId().getExtId() == null) {
 			event.setExtId(oldEvent.getExtId());
 		}
-		getCalendarClient().modifyEvent(token, collectionPath.backendName(), event, true, true);
+		getCalendarClient().modifyEvent(token, calendar.getPath(), event, true, true);
 	}
 
 	private void setSequence(Event oldEvent, Event event) {
@@ -534,16 +418,16 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	}
 
 	private EventObmId createEvent(UserDataRequest udr, AccessToken token,
-			CollectionPath collectionPath, Event oldEvent, MSEvent msEvent, EventExtId eventExtId, String clientId)
+			CalendarPath calendar, Event oldEvent, MSEvent msEvent, EventExtId eventExtId, String clientId)
 			throws ServerFault, DaoException, org.obm.sync.NotAllowedException, PermissionException {
 		
 		boolean isInternal = eventConverter.isInternalEvent(oldEvent, eventExtId);
 		Event event = convertMSObjectToObmObject(udr, msEvent, oldEvent, isInternal);
 		assignExtId(udr, msEvent, eventExtId, event);
 		try { 
-			return getCalendarClient().createEvent(token, collectionPath.backendName(), event, true, clientIdService.hash(udr, clientId));
+			return getCalendarClient().createEvent(token, calendar.getPath(), event, true, clientIdService.hash(udr, clientId));
 		} catch (EventAlreadyExistException e) {
-			return getEventIdFromExtId(token, collectionPath, event);
+			return getEventIdFromExtId(token, calendar, event);
 		}
 	}
 
@@ -566,11 +450,11 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return eventConverter.convert(udr.getUser(), oldEvent, data, isInternal);
 	}
 	
-	private EventObmId getEventIdFromExtId(AccessToken token, CollectionPath collectionPath, Event event)
+	private EventObmId getEventIdFromExtId(AccessToken token, CalendarPath calendar, Event event)
 			throws UnexpectedObmSyncServerException, org.obm.sync.NotAllowedException {
 		
 		try {
-			return getCalendarClient().getEventObmIdFromExtId(token, collectionPath.backendName(), event.getExtId());
+			return getCalendarClient().getEventObmIdFromExtId(token, calendar.getPath(), event.getExtId());
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
 		} catch (EventNotFoundException e) {
@@ -583,15 +467,16 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	public void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException {
 
-		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		CalendarPath calendar = folder.getTypedBackendId();
 		if (serverId != null) {
 
 			AccessToken token = getAccessToken();
 			try {
-				logger.info("Delete event serverId {} in calendar {}", serverId, collectionPath.backendName());
+				logger.info("Delete event serverId {} in calendar {}", serverId, folder.getBackendId());
 				//FIXME: not transactional
-				Event evr = getEventFromServerId(token, collectionPath, serverId);
-				getCalendarClient().removeEventById(token, collectionPath.backendName(), evr.getObmId(), evr.getSequence(), true);
+				Event evr = getEventFromServerId(token, calendar, serverId);
+				getCalendarClient().removeEventById(token, calendar.getPath(), evr.getObmId(), evr.getSequence(), true);
 			} catch (ServerFault e) {
 				throw new UnexpectedObmSyncServerException(e);
 			} catch (EventNotFoundException e) {
@@ -608,16 +493,17 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 			throws UnexpectedObmSyncServerException, CollectionNotFoundException, DaoException,
 			ItemNotFoundException, ConversionException, HierarchyChangedException, ICalendarConverterException {
 		
-		CollectionPath collectionPath = defaultCalendar(udr);
+		CalendarPath calendar = defaultCalendarPath(udr);
+		Folder folder = folderSnapshotDao.get(
+			udr.getUser(), udr.getDevice(), getPIMDataType(), calendar);
 		
 		AccessToken at = getAccessToken();
 		try {
 			Event event = convertICalendarToEvent(udr, at, (org.obm.icalendar.ICalendar) iCalendar);
 			logger.info("handleMeetingResponse = {}", event.getExtId());
-			Event obmEvent = createOrModifyInvitationEvent(at, event, collectionPath);
-			updateUserStatus(obmEvent, status, at, collectionPath);
-			CollectionId collectionId = mappingService.getCollectionIdFor(udr.getDevice(), collectionPath.collectionPath());
-			return getServerIdFor(collectionId, obmEvent.getObmId());
+			Event obmEvent = createOrModifyInvitationEvent(at, event, calendar);
+			updateUserStatus(obmEvent, status, at, calendar);
+			return getServerIdFor(folder.getCollectionId(), obmEvent.getObmId());
 		} catch (org.obm.sync.NotAllowedException | PermissionException e) {
 			logger.warn(e.getMessage(), e);
 			throw new ItemNotFoundException(e);
@@ -628,22 +514,22 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		}
 	}
 
-	private Event createOrModifyInvitationEvent(AccessToken at, Event event, CollectionPath collectionPath) 
+	private Event createOrModifyInvitationEvent(AccessToken at, Event event, CalendarPath calendar) 
 		throws UnexpectedObmSyncServerException, EventNotFoundException, 
 			ConversionException, DaoException, org.obm.sync.NotAllowedException, PermissionException {
 		
 		try {
 			boolean internalEvent = event.isInternalEvent();
 			if (internalEvent) {
-				return getCalendarClient().getEventFromExtId(at, collectionPath.backendName(), event.getExtId());
+				return getCalendarClient().getEventFromExtId(at, calendar.getPath(), event.getExtId());
 			}
 			
-			Event previousEvent = getEventFromExtId(at, event.getExtId(), collectionPath);
+			Event previousEvent = getEventFromExtId(at, event.getExtId(), calendar);
 			if (previousEvent == null) {
 				try {
 					logger.info("createOrModifyInvitationEvent : create new event {}", event.getObmId());
-					EventObmId id = getCalendarClient().createEvent(at, collectionPath.backendName(), event, internalEvent, null);
-					return getCalendarClient().getEventFromId(at, collectionPath.backendName(), id);
+					EventObmId id = getCalendarClient().createEvent(at, calendar.getPath(), event, internalEvent, null);
+					return getCalendarClient().getEventFromId(at, calendar.getPath(), id);
 				} catch (EventAlreadyExistException e) {
 					throw new UnexpectedObmSyncServerException("it's not possible because getEventFromExtId == null");
 				}
@@ -653,7 +539,7 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 				event.setSequence(previousEvent.getSequence());
 				if (!previousEvent.isInternalEvent()) {
 					logger.info("createOrModifyInvitationEvent : update event {}", event.getObmId());
-					previousEvent = getCalendarClient().modifyEvent(at, collectionPath.backendName(), event, true, false);
+					previousEvent = getCalendarClient().modifyEvent(at, calendar.getPath(), event, true, false);
 				}
 				return previousEvent;
 			}	
@@ -706,24 +592,24 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 				});
 	}
 
-	private Event getEventFromExtId(AccessToken at, EventExtId eventExtId, CollectionPath collectionPath) 
+	private Event getEventFromExtId(AccessToken at, EventExtId eventExtId, CalendarPath calendar) 
 		throws ServerFault, org.obm.sync.NotAllowedException {
 		
 		try {
-			return getCalendarClient().getEventFromExtId(at, collectionPath.backendName(), eventExtId);
+			return getCalendarClient().getEventFromExtId(at, calendar.getPath(), eventExtId);
 		} catch (EventNotFoundException e) {
 			logger.info(e.getMessage());
 		}
 		return null;
 	}
 	
-	private void updateUserStatus(Event event, AttendeeStatus status, AccessToken at, CollectionPath collectionPath)
+	private void updateUserStatus(Event event, AttendeeStatus status, AccessToken at, CalendarPath calendar)
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, org.obm.sync.NotAllowedException {
 		
-		logger.info("update user status {} in calendar {}", status, collectionPath.backendName());
+		logger.info("update user status {} in calendar {}", status, calendar.getPath());
 		Participation participationStatus = eventConverter.getParticipation(status);
 		try {
-			getCalendarClient().changeParticipationState(at, collectionPath.backendName(), event.getExtId(), 
+			getCalendarClient().changeParticipationState(at, calendar.getPath(), event.getExtId(), 
 					participationStatus, event.getSequence(), true);
 		} catch (ServerFault e) {
 			throw new UnexpectedObmSyncServerException(e);
@@ -742,13 +628,14 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 	public List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions)
 			throws DaoException, UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 	
-		CollectionPath collectionPath = buildCollectionPath(udr, collectionId);
+		Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+		CalendarPath calendar = folder.getTypedBackendId();
 		
 		List<ItemChange> ret = new LinkedList<ItemChange>();
 		AccessToken token = getAccessToken();
 		for (ServerId serverId : fetchServerIds) {
 			try {
-				Event event = getEventFromServerId(token, collectionPath, serverId);
+				Event event = getEventFromServerId(token, calendar, serverId);
 				if (event != null) {
 					ItemChange ic = createItemChangeToAddFromEvent(udr, event, serverId);
 					ret.add(ic);
@@ -764,27 +651,27 @@ public class CalendarBackend extends ObmSyncBackend<WindowingEvent> implements o
 		return ret;
 	}
 	
-	private Event getEventFromServerId(AccessToken token, CollectionPath collectionPath, ServerId serverId) throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
+	private Event getEventFromServerId(AccessToken token, CalendarPath calendar, ServerId serverId) throws ServerFault, EventNotFoundException, org.obm.sync.NotAllowedException {
 		Integer itemId = serverId.getItemId();
 		if (itemId == null) {
 			return null;
 		}
-		return getCalendarClient().getEventFromId(token, collectionPath.backendName(), new EventObmId(itemId));
+		return getCalendarClient().getEventFromId(token, calendar.getPath(), new EventObmId(itemId));
 	}
 
 	@Override
-	public ServerId move(UserDataRequest udr, String srcFolder, String dstFolder,
+	public ServerId move(UserDataRequest udr, Folder srcFolder, Folder dstFolder,
 			ServerId serverId) throws CollectionNotFoundException,
 			ProcessingEmailException {
 		return null;
 	}
 
 	@Override
-	public void emptyFolderContent(UserDataRequest udr, String collectionPath,
+	public void emptyFolderContent(UserDataRequest udr, Folder folder,
 			boolean deleteSubFolder) throws NotAllowedException {
 		throw new NotAllowedException(
 				"emptyFolderContent is only supported for emails, collection was "
-						+ collectionPath);
+						+ folder.getBackendId());
 	}
 
 	private ICalendar getCalendarClient() {

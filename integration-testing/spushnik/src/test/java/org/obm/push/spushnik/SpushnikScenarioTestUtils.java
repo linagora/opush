@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.spushnik;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
@@ -43,21 +41,11 @@ import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.Users.OpushUser;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
-import org.obm.push.bean.FolderSyncState;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
-import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
-import org.obm.push.calendar.CalendarBackend;
-import org.obm.push.contacts.ContactsBackend;
-import org.obm.push.mail.MailBackend;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.state.FolderSyncKeyFactory;
-import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
-import org.obm.push.store.FolderSyncStateBackendMappingDao;
-import org.obm.push.task.TaskBackend;
 import org.obm.sync.auth.AuthFault;
 
 import com.google.inject.Inject;
@@ -66,12 +54,6 @@ public class SpushnikScenarioTestUtils {
 
 	@Inject private DeviceDao deviceDao;
 	@Inject private FolderSyncKeyFactory folderSyncKeyFactory;
-	@Inject private CollectionDao collectionDao;
-	@Inject private ContactsBackend contactsBackend;
-	@Inject private CalendarBackend calendarBackend;
-	@Inject private TaskBackend taskBackend;
-	@Inject private MailBackend mailBackend;
-	@Inject private FolderSyncStateBackendMappingDao folderSyncStateBackendMappingDao;
 	@Inject private IntegrationUserAccessUtils accessUtils;
 	@Inject private HierarchyChangesTestUtils hierarchyChangesTestUtils;
 	
@@ -114,33 +96,8 @@ public class SpushnikScenarioTestUtils {
 		FolderSyncKey syncKey = new FolderSyncKey("f5c5e432-3db6-4b30-adf2-b5673943df5b");
 		expect(folderSyncKeyFactory.randomSyncKey())
 			.andReturn(syncKey).once();
-		FolderSyncState syncState = FolderSyncState.builder()
-				.syncKey(syncKey)
-				.id(1)
-				.build();
-		expect(collectionDao.allocateNewFolderSyncState(device, syncKey))
-			.andReturn(syncState).once();
-		FolderSyncState initialSyncState = FolderSyncState.builder()
-				.syncKey(FolderSyncKey.INITIAL_FOLDER_SYNC_KEY)
-				.id(0)
-				.build();
-		expect(contactsBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
-			.andReturn(HierarchyCollectionChanges.builder()
-					.build()).once();
-		expect(calendarBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
-			.andReturn(HierarchyCollectionChanges.builder()
-					.build()).once();
-		expect(taskBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
-			.andReturn(HierarchyCollectionChanges.builder()
-					.build()).once();
-		expect(mailBackend.getHierarchyChanges(anyObject(UserDataRequest.class), eq(initialSyncState), eq(syncState)))
-			.andReturn(HierarchyCollectionChanges.builder()
-					.build()).once();
-		
+
 		hierarchyChangesTestUtils.mockGetBackendFoldersUnchanged();
-		
-		folderSyncStateBackendMappingDao.createMapping(anyObject(PIMDataType.class), eq(syncState));
-		expectLastCall().anyTimes();
 	}
 	
 }

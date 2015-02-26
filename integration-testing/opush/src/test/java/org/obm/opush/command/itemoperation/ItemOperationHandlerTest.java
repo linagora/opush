@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.ImapConnectionCounter;
@@ -58,16 +59,24 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.protocol.bean.CollectionId;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.ItemOperationFetchResponse;
 import org.obm.sync.push.client.ItemOperationResponse;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.imap.ImapHostManager;
@@ -90,14 +99,15 @@ public class ItemOperationHandlerTest {
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
-	@Inject private CollectionDao collectionDao;
+	@Inject private FolderSnapshotDao folderSnapshotDao;
 
 	private GreenMailUser greenMailUser;
 	private ImapHostManager imapHostManager;
 	private OpushUser user;
 	private String mailbox;
-	private String inboxCollectionPath;
+	private MailboxPath inboxPath;
 	private CollectionId inboxCollectionId;
+	private Folder inboxFolder;
 	private CloseableHttpClient httpClient;
 
 	@Before
@@ -111,16 +121,21 @@ public class ItemOperationHandlerTest {
 		httpClient = HttpClientBuilder.create().build();
 		cassandraServer.start();
 
-		inboxCollectionPath = testUtils.buildEmailInboxCollectionPath(user);
+		inboxPath = MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME);
 		inboxCollectionId = CollectionId.of(1234);
-		
-		bindCollectionIdToPath();
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("INBOX")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+
+		FolderSyncKey syncKey = new FolderSyncKey("4fd6280c-cbaa-46aa-a859-c6aad00f1ef3");
+		folderSnapshotDao.create(user.user, user.device, syncKey, 
+				FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 		
 		expect(policyConfigurationProvider.get()).andReturn("fakeConfiguration");
-	}
-
-	private void bindCollectionIdToPath() throws Exception {
-		expect(collectionDao.getCollectionPath(inboxCollectionId)).andReturn(inboxCollectionPath).anyTimes();
 	}
 
 	@After

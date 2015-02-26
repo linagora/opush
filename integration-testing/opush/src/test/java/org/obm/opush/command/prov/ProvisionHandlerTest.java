@@ -63,7 +63,6 @@ import org.obm.push.bean.ProvisionPolicyStatus;
 import org.obm.push.bean.ProvisionStatus;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.utils.DOMUtils;
@@ -71,7 +70,6 @@ import org.obm.sync.auth.AuthFault;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.ProvisionResponse;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
@@ -448,7 +446,7 @@ public class ProvisionHandlerTest {
 		
 		userAccessUtils.expectUserLoginFromOpush(user);
 		
-		testUtils.expectUserCollectionsNeverChange(user, Sets.<CollectionId>newHashSet());
+		testUtils.expectUserCollectionsNeverChange();
 		
 		expect(deviceDao.getDevice(user.user, 
 				user.deviceId, 

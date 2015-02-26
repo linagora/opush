@@ -46,7 +46,11 @@ public class AddressBookId implements BackendId {
 	private AddressBookId(int id) {
 		this.id = id;
 	}
-	
+
+	public int getId() {
+		return id;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(id);
@@ -67,4 +71,5 @@ public class AddressBookId implements BackendId {
 			.add("id", id)
 			.toString();
 	}
+
 }

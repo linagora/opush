@@ -34,17 +34,11 @@ package org.obm.push;
 import java.util.Iterator;
 import java.util.List;
 
-import org.obm.push.backend.FolderBackend;
 import org.obm.push.backend.IHierarchyExporter;
 import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges.Builder;
-import org.obm.push.exception.DaoException;
-import org.obm.push.service.impl.MappingService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -55,33 +49,13 @@ import com.google.inject.Singleton;
 @Singleton
 public class HierarchyExporter implements IHierarchyExporter {
 
-	private final FolderBackend folderExporter;
 	private final Backends backends;
-	private final MappingService mappingService;
 
 	@Inject
-	@VisibleForTesting HierarchyExporter(FolderBackend folderExporter, Backends backends,
-			MappingService mappingService) {
-		this.folderExporter = folderExporter;
+	@VisibleForTesting HierarchyExporter(Backends backends) {
 		this.backends = backends;
-		this.mappingService = mappingService;
 	}
 
-	@Override
-	public HierarchyCollectionChanges getChanged(UserDataRequest udr, FolderSyncState incomingSyncState,
-			FolderSyncState outgoingSyncState) throws DaoException {
-		
-		Builder builder = HierarchyCollectionChanges.builder();
-		for (PIMBackend backend: backends) {
-			HierarchyCollectionChanges hierarchyChanges = backend.getHierarchyChanges(udr, incomingSyncState, outgoingSyncState);
-			builder.mergeItems(hierarchyChanges);
-			
-			updateBackendSyncState(backend, outgoingSyncState);
-			
-		}
-		return builder.build();
-	}
-	
 	@Override
 	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		
@@ -99,14 +73,4 @@ public class HierarchyExporter implements IHierarchyExporter {
 		};
 	}
 
-	private void updateBackendSyncState(PIMBackend backend, FolderSyncState outgoingSyncState)
-			throws DaoException {
-		
-		mappingService.createBackendMapping(backend.getPIMDataType(), outgoingSyncState);
-	}
-
-	@Override
-	public String getRootFolderUrl(UserDataRequest udr) {
-		return folderExporter.getColName(udr);
-	}
 }

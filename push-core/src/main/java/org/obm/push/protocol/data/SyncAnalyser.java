@@ -34,7 +34,6 @@ package org.obm.push.protocol.data;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.IApplicationData;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.Sync;
@@ -42,6 +41,7 @@ import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
@@ -54,7 +54,7 @@ import org.obm.push.exception.activesync.ServerErrorException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncCollection;
 import org.obm.push.protocol.bean.SyncRequest;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,19 +72,17 @@ public class SyncAnalyser {
 	private static final Logger logger = LoggerFactory.getLogger(SyncAnalyser.class);
 	
 	private final SyncedCollectionDao syncedCollectionStoreService;
-	private final CollectionDao collectionDao;
-	private final ICollectionPathHelper collectionPathHelper;
+	private final FolderSnapshotDao folderSnapshotDao;
 	private final DecoderFactory decoderFactory;
 	private final OpushConfiguration configuration;
 
 	@Inject
 	protected SyncAnalyser(SyncedCollectionDao syncedCollectionStoreService,
-			CollectionDao collectionDao, ICollectionPathHelper collectionPathHelper,
+			FolderSnapshotDao folderSnapshotDao,
 			DecoderFactory decoderFactory,
 			OpushConfiguration configuration) {
 		this.syncedCollectionStoreService = syncedCollectionStoreService;
-		this.collectionDao = collectionDao;
-		this.collectionPathHelper = collectionPathHelper;
+		this.folderSnapshotDao = folderSnapshotDao;
 		this.decoderFactory = decoderFactory;
 		this.configuration = configuration;
 	}
@@ -119,10 +117,9 @@ public class SyncAnalyser {
 		
 		
 		try {
-			String collectionPath = collectionDao.getCollectionPath(collectionId);
-			PIMDataType checkedCollectionType = checkedCollectionType(collectionRequest.getDataType(), collectionPath);
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
+			PIMDataType checkedCollectionType = checkedCollectionType(collectionRequest.getDataType(), folder);
 			builder
-				.collectionPath(collectionPath)
 				.dataType(checkedCollectionType)
 				.windowSize(getWindowSize(syncRequest, collectionRequest))
 				.options(getUpdatedOptions(
@@ -183,13 +180,12 @@ public class SyncAnalyser {
 		}
 	}
 
-	private PIMDataType checkedCollectionType(PIMDataType dataClass, String collectionPath) {
-		PIMDataType recognizedDataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-		if (dataClass != null && !Objects.equal(dataClass, recognizedDataType)) {
+	private PIMDataType checkedCollectionType(PIMDataType dataClass, Folder folder) {
+		if (dataClass != null && !Objects.equal(dataClass, folder.getFolderType().getPIMDataType())) {
 			String msg = "The type of the collection found:{%s} is not the same than received in DataClass:{%s}";
-			throw new ServerErrorException(String.format(msg, recognizedDataType , dataClass));
+			throw new ServerErrorException(String.format(msg, folder.getFolderType().getPIMDataType() , dataClass));
 		}
-		return recognizedDataType;
+		return folder.getFolderType().getPIMDataType();
 	}
 
 	private CollectionId getCollectionId(SyncCollection collectionRequest) {

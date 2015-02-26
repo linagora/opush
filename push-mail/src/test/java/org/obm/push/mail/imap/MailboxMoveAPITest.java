@@ -44,9 +44,9 @@ import org.junit.runner.RunWith;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.ImapMessageNotFoundException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -71,7 +71,6 @@ public class MailboxMoveAPITest {
 	private static final String TRASH = OpushEmailConfiguration.IMAP_TRASH_NAME;
 	
 	@Inject MailboxService mailboxService;
-	@Inject ICollectionPathHelper collectionPathHelper;
 
 	@Inject GreenMail greenMail;
 	@Inject ResourcesHolder resourcesHolder;
@@ -95,7 +94,7 @@ public class MailboxMoveAPITest {
 	    udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
-	    testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, collectionPathHelper, smtpServerSetup);
+	    testUtils = new MailboxTestUtils(mailboxService, udr, mailbox, beforeTest, smtpServerSetup);
 	}
 	
 	@After
@@ -113,7 +112,7 @@ public class MailboxMoveAPITest {
 		long testErrorUidValue = -1;
 		MessageSet movedEmailUid = null;
 		try {
-			movedEmailUid = mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(DRAFT), MessageSet.singleton(sentEmail.getUid()));
+			movedEmailUid = mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(DRAFT), MessageSet.singleton(sentEmail.getUid()));
 		} catch (Exception nonExpectedException) {
 			Assert.fail("Greenmail should implement UIDPLUS, so no exception is expected");
 		}
@@ -133,7 +132,7 @@ public class MailboxMoveAPITest {
 		String toMailbox = "ANYBOX";
 		testUtils.createFolders(toMailbox);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(toMailbox), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(toMailbox), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Set<Email> movedEmails = testUtils.mailboxEmails(toMailbox);
@@ -150,7 +149,7 @@ public class MailboxMoveAPITest {
 
 		testUtils.createFolders(SENTBOX);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(SENTBOX), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(SENTBOX), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Set<Email> movedEmails = testUtils.mailboxEmails(SENTBOX);
@@ -167,7 +166,7 @@ public class MailboxMoveAPITest {
 
 		testUtils.createFolders(DRAFT);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(DRAFT), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(DRAFT), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Set<Email> movedEmails = testUtils.mailboxEmails(DRAFT);
@@ -184,7 +183,7 @@ public class MailboxMoveAPITest {
 
 		testUtils.createFolders(TRASH);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(TRASH), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(TRASH), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Set<Email> movedEmails = testUtils.mailboxEmails(TRASH);
@@ -199,7 +198,7 @@ public class MailboxMoveAPITest {
 	public void testMoveToInbox() throws Exception {
 		Email sentEmail = testUtils.sendEmailToInbox();
 
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(INBOX), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(INBOX), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Assertions.assertThat(inboxEmails).hasSize(1);
@@ -216,10 +215,10 @@ public class MailboxMoveAPITest {
 		String toMailbox = "ANYBOX";
 		testUtils.createFolders(fromMailbox, toMailbox);
 
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(fromMailbox), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(fromMailbox), MessageSet.singleton(sentEmail.getUid()));
 		Email emailInSpecialbox = testUtils.emailInMailbox(fromMailbox);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(fromMailbox), testUtils.mailboxPath(toMailbox), MessageSet.singleton(emailInSpecialbox.getUid()));
+		mailboxService.move(udr, MailboxPath.of(fromMailbox), MailboxPath.of(toMailbox), MessageSet.singleton(emailInSpecialbox.getUid()));
 
 		Set<Email> fromEmails = testUtils.mailboxEmails(fromMailbox);
 		Set<Email> movedEmails = testUtils.mailboxEmails(toMailbox);
@@ -236,7 +235,7 @@ public class MailboxMoveAPITest {
 
 		String fromNonExistingMailbox = "NONEXISTING_BOX";
 		
-		mailboxService.move(udr, testUtils.mailboxPath(fromNonExistingMailbox), testUtils.mailboxPath(INBOX), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(fromNonExistingMailbox), MailboxPath.of(INBOX), MessageSet.singleton(sentEmail.getUid()));
 	}
 
 	@Test(expected=CollectionNotFoundException.class)
@@ -245,7 +244,7 @@ public class MailboxMoveAPITest {
 
 		String toNonExistingMailbox = "NONEXISTING_BOX";
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(toNonExistingMailbox), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(toNonExistingMailbox), MessageSet.singleton(sentEmail.getUid()));
 	}
 
 	@Test
@@ -255,7 +254,7 @@ public class MailboxMoveAPITest {
 		String fromSubMailbox = "ANYMAILBOX.SUBMAILBOX";
 		testUtils.createFolders(fromSubMailbox);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(fromSubMailbox), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(fromSubMailbox), MessageSet.singleton(sentEmail.getUid()));
 
 		Set<Email> inboxEmails = testUtils.mailboxEmails(INBOX);
 		Set<Email> movedEmails = testUtils.mailboxEmails(fromSubMailbox);
@@ -274,11 +273,11 @@ public class MailboxMoveAPITest {
 		String toOtherSubMailbox = "ANYMAILBOX.SUBMAILBOX.SUBSUBMAILBOX";
 		testUtils.createFolders(fromSubMailbox, toOtherSubMailbox);
 
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(fromSubMailbox), MessageSet.singleton(sentEmail.getUid()));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(fromSubMailbox), MessageSet.singleton(sentEmail.getUid()));
 		Email emailInSubMailbox = testUtils.emailInMailbox(fromSubMailbox);
 		
 		mailboxService.move(udr,
-				testUtils.mailboxPath(fromSubMailbox), testUtils.mailboxPath(toOtherSubMailbox), MessageSet.singleton(emailInSubMailbox.getUid()));
+				MailboxPath.of(fromSubMailbox), MailboxPath.of(toOtherSubMailbox), MessageSet.singleton(emailInSubMailbox.getUid()));
 
 		Set<Email> fromEmails = testUtils.mailboxEmails(fromSubMailbox);
 		Set<Email> movedEmails = testUtils.mailboxEmails(toOtherSubMailbox);
@@ -298,7 +297,7 @@ public class MailboxMoveAPITest {
 		String toMoveEmailMailbox = "ANYBOX";
 		testUtils.createFolders(toMoveEmailMailbox);
 		
-		mailboxService.move(udr, testUtils.mailboxPath(INBOX), testUtils.mailboxPath(toMoveEmailMailbox), MessageSet.singleton(nonExistingEmail));
+		mailboxService.move(udr, MailboxPath.of(INBOX), MailboxPath.of(toMoveEmailMailbox), MessageSet.singleton(nonExistingEmail));
 	}
 
 }

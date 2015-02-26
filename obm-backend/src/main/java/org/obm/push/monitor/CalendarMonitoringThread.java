@@ -41,8 +41,8 @@ import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.exception.DaoException;
 import org.obm.push.service.PushPublishAndSubscribe;
 import org.obm.push.state.IStateMachine;
-import org.obm.push.store.CollectionDao;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -51,16 +51,14 @@ public class CalendarMonitoringThread extends MonitoringThread {
 
 	@Singleton
 	public static class Factory {
-		private final CollectionDao collectionDao;
 		private final org.obm.push.service.PushPublishAndSubscribe.Factory pubSubFactory;
 		private final CalendarBackend calendarBackend;
 		private final IContentsExporter contentsExporter;
 		private final IStateMachine stateMachine;
 
 		@Inject
-		private Factory(CollectionDao collectionDao, CalendarBackend calendarBackend,
+		private Factory(CalendarBackend calendarBackend,
 				PushPublishAndSubscribe.Factory pubSubFactory, IContentsExporter contentsExporter, IStateMachine stateMachine) {
-			this.collectionDao = collectionDao;
 			this.calendarBackend = calendarBackend;
 			this.pubSubFactory = pubSubFactory;
 			this.contentsExporter = contentsExporter;
@@ -71,24 +69,19 @@ public class CalendarMonitoringThread extends MonitoringThread {
 				Set<ICollectionChangeListener> ccls) {
 			
 			return new CalendarMonitoringThread(freqMs, ccls,
-					this.collectionDao, this.calendarBackend, pubSubFactory, contentsExporter, stateMachine);
+					this.calendarBackend, pubSubFactory, contentsExporter, stateMachine);
 		}
 	}
 
 	private CalendarMonitoringThread(long freqMs,
-			Set<ICollectionChangeListener> ccls,
-			CollectionDao collectionDao, CalendarBackend calendarBackend,
+			Set<ICollectionChangeListener> ccls, CalendarBackend calendarBackend,
 			PushPublishAndSubscribe.Factory pubSubFactory, IContentsExporter contentsExporter, IStateMachine stateMachine) {
-		super(freqMs, ccls, collectionDao, calendarBackend, pubSubFactory, contentsExporter, stateMachine);
+		super(freqMs, ccls, calendarBackend, pubSubFactory, contentsExporter, stateMachine);
 	}
 
 	@Override
 	public ChangedCollections getChangedCollections(Date lastSync) throws ChangedCollectionsException, DaoException {
-		try{
-			return collectionDao.getCalendarChangedCollections(lastSync);
-		} catch (DaoException e) {
-			throw new ChangedCollectionsException(e);
-		}
+		return new ChangedCollections(lastSync, ImmutableSet.<String>of());
 	}
 
 }

@@ -56,10 +56,9 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.mail.StreamMailTestsUtils;
 import org.obm.push.bean.Credentials;
-import org.obm.push.bean.ICollectionPathHelper;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
@@ -83,14 +82,13 @@ public class MailboxMemoryAPITest {
 	@Inject MailboxService mailboxService;
 	@Inject OpushEmailConfiguration emailConfiguration;
 	@Inject OpushLocatorService locatorService;
-	@Inject ICollectionPathHelper collectionPathHelper;
 	@Inject ResourcesHolder resourcesHolder;
 	
 	private String mailbox;
 	private char[] password;
 	private UserDataRequest udr;
 	private long maxHeapSize;
-	private String inboxPath;
+	private MailboxPath inboxPath;
 	
 	@Inject GreenMailExternalProcess greenMailExternalProcess;
 	private ClosableProcess greenMailProcess;
@@ -112,7 +110,7 @@ public class MailboxMemoryAPITest {
 		String imapLocation = locatorService.getServiceLocation("mail/imap_frontend", udr.getUser().getLoginAtDomain());
 		GreenMailServerUtil.waitForGreenmailAvailability(imapLocation, greenMailExternalProcess.getImapPort());
 		GreenMailServerUtil.waitForGreenmailAvailability(imapLocation, greenMailExternalProcess.getSmtpPort());
-		inboxPath = collectionPathHelper.buildCollectionPath(udr, PIMDataType.EMAIL, IMAP_INBOX_NAME);
+		inboxPath = MailboxPath.of(IMAP_INBOX_NAME);
 	}
 
 	@After
@@ -167,8 +165,7 @@ public class MailboxMemoryAPITest {
 	}
 
 	private InputStream uidFetchPart(long uid, String partToFetch) throws Exception {
-		return mailboxService.findAttachment(udr, OpushEmailConfiguration.IMAP_INBOX_NAME, uid, 
-						new MimeAddress(partToFetch));
+		return mailboxService.findAttachment(udr, inboxPath, uid, new MimeAddress(partToFetch));
 	}
 	
 }

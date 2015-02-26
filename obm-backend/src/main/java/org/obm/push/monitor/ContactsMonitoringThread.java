@@ -38,11 +38,10 @@ import org.obm.push.backend.ICollectionChangeListener;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.ChangedCollections;
 import org.obm.push.contacts.ContactsBackend;
-import org.obm.push.exception.DaoException;
 import org.obm.push.service.PushPublishAndSubscribe;
 import org.obm.push.state.IStateMachine;
-import org.obm.push.store.CollectionDao;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -50,16 +49,15 @@ public class ContactsMonitoringThread extends MonitoringThread {
 
 	@Singleton
 	public static class Factory {
-		private final CollectionDao collectionDao;
+		
 		private final PushPublishAndSubscribe.Factory pubSubFactory;
 		private final ContactsBackend contactsBackend;
 		private final IContentsExporter contentsExporter;
 		private final IStateMachine stateMachine;
 
 		@Inject
-		private Factory(CollectionDao collectionDao, ContactsBackend contactsBackend,
+		private Factory(ContactsBackend contactsBackend,
 				PushPublishAndSubscribe.Factory pubSubFactory, IContentsExporter contentsExporter, IStateMachine stateMachine) {
-			this.collectionDao = collectionDao;
 			this.contactsBackend = contactsBackend;
 			this.pubSubFactory = pubSubFactory;
 			this.contentsExporter = contentsExporter;
@@ -70,23 +68,19 @@ public class ContactsMonitoringThread extends MonitoringThread {
 				Set<ICollectionChangeListener> ccls) {
 			
 			return new ContactsMonitoringThread(freqMs, ccls,
-					this.collectionDao, this.contactsBackend, pubSubFactory, contentsExporter, stateMachine);
+					this.contactsBackend, pubSubFactory, contentsExporter, stateMachine);
 		}
 	}
 	
-	private ContactsMonitoringThread(long freqMs, Set<ICollectionChangeListener> ccls, CollectionDao collectionDao, 
+	private ContactsMonitoringThread(long freqMs, Set<ICollectionChangeListener> ccls,
 			ContactsBackend contactsBackend, PushPublishAndSubscribe.Factory pubSubFactory, IContentsExporter contentsExporter, IStateMachine stateMachine) {
 		
-		super(freqMs, ccls, collectionDao, contactsBackend, pubSubFactory, contentsExporter, stateMachine);
+		super(freqMs, ccls, contactsBackend, pubSubFactory, contentsExporter, stateMachine);
 	}
 
 	@Override
 	protected ChangedCollections getChangedCollections(Date lastSync) throws ChangedCollectionsException {
-		try {
-			return collectionDao.getContactChangedCollections(lastSync);
-		} catch (DaoException e) {
-			throw new ChangedCollectionsException(e);
-		}
+		return new ChangedCollections(lastSync, ImmutableSet.<String>of());
 	}
 
 }

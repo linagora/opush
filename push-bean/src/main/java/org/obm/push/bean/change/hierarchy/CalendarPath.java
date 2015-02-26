@@ -44,10 +44,14 @@ public class CalendarPath implements BackendId {
 		return new CalendarPath(path);
 	}
 	
-	private String path;
+	private final String path;
 	
 	private CalendarPath(String path) {
 		this.path = path;
+	}
+
+	public String getPath() {
+		return path;
 	}
 
 	@Override

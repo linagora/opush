@@ -58,6 +58,7 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.ServerId;
@@ -66,6 +67,9 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.configuration.OpushEmailConfiguration;
@@ -89,6 +93,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.service.EventService;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
@@ -96,6 +101,7 @@ import org.obm.push.store.WindowingDao;
 import org.obm.push.utils.UserEmailParserUtils;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -108,6 +114,8 @@ public class MailboxBackendTest {
 	private char[] password;
 	private UserDataRequest udr;
 	private Device device;
+	private MailboxPath inboxPath;
+	private Folder inboxFolder;
 	
 	private IMocksControl mocks;
 	private MailBackendImpl mailBackendImpl;
@@ -123,6 +131,8 @@ public class MailboxBackendTest {
 	private SmtpSender smtpSender;
 	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
+	private FolderSnapshotDao folderSnapshotDao;
+	private CollectionId inboxCollectionId;
 
 	@Before
 	public void setUp() {
@@ -132,6 +142,16 @@ public class MailboxBackendTest {
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, device);
+		inboxCollectionId = CollectionId.of(1);
+		inboxPath = MailboxPath.of("INBOX");
+		inboxFolder = Folder.builder()
+				.backendId(inboxPath)
+				.collectionId(inboxCollectionId)
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("displayName")
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.build();
+		
 		mocks = createControl();
 		mailboxService = mocks.createMock(MailboxService.class);
 		mappingService = mocks.createMock(MappingService.class);
@@ -148,10 +168,11 @@ public class MailboxBackendTest {
 		smtpSender = mocks.createMock(SmtpSender.class);
 		emailConfiguration = mocks.createMock(OpushEmailConfiguration.class);
 		dateService = mocks.createMock(DateService.class);
+		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		
 		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, 
-				snapshotDao, null, mappingService, msEmailFetcher, null, null, null, 
-				windowingDao, smtpSender, emailConfiguration, dateService);
+				snapshotDao, null, mappingService, msEmailFetcher, null, null, 
+				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 	}
 	
 	@Test
@@ -161,10 +182,9 @@ public class MailboxBackendTest {
 		ServerId serverId = collectionId.serverId(itemId);
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
-		String collectionPath = "INBOX";
 
-		expect(mailboxService.fetchEmailMetadata(udr, collectionPath, itemId)).andThrow(new ItemNotFoundException("failure"));
-		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
+		expect(mailboxService.fetchEmailMetadata(udr, inboxPath, itemId)).andThrow(new ItemNotFoundException("failure"));
+		expect(folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId)).andReturn(inboxFolder);
 		
 		mocks.replay();
 		List<ItemChange> items = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions);
@@ -176,19 +196,17 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchMimeSinglePartBase64Email() throws Exception {
 		int itemId = 2;
-		CollectionId collectionId = CollectionId.of(1);
-		ServerId serverId = collectionId.serverId(itemId);
+		ServerId serverId = inboxCollectionId.serverId(itemId);
 		ImmutableList<BodyPreference> bodyPreferences = ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).build());
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
-		String collectionPath = "INBOX";
-
+		
 		InputStream mailStream = loadEmail("SinglePartBase64.eml");
 		expect(transformer.targetType()).andReturn(MSEmailBodyType.MIME);
 		expect(transformer.transform(mailStream, Charsets.UTF_8)).andReturn(mailStream);
 		
-		mockMailboxServiceFetchFullMail(mailStream, itemId, collectionPath);
-		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
-		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
+		mockMailboxServiceFetchFullMail(mailStream, itemId, inboxPath);
+		expect(folderSnapshotDao.get(udr.getUser(), udr.getDevice(), inboxCollectionId)).andReturn(inboxFolder);
+		expect(mappingService.getServerIdFor(inboxCollectionId, String.valueOf(itemId))).andReturn(serverId);
 		
 		SyncKey previousSyncKey = new SyncKey("123");
 		SyncKey nextSyncKey = new SyncKey("456");
@@ -199,7 +217,7 @@ public class MailboxBackendTest {
 				.build();
 
 		SnapshotKey existingSnapshotKey = SnapshotKey.builder()
-				.collectionId(collectionId)
+				.collectionId(inboxCollectionId)
 				.deviceId(device.getDevId())
 				.syncKey(previousSyncKey).build();
 		Snapshot existingSnapshot = Snapshot.builder()
@@ -211,7 +229,7 @@ public class MailboxBackendTest {
 		expect(snapshotDao.get(existingSnapshotKey)).andReturn(existingSnapshot);
 		
 		mocks.replay();		
-		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
+		List<ItemChange> emails = mailBackendImpl.fetch(udr, inboxCollectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
@@ -222,17 +240,15 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchTextPlainSinglePartBase64Email() throws Exception {
 		int itemId = 2;
-		CollectionId collectionId = CollectionId.of(1);
-		ServerId serverId = collectionId.serverId(itemId);
-		String collectionPath = "INBOX";
+		ServerId serverId = inboxCollectionId.serverId(itemId);
 
 		InputStream mailStream = loadEmail("SinglePartBase64.eml");
 		expect(transformer.targetType()).andReturn(MSEmailBodyType.PlainText);
 		expect(transformer.transform(mailStream, Charsets.UTF_8)).andReturn(mailStream);
 		
-		mockMailboxServiceFetchFullMail(mailStream, itemId, collectionPath);
-		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
-		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
+		mockMailboxServiceFetchFullMail(mailStream, itemId, inboxPath);
+		expect(folderSnapshotDao.get(udr.getUser(), udr.getDevice(), inboxCollectionId)).andReturn(inboxFolder);
+		expect(mappingService.getServerIdFor(inboxCollectionId, String.valueOf(itemId))).andReturn(serverId);
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()))
@@ -247,7 +263,7 @@ public class MailboxBackendTest {
 				.build();
 
 		SnapshotKey existingSnapshotKey = SnapshotKey.builder()
-				.collectionId(collectionId)
+				.collectionId(inboxCollectionId)
 				.deviceId(device.getDevId())
 				.syncKey(previousSyncKey).build();
 		
@@ -255,7 +271,7 @@ public class MailboxBackendTest {
 		expectLastCall();
 
 		mocks.replay();
-		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
+		List<ItemChange> emails = mailBackendImpl.fetch(udr, inboxCollectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
@@ -263,14 +279,14 @@ public class MailboxBackendTest {
 		assertThat(bodyText).contains("Envoyé de mon iPhone");
 	}
 	
-	private void mockMailboxServiceFetchFullMail(InputStream mailStream, long itemId, String collectionPath) {
-		mockMailboxServiceFetchEmailView(itemId, collectionPath);
-		expectFetchMailStream(collectionPath, itemId, mailStream);
+	private void mockMailboxServiceFetchFullMail(InputStream mailStream, long itemId, MailboxPath path) {
+		mockMailboxServiceFetchEmailView(itemId, path);
+		expectFetchMailStream(path, itemId, mailStream);
 	}
 
-	private void mockMailboxServiceFetchEmailView(long itemId, String collectionPath) {
+	private void mockMailboxServiceFetchEmailView(long itemId, MailboxPath path) {
 		MimeMessage mimeMessage = buildMimeMessage(itemId);
-		expect(mailboxService.fetchEmailMetadata(udr, collectionPath, itemId)).andReturn(
+		expect(mailboxService.fetchEmailMetadata(udr, path, itemId)).andReturn(
 				EmailMetadata.builder()
 					.uid(mimeMessage.getUid())
 					.size(mimeMessage.getSize())
@@ -283,9 +299,7 @@ public class MailboxBackendTest {
 	@Test
 	public void testFetchWithoutCorrespondingBodyPreference() throws Exception {
 		int itemId = 2;
-		CollectionId collectionId = CollectionId.of(1);
-		ServerId serverId = collectionId.serverId(itemId);
-		String collectionPath = "INBOX";
+		ServerId serverId = inboxCollectionId.serverId(itemId);
 
 		final Capture<InputStream> capturedStream = newCapture();
 		expect(transformer.targetType()).andReturn(MSEmailBodyType.MIME);
@@ -298,9 +312,9 @@ public class MailboxBackendTest {
 				}
 			});
 
-		mockMailboxServiceFetchFullMailWithMimePartAddress(loadEmail("OBMFULL-4123.eml"), itemId, collectionPath);
-		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath);
-		expect(mappingService.getServerIdFor(collectionId, String.valueOf(itemId))).andReturn(serverId);
+		mockMailboxServiceFetchFullMailWithMimePartAddress(loadEmail("OBMFULL-4123.eml"), itemId, inboxPath);
+		expect(folderSnapshotDao.get(udr.getUser(), udr.getDevice(), inboxCollectionId)).andReturn(inboxFolder);
+		expect(mappingService.getServerIdFor(inboxCollectionId, String.valueOf(itemId))).andReturn(serverId);
 		
 		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder()
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).build()))
@@ -315,7 +329,7 @@ public class MailboxBackendTest {
 				.build();
 
 		SnapshotKey existingSnapshotKey = SnapshotKey.builder()
-				.collectionId(collectionId)
+				.collectionId(inboxCollectionId)
 				.deviceId(device.getDevId())
 				.syncKey(previousSyncKey).build();
 		Snapshot existingSnapshot = Snapshot.builder()
@@ -327,7 +341,7 @@ public class MailboxBackendTest {
 		expectLastCall();
 		
 		mocks.replay();
-		List<ItemChange> emails = mailBackendImpl.fetch(udr, collectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
+		List<ItemChange> emails = mailBackendImpl.fetch(udr, inboxCollectionId, ImmutableList.of(serverId), syncCollectionOptions, previousItemSyncState, nextSyncKey);
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
@@ -337,9 +351,9 @@ public class MailboxBackendTest {
 		assertThat(capturedStream.getValue()).hasContentEqualTo(loadEmail("OBMFULL-4123.eml"));
 	}
 
-	private void mockMailboxServiceFetchFullMailWithMimePartAddress(InputStream mailStream, int itemId, String collectionPath) {
-		mockMailboxServiceFetchEmailView(itemId, collectionPath);
-		expectFetchMimePartStream(collectionPath, itemId, mailStream, new MimeAddress("1"));
+	private void mockMailboxServiceFetchFullMailWithMimePartAddress(InputStream mailStream, int itemId, MailboxPath path) {
+		mockMailboxServiceFetchEmailView(itemId, path);
+		expectFetchMimePartStream(path, itemId, mailStream, new MimeAddress("1"));
 	}
 	
 	private MimeMessage buildMimeMessage(long uid) {
@@ -372,27 +386,27 @@ public class MailboxBackendTest {
 		return new ByteArrayInputStream(ByteStreams.toByteArray(ClassLoader.getSystemResourceAsStream("eml/" + name)));
 	}
 
-	public void expectFetchFlags(String collectionName, long uid, FlagsList value) {
-		expect(mailboxService.fetchFlags(udr, collectionName, MessageSet.singleton(uid))).andReturn(ImmutableMap.of(uid, value));
+	public void expectFetchFlags(MailboxPath path, long uid, FlagsList value) {
+		expect(mailboxService.fetchFlags(udr, path, MessageSet.singleton(uid))).andReturn(ImmutableMap.of(uid, value));
 	}
 
-	public void expectFetchEnvelope(String collectionName, long uid, UIDEnvelope envelope) {
-		expect(mailboxService.fetchEnvelope(udr, collectionName, MessageSet.singleton(uid)))
+	public void expectFetchEnvelope(MailboxPath path, long uid, UIDEnvelope envelope) {
+		expect(mailboxService.fetchEnvelope(udr, path, MessageSet.singleton(uid)))
 			.andReturn(ImmutableList.of(envelope));
 	}
 
-	public void expectFetchBodyStructure(String collectionName, long uid, MimeMessage mimeMessage) {
-		expect(mailboxService.fetchBodyStructure(udr, collectionName, MessageSet.singleton(uid)))
+	public void expectFetchBodyStructure(MailboxPath path, long uid, MimeMessage mimeMessage) {
+		expect(mailboxService.fetchBodyStructure(udr, path, MessageSet.singleton(uid)))
 			.andReturn(ImmutableList.of(mimeMessage));
 	}
 
-	public void expectFetchMailStream(String collectionName, long uid, InputStream mailStream) {
-		expect(mailboxService.fetchMailStream(udr, collectionName, uid))
+	public void expectFetchMailStream(MailboxPath path, long uid, InputStream mailStream) {
+		expect(mailboxService.fetchMailStream(udr, path, uid))
 				.andReturn(mailStream);
 	}
 
-	public void expectFetchMimePartStream(String collectionName, long uid, InputStream mailStream, MimeAddress partAddress) {
-		expect(mailboxService.fetchMimePartStream(udr, collectionName, uid, partAddress))
+	public void expectFetchMimePartStream(MailboxPath path, long uid, InputStream mailStream, MimeAddress partAddress) {
+		expect(mailboxService.fetchMimePartStream(udr, path, uid, partAddress))
 			.andReturn(mailStream);
 	}
 }

@@ -116,7 +116,6 @@ CREATE TABLE opush_sync_state (
     collection_id integer NOT NULL,
     device_id integer NOT NULL,
     last_sync timestamp NOT NULL,
-    CONSTRAINT opush_sync_state_collection_id_fkey FOREIGN KEY (collection_id) REFERENCES opush_folder_mapping(id) ON DELETE CASCADE,
     CONSTRAINT opush_sync_state_device_id_fkey FOREIGN KEY (device_id) REFERENCES opush_device(id) ON DELETE CASCADE,
     CONSTRAINT opush_sync_state_sync_key_key UNIQUE (sync_key),
 );

@@ -48,6 +48,7 @@ import org.apache.commons.io.IOUtils;
 import org.obm.icalendar.ICalendar;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.exception.MailException;
@@ -79,17 +80,17 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	private final TransformersFactory transformersFactory;
 	private final MailboxService mailboxService;
 	private final UserDataRequest udr;
-	private final String collectionPath;
+	private final MailboxPath path;
 	private final CollectionId collectionId;
 	private final List<BodyPreference> bodyPreferences;
 
 	public EmailViewPartsFetcherImpl(TransformersFactory transformersFactory, MailboxService mailboxService, 
-			List<BodyPreference> bodyPreferences, UserDataRequest udr, String collectionPath, CollectionId collectionId) {
+			List<BodyPreference> bodyPreferences, UserDataRequest udr, MailboxPath path, CollectionId collectionId) {
 		
 		this.transformersFactory = transformersFactory;
 		this.mailboxService = mailboxService;
 		this.udr = udr;
-		this.collectionPath = collectionPath;
+		this.path = path;
 		this.collectionId = collectionId;
 		this.bodyPreferences = bodyPreferences;
 	}
@@ -97,7 +98,7 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	@Override
 	public EmailView fetch(long uid, BodyPreferencePolicy bodyPreferencePolicy) throws EmailViewPartsFetcherException, EmailViewBuildException {
 		try {
-			EmailMetadata emailViewResponse = mailboxService.fetchEmailMetadata(udr, collectionPath, uid);
+			EmailMetadata emailViewResponse = mailboxService.fetchEmailMetadata(udr, path, uid);
 			Builder emailViewBuilder = EmailView.builder()
 					.uid(uid)
 					.flags(emailViewResponse.getFlags())
@@ -124,7 +125,7 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	@Override
 	public ICalendar fetchInvitation(long uid) throws EmailViewPartsFetcherException {
 		try {
-			EmailMetadata emailViewResponse = mailboxService.fetchEmailMetadata(udr, collectionPath, uid);
+			EmailMetadata emailViewResponse = mailboxService.fetchEmailMetadata(udr, path, uid);
 			
 			MimeMessage mimeMessage = emailViewResponse.getMimeMessage();
 			MimePart parentMessage = mimeMessage.findRootMimePartInTree();
@@ -188,18 +189,18 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 				MimeAddress address = fetchInstruction.getMimePart().getAddress();
 				Integer truncation = fetchInstruction.getTruncation();
 				if (truncation != null) {
-					bodyData = mailboxService.fetchPartialMimePartStream(udr, collectionPath, uid, address, truncation);
+					bodyData = mailboxService.fetchPartialMimePartStream(udr, path, uid, address, truncation);
 				} else {
-					bodyData = mailboxService.fetchMimePartStream(udr, collectionPath, uid, address);
+					bodyData = mailboxService.fetchMimePartStream(udr, path, uid, address);
 				}
 				if (bodyData != null) {
 					return new ByteArrayInputStream(ByteStreams.toByteArray(bodyData));
 				}
 				throw new EmailViewPartsFetcherException(String.format(
 						"Cannot fetch bodyData for collectionPath:%s, uid:%d, address:%s, truncation:%b",
-						collectionPath, uid, address, truncation!=null));
+						path, uid, address, truncation!=null));
 			} else {
-				return mailboxService.fetchMailStream(udr, collectionPath, uid);
+				return mailboxService.fetchMailStream(udr, path, uid);
 			}
 		} catch (IOException e) {
 			throw new MailException(e);
@@ -266,7 +267,7 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 	private ICalendar fetchICalendar(MimePart mp, long uid, EmailMetadata emailMetadata)
 			throws MailException, IOException, ParserException {
 
-		InputStream inputStream = mailboxService.findAttachment(udr, collectionPath, uid, mp.getAddress());
+		InputStream inputStream = mailboxService.findAttachment(udr, path, uid, mp.getAddress());
 		return ICalendar.builder()
 			.organizerFallback(organizerFallback(emailMetadata))
 			.inputStream(mp.decodeMimeStream(inputStream))

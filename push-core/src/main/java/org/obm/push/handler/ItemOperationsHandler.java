@@ -38,11 +38,9 @@ import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.bean.BodyPreference;
-import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemOperationsStatus;
 import org.obm.push.bean.MSAttachementData;
 import org.obm.push.bean.MSEmailBodyType;
-import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.StoreName;
 import org.obm.push.bean.SyncCollectionCommandResponse;
@@ -51,6 +49,7 @@ import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncCollectionResponsesResponse;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.SyncCommand;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.ConversionException;
@@ -77,7 +76,7 @@ import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult;
 import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult.FetchAttachmentResult;
 import org.obm.push.protocol.bean.ItemOperationsResponse.MailboxFetchResult.FetchItemResult;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.utils.FileUtils;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
@@ -94,25 +93,23 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 	private static final String NAMESPACE = "ItemOperations";
 	private final ItemOperationsProtocol.Factory protocolFactory;
 	private final MailBackend mailBackend;
-	private final ICollectionPathHelper collectionPathHelper;
 	private final IContentsImporter contentsImporter;
 	private final IContentsExporter contentsExporter;
-	private final CollectionDao collectionDao;
+	private final FolderSnapshotDao folderSnapshotDao;
 
 	@Inject
 	protected ItemOperationsHandler(IContentsImporter contentsImporter,
 			IContentsExporter contentsExporter, ItemOperationsProtocol.Factory protocolFactory,
-			CollectionDao collectionDao, WBXMLTools wbxmlTools,
-			MailBackend mailBackend, DOMDumper domDumper, ICollectionPathHelper collectionPathHelper) {
+			WBXMLTools wbxmlTools, MailBackend mailBackend, 
+			DOMDumper domDumper, FolderSnapshotDao folderSnapshotDao) {
 		
 		super(wbxmlTools, domDumper);
 		
 		this.contentsImporter = contentsImporter;
 		this.contentsExporter = contentsExporter;
 		this.protocolFactory = protocolFactory;
-		this.collectionDao = collectionDao;
 		this.mailBackend = mailBackend;
-		this.collectionPathHelper = collectionPathHelper;
+		this.folderSnapshotDao = folderSnapshotDao;
 	}
 	
 	@Override
@@ -239,13 +236,11 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 		FetchItemResult fetchResult = new FetchItemResult();
 		fetchResult.setServerId(serverId);
 		try {
-			String collectionPath = collectionDao.getCollectionPath(collectionId);
-			PIMDataType dataType = collectionPathHelper.recognizePIMDataType(collectionPath);
-			
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
 			List<BodyPreference> bodyPreferences = bodyPreferencesFromBodyType(type);
 
 			SyncCollectionResponse syncCollectionResponse = SyncCollectionResponse.builder()
-					.dataType(dataType)
+					.dataType(folder.getFolderType().getPIMDataType())
 					.collectionId(collectionId)
 					.responses(SyncCollectionResponsesResponse.builder()
 							.addCommand(SyncCollectionCommandResponse.builder()
@@ -292,8 +287,8 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 		
 		EmptyFolderContentsResult emptyFolderContentsResult = new EmptyFolderContentsResult();
 		try {
-			String collectionPath = collectionDao.getCollectionPath(request.getCollectionId());
-			contentsImporter.emptyFolderContent(udr, collectionPath, request.isDeleteSubFolderElem());
+			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), request.getCollectionId());
+			contentsImporter.emptyFolderContent(udr, folder, request.isDeleteSubFolderElem());
 			emptyFolderContentsResult.setItemOperationsStatus(ItemOperationsStatus.SUCCESS);
 		} catch (CollectionNotFoundException e) {
 			emptyFolderContentsResult.setItemOperationsStatus(ItemOperationsStatus.BLOCKED_ACCESS);

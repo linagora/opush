@@ -37,6 +37,7 @@ import java.util.List;
 import org.obm.icalendar.ICalendar;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.EmailViewBuildException;
@@ -70,12 +71,12 @@ public class MSEmailFetcher {
 		this.msEmailConverter = msEmailConverter;
 	}
 
-	public List<UidMSEmail> fetch(UserDataRequest udr, CollectionId collectionId, String collectionPath,
+	public List<UidMSEmail> fetch(UserDataRequest udr, CollectionId collectionId, MailboxPath path,
 			Collection<Long> uids, List<BodyPreference> bodyPreferences) throws EmailViewPartsFetcherException, DaoException {
 		
 		List<UidMSEmail> msEmails  = Lists.newLinkedList();
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
-				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, bodyPreferences, udr, collectionPath, collectionId);
+				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, bodyPreferences, udr, path, collectionId);
 		
 		for (Long uid: uids) {
 			try {
@@ -90,9 +91,9 @@ public class MSEmailFetcher {
 		return msEmails;
 	}
 
-	public ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, String collectionPath, Long uid) throws EmailViewPartsFetcherException, DaoException {
+	public ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, MailboxPath path, Long uid) throws EmailViewPartsFetcherException, DaoException {
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
-				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, null, udr, collectionPath, collectionId);
+				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, null, udr, path, collectionId);
 		
 		return emailViewPartsFetcherImpl.fetchInvitation(uid);
 	}

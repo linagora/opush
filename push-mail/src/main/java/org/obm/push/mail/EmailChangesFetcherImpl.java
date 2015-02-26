@@ -38,6 +38,7 @@ import java.util.Set;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -70,12 +71,12 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	
 	@Override
 	public MSEmailChanges fetch(UserDataRequest udr,
-			CollectionId collectionId, String collectionPath,
+			CollectionId collectionId, MailboxPath path,
 			List<BodyPreference> bodyPreferences, WindowingChanges<Email> emailChanges) throws EmailViewPartsFetcherException, DaoException {
 		Preconditions.checkNotNull(emailChanges, "emailChanges can not be null");
 		return MSEmailChanges.builder()
 				.deletions(emailDeletions(collectionId, emailChanges.deletions()))
-				.changes(emailAdditions(udr, collectionId, collectionPath, bodyPreferences, emailChanges.additions()))
+				.changes(emailAdditions(udr, collectionId, path, bodyPreferences, emailChanges.additions()))
 				.changes(emailChanges(collectionId, emailChanges.changes()))
 				.build();
 	}
@@ -96,11 +97,11 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	}
 
 	private Set<ItemChange> emailAdditions(UserDataRequest udr,
-			final CollectionId collectionId, String collectionPath,
+			final CollectionId collectionId, MailboxPath path,
 			List<BodyPreference> bodyPreferences, Set<Email> additions)
 					throws EmailViewPartsFetcherException, DaoException {
 		
-		final Map<Long, UidMSEmail> uidToMSEmailMap = fetchMSEmails(udr, collectionId, collectionPath, bodyPreferences, additions); 
+		final Map<Long, UidMSEmail> uidToMSEmailMap = fetchMSEmails(udr, collectionId, path, bodyPreferences, additions); 
 		return FluentIterable
 				.from(uidToMSEmailMap.keySet())
 				.transform(new Function<Long, ItemChange>() {
@@ -138,7 +139,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 	
 
 	private Map<Long, UidMSEmail> fetchMSEmails(UserDataRequest udr,
-			final CollectionId collectionId, String collectionPath,
+			final CollectionId collectionId, MailboxPath path,
 			List<BodyPreference> bodyPreferences, Set<Email> changes)
 					throws EmailViewPartsFetcherException, DaoException {
 		
@@ -146,7 +147,7 @@ public class EmailChangesFetcherImpl implements EmailChangesFetcher {
 			return ImmutableMap.<Long, UidMSEmail>of();
 		}
 		List<Long> uids = IndexUtils.listIndexes(changes);
-		List<UidMSEmail> msEmails = msEmailFetcher.fetch(udr, collectionId, collectionPath, uids, bodyPreferences);
+		List<UidMSEmail> msEmails = msEmailFetcher.fetch(udr, collectionId, path, uids, bodyPreferences);
 		return IndexUtils.mapByIndexes(msEmails);
 	}
 	

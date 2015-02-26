@@ -40,7 +40,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -65,19 +64,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.DefaultOpushModule;
 import org.obm.push.OpushServer;
-import org.obm.push.bean.ChangedCollections;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PingStatus;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderSnapshot;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -88,6 +92,8 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingResponse;
+import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.utils.DOMUtils;
@@ -97,6 +103,7 @@ import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -118,6 +125,7 @@ public class PingHandlerTest {
 	@Inject HeartbeatDao heartbeatDao;
 	@Inject CalendarBackend calendarBackend;
 	@Inject CollectionDao collectionDao;
+	@Inject FolderSnapshotDao folderSnapshotDao;
 	
 	private CloseableHttpClient httpClient;
 	private ExecutorService threadpool;
@@ -276,6 +284,18 @@ public class PingHandlerTest {
 		
 		prepareMockHasChanges(1, Arrays.asList(users.jaures));
 
+		Folder folder = Folder.builder()
+			.collectionId(collectionId)
+			.backendId(MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.displayName(EmailConfiguration.IMAP_INBOX_NAME)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
+		
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(users.jaures.user, users.jaures.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+
 		opushServer.start();
 
 		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
@@ -291,17 +311,30 @@ public class PingHandlerTest {
 	
 	@Test(expected=TimeoutException.class)
 	public void testTwoUsersPingWithSameDevice() throws Exception {
+		CollectionId collectionId = CollectionId.of(users.jaures.hashCode());
 		int heartbeat = 10;
 
 		prepareMockHasChanges(1, Arrays.asList(users.jaures, users.blum));
 
+		Folder folder = Folder.builder()
+			.collectionId(collectionId)
+			.backendId(MailboxPath.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.displayName(EmailConfiguration.IMAP_INBOX_NAME)
+			.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+			.parentBackendIdOpt(Optional.<BackendId>absent())
+			.build();
+		
+		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(users.jaures.user, users.jaures.device, folderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(folder)));
+		
 		opushServer.start();
 
 		OPClient opClientJaures = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
 		OPClient opClientBlum = testUtils.buildWBXMLOpushClient(users.blum, opushServer.getHttpPort(), httpClient);
 		
 		queriesLock.expectedQueriesCountToBeStarted(1);
-		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, CollectionId.of(users.jaures.hashCode()), 1000);
+		Future<PingResponse> response1 = opClientJaures.pingASync(async, pingProtocol, collectionId, 1000);
 		queriesLock.waitingStart(3, TimeUnit.SECONDS);
 		queriesLock.waitingClose(3, TimeUnit.SECONDS);
 		opClientBlum.pingASync(async, pingProtocol, CollectionId.of(users.blum.hashCode()), heartbeat);
@@ -312,7 +345,7 @@ public class PingHandlerTest {
 			UnexpectedObmSyncServerException, AuthFault, ConversionException, HierarchyChangedException {
 		userAccessUtils.mockUsersAccess(users);
 		mockForPingNeeds();
-		mockForNoChangePing(users);
+		mockForNoChangePing();
 		mocksControl.replay();
 	}
 
@@ -384,13 +417,10 @@ public class PingHandlerTest {
 		mockHeartbeatDao();
 	}
 	
-	private void mockForNoChangePing(List<OpushUser> users) throws DaoException, CollectionNotFoundException,
+	private void mockForNoChangePing() throws DaoException, CollectionNotFoundException,
 			UnexpectedObmSyncServerException, ConversionException, HierarchyChangedException {
 		mockCalendarBackendHasNoChange();
-
-		for (OpushUser user: users) {
-			testUtils.expectUserCollectionsNeverChange(user, Arrays.asList(CollectionId.of(user.hashCode())));
-		}
+		testUtils.expectUserCollectionsNeverChange();
 	}
 
 	private void mockForCalendarHasChangePing(int noChangeIterationCount, List<OpushUser> users) 
@@ -409,40 +439,27 @@ public class PingHandlerTest {
 
 	private void mockCollectionDaoHasChange(int noChangeIterationCount, List<OpushUser> users) 
 			throws DaoException, CollectionNotFoundException {
-		Date dateFirstSyncFromASSpecs = new Date(0);
-		Date dateWhenChangesAppear = new Date();
 		int collectionNoChangeIterationCount = noChangeIterationCount;
 
-		expectCollectionDaoUnchangeForXIteration(dateFirstSyncFromASSpecs, collectionNoChangeIterationCount);
+		expectCollectionDaoUnchangeForXIteration(collectionNoChangeIterationCount);
 
 		for (OpushUser user : users) {
 			CollectionId collectionId = CollectionId.of(user.hashCode());
-			String collectionPathWhereChangesAppear = testUtils.buildCalendarCollectionPath(user);
 			
 			ItemSyncState syncState = ItemSyncState.builder()
 					.syncKey(new SyncKey("sync state"))
 					.syncDate(DateUtils.getCurrentDate())
 					.build();
 			expect(collectionDao.lastKnownState(user.device, collectionId)).andReturn(syncState).once();
-
-			expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPathWhereChangesAppear).anyTimes();
-
-			ChangedCollections hasChangesCollections = buildSyncCollectionWithChanges(
-					dateWhenChangesAppear, collectionPathWhereChangesAppear);
-			expect(collectionDao.getCalendarChangedCollections(dateFirstSyncFromASSpecs)).andReturn(hasChangesCollections).once();
 		}
 	}
 	
-	private void expectCollectionDaoUnchangeForXIteration(Date activeSyncSpecFirstSyncDate, 
-			int noChangeIterationCount) throws DaoException {
+	private void expectCollectionDaoUnchangeForXIteration(int noChangeIterationCount) throws DaoException {
 		ItemSyncState syncState = ItemSyncState.builder()
 				.syncKey(new SyncKey("sync state"))
 				.syncDate(DateUtils.getCurrentDate())
 				.build();
 		expect(collectionDao.lastKnownState(anyObject(Device.class), anyObject(CollectionId.class))).andReturn(syncState).times(noChangeIterationCount);
-		ChangedCollections noChangeCollections = new ChangedCollections(activeSyncSpecFirstSyncDate, ImmutableSet.<String>of());
-		expect(collectionDao.getContactChangedCollections(activeSyncSpecFirstSyncDate)).andReturn(noChangeCollections).anyTimes();
-		expect(collectionDao.getCalendarChangedCollections(activeSyncSpecFirstSyncDate)).andReturn(noChangeCollections).times(noChangeIterationCount);
 	}
 
 	private void mockCalendarBackendHasContentChanges()
@@ -497,12 +514,6 @@ public class PingHandlerTest {
 		expectLastCall().anyTimes();
 	}
 	
-	private ChangedCollections buildSyncCollectionWithChanges(Date dateWhenChangesAppear, 
-			String collectionPathWhereChangesAppear) {
-		ChangedCollections calendarHasChangeCollections = new ChangedCollections(dateWhenChangesAppear , ImmutableSet.<String>of(collectionPathWhereChangesAppear));
-		return calendarHasChangeCollections;
-	}
-
 	private Document buildPingCommand(int heartbeatInterval, int collectionId)
 			throws SAXException, IOException {
 		return DOMUtils.parse("<Ping>"

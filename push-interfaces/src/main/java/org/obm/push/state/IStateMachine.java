@@ -34,14 +34,12 @@ package org.obm.push.state;
 import java.util.Date;
 
 import org.obm.push.bean.Device;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.InvalidServerId;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.protocol.bean.CollectionId;
 
 public interface IStateMachine {
@@ -49,10 +47,6 @@ public interface IStateMachine {
 	ItemSyncState lastKnownState(Device device, CollectionId collectionId) throws DaoException;
 	
 	ItemSyncState getItemSyncState(SyncKey syncKey) throws DaoException;
-	
-	FolderSyncState getFolderSyncState(FolderSyncKey syncKey) throws DaoException, InvalidSyncKeyException;
-	
-	FolderSyncState allocateNewFolderSyncState(UserDataRequest udr) throws DaoException;
 	
 	void allocateNewSyncState(UserDataRequest udr, CollectionId collectionId, Date lastSync, SyncCollectionResponse syncCollectionResponse, SyncKey newSyncKey) 
 			throws DaoException, InvalidServerId;

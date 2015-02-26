@@ -39,6 +39,8 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
@@ -47,9 +49,7 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.minig.imap.impl.MessageSetUtils;
-import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
-import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -64,44 +64,42 @@ public class MailBackendSyncData {
 	public static class MailBackendSyncDataFactory {
 		
 		private final DateService dateService;
-		private final MappingService mappingService;
 		private final MailboxService mailboxService;
 		private final SnapshotDao snapshotDao;
 		private final EmailChangesComputer emailChangesComputer;
 
 		@Inject
 		@VisibleForTesting MailBackendSyncDataFactory(DateService dateService,
-				MappingService mappingService,
 				MailboxService mailboxService,
 				SnapshotDao snapshotDao,
 				EmailChangesComputer emailChangesComputer) {
 			
 			this.dateService = dateService;
-			this.mappingService = mappingService;
 			this.mailboxService = mailboxService;
 			this.snapshotDao = snapshotDao;
 			this.emailChangesComputer = emailChangesComputer;
 		}
 		
-		public MailBackendSyncData create(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
+		public MailBackendSyncData create(UserDataRequest udr, ItemSyncState state, Folder folder, 
 				SyncCollectionOptions options) throws ProcessingEmailException, 
 				CollectionNotFoundException, DaoException, FilterTypeChangedException {
 			
+			MailboxPath path = folder.getTypedBackendId();
 			Date dataDeltaDate = dateService.getCurrentDate();
-			String collectionPath = mappingService.getCollectionPathFor(collectionId);
-			long currentUIDNext = mailboxService.fetchUIDNext(udr, collectionPath);
+			long currentUIDNext = mailboxService.fetchUIDNext(udr, path);
 
 			Snapshot previousStateSnapshot = snapshotDao.get(SnapshotKey.builder()
 					.deviceId(udr.getDevId())
 					.syncKey(state.getSyncKey())
-					.collectionId(collectionId)
+					.collectionId(folder.getCollectionId())
 					.build());
 			Collection<Email> managedEmails = getManagedEmails(previousStateSnapshot);
-			Collection<Email> newManagedEmails = searchEmailsToManage(udr, collectionId, collectionPath, previousStateSnapshot, options, dataDeltaDate, currentUIDNext);
+			Collection<Email> newManagedEmails = searchEmailsToManage(
+					udr, path, previousStateSnapshot, options, dataDeltaDate, currentUIDNext);
 			
 			EmailChanges emailChanges = emailChangesComputer.computeChanges(managedEmails, newManagedEmails);
 				
-			return new MailBackendSyncData(dataDeltaDate, collectionPath, currentUIDNext, previousStateSnapshot, managedEmails, newManagedEmails, emailChanges);
+			return new MailBackendSyncData(dataDeltaDate, path, currentUIDNext, previousStateSnapshot, managedEmails, newManagedEmails, emailChanges);
 		}
 
 		@VisibleForTesting Collection<Email> getManagedEmails(Snapshot previousStateSnapshot) {
@@ -111,32 +109,32 @@ public class MailBackendSyncData {
 			return ImmutableSet.of(); 
 		}
 
-		@VisibleForTesting Collection<Email> searchEmailsToManage(UserDataRequest udr, CollectionId collectionId, String collectionPath,
+		@VisibleForTesting Collection<Email> searchEmailsToManage(UserDataRequest udr, MailboxPath path,
 				Snapshot previousStateSnapshot, SyncCollectionOptions actualOptions,
 				Date dataDeltaDate, long currentUIDNext) throws FilterTypeChangedException {
 			
-			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions, collectionId);
+			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions);
 			if (mustSyncByDate(previousStateSnapshot)) {
 				Date searchEmailsFromDate = searchEmailsFromDate(actualOptions.getFilterType(), dataDeltaDate);
-				return mailboxService.fetchEmails(udr, collectionPath, searchEmailsFromDate);
+				return mailboxService.fetchEmails(udr, path, searchEmailsFromDate);
 			}
-			return searchSnapshotAndActualChanges(udr, collectionPath, previousStateSnapshot, currentUIDNext);
+			return searchSnapshotAndActualChanges(udr, path, previousStateSnapshot, currentUIDNext);
 		}
 
 		@VisibleForTesting Date searchEmailsFromDate(FilterType filterType, Date dataDeltaDate) {
 			return Objects.firstNonNull(filterType, FilterType.ALL_ITEMS).getFilteredDate(dataDeltaDate);	
 		}
 
-		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options, CollectionId collectionId)
+		private void assertSnapshotHasSameOptionsThanRequest(Snapshot snapshot, SyncCollectionOptions options)
 				throws FilterTypeChangedException {
 			
 			if (!snapshotIsAbsent(snapshot) && filterTypeHasChanged(snapshot, options)) {
-				manageFilterTypeChanged(collectionId, snapshot.getFilterType(), options.getFilterType());
+				manageFilterTypeChanged(snapshot.getFilterType(), options.getFilterType());
 			}
 		}
 
-		private void manageFilterTypeChanged(CollectionId collectionId, FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
-			throw new FilterTypeChangedException(collectionId, previousFilterType, currentFilterType);
+		private void manageFilterTypeChanged(FilterType previousFilterType, FilterType currentFilterType) throws FilterTypeChangedException {
+			throw new FilterTypeChangedException(previousFilterType, currentFilterType);
 		}
 
 		@VisibleForTesting boolean mustSyncByDate(Snapshot previousStateSnapshot) {
@@ -152,16 +150,16 @@ public class MailBackendSyncData {
 		}
 
 		private Collection<Email> searchSnapshotAndActualChanges(UserDataRequest udr, 
-				String collectionPath, Snapshot previousStateSnapshot, long currentUIDNext) {
+				MailboxPath path, Snapshot previousStateSnapshot, long currentUIDNext) {
 			
 			MessageSet messages = MessageSetUtils.computeEmailsUID(previousStateSnapshot, currentUIDNext);
-			return mailboxService.fetchEmails(udr, collectionPath, messages);
+			return mailboxService.fetchEmails(udr, path, messages);
 		}
 		
 	}
 	
 	private final Date dataDeltaDate;
-	private final String collectionPath;
+	private final MailboxPath mailboxPath;
 	private final long currentUIDNext;
 	private final Snapshot previousStateSnapshot;
 	private final Collection<Email> managedEmails;
@@ -169,7 +167,7 @@ public class MailBackendSyncData {
 	private final EmailChanges emailChanges;
 	
 	@VisibleForTesting MailBackendSyncData(Date dataDeltaDate,
-			String collectionPath,
+			MailboxPath mailboxPath,
 			long currentUIDNext,
 			Snapshot previousStateSnapshot,
 			Collection<Email> managedEmails,
@@ -177,7 +175,7 @@ public class MailBackendSyncData {
 			EmailChanges emailChanges) {
 		
 		this.dataDeltaDate = dataDeltaDate;
-		this.collectionPath = collectionPath;
+		this.mailboxPath = mailboxPath;
 		this.currentUIDNext = currentUIDNext;
 		this.previousStateSnapshot = previousStateSnapshot;
 		this.managedEmails = managedEmails;
@@ -189,8 +187,8 @@ public class MailBackendSyncData {
 		return dataDeltaDate;
 	}
 	
-	public String getCollectionPath() {
-		return collectionPath;
+	public MailboxPath getMailboxPath() {
+		return mailboxPath;
 	}
 	
 	public long getCurrentUIDNext() {

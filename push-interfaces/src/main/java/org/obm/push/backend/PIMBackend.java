@@ -38,7 +38,6 @@ import javax.naming.NoPermissionException;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
-import org.obm.push.bean.FolderSyncState;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.ServerId;
@@ -46,7 +45,7 @@ import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
-import org.obm.push.bean.change.hierarchy.HierarchyCollectionChanges;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
@@ -54,7 +53,6 @@ import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.UnsupportedBackendFunctionException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
-import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
@@ -69,14 +67,14 @@ public interface PIMBackend extends PIMTyped {
 			DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
 			ConversionException, HierarchyChangedException, NoPermissionException;
 	
-	ServerId move(UserDataRequest udr, String srcFolder, String dstFolder, ServerId messageId)
+	ServerId move(UserDataRequest udr, Folder srcFolder, Folder dstFolder, ServerId messageId)
 		throws CollectionNotFoundException, ProcessingEmailException, UnsupportedBackendFunctionException;
 	
 	void delete(UserDataRequest udr, CollectionId collectionId, ServerId serverId, Boolean moveToTrash) 
 			throws CollectionNotFoundException, DaoException, UnexpectedObmSyncServerException, ItemNotFoundException,
 			ProcessingEmailException, UnsupportedBackendFunctionException;
 	
-	void emptyFolderContent(UserDataRequest udr, String collectionPath, boolean deleteSubFolder)
+	void emptyFolderContent(UserDataRequest udr, Folder folder, boolean deleteSubFolder)
 			throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException;
 	
 	List<ItemChange> fetch(UserDataRequest udr, CollectionId collectionId, List<ServerId> fetchServerIds, SyncCollectionOptions syncCollectionOptions) 
@@ -97,10 +95,8 @@ public interface PIMBackend extends PIMTyped {
 		ProcessingEmailException, DaoException, UnexpectedObmSyncServerException, ConversionException,
 		FilterTypeChangedException, HierarchyChangedException;
 
-	HierarchyCollectionChanges getHierarchyChanges(UserDataRequest userDataRequest, FolderSyncState lastKnownState, FolderSyncState outgoingSyncState)
-			throws DaoException, InvalidSyncKeyException;
-
+	BackendFolders getBackendFolders(UserDataRequest udr) ;
+	
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 
-	BackendFolders getBackendFolders(UserDataRequest udr) ;
 }
