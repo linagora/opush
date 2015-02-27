@@ -20,11 +20,17 @@ check_not_empty() {
   done
 }
 
+QUESTION_NOT_SHOWN_TO_USER=30
 while [ ! ${have_app_pass} ] ; do
 
     #get password
     RET=""
-    db_input high opush/cassandra-pwd || true
+    set +e
+    db_input high opush/cassandra-pwd
+    if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+      break
+    fi
+    set -e
     db_go || true
     db_get opush/cassandra-pwd || true
     DB_RET="${RET}"
@@ -33,7 +39,12 @@ while [ ! ${have_app_pass} ] ; do
     
     #get password confirm
     RET=""
-    db_input high opush/cassandra-pwd-verify || true
+    set +e
+    db_input high opush/cassandra-pwd-verify
+    if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+      break
+    fi
+    set -e
     db_go || true
     db_get opush/cassandra-pwd-verify || true
     pass2="${RET}"
@@ -42,7 +53,12 @@ while [ ! ${have_app_pass} ] ; do
     if [ "${pass1}" = "${pass2}" ]; then
         have_app_pass="yes"
     else
-        db_input high opush/cassandra-pwd-do-not-match || true
+        set +e
+        db_input high opush/cassandra-pwd-do-not-match
+        if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+          break
+        fi
+        set -e
         db_go || true
     fi
 done

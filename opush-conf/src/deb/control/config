@@ -21,16 +21,27 @@ check_alphanumeric() {
   done
 }
 
+QUESTION_NOT_SHOWN_TO_USER=30
 while [ ! ${have_app_pass} ] ; do
     #get password
-    db_input high obm-conf/dbpasswd || true
+    set +e
+    db_input high obm-conf/dbpasswd
+    if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+      break
+    fi
+    set -e
     db_go || true
     db_get obm-conf/dbpasswd || true
     DB_RET="$RET"
     check_alphanumeric $DB_RET "dbpasswd"
     pass1=${DB_RET}
     #get password confirm
-    db_input high obm-conf/dbpasswd_verify || true
+    set +e
+    db_input high obm-conf/dbpasswd_verify
+    if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+      break
+    fi
+    set -e
     db_go || true
     db_get obm-conf/dbpasswd_verify || true
     pass2="$RET"
@@ -39,8 +50,13 @@ while [ ! ${have_app_pass} ] ; do
     if [ "${pass1}" = "${pass2}" ]; then
 	have_app_pass="yes"
     else
-	db_input high obm-conf/passwords-do-not-match || true
-	db_go || true
+        set +e
+        db_input high obm-conf/passwords-do-not-match
+        if [ $? -eq $QUESTION_NOT_SHOWN_TO_USER ]; then
+          break
+        fi
+        set -e
+        db_go || true
     fi
 done
 
