@@ -108,6 +108,7 @@ case "$1" in
         ;;
   status)
         getStatus
+        exit $?
         ;;
   restart)
         stop

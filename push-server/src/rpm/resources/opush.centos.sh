@@ -112,6 +112,7 @@ case "$1" in
         ;;
   status)
         status -p $PIDFILE opush
+        exit $?
         ;;
   restart)
         stop
