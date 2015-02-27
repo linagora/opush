@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+if [ $1 = 'purge' ]; then
+  rm -rf /var/lib/opush
+  rm -rf /var/run/opush
+  rm -rf /var/log/opush
+fi
