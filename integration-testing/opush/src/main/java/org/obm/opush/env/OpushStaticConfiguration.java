@@ -245,4 +245,9 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 	public boolean isRequestLoggerEnabled() {
 		return false;
 	}
+
+	@Override
+	public int defaultWindowSize() {
+		return 50;
+	}
 }

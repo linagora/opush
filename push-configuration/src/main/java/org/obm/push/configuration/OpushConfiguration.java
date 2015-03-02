@@ -42,4 +42,6 @@ public interface OpushConfiguration extends DomainConfiguration, DataConfigurati
 	String getActiveSyncServletUrl();
 	
 	boolean isRequestLoggerEnabled();
+	
+	int defaultWindowSize();
 }

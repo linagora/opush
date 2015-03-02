@@ -33,6 +33,8 @@ package org.obm.push.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
+import static org.obm.push.configuration.OpushConfigurationImpl.DEFAULT_WINDOW_SIZE;
+import static org.obm.push.configuration.OpushConfigurationImpl.DEFAULT_WINDOW_SIZE_DEFAULT;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -100,5 +102,30 @@ public class OpushConfigurationImplTest {
 	@Test
 	public void testIsRequestLoggerEnabledIsTrue() {
 		assertThat(opushConfigurationImpl.isRequestLoggerEnabled()).isTrue();
+	}
+	
+	@Test
+	public void defaultWindowSizeShouldBeEqualToDefaultValueWhenNone() {
+		expect(iniFile.getIntValue(DEFAULT_WINDOW_SIZE, DEFAULT_WINDOW_SIZE_DEFAULT))
+			.andReturn(DEFAULT_WINDOW_SIZE_DEFAULT);
+		
+		control.replay();
+		int defaultWindowSize = opushConfigurationImpl.defaultWindowSize();
+		control.verify();
+		
+		assertThat(defaultWindowSize).isEqualTo(DEFAULT_WINDOW_SIZE_DEFAULT);
+	}
+	
+	@Test
+	public void defaultWindowSizeShouldBeEqualToFileValueWhenGiven() {
+		int expectedDefaultWindowSize = 10;
+		expect(iniFile.getIntValue(DEFAULT_WINDOW_SIZE, DEFAULT_WINDOW_SIZE_DEFAULT))
+			.andReturn(expectedDefaultWindowSize);
+		
+		control.replay();
+		int defaultWindowSize = opushConfigurationImpl.defaultWindowSize();
+		control.verify();
+		
+		assertThat(defaultWindowSize).isEqualTo(expectedDefaultWindowSize);
 	}
 }

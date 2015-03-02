@@ -51,6 +51,9 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	private static final String TRANSACTION_TIMEOUT_KEY = "transaction-timeout";
 	private static final int TRANSACTION_TIMEOUT_DEFAULT = 1;
 	
+	@VisibleForTesting static final String DEFAULT_WINDOW_SIZE = "window-size";
+	@VisibleForTesting static final int DEFAULT_WINDOW_SIZE_DEFAULT = 50;
+	
 	@VisibleForTesting static final String GLOBAL_DOMAIN = "global.virt";
 	@VisibleForTesting final static String ASCMD = "Microsoft-Server-ActiveSync";
 	@VisibleForTesting final static String EXTERNAL_URL_KEY = "external-url";
@@ -146,5 +149,10 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	@Override
 	public String getObmSyncServicesUrl(String obmSyncHost) {
 		return getObmSyncBaseUrl(obmSyncHost) + "/" + SERVICES_APP_NAME;
+	}
+
+	@Override
+	public int defaultWindowSize() {
+		return iniFile.getIntValue(DEFAULT_WINDOW_SIZE, DEFAULT_WINDOW_SIZE_DEFAULT);
 	}
 }
