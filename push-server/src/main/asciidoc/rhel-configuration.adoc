@@ -1,6 +1,14 @@
 ==== Configuration of the Communication with *OBM* Components
 
 ===== Main Configuration
+
+[NOTE]
+====
+Opush reads its configuration from +/etc/opush/opush.ini+ then from +/etc/obm/obm_conf.ini+. +
+If you already have a +/etc/obm/obm_conf.ini+ configured on the Opush machine, you can safely drop or empty +/etc/opush/opush.ini+. +
+Then you may skip this section.
+====
+
 You have to edit the main configuration file:
 [source]
 .+/etc/opush/opush.ini+
