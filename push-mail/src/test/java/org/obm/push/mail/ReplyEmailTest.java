@@ -39,6 +39,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.BinaryBody;
 import org.apache.james.mime4j.dom.Entity;
@@ -61,10 +64,13 @@ public class ReplyEmailTest {
 	private static final String LINEBREAK = "\r\n";
 	
 	private Mime4jUtils mime4jUtils;
+	
+	private InternetAddress fromAddress;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws AddressException {
 		mime4jUtils = new Mime4jUtils();
+		fromAddress = new InternetAddress("from@linagora.test");
 	}
 	
 	@Test
@@ -72,7 +78,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("jira-2362.eml");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -88,7 +94,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("plainText.eml");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 	
 		assertThat(replyEmail.getFrom()).isEqualToIgnoringCase("from@linagora.test");
@@ -102,7 +108,7 @@ public class ReplyEmailTest {
 		Message reply = loadMimeMessage("plainText.eml");
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMapASCII("origin");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 		
 		Message message = replyEmail.getMimeMessage();
@@ -114,7 +120,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessagePlainText(mime4jUtils,"response text");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -131,7 +137,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createHtmlMap("<b>origin</b>\n<b>Cordialement</b>");
 		Message reply = MSMailTestsUtils.createMessagePlainText(mime4jUtils,"response text");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 		Message message = replyEmail.getMimeMessage();
 		assertThat(message.isMultipart()).isFalse();
@@ -154,7 +160,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin\nCordialement");
 		Message reply = loadMimeMessage("MAIL-WITH-ATTACHMENT.eml");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -174,7 +180,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessagePlainText(mime4jUtils,replyText);
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -192,7 +198,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createHtmlMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessageHtml(mime4jUtils,"response text");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -210,7 +216,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextAndHTMLMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessagePlainText(mime4jUtils,"response text");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -227,7 +233,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextAndHTMLMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessageHtml(mime4jUtils, "<b>response html</b>");
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -245,7 +251,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessageTextAndHtml(mime4jUtils, "response text", "response html");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -269,7 +275,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createHtmlMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessageTextAndHtml(mime4jUtils, "response text", "response html");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -286,7 +292,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextAndHTMLMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessageTextAndHtml(mime4jUtils, "response text","response html");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -310,7 +316,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextAndHTMLMap("origin\nCordialement");
 		Message reply = MSMailTestsUtils.createMessagePlainText(mime4jUtils, "response text");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -328,7 +334,7 @@ public class ReplyEmailTest {
 		byte[] dataToSend = new byte[]{0,1,2,3,4};
 		Message reply = MSMailTestsUtils.createMessageMultipartMixed(mime4jUtils, "response text", dataToSend);
 
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Message message = replyEmail.getMimeMessage();
@@ -357,7 +363,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("jira-2362.eml");
 		
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 		
 		Message message = replyEmail.getMimeMessage();
@@ -398,7 +404,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("plainText.eml");
 		Date expectedDate = reply.getDate();
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 	
 		Message message = replyEmail.getMimeMessage();
@@ -410,7 +416,7 @@ public class ReplyEmailTest {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("plainText.eml");
 		AddressList expectedReplyTo = reply.getReplyTo();
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, reply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 	
 		Message message = replyEmail.getMimeMessage();
@@ -421,7 +427,7 @@ public class ReplyEmailTest {
 	public void replyEmailShouldFallbackOnDefaultCharset() throws IOException, MimeException, NotQuotableEmailException {
 		Message notUsedReply = loadMimeMessage("plainText.eml");
 		Map<MSEmailBodyType, EmailView> notUsedOriginals = EmailViewTestsUtils.createPlainTextMapNoCharset("origin");
-		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", notUsedOriginals, notUsedReply,
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, notUsedOriginals, notUsedReply,
 				ImmutableMap.<String, MSAttachementData>of());
 
 		Map<MSEmailBodyType, EmailView> originMails = EmailViewTestsUtils.createPlainTextMapNoCharset("original content");

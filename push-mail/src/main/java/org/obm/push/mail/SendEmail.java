@@ -37,6 +37,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
+import javax.mail.internet.InternetAddress;
+
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Entity;
@@ -70,9 +72,9 @@ public class SendEmail {
 	private boolean hasFromField;
 	private boolean invitation;
 
-	public SendEmail(String defaultFrom, Message message) throws MimeException {
-		Preconditions.checkNotNull(Strings.emptyToNull(defaultFrom));
-		this.from = defaultFrom;
+	public SendEmail(InternetAddress defaultFrom, Message message) throws MimeException {
+		Preconditions.checkNotNull(Strings.emptyToNull(defaultFrom.getAddress()));
+		this.from = defaultFrom.toString();
 		this.originalMessage = message;
 		
 		setMessage(message);

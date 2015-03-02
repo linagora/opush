@@ -40,6 +40,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Message;
 import org.apache.james.mime4j.dom.Multipart;
@@ -64,12 +67,12 @@ public class ForwardEmailTest {
 	}
 	
 	@Test
-	public void testForwardMessageMixedMultiPartWithAttachment() throws MimeException, IOException, NotQuotableEmailException {
+	public void testForwardMessageMixedMultiPartWithAttachment() throws MimeException, IOException, NotQuotableEmailException, AddressException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message message = loadMimeMessage("MAIL-WITH-ATTACHMENT.eml");
 		
 		ForwardEmail forwardEmail = 
-				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, message, 
+				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, new InternetAddress("from@linagora.test"), original, message, 
 						ImmutableMap.<String, MSAttachementData>of());
 		
 		Message mimeMessage = forwardEmail.getMimeMessage();
@@ -88,12 +91,12 @@ public class ForwardEmailTest {
 	}
 	
 	@Test
-	public void testForwardMessageAlternativeMultiPart() throws MimeException, IOException, NotQuotableEmailException {
+	public void testForwardMessageAlternativeMultiPart() throws MimeException, IOException, NotQuotableEmailException, AddressException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message message = loadMimeMessage("OBMFULL-2958.eml");
 		
 		ForwardEmail forwardEmail = 
-				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, message, 
+				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, new InternetAddress("from@linagora.test"), original, message, 
 						ImmutableMap.<String, MSAttachementData>of());
 		
 		Message mimeMessage = forwardEmail.getMimeMessage();
@@ -105,7 +108,7 @@ public class ForwardEmailTest {
 	}
 	
 	@Test
-	public void testForwardMessageWithAddingOriginalMailAttachments() throws MimeException, IOException, NotQuotableEmailException {
+	public void testForwardMessageWithAddingOriginalMailAttachments() throws MimeException, IOException, NotQuotableEmailException, AddressException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message message = loadMimeMessage("OBMFULL-2958.eml");
 		
@@ -117,7 +120,7 @@ public class ForwardEmailTest {
 		ms.put("file.txt", msAttachementData);
 		
 		ForwardEmail forwardEmail = 
-				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, message, ms);
+				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, new InternetAddress("from@linagora.test"), original, message, ms);
 
 		Message mimeMessage = forwardEmail.getMimeMessage();
 		String messageAsString = mime4jUtils.toString(mimeMessage.getBody());
@@ -135,7 +138,7 @@ public class ForwardEmailTest {
 	}
 	
 	@Test
-	public void testForwardSampleBodyMessageWithAddingOriginalMailAttachments() throws MimeException, IOException, NotQuotableEmailException {
+	public void testForwardSampleBodyMessageWithAddingOriginalMailAttachments() throws MimeException, IOException, NotQuotableEmailException, AddressException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message message = loadMimeMessage("plainText.eml");
 		
@@ -147,7 +150,7 @@ public class ForwardEmailTest {
 		ms.put("file.txt", msAttachementData);
 		
 		ForwardEmail forwardEmail = 
-				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, "from@linagora.test", original, message, ms);
+				new ForwardEmail(mockOpushConfiguration(), mime4jUtils, new InternetAddress("from@linagora.test"), original, message, ms);
 		
 		Message mimeMessage = forwardEmail.getMimeMessage();
 		String messageAsString = mime4jUtils.toString(mimeMessage.getBody());

@@ -38,6 +38,9 @@ import static org.obm.push.mail.MSMailTestsUtils.loadMimeMessage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Body;
 import org.apache.james.mime4j.dom.Entity;
@@ -48,7 +51,6 @@ import org.apache.james.mime4j.dom.address.MailboxList;
 import org.apache.james.mime4j.dom.field.MailboxListField;
 import org.apache.james.mime4j.field.DefaultFieldParser;
 import org.junit.Test;
-
 
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
@@ -64,20 +66,20 @@ public class SendEmailTest {
 		SendEmail sendEmail = new SendEmail(null, message);
 	}
 	
-	@Test(expected=NullPointerException.class)
-	public void testEmptyDefaultFrom() throws MimeException, IOException {
+	@Test(expected=AddressException.class)
+	public void testEmptyDefaultFrom() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("plainText.eml");
 		@SuppressWarnings("unused")
-		SendEmail sendEmail = new SendEmail("", message);
+		SendEmail sendEmail = new SendEmail(new InternetAddress(""), message);
 	}
 	
 	@Test
-	public void testMailTextPlain() throws MimeException, IOException {
+	public void testMailTextPlain() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("plainText.eml");
-		String defaultFrom = "john@test.opush";
+		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getTo()).containsOnly(addr("a@test"), addr("b@test"));
 		assertThat(sendEmail.getCc()).containsOnly(addr("c@test"));
@@ -85,79 +87,79 @@ public class SendEmailTest {
 		assertThat(sendEmail.isInvitation()).isFalse();
 	}
 	
-	private MailboxList from(String addr) throws MimeException {
-		MailboxListField field = (MailboxListField) DefaultFieldParser.parse("From: " + addr);
+	private MailboxList from(InternetAddress defaultFrom) throws MimeException {
+		MailboxListField field = (MailboxListField) DefaultFieldParser.parse("From: " + defaultFrom.getAddress());
 		return field.getMailboxList();
 	}
 	
 	@Test
-	public void testMailHasNoFrom() throws MimeException, IOException {
+	public void testMailHasNoFrom() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("plainTextNoFrom.eml");
-		String defaultFrom = "john@test.opush";
+		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();
 	}
 	
 	@Test
-	public void testMailHasEmptyFrom() throws MimeException, IOException {
+	public void testMailHasEmptyFrom() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("plainTextEmptyFrom.eml");
-		String defaultFrom = "john@test.opush";
+		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();
 	}
 	
 	@Test
-	public void testMailSpoofFrom() throws MimeException, IOException {
+	public void testMailSpoofFrom() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("plainTextSpoofFrom.eml");
-		String defaultFrom = "john@test.opush";
+		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();
 	}
 
 	@Test
-	public void testAndroidIsInvitation() throws MimeException, IOException {
+	public void testAndroidIsInvitation() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("androidInvit.eml");
-		SendEmail sendEmail = new SendEmail("john@test.opush", message);
+		SendEmail sendEmail = new SendEmail(new InternetAddress("john@test.opush"), message);
 
 		assertThat(sendEmail.isInvitation()).isTrue();
 	}
 	
 	@Test
-	public void testForwardedInvitation() throws MimeException, IOException{
+	public void testForwardedInvitation() throws MimeException, IOException, AddressException{
 		Message message = loadMimeMessage("forwardInvitation.eml");
-		SendEmail sendEmail = new SendEmail("john@test.opush", message);
+		SendEmail sendEmail = new SendEmail(new InternetAddress("john@test.opush"), message);
 
 		assertThat(sendEmail.isInvitation()).isFalse();
 	}
 
 	@Test
-	public void testForwardedEmbeddedInvitation() throws MimeException, IOException{
+	public void testForwardedEmbeddedInvitation() throws MimeException, IOException, AddressException{
 		Message message = loadMimeMessage("forwardEmbeddedInvitation.eml");
-		SendEmail sendEmail = new SendEmail("john@test.opush", message);
+		SendEmail sendEmail = new SendEmail(new InternetAddress("john@test.opush"), message);
 
 		assertThat(sendEmail.isInvitation()).isTrue();
 	}
 	
 	@Test
-	public void testEmailWithEmbeddedImage() throws MimeException, IOException {
+	public void testEmailWithEmbeddedImage() throws MimeException, IOException, AddressException {
 		Message message = loadMimeMessage("androidEmbeddedImage.eml");
 
-		SendEmail sendEmail = new SendEmail("john@test.opush", message);
+		SendEmail sendEmail = new SendEmail(new InternetAddress("john@test.opush"), message);
 		Message afterARoundTrip = loadMimeMessage(new ByteArrayInputStream(sendEmail.serializeMimeData().toByteArray()));
 		testEmailWithEmbeddedImage(sendEmail);
-		SendEmail sendEmailAfterARoundTrip = new SendEmail("john@test.opush", afterARoundTrip);
+		SendEmail sendEmailAfterARoundTrip = new SendEmail(new InternetAddress("john@test.opush"), afterARoundTrip);
 		testEmailWithEmbeddedImage(sendEmailAfterARoundTrip);
 	}
 

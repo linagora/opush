@@ -546,7 +546,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	public void sendEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent) throws ProcessingEmailException {
 		try {
 			Message message = mime4jUtils.parseMessage(mailContent);
-			SendEmail sendEmail = new SendEmail(getUserEmail(udr).toString(), message);
+			SendEmail sendEmail = new SendEmail(getUserEmail(udr), message);
 			send(udr, sendEmail, saveInSent);
 		} catch (UnexpectedObmSyncServerException e) {
 			throw new ProcessingEmailException(e);
@@ -577,7 +577,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 			if (emailViews.size() > 0) {
 				Message message = mime4jUtils.parseMessage(mailContent);
-				ReplyEmail replyEmail = new ReplyEmail(opushConfiguration, mime4jUtils, getUserEmail(udr).toString(), emailViews, message,
+				ReplyEmail replyEmail = new ReplyEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message,
 						ImmutableMap.<String, MSAttachementData>of());
 				send(udr, replyEmail, saveInSent);
 				mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));
@@ -621,7 +621,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				}
 				
 				ForwardEmail forwardEmail = 
-						new ForwardEmail(opushConfiguration, mime4jUtils, getUserEmail(udr).toString(), emailViews, message, originalMailAttachments);
+						new ForwardEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message, originalMailAttachments);
 				send(udr, forwardEmail, saveInSent);
 				try{
 					mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));

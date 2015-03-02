@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.mail.internet.InternetAddress;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -83,7 +84,7 @@ public class ReplyEmail extends SendEmail {
 
 	private final Map<String, MSAttachementData> originalMailAttachments;
 	
-	public ReplyEmail(OpushConfiguration opushConfiguration, Mime4jUtils mime4jUtils, String defaultFrom, Map<MSEmailBodyType, EmailView> originMails, 
+	public ReplyEmail(OpushConfiguration opushConfiguration, Mime4jUtils mime4jUtils, InternetAddress defaultFrom, Map<MSEmailBodyType, EmailView> originMails, 
 			Message message, Map<String, MSAttachementData> originalMailAttachments) throws MimeException, NotQuotableEmailException, UnsupportedEncodingException, IOException {
 		
 		super(defaultFrom, message);
