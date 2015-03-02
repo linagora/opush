@@ -1573,4 +1573,52 @@ public class SyncHandlerWithBackendTest {
 		MSEmail email = (MSEmail) firstCollectionResponse.getItemChanges().get(0).getData();
 		assertThat(CharStreams.toString(new InputStreamReader(email.getBody().getMimeData(), Charsets.UTF_8))).isEqualTo("new message");
 	}
+
+	@Test
+	public void syncShouldUseDefaultWindowSizeWhenNone() throws Exception {
+		int defaultWindowSize = 50;
+		int extraWindowSizeItems = 10;
+		testUtils.sendMultipleEmails(greenMail, mailbox, defaultWindowSize + extraWindowSizeItems);
+		
+		SyncKey firstAllocatedSyncKey = new SyncKey("a181b4e9-7b87-42cf-9e8b-6de8184bed55");
+		SyncKey secondAllocatedSyncKey = new SyncKey("6710d6e4-6101-4054-9566-086d6ecf3202");
+
+		userAccessUtils.mockUsersAccess(Arrays.asList(user));
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey);
+		
+		Date epochPlusOneSecond = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(epochPlusOneSecond)
+				.syncKey(firstAllocatedSyncKey)
+				.id(3)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(4)
+				.build();
+		
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(epochPlusOneSecond);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+
+		expect(itemTrackingDao.isServerIdSynced(eq(firstAllocatedState), anyObject(ServerId.class)))
+			.andReturn(false).anyTimes();
+		itemTrackingDao.markAsSynced(eq(secondAllocatedState), anyObject(Set.class));
+		expectLastCall().once();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		
+		opClient.syncWithoutOptions(decoder, SyncKey.INITIAL_SYNC_KEY, inboxCollectionId);
+		SyncResponse syncResponse = opClient.syncWithoutOptions(decoder, firstAllocatedSyncKey, inboxCollectionId);
+		
+		mocksControl.verify();
+
+		assertThat(syncResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
+		assertThat(firstCollectionResponse.getItemChanges()).hasSize(defaultWindowSize);
+	}
 }

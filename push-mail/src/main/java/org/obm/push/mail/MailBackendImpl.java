@@ -372,7 +372,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private DataDelta continueWindowing(UserDataRequest udr, AnalysedSyncCollection collection, WindowingKey key, SyncKey newSyncKey)
 		throws DaoException, EmailViewPartsFetcherException {
 
-		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), newSyncKey, EmailChanges.builder()).build();
+		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize().get(), newSyncKey, EmailChanges.builder()).build();
 		return fetchChanges(udr, collection, key, newSyncKey, pendingChanges);
 	}
 	

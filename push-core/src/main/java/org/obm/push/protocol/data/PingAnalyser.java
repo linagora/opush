@@ -38,6 +38,7 @@ import org.obm.push.bean.ICollectionPathHelper;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -49,6 +50,7 @@ import org.obm.push.store.CollectionDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.MonitoredCollectionDao;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -64,16 +66,18 @@ public class PingAnalyser {
 	private final MonitoredCollectionDao monitoredCollectionDao;
 	private final ICollectionPathHelper collectionPathHelper;
 	private final StateMachine stateMachine;
+	private final OpushConfiguration configuration;
 
 	@Inject
 	protected PingAnalyser(CollectionDao collectionDao, HeartbeatDao heartbeatDao, MonitoredCollectionDao monitoredCollectionDao,
-			ICollectionPathHelper collectionPathHelper, StateMachine stateMachine) {
+			ICollectionPathHelper collectionPathHelper, StateMachine stateMachine, OpushConfiguration configuration) {
 		
 		this.collectionDao = collectionDao;
 		this.heartbeatDao = heartbeatDao;
 		this.monitoredCollectionDao = monitoredCollectionDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.stateMachine = stateMachine;
+		this.configuration = configuration;
 	}
 
 	public AnalysedPingRequest analysePing(UserDataRequest udr, PingRequest pingRequest) 
@@ -132,10 +136,16 @@ public class PingAnalyser {
 					.collectionId(collection.getCollectionId())
 					.deletesAsMoves(collection.getDeletesAsMoves())
 					.changes(collection.isChanges())
-					.windowSize(collection.getWindowSize())
 					.options(collection.getOptions())
 					.collectionPath(collectionPath)
 					.dataType(collectionPathHelper.recognizePIMDataType(collectionPath));
+			
+			Optional<Integer> windowSize = collection.getWindowSize();
+			if (windowSize.isPresent()) {
+				syncCollectionRequestBuilder.windowSize(windowSize.get());
+			} else {
+				syncCollectionRequestBuilder.windowSize(configuration.defaultWindowSize());
+			}
 			
 			ItemSyncState lastKnownState = stateMachine.lastKnownState(udr.getDevice(), collection.getCollectionId());
 			if (lastKnownState != null) {

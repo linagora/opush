@@ -105,7 +105,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendDataClass(collectionEl, collection);
 		appendString(collectionEl, SyncRequestFields.SYNC_KEY, collection.getSyncKey().getSyncKey());
 		appendInteger(collectionEl, SyncRequestFields.COLLECTION_ID, collection.getCollectionId().asInt());
-		appendWindowSize(collectionEl, collection.getWindowSize());
+		appendWindowSize(collectionEl, collection.getWindowSize().get());
 		appendOptions(collectionEl, collection.getOptions());
 		appendCommands(collectionEl, collection.getCommands(), device);
 	}

@@ -32,6 +32,7 @@
 package org.obm.push.protocol.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -369,7 +370,8 @@ public class SyncDecoderTest {
 		assertThat(collection.getSyncKey()).isEqualTo(new SyncKey("ddcf2e35-9834-49de-96ff-09979c7e2aa0"));
 		assertThat(collection.getCollectionId()).isEqualTo(CollectionId.of(2));
 		assertThat(collection.getDataType()).isEqualTo(PIMDataType.EMAIL);
-		assertThat(collection.getWindowSize()).isEqualTo(150);
+		assertThat(collection.getWindowSize()).isPresent();
+		assertThat(collection.getWindowSize().get()).isEqualTo(150);
 	}
 
 	@Test
@@ -486,7 +488,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 		
-		assertThat(collection.getWindowSize()).isNull();
+		assertThat(collection.getWindowSize()).isAbsent();
 	}
 
 	@Test

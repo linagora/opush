@@ -33,5 +33,4 @@ package org.obm.push.bean;
 
 public interface SyncDefaultValues {
 	public static final int DEFAULT_WAIT = 0;
-	public static final int DEFAULT_WINDOW_SIZE = 100;
 }

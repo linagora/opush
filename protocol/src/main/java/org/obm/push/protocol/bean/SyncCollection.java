@@ -37,9 +37,9 @@ import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
@@ -111,7 +111,7 @@ public class SyncCollection {
 
 		public SyncCollection build() {
 			return new SyncCollection(dataType, syncKey, collectionId, 
-					deletesAsMoves, changes, windowSize, options, 
+					deletesAsMoves, changes, Optional.fromNullable(windowSize), options, 
 					commands.build());
 		}
 
@@ -119,7 +119,7 @@ public class SyncCollection {
 	
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
-	private final Integer windowSize;
+	private final Optional<Integer> windowSize;
 	private final SyncCollectionOptions options;
 	private final PIMDataType dataType;
 	private final SyncKey syncKey;
@@ -127,7 +127,7 @@ public class SyncCollection {
 	private final List<EncodedSyncCollectionCommandRequest> commands;
 	
 	protected SyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
-			Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
+			Boolean deletesAsMoves, Boolean changes, Optional<Integer> windowSize, 
 			SyncCollectionOptions options, List<EncodedSyncCollectionCommandRequest> commands) {
 		this.dataType = dataType;
 		this.syncKey = syncKey;
@@ -163,7 +163,7 @@ public class SyncCollection {
 		return changes;
 	}
 
-	public Integer getWindowSize() {
+	public Optional<Integer> getWindowSize() {
 		return windowSize;
 	}
 

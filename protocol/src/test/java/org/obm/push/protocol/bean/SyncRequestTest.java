@@ -32,6 +32,7 @@
 package org.obm.push.protocol.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.SyncDefaultValues;
@@ -89,7 +90,7 @@ public class SyncRequestTest implements SyncDefaultValues {
 	public void testBuilderWindowSizeIsNotRequired() {
 		SyncRequest syncRequest = SyncRequest.builder().build();
 		
-		assertThat(syncRequest.getWindowSize()).isEqualTo(DEFAULT_WINDOW_SIZE);
+		assertThat(syncRequest.getWindowSize()).isAbsent();
 	}
 
 	@Test(expected=ASRequestIntegerFieldException.class)
@@ -106,7 +107,8 @@ public class SyncRequestTest implements SyncDefaultValues {
 	public void testBuilderWindowSizeValid() {
 		SyncRequest syncRequest = SyncRequest.builder().windowSize(511).build();
 		
-		assertThat(syncRequest.getWindowSize()).isEqualTo(511);
+		assertThat(syncRequest.getWindowSize()).isPresent();
+		assertThat(syncRequest.getWindowSize().get()).isEqualTo(511);
 	}
 
 	@Test

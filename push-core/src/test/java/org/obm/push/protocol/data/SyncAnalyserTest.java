@@ -59,6 +59,7 @@ import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 import org.obm.push.exception.activesync.ASRequestStringFieldException;
 import org.obm.push.exception.activesync.PartialException;
@@ -86,6 +87,7 @@ public class SyncAnalyserTest {
 	private SyncedCollectionDao syncedCollectionDao;
 	private CollectionDao collectionDao;
 	private ICollectionPathHelper collectionPathHelper;
+	private OpushConfiguration configuration;
 
 	private SyncDecoder syncDecoder;
 	private SyncAnalyser syncAnalyser;
@@ -103,9 +105,10 @@ public class SyncAnalyserTest {
 		syncedCollectionDao = mocks.createMock(SyncedCollectionDao.class);
 		collectionDao = mocks.createMock(CollectionDao.class);
 		collectionPathHelper = mocks.createMock(ICollectionPathHelper.class);
+		configuration = mocks.createMock(OpushConfiguration.class);
 
 		syncDecoder = new SyncDecoder(null);
-		syncAnalyser = new SyncAnalyser(syncedCollectionDao, collectionDao, collectionPathHelper, null);
+		syncAnalyser = new SyncAnalyser(syncedCollectionDao, collectionDao, collectionPathHelper, null, configuration);
 		
 		expect(collectionDao.getCollectionPath(collectionId)).andReturn(collectionPath).anyTimes();
 		expect(collectionPathHelper.recognizePIMDataType(collectionPath)).andReturn(PIMDataType.EMAIL).anyTimes();
@@ -156,6 +159,8 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
+		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);
 		Sync analysed = syncAnalyser.analyseSync(udr, syncRequest);
@@ -182,6 +187,8 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
+		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);
 		Sync analysed = syncAnalyser.analyseSync(udr, syncRequest);
@@ -206,6 +213,8 @@ public class SyncAnalyserTest {
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
 		syncedCollectionDao.put(udr.getUser(), device, toStoreSyncCollection);
 		expectLastCall().once();
+		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(requestWithoutOptions);
@@ -265,6 +274,8 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, secondSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.defaultWindowSize()).andReturn(50).times(2);
+		
 		mocks.replay();
 		Sync firstDecodedRequest = syncAnalyser.analyseSync(udr, syncDecoder.decodeSync(firstRequest));
 		Sync secondDecodedRequest = syncAnalyser.analyseSync(udr, syncDecoder.decodeSync(secondRequest));
@@ -294,6 +305,7 @@ public class SyncAnalyserTest {
 			.options(syncCollectionOptions)
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.status(SyncStatus.OK)
+			.windowSize(50)
 			.build();
 		
 		Document firstDoc = buildRequestWithOptions("0",
@@ -311,6 +323,8 @@ public class SyncAnalyserTest {
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
+		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
 		Sync analysedRequest = syncAnalyser.analyseSync(udr, syncDecoder.decodeSync(firstDoc));
@@ -342,11 +356,15 @@ public class SyncAnalyserTest {
 				.options(syncCollectionOptions)
 				.syncKey(SyncKey.INITIAL_SYNC_KEY)
 				.status(SyncStatus.OK)
+				.windowSize(50)
 				.build();
 		
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
+		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
+
 		
 		Document firstRequest = buildRequestWithOptions("0",
 				"<Options>" +
@@ -377,6 +395,7 @@ public class SyncAnalyserTest {
 				.dataType(PIMDataType.EMAIL)
 				.syncKey(new SyncKey("1234"))
 				.status(SyncStatus.OK)
+				.windowSize(50)
 				.build();
 
 		Document requestWithoutOptions = DOMUtils.parse(
@@ -393,6 +412,8 @@ public class SyncAnalyserTest {
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
+		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(requestWithoutOptions);
@@ -432,6 +453,7 @@ public class SyncAnalyserTest {
 			.options(options)
 			.syncKey(new SyncKey(syncKey))
 			.status(SyncStatus.OK)
+			.windowSize(50)
 			.build();
 	}
 
@@ -491,7 +513,7 @@ public class SyncAnalyserTest {
 		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
 		mocks.verify();
 
-		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(150);
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(150);
 	}
 
 	@Test
@@ -520,7 +542,7 @@ public class SyncAnalyserTest {
 		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
 		mocks.verify();
 
-		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(75);
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(75);
 	}
 
 	@Test
@@ -542,12 +564,14 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
 		expectLastCall().once();
 		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
+		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);
 		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
 		mocks.verify();
 
-		assertThat(sync.getCollection(collectionId).getWindowSize()).isEqualTo(100);
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(50);
 	}
 
 
@@ -565,6 +589,8 @@ public class SyncAnalyserTest {
 				"</Sync>");
 
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		
+		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);

@@ -39,6 +39,7 @@ import org.obm.push.bean.SyncDefaultValues;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -89,12 +90,9 @@ public class SyncRequest implements SyncDefaultValues {
 			if (waitInMinute == null) {
 				waitInMinute = DEFAULT_WAIT;
 			}
-			if (windowSize == null) {
-				windowSize = DEFAULT_WINDOW_SIZE;
-			}
 
 			return new SyncRequest(Minutes.minutes(waitInMinute).toStandardSeconds().getSeconds(), 
-					partial, windowSize, collections);
+					partial, Optional.fromNullable(windowSize), collections);
 		}
 
 		private void assertWait() {
@@ -112,10 +110,10 @@ public class SyncRequest implements SyncDefaultValues {
 
 	private final int waitInSecond;
 	private final Boolean partial;
-	private final int windowSize;
+	private final Optional<Integer> windowSize;
 	private final Set<SyncCollection> collections;
 	
-	protected SyncRequest(int waitInSecond, Boolean partial, int windowSize,
+	protected SyncRequest(int waitInSecond, Boolean partial, Optional<Integer> windowSize,
 			Set<SyncCollection> collections) {
 		this.waitInSecond = waitInSecond;
 		this.partial = partial;
@@ -139,7 +137,7 @@ public class SyncRequest implements SyncDefaultValues {
 		return collections;
 	}
 
-	public int getWindowSize() {
+	public Optional<Integer> getWindowSize() {
 		return windowSize;
 	}
 

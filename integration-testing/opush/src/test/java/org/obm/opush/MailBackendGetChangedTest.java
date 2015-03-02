@@ -660,7 +660,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendNEmailsToImapServer(4);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 4);
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
 
@@ -1020,7 +1020,7 @@ public class MailBackendGetChangedTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendNEmailsToImapServer(numberOfEmails);
+		testUtils.sendMultipleEmails(greenMail, mailbox, numberOfEmails);
 		
 		SyncResponse initialSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, windowSize);
 		SyncCollectionResponse initialInboxResponse = syncTestUtils.getCollectionWithId(initialSyncResponse, inboxCollectionId);
@@ -1172,7 +1172,7 @@ public class MailBackendGetChangedTest {
 		itemTrackingDao.markAsDeleted(lastAllocatedState, ImmutableSet.of(serverId));
 		expectLastCall().once();
 		
-		sendNEmailsToImapServer(1);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 1);
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
@@ -1235,13 +1235,6 @@ public class MailBackendGetChangedTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject", "body", greenMail.getSmtp().getServerSetup());
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(2);
-	}
-
-	private void sendNEmailsToImapServer(int numberOfEmails) throws InterruptedException {
-		for (int i = 0; i< numberOfEmails; i++) {
-			GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject" + i, "body", greenMail.getSmtp().getServerSetup());
-		}
-		greenMail.waitForIncomingEmail(numberOfEmails);
 	}
 
 	private void assertEmailCountInMailbox(String mailbox, Integer expectedNumberOfEmails) {

@@ -42,6 +42,7 @@ import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncStatus;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.exception.CollectionPathException;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
@@ -61,6 +62,7 @@ import org.w3c.dom.Element;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -73,15 +75,18 @@ public class SyncAnalyser {
 	private final CollectionDao collectionDao;
 	private final ICollectionPathHelper collectionPathHelper;
 	private final DecoderFactory decoderFactory;
+	private final OpushConfiguration configuration;
 
 	@Inject
 	protected SyncAnalyser(SyncedCollectionDao syncedCollectionStoreService,
 			CollectionDao collectionDao, ICollectionPathHelper collectionPathHelper,
-			DecoderFactory decoderFactory) {
+			DecoderFactory decoderFactory,
+			OpushConfiguration configuration) {
 		this.syncedCollectionStoreService = syncedCollectionStoreService;
 		this.collectionDao = collectionDao;
 		this.collectionPathHelper = collectionPathHelper;
 		this.decoderFactory = decoderFactory;
+		this.configuration = configuration;
 	}
 
 	public Sync analyseSync(UserDataRequest udr, SyncRequest syncRequest) 
@@ -196,7 +201,15 @@ public class SyncAnalyser {
 	}
 
 	private Integer getWindowSize(SyncRequest syncRequest, SyncCollection collectionRequest) {
-		return Objects.firstNonNull(collectionRequest.getWindowSize(), syncRequest.getWindowSize());
+		Optional<Integer> collectionWindowSize = collectionRequest.getWindowSize();
+		if (collectionWindowSize.isPresent()) {
+			return collectionWindowSize.get();
+		}
+		Optional<Integer> requestWindowSize = syncRequest.getWindowSize();
+		if (requestWindowSize.isPresent()) {
+			return requestWindowSize.get();
+		}
+		return configuration.defaultWindowSize();
 	}
 
 	private AnalysedSyncCollection findLastSyncedCollectionOptions(UserDataRequest udr, boolean isPartial, CollectionId collectionId) {

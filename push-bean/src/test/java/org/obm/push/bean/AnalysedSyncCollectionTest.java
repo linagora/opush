@@ -47,6 +47,7 @@ public class AnalysedSyncCollectionTest {
 			.collectionId(CollectionId.of(5))
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
+			.windowSize(50)
 			.build();
 		
 		assertThat(collection.getCommands()).isEmpty();
@@ -70,6 +71,7 @@ public class AnalysedSyncCollectionTest {
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.command(command)
+			.windowSize(50)
 			.build();
 		
 		assertThat(collection.getCommands()).containsExactly(command);
@@ -83,6 +85,7 @@ public class AnalysedSyncCollectionTest {
 			.syncKey(SyncKey.INITIAL_SYNC_KEY)
 			.dataType(PIMDataType.EMAIL)
 			.commands(ImmutableList.of(command))
+			.windowSize(50)
 			.build();
 		
 		assertThat(collection.getCommands()).containsExactly(command);

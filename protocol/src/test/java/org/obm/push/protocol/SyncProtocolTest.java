@@ -32,6 +32,7 @@
 package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -358,7 +359,8 @@ public class SyncProtocolTest {
 
 		assertThat(syncRequest.getCollections()).hasSize(1);
 		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
-		assertThat(syncCollection.getWindowSize()).isEqualTo(75);
+		assertThat(syncCollection.getWindowSize()).isPresent();
+		assertThat(syncCollection.getWindowSize().get()).isEqualTo(75);
 	}
 
 	@Test

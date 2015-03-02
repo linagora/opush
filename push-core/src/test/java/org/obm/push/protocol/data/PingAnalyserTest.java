@@ -52,6 +52,7 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.protocol.bean.AnalysedPingRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.PingRequest;
@@ -78,6 +79,7 @@ public class PingAnalyserTest {
 	private MonitoredCollectionDao monitoredCollectionDao;
 	private ICollectionPathHelper collectionPathHelper;
 	private StateMachine stateMachine;
+	private OpushConfiguration configuration;
 	
 	private PingAnalyser pingAnalyser;
 	
@@ -97,8 +99,9 @@ public class PingAnalyserTest {
 		monitoredCollectionDao = mocks.createMock(MonitoredCollectionDao.class);
 		collectionPathHelper = mocks.createMock(ICollectionPathHelper.class);
 		stateMachine = mocks.createMock(StateMachine.class);
+		configuration = mocks.createMock(OpushConfiguration.class);
 		
-		pingAnalyser = new PingAnalyser(collectionDao, heartbeatDao, monitoredCollectionDao, collectionPathHelper, stateMachine);
+		pingAnalyser = new PingAnalyser(collectionDao, heartbeatDao, monitoredCollectionDao, collectionPathHelper, stateMachine, configuration);
 	}
 	
 	@Test
@@ -124,6 +127,9 @@ public class PingAnalyserTest {
 		expect(stateMachine.lastKnownState(device, collectionId))
 			.andReturn(null).once();
 		
+		expect(configuration.defaultWindowSize())
+			.andReturn(50).once();
+		
 		mocks.replay();
 		
 		AnalysedPingRequest analysedPingRequest = pingAnalyser.analysePing(udr, pingRequest);
@@ -136,6 +142,7 @@ public class PingAnalyserTest {
 						.collectionPath(collectionPath)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
+						.windowSize(50)
 						.build())
 				.build());
 	}
@@ -187,6 +194,9 @@ public class PingAnalyserTest {
 		expect(stateMachine.lastKnownState(device, collectionId))
 			.andReturn(null).once();
 		
+		expect(configuration.defaultWindowSize())
+			.andReturn(50).once();
+		
 		mocks.replay();
 		
 		AnalysedPingRequest analysedPingRequest = pingAnalyser.analysePing(udr, pingRequest);
@@ -199,6 +209,7 @@ public class PingAnalyserTest {
 						.collectionPath(collectionPath)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.EMAIL)
+						.windowSize(50)
 						.build())
 				.build());
 	}
@@ -231,6 +242,9 @@ public class PingAnalyserTest {
 		expect(stateMachine.lastKnownState(device, collectionId))
 			.andReturn(itemSyncState).once();
 		
+		expect(configuration.defaultWindowSize())
+			.andReturn(50).once();
+		
 		mocks.replay();
 		
 		AnalysedPingRequest analysedPingRequest = pingAnalyser.analysePing(udr, pingRequest);
@@ -243,6 +257,7 @@ public class PingAnalyserTest {
 						.collectionPath(collectionPath)
 						.syncKey(knownSyncKey)
 						.dataType(PIMDataType.EMAIL)
+						.windowSize(50)
 						.build())
 				.build());
 	}
@@ -287,6 +302,9 @@ public class PingAnalyserTest {
 		expect(stateMachine.lastKnownState(device, collectionId2))
 			.andReturn(null).once();
 		
+		expect(configuration.defaultWindowSize())
+			.andReturn(50).times(2);
+		
 		mocks.replay();
 		
 		AnalysedPingRequest analysedPingRequest = pingAnalyser.analysePing(udr, pingRequest);
@@ -299,12 +317,14 @@ public class PingAnalyserTest {
 						.collectionPath(collectionPath)
 						.syncKey(knownSyncKey)
 						.dataType(PIMDataType.EMAIL)
+						.windowSize(50)
 						.build())
 				.add(AnalysedSyncCollection.builder()
 						.collectionId(collectionId2)
 						.collectionPath(collectionPath2)
 						.syncKey(SyncKey.INITIAL_SYNC_KEY)
 						.dataType(PIMDataType.CONTACTS)
+						.windowSize(50)
 						.build())
 				.build());
 	}

@@ -32,6 +32,7 @@
 package org.obm.push.protocol.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
@@ -89,14 +90,15 @@ public class SyncCollectionTest {
 	public void testBuilderWindowSizeIsNotRequired() {
 		SyncCollection syncRequestCollection = builderWithRequirement().windowSize(null).build();
 		
-		assertThat(syncRequestCollection.getWindowSize()).isNull();
+		assertThat(syncRequestCollection.getWindowSize()).isAbsent();
 	}
 
 	@Test
 	public void testBuilderWindowSizeValid() {
 		SyncCollection syncRequestCollection = builderWithRequirement().windowSize(5).build();
 		
-		assertThat(syncRequestCollection.getWindowSize()).isEqualTo(5);
+		assertThat(syncRequestCollection.getWindowSize()).isPresent();
+		assertThat(syncRequestCollection.getWindowSize().get()).isEqualTo(5);
 	}
 	
 	@Test

@@ -47,7 +47,7 @@ public class EmailSyncNoOptionsCommand extends Sync {
 	public EmailSyncNoOptionsCommand(final SyncDecoder decoder, final SyncKey syncKey, final CollectionId collectionId)
 			throws SAXException, IOException {
 		
-		super(decoder, new TemplateDocument("EmailSyncRequest.xml") {
+		super(decoder, new TemplateDocument("EmailSyncRequestNoOptions.xml") {
 			
 			@Override
 			protected void customize(Document document, AccountInfos accountInfos) {

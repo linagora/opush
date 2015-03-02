@@ -50,6 +50,7 @@ import org.obm.sync.push.client.beans.NS;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -137,9 +138,9 @@ public class Sync extends AbstractCommand<SyncResponse> {
 					Element col = DOMUtils.createElement(cols, SyncRequestFields.COLLECTION.getName());
 					DOMUtils.createElementAndText(col, SyncRequestFields.SYNC_KEY.getName(), collection.getSyncKey().getSyncKey());
 					DOMUtils.createElementAndText(col, SyncRequestFields.COLLECTION_ID.getName(), collection.getCollectionId().asString());
-					Integer windowSize = collection.getWindowSize();
-					if (windowSize != null) {
-						DOMUtils.createElementAndText(col, SyncRequestFields.WINDOW_SIZE.getName(), String.valueOf(windowSize));
+					Optional<Integer> windowSize = collection.getWindowSize();
+					if (windowSize.isPresent()) {
+						DOMUtils.createElementAndText(col, SyncRequestFields.WINDOW_SIZE.getName(), String.valueOf(windowSize.get()));
 					}
 					SyncCollectionOptions options = collection.getOptions();
 					if (options != null) {

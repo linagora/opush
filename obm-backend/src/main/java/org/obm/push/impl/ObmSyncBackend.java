@@ -145,7 +145,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 	}
 
 	private DataDelta continueWindowing(AnalysedSyncCollection collection, WindowingKey key, SyncKey syncKey) throws DaoException {
-		WindowingChanges<WindowingItemType> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize(), syncKey, windowingChangesBuilder()).build();
+		WindowingChanges<WindowingItemType> pendingChanges = windowingDao.popNextChanges(key, collection.getWindowSize().get(), syncKey, windowingChangesBuilder()).build();
 		return builderWithChangesAndDeletions(pendingChanges, collection.getCollectionId())
 				.syncDate(dateService.getCurrentDate())
 				.syncKey(syncKey)

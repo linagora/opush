@@ -81,6 +81,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.user.GreenMailUser;
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
 
 public class IntegrationTestUtils {
 
@@ -184,6 +186,13 @@ public class IntegrationTestUtils {
 		Session session = Session.getDefaultInstance(props, null);
 		javax.mail.internet.MimeMessage mimeMessage = new javax.mail.internet.MimeMessage(session, streamEmail(emailPath));
 		greenMailUser.deliver(mimeMessage);
+	}
+	
+	public void sendMultipleEmails(GreenMail greenMail, String email, int numberOfEmails) throws InterruptedException {
+		for (int i = 0; i< numberOfEmails; i++) {
+			GreenMailUtil.sendTextEmail(email, email, "subject" + i, "body", greenMail.getSmtp().getServerSetup());
+		}
+		greenMail.waitForIncomingEmail(numberOfEmails);
 	}
 
 	public byte[] loadEmail(String emailPath) throws IOException {

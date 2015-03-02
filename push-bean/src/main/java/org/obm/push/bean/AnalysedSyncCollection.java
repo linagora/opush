@@ -41,6 +41,7 @@ import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 
@@ -137,8 +138,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		public AnalysedSyncCollection build() {
 			checkSyncCollectionCommonElements();
 			return new AnalysedSyncCollection(dataType, syncKey, collectionId, 
-					collectionPath, deletesAsMoves, changes, 
-					Objects.firstNonNull(windowSize, DEFAULT_WINDOW_SIZE), 
+					collectionPath, deletesAsMoves, changes, Optional.fromNullable(windowSize), 
 					Objects.firstNonNull(options, SyncCollectionOptions.defaultOptions()), 
 					commands.build(),
 					status);
@@ -154,12 +154,12 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 	private final String collectionPath;
 	private final Boolean deletesAsMoves;
 	private final Boolean changes;
-	private final int windowSize;
+	private final Optional<Integer> windowSize;
 	private final SyncCollectionOptions options;
 	private final SyncStatus status;
 	
 	protected AnalysedSyncCollection(PIMDataType dataType, SyncKey syncKey, CollectionId collectionId,
-			String collectionPath, Boolean deletesAsMoves, Boolean changes, Integer windowSize, 
+			String collectionPath, Boolean deletesAsMoves, Boolean changes, Optional<Integer> windowSize, 
 			SyncCollectionOptions options, TypedCommandsIndex<SyncCollectionCommandRequest> commands, SyncStatus status) {
 		
 		this.dataType = dataType;
@@ -213,7 +213,7 @@ public class AnalysedSyncCollection implements SyncDefaultValues, Serializable {
 		return changes;
 	}
 
-	public int getWindowSize() {
+	public Optional<Integer> getWindowSize() {
 		return windowSize;
 	}
 
