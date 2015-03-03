@@ -34,16 +34,16 @@ package org.obm.push.cassandra.dao;
 import org.cassandraunit.CassandraCQLUnit;
 import org.junit.Before;
 import org.junit.Rule;
-import org.obm.push.dao.testsuite.NewFolderSnapshotDaoTest;
+import org.obm.push.dao.testsuite.FolderSnapshotDaoTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NewFolderSnapshotDaoCassandraImplTest extends NewFolderSnapshotDaoTest {
+public class FolderSnapshotDaoCassandraImplTest extends FolderSnapshotDaoTest {
 
 	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(FolderSnapshotDaoCassandraImpl.class);
 	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
-	private Logger logger = LoggerFactory.getLogger(NewFolderSnapshotDaoCassandraImplTest.class);
+	private Logger logger = LoggerFactory.getLogger(FolderSnapshotDaoCassandraImplTest.class);
 	private PublicJSONService jsonService;
 	private SessionProvider sessionProvider;
 	

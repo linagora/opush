@@ -61,7 +61,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 @RunWith(GuiceRunner.class)
-public abstract class NewFolderSnapshotDaoTest {
+public abstract class FolderSnapshotDaoTest {
 
 	@Inject protected FolderSnapshotDao folderDao;
 	
