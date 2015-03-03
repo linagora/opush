@@ -96,8 +96,6 @@
 		<module>wbxml</module>
 		<module>client</module>
 		<module>integration-testing</module>
-		<module>technical-log</module>
-		<module>technical-log-bean</module>
 		<module>push-dao</module>
 		<module>push-dao-jdbc</module>
 		<module>push-dao-cassandra</module>
@@ -296,16 +294,6 @@
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm.opush</groupId>
-				<artifactId>technical-log</artifactId>
-				<version>${opush.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.linagora.obm.opush</groupId>
-				<artifactId>technical-log-bean</artifactId>
-				<version>${opush.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.linagora.obm.opush</groupId>
 				<artifactId>tnefconverter</artifactId>
 				<version>${opush.version}</version>
 			</dependency>
@@ -436,11 +424,6 @@
 				<groupId>mysql</groupId>
 				<artifactId>mysql-connector-java</artifactId>
 				<version>5.1.26</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sf.ehcache.internal</groupId>
-				<artifactId>ehcache-core</artifactId>
-				<version>2.7.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>

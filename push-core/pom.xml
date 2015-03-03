@@ -65,10 +65,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm.opush</groupId>
-			<artifactId>technical-log</artifactId>
-		</dependency>	
-		<dependency>
-			<groupId>com.linagora.obm.opush</groupId>
 			<artifactId>tnefconverter</artifactId>
 		</dependency>
 		<dependency>

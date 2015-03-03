@@ -69,7 +69,6 @@ import org.obm.push.service.PushPublishAndSubscribe;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.state.IStateMachine;
 import org.obm.push.state.StateMachine;
-import org.obm.push.technicallog.TechnicalLoggingModule;
 import org.obm.push.utils.jvm.VMArgumentsUtils;
 import org.obm.servlet.filter.qos.QoSContinuationSupport;
 import org.obm.servlet.filter.qos.QoSFilterModule;
@@ -106,7 +105,6 @@ public class OpushImplModule extends AbstractModule {
 	protected void configure() {
 		install(new ConfigurationModule<OpushConfiguration>(opushConfiguration, OpushConfiguration.class));
 		install(new TransactionalModule());
-		install(new TechnicalLoggingModule());
 		install(new BreakdownDurationModule());
 		install(qosModule());
 		install(new OpushServletModule());

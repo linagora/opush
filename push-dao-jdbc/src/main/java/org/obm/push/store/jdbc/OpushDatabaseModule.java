@@ -55,9 +55,6 @@ import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseConnectionProviderImpl;
 import org.obm.dbcp.DatabaseModule;
 import org.obm.dbcp.PoolingDataSourceDecorator;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.ResourceType;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -81,7 +78,6 @@ public class OpushDatabaseModule extends DatabaseModule {
 		}
 
 		@Override
-		@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.JDBC_CONNECTION)
 		public Connection getConnection() throws SQLException {
 			return TechnicalLoggingConnection.of(super.getConnection());
 		}
@@ -99,7 +95,6 @@ public class OpushDatabaseModule extends DatabaseModule {
 			}
 			
 			@Override
-			@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onEndOfMethod=true, resourceType=ResourceType.JDBC_CONNECTION)
 			public void close() throws SQLException {
 				connection.close();
 			}

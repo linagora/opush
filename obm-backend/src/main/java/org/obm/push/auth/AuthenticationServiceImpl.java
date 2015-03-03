@@ -39,9 +39,6 @@ import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.resource.AccessTokenResource;
 import org.obm.push.resource.OpushResourcesHolder;
 import org.obm.push.service.AuthenticationService;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.ResourceType;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.auth.ServerFault;
@@ -109,7 +106,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		}
 	}
 
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)
 	private AccessTokenResource login(HttpClient httpClient, String userId, char[] password) throws AuthFault {
 		AccessToken accessToken = loginClientFactory.create(httpClient)
 				.authenticate(userFactory.getLoginAtDomain(userId), UserPassword.valueOf(String.valueOf(password)));

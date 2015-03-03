@@ -32,9 +32,6 @@
 package org.obm.push.resource;
 
 import org.apache.http.client.HttpClient;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.ResourceType;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.client.login.LoginClient;
 
@@ -70,7 +67,6 @@ public class AccessTokenResource extends BackendResource {
 	}
 	
 	@Override
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onEndOfMethod=true, resourceType=ResourceType.HTTP_CLIENT)
 	public void close() {
 		loginClientFactory.create(httpClient)
 			.logout(getAccessToken());

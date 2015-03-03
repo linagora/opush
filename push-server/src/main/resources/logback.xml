@@ -22,22 +22,6 @@
 		</rollingPolicy>
 	</appender>
 
-	<appender name="TECHNICAL_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${logDir:-${defaultLogDir}}/technical.log</file>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logDir:-${defaultLogDir}}/technical.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>30</maxHistory>
-		</rollingPolicy>
-		<encoder>
-			<pattern>%msg%n</pattern>
-		</encoder>
-	</appender>
-
-	<logger name="technical_log" additivity="false">
-		<appender-ref ref="TECHNICAL_LOG" />
-	</logger>
-	
-
 	<logger name="MIGRATION" level="INFO" />
 	
 	<root level="WARN">

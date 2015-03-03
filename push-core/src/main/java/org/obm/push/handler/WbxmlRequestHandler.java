@@ -39,8 +39,6 @@ import org.obm.push.bean.UserDataRequest;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
 import org.obm.push.protocol.request.ActiveSyncRequest;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.obm.push.utils.FileUtils;
 import org.obm.push.wbxml.WBXMLTools;
 import org.slf4j.Logger;
@@ -64,7 +62,6 @@ public abstract class WbxmlRequestHandler implements IRequestHandler {
 	}
 
 	@Override
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.REQUEST, onStartOfMethod=true, onEndOfMethod=true)
 	public void process(IContinuation continuation, UserDataRequest udr,
 			ActiveSyncRequest request, Responder responder) throws IOException {
 

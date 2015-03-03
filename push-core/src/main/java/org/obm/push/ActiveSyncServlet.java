@@ -56,8 +56,6 @@ import org.obm.push.impl.Responder;
 import org.obm.push.impl.ResponderImpl;
 import org.obm.push.protocol.request.ActiveSyncRequest;
 import org.obm.push.service.DeviceService;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +133,6 @@ public class ActiveSyncServlet extends HttpServlet {
 	
 	@Override
 	@Transactional
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.TRANSACTION, onStartOfMethod=true, onEndOfMethod=true)
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 

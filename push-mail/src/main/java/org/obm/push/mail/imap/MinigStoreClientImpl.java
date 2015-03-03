@@ -35,9 +35,6 @@ import org.obm.push.exception.ImapTimeoutException;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.minig.imap.StoreClient;
 import org.obm.push.resource.BackendResource;
-import org.obm.push.technicallog.bean.KindToBeLogged;
-import org.obm.push.technicallog.bean.ResourceType;
-import org.obm.push.technicallog.bean.TechnicalLogging;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -69,7 +66,6 @@ public class MinigStoreClientImpl extends BackendResource implements MinigStoreC
 	}
 
 	@Override
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onEndOfMethod=true, resourceType=ResourceType.IMAP_CONNECTION)
 	public void close() {
 		try {
 			storeClient.logout();
@@ -84,7 +80,6 @@ public class MinigStoreClientImpl extends BackendResource implements MinigStoreC
 	}
 
 	@Override
-	@TechnicalLogging(kindToBeLogged=KindToBeLogged.RESOURCE, onStartOfMethod=true, resourceType=ResourceType.IMAP_CONNECTION)
 	public void login(Boolean activeteTLS) throws IMAPException {
 		try {
 			storeClient.login(activeteTLS);
