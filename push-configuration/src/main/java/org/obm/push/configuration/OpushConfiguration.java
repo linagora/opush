@@ -35,6 +35,8 @@ import java.nio.charset.Charset;
 import org.obm.configuration.DataConfiguration;
 import org.obm.configuration.DomainConfiguration;
 
+import com.google.common.base.Optional;
+
 public interface OpushConfiguration extends DomainConfiguration, DataConfiguration {
 	
 	Charset getDefaultEncoding();
@@ -44,4 +46,6 @@ public interface OpushConfiguration extends DomainConfiguration, DataConfigurati
 	boolean isRequestLoggerEnabled();
 	
 	int defaultWindowSize();
+	
+	Optional<Integer> maxWindowSize();
 }

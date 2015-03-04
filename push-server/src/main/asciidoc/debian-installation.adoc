@@ -140,6 +140,9 @@ transaction-timeout-unit=minutes +
 
 # Default window size +
 window-size=50 +
+
+# Max window size +
+#window-size.max=100 +
 ****
 
 .Sample configuration +/etc/opush/ldap_conf.ini+

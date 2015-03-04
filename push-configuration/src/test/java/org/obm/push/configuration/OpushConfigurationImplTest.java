@@ -31,15 +31,19 @@
 package org.obm.push.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.obm.push.configuration.OpushConfigurationImpl.DEFAULT_WINDOW_SIZE;
 import static org.obm.push.configuration.OpushConfigurationImpl.DEFAULT_WINDOW_SIZE_DEFAULT;
+import static org.obm.push.configuration.OpushConfigurationImpl.MAX_WINDOW_SIZE;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.configuration.utils.IniFile;
+
+import com.google.common.base.Optional;
 
 public class OpushConfigurationImplTest {
 
@@ -127,5 +131,31 @@ public class OpushConfigurationImplTest {
 		control.verify();
 		
 		assertThat(defaultWindowSize).isEqualTo(expectedDefaultWindowSize);
+	}
+	
+	@Test
+	public void maxWindowSizeShouldBeAbsentWhenNone() {
+		expect(iniFile.getIntegerValue(MAX_WINDOW_SIZE, null))
+			.andReturn(null);
+	
+		control.replay();
+		Optional<Integer> maxWindowSize = opushConfigurationImpl.maxWindowSize();
+		control.verify();
+		
+		assertThat(maxWindowSize).isAbsent();
+	}
+	
+	@Test
+	public void maxWindowSizeShouldBePresentWhenGiven() {
+		int expectedMaxWindowSize = 100;
+		expect(iniFile.getIntegerValue(MAX_WINDOW_SIZE, null))
+			.andReturn(expectedMaxWindowSize);
+	
+		control.replay();
+		Optional<Integer> maxWindowSize = opushConfigurationImpl.maxWindowSize();
+		control.verify();
+		
+		assertThat(maxWindowSize).isPresent();
+		assertThat(maxWindowSize.get()).isEqualTo(expectedMaxWindowSize);
 	}
 }

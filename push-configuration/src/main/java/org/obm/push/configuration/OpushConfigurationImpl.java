@@ -41,6 +41,7 @@ import org.obm.configuration.utils.TimeUnitMapper;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
 
 public class OpushConfigurationImpl implements OpushConfiguration {
@@ -53,6 +54,7 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	
 	@VisibleForTesting static final String DEFAULT_WINDOW_SIZE = "window-size";
 	@VisibleForTesting static final int DEFAULT_WINDOW_SIZE_DEFAULT = 50;
+	@VisibleForTesting static final String MAX_WINDOW_SIZE = "window-size.max";
 	
 	@VisibleForTesting static final String GLOBAL_DOMAIN = "global.virt";
 	@VisibleForTesting final static String ASCMD = "Microsoft-Server-ActiveSync";
@@ -154,5 +156,10 @@ public class OpushConfigurationImpl implements OpushConfiguration {
 	@Override
 	public int defaultWindowSize() {
 		return iniFile.getIntValue(DEFAULT_WINDOW_SIZE, DEFAULT_WINDOW_SIZE_DEFAULT);
+	}
+
+	@Override
+	public Optional<Integer> maxWindowSize() {
+		return Optional.fromNullable(iniFile.getIntegerValue(MAX_WINDOW_SIZE, null));
 	}
 }

@@ -46,6 +46,7 @@ import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 
@@ -249,5 +250,10 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 	@Override
 	public int defaultWindowSize() {
 		return 50;
+	}
+
+	@Override
+	public Optional<Integer> maxWindowSize() {
+		return Optional.of(100);
 	}
 }
