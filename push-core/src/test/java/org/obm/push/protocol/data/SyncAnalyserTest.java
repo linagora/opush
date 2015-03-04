@@ -71,6 +71,7 @@ import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 
@@ -159,6 +160,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -187,6 +189,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, requestSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -214,6 +217,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, toStoreSyncCollection);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -274,6 +278,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, secondSyncCollectionToStore);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).times(2);
 		expect(configuration.defaultWindowSize()).andReturn(50).times(2);
 		
 		mocks.replay();
@@ -324,6 +329,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -363,6 +369,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 
 		
@@ -413,6 +420,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(udr.getUser(), device, syncCollection);
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -508,6 +516,8 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
+		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);
 		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
@@ -537,6 +547,8 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
+		
 		mocks.replay();
 		SyncRequest syncRequest = syncDecoder.decodeSync(request);
 		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
@@ -564,6 +576,7 @@ public class SyncAnalyserTest {
 		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
 		expectLastCall().once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();
@@ -572,6 +585,98 @@ public class SyncAnalyserTest {
 		mocks.verify();
 
 		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(50);
+	}
+
+	@Test
+	public void windowSizeShouldBeMaxWhenPresentInConfigurationAndLower() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey + "</SyncKey>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<WindowSize>75</WindowSize>" +
+							"<Class>Email</Class>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		int expectedWindowSize = 10;
+		expect(configuration.maxWindowSize()).andReturn(Optional.of(expectedWindowSize)).once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(expectedWindowSize);
+	}
+
+	@Test
+	public void windowSizeShouldBeGivenWhenMaxPresentInConfigurationAndHigher() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey + "</SyncKey>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<WindowSize>15</WindowSize>" +
+							"<Class>Email</Class>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		expect(configuration.maxWindowSize()).andReturn(Optional.of(50)).once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(15);
+	}
+
+	@Test
+	public void windowSizeShouldBeDefaultWhenMaxPresentInConfigurationAndHigher() throws Exception {
+		String collectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + collectionSyncKey + "</SyncKey>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<Class>Email</Class>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
+		syncedCollectionDao.put(eq(user), eq(device), anyObject(AnalysedSyncCollection.class));
+		expectLastCall().once();
+		
+		int expectedWindowSize = 15;
+		expect(configuration.maxWindowSize()).andReturn(Optional.of(50)).once();
+		expect(configuration.defaultWindowSize()).andReturn(expectedWindowSize).once();
+		
+		mocks.replay();
+		SyncRequest syncRequest = syncDecoder.decodeSync(request);
+		Sync sync = syncAnalyser.analyseSync(udr, syncRequest);
+		mocks.verify();
+
+		assertThat(sync.getCollection(collectionId).getWindowSize().get()).isEqualTo(expectedWindowSize);
 	}
 
 
@@ -590,6 +695,7 @@ public class SyncAnalyserTest {
 
 		expect(syncedCollectionDao.get(udr.getCredentials(), device, collectionId)).andReturn(null).once();
 		
+		expect(configuration.maxWindowSize()).andReturn(Optional.<Integer>absent()).once();
 		expect(configuration.defaultWindowSize()).andReturn(50).once();
 		
 		mocks.replay();

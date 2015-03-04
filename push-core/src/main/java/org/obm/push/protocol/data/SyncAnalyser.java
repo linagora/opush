@@ -203,13 +203,24 @@ public class SyncAnalyser {
 	private Integer getWindowSize(SyncRequest syncRequest, SyncCollection collectionRequest) {
 		Optional<Integer> collectionWindowSize = collectionRequest.getWindowSize();
 		if (collectionWindowSize.isPresent()) {
-			return collectionWindowSize.get();
+			return limitMaximalWindowSize(collectionWindowSize.get());
 		}
+		
 		Optional<Integer> requestWindowSize = syncRequest.getWindowSize();
 		if (requestWindowSize.isPresent()) {
-			return requestWindowSize.get();
+			return limitMaximalWindowSize(requestWindowSize.get());
 		}
-		return configuration.defaultWindowSize();
+		
+		int defaultWindowSize = configuration.defaultWindowSize();
+		return limitMaximalWindowSize(defaultWindowSize);
+	}
+	
+	private int limitMaximalWindowSize(int windowSize) {
+		Optional<Integer> maxWindowSize = configuration.maxWindowSize();
+		if (maxWindowSize.isPresent()) {
+			return Math.min(maxWindowSize.get(), windowSize);
+		}
+		return windowSize;
 	}
 
 	private AnalysedSyncCollection findLastSyncedCollectionOptions(UserDataRequest udr, boolean isPartial, CollectionId collectionId) {
