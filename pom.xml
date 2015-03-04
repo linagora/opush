@@ -39,8 +39,8 @@
 		<guava.version>16.0</guava.version>
 		<guice.version>3.0</guice.version>
 		<httpclient.version>4.4</httpclient.version>
-		<jackson.version>2.5.1</jackson.version>
-		<jersey.version>1.17.1</jersey.version>
+		<jackson.version>2.3.2</jackson.version>
+		<jersey.version>2.9.1</jersey.version>
 		<jetty.version>9.2.8.v20150217</jetty.version>
 		<joda-time.version>2.7</joda-time.version>
 		<junit.version>4.12</junit.version>
@@ -516,6 +516,26 @@
 						<artifactId>javax.servlet</artifactId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-client</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-server</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.containers</groupId>
+				<artifactId>jersey-container-servlet</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.media</groupId>
+				<artifactId>jersey-media-json-jackson</artifactId>
+				<version>${jersey.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.jsoup</groupId>
