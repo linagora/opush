@@ -218,7 +218,7 @@ public class MailBackendImplTest {
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer,
 				actualEmailsInServer, emailChanges, fromDate, syncState);
 
-		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL, windowSize);
+		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
@@ -355,7 +355,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectMailBackendSyncData(currentUIDNext, syncCollectionOptions, existingSnapshot, previousEmailsInServer, fetchedEmails, emailChanges, fromDate, syncState);
 		
-		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL, windowSize);
+		windowingDao.pushPendingChanges(windowingKey, emailChanges, PIMDataType.EMAIL);
 		expectLastCall();
 		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
 		expect(changesBuilder.build()).andReturn(emailChanges);
@@ -565,7 +565,7 @@ public class MailBackendImplTest {
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, previousSnapshot, previousEmails, actualEmails, allChanges, syncDataDate, syncState);
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmails);
 		
-		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL, windowSize);
+		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL);
 		expectLastCall();
 		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
 		expect(changesBuilder.build()).andReturn(fittingChanges);
@@ -634,7 +634,7 @@ public class MailBackendImplTest {
 		
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, previousSnapshot, previousEmails, actualEmails, allChanges, syncDataDate, syncState);
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmails);
-		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL, windowSize);
+		windowingDao.pushPendingChanges(windowingKey, allChanges, PIMDataType.EMAIL);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		

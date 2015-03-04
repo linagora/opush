@@ -108,7 +108,7 @@ public class WindowingStepdefs {
 		userGenerateANewSyncKey();
 		windowingKey = new WindowingKey(user, deviceId, collectionId, syncKey);
 		windowingDao.hasPendingChanges(windowingKey);
-		windowingDao.pushPendingChanges(windowingKey, inbox, PIMDataType.EMAIL, elements);
+		windowingDao.pushPendingChanges(windowingKey, inbox, PIMDataType.EMAIL);
 		this.elementsLeft = inbox.sumOfChanges();
 		retrieveNextElements(elements);
 	}

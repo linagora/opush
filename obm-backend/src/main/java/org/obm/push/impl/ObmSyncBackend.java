@@ -112,7 +112,7 @@ public abstract class ObmSyncBackend<WindowingItemType extends WindowingItemWith
 		WindowingChanges<WindowingItemType> windowingChanges = allChanges.windowingChanges;
 		
 		if (windowingChanges.sumOfChanges() >= 0) {
-			windowingDao.pushPendingChanges(key, windowingChanges, PIMDataType.CALENDAR, collection.getWindowSize());
+			windowingDao.pushPendingChanges(key, windowingChanges, PIMDataType.CALENDAR);
 		}
 		return continueWindowing(collection, key, newSyncKey);
 	}
