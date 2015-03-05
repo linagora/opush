@@ -144,9 +144,10 @@ public class Sync extends AbstractCommand<SyncResponse> {
 					}
 					SyncCollectionOptions options = collection.getOptions();
 					if (options != null) {
+						Element option = DOMUtils.createElement(col, SyncRequestFields.OPTIONS.getName());
 						FilterType filterType = options.getFilterType();
 						if (filterType != null) {
-							DOMUtils.createElementAndText(col, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
+							DOMUtils.createElementAndText(option, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
 						}
 					}
 

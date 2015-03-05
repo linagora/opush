@@ -101,7 +101,7 @@ public class SyncCollectionOptions implements Serializable {
 					mimeSupport, mimeTruncation, 
 					Objects.firstNonNull(conflict, 1),
 					Objects.firstNonNull(deletesAsMoves, true), 
-					Objects.firstNonNull(filterType, FilterType.THREE_DAYS_BACK), 
+					Objects.firstNonNull(filterType, FilterType.DEFAULT), 
 					Objects.firstNonNull(bodyPreferences, ImmutableList.<BodyPreference>of()));
 		}
 	}

@@ -560,7 +560,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
-		assertThat(collection.getOptions().getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
+		assertThat(collection.getOptions().getFilterType()).isEqualTo(FilterType.DEFAULT);
 	}
 
 	@Test

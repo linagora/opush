@@ -1134,8 +1134,16 @@ public class SyncHandlerWithBackendTest {
 
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.run(Sync.builder(decoder)
-						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR).build())
-						.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId).syncKey(firstAllocatedSyncKey).dataType(CONTACTS).build())
+						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR)
+								.options(SyncCollectionOptions.builder()
+										.filterType(FilterType.ONE_WEEK_BACK)
+										.build())
+								.build())
+						.collection(AnalysedSyncCollection.builder().collectionId(contactCollectionId).syncKey(firstAllocatedSyncKey).dataType(CONTACTS)
+								.options(SyncCollectionOptions.builder()
+										.filterType(FilterType.ONE_WEEK_BACK)
+										.build())
+								.build())
 						.build());
 		
 		mocksControl.verify();
@@ -1196,8 +1204,16 @@ public class SyncHandlerWithBackendTest {
 		
 		SyncResponse syncResponse = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient)
 				.run(Sync.builder(decoder)
-						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR).build())
-						.collection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId).syncKey(firstAllocatedSyncKey).dataType(EMAIL).build())
+						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).syncKey(firstAllocatedSyncKey).dataType(CALENDAR)
+								.options(SyncCollectionOptions.builder()
+										.filterType(FilterType.ONE_WEEK_BACK)
+										.build())
+								.build())
+						.collection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId).syncKey(firstAllocatedSyncKey).dataType(EMAIL)
+								.options(SyncCollectionOptions.builder()
+										.filterType(FilterType.ONE_WEEK_BACK)
+										.build())
+								.build())
 						.build());
 		
 		mocksControl.verify();
@@ -1327,6 +1343,7 @@ public class SyncHandlerWithBackendTest {
 							.syncKey(secondAllocatedSyncKey).dataType(CALENDAR)
 							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
 									.serverId(serverId).clientId(clientId).applicationData(msEvent).build())									
+							.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
 							.build())
 					.build());
 		

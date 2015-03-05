@@ -101,7 +101,7 @@ public class SyncCollectionOptionsTest {
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		assertThat(cloned.getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
+		assertThat(cloned.getFilterType()).isEqualTo(FilterType.DEFAULT);
 	}
 
 	@Test
@@ -163,7 +163,7 @@ public class SyncCollectionOptionsTest {
 	public void testDefaultOptions() {
 		SyncCollectionOptions defaultOptions = SyncCollectionOptions.defaultOptions();
 		assertThat(defaultOptions.getConflict()).isEqualTo(1);
-		assertThat(defaultOptions.getFilterType()).isEqualTo(FilterType.THREE_DAYS_BACK);
+		assertThat(defaultOptions.getFilterType()).isEqualTo(FilterType.DEFAULT);
 		assertThat(defaultOptions.getMimeSupport()).isNull();
 		assertThat(defaultOptions.getMimeTruncation()).isNull();
 		assertThat(defaultOptions.getTruncation()).isEqualTo(9);

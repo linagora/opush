@@ -203,7 +203,7 @@ public class SyncAnalyserTest {
 	@Test
 	public void testNoRequestOptionsTakeTheDefaultOneIfNoPrevious() throws Exception {
 		SyncCollectionOptions toStoreOptions = SyncCollectionOptions.builder()
-				.filterType(FilterType.THREE_DAYS_BACK)
+				.filterType(FilterType.DEFAULT)
 				.conflict(1)
 				.mimeSupport(null)
 				.mimeTruncation(null)

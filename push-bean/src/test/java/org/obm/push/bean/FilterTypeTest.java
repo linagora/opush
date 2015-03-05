@@ -117,4 +117,8 @@ public class FilterTypeTest {
 		assertThat(FilterType.SIX_MONTHS_BACK.getFilteredDate(date)).isEqualTo(date("2008-12-08T16:22:53+00"));
 	}
 	
+	@Test
+	public void defaultShouldBeEqulaToAll() {
+		assertThat(FilterType.DEFAULT).isEqualTo(FilterType.ALL_ITEMS);
+	}
 }

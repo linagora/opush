@@ -56,6 +56,8 @@ public enum FilterType {
 	SIX_MONTHS_BACK("7"),
 	FILTER_BY_NO_INCOMPLETE_TASKS("8");
 
+	public static final FilterType DEFAULT = ALL_ITEMS;
+	
 	private final String specificationValue;
 	
 	private FilterType(String specificationValue) {
