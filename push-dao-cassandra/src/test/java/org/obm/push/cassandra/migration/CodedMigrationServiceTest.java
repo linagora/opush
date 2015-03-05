@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.dbcp.DatabaseConnectionProvider;
+import org.obm.dbcp.DatabaseDriverConfigurationProvider;
 import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
 import org.obm.push.cassandra.schema.Version;
 import org.slf4j.Logger;
@@ -50,7 +52,9 @@ public class CodedMigrationServiceTest {
 	public void setUp() {
 		Provider<Session> sessionProvider = null;
 		Logger logger = null;
-		testee = new CodedMigrationService(logger, sessionProvider);
+		DatabaseConnectionProvider dbcp = null;
+		DatabaseDriverConfigurationProvider driverProvider = null;
+		testee = new CodedMigrationService(logger, sessionProvider, dbcp, driverProvider);
 	}
 
 	@Test

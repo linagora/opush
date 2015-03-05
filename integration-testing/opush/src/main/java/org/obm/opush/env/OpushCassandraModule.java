@@ -35,11 +35,15 @@ import java.util.Date;
 
 import org.easymock.IMocksControl;
 import org.obm.DateUtils;
+import org.obm.dbcp.DatabaseConnectionProvider;
+import org.obm.dbcp.DatabaseDriverConfigurationProvider;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.CassandraSessionSupplierImpl;
 import org.obm.push.cassandra.CassandraService;
 import org.obm.push.cassandra.CassandraSessionSupplier;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
+import org.obm.push.cassandra.migration.CodedMigrationService;
+import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
 import org.obm.sync.date.DateProvider;
@@ -78,5 +82,24 @@ public class OpushCassandraModule extends AbstractOverrideModule {
 	@Override
 	protected void configureImpl() {
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
+		bind(CodedMigrationService.class).to(NoopMigrationService.class);
 	}
+	
+	public static class NoopMigrationService extends CodedMigrationService {
+
+		private static final Logger logger = null;
+		private static final Provider<Session> sessionProvider = null;
+		private static final DatabaseConnectionProvider dbcp = null;
+		private static final DatabaseDriverConfigurationProvider configurationProvider = null;
+		
+		NoopMigrationService() {
+			super(logger, sessionProvider, dbcp, configurationProvider);
+		}
+
+		@Override
+		public void migrate(Version currentVersion, Version toVersion) {
+			// nothing to do
+		}
+	}
+
 }

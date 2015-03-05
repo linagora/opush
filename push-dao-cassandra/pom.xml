@@ -38,6 +38,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
+			<artifactId>dbcp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm</groupId>
 			<artifactId>obm-domain-objects</artifactId>
 		</dependency>
 		<dependency>

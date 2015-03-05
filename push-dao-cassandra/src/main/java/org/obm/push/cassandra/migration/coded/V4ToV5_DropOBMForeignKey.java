@@ -29,65 +29,80 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration;
+package org.obm.push.cassandra.migration.coded;
 
-import java.util.Set;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
-import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
-import org.obm.push.cassandra.migration.coded.V2ToV3_TTL;
-import org.obm.push.cassandra.migration.coded.V4ToV5_DropOBMForeignKey;
+import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
 import org.obm.push.cassandra.schema.Version;
-import org.obm.push.configuration.LoggerModule;
 import org.slf4j.Logger;
 
-import com.datastax.driver.core.Session;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+import com.google.common.base.Throwables;
 
-@Singleton
-public class CodedMigrationService implements MigrationService {
+public class V4ToV5_DropOBMForeignKey implements CodedMigration {
 
+	private static final String MY_ALTER_QUERY = 
+		"ALTER TABLE opush_sync_state " + 
+		"DROP FOREIGN KEY opush_sync_state_collection_id_opush_folder_mapping_id_fkey;";
+	
+	private static final String PG_ALTER_QUERY = 
+		"ALTER TABLE opush_sync_state " +
+		"DROP CONSTRAINT opush_sync_state_collection_id_fkey;";
+	
 	private final Logger logger;
-	private final Set<? extends CodedMigration> migrations;
-
-	@Inject
-	protected CodedMigrationService(
-			@Named(LoggerModule.MIGRATION) Logger logger,
-			Provider<Session> sessionProvider,
-			DatabaseConnectionProvider dbcp,
+	private final DatabaseConnectionProvider dbcp;
+	private final DatabaseDriverConfigurationProvider databaseDriverConfigurationProvider;
+	
+	public V4ToV5_DropOBMForeignKey(Logger logger, 
+			DatabaseConnectionProvider dbcp, 
 			DatabaseDriverConfigurationProvider databaseDriverConfigurationProvider) {
 		this.logger = logger;
-		this.migrations = ImmutableSet.of(
-			new V2ToV3_TTL(logger, sessionProvider),
-			new V4ToV5_DropOBMForeignKey(logger, dbcp, databaseDriverConfigurationProvider)
-		);
+		this.dbcp = dbcp;
+		this.databaseDriverConfigurationProvider = databaseDriverConfigurationProvider;
 	}
 	
 	@Override
-	public void migrate(Version currentVersion, Version toVersion) {
-		for (CodedMigration migration: migrations) {
-			if (versionGapNeedsThisMigration(currentVersion, toVersion, migration)) {
-				logger.info("A scripted migration has been found from version {} to {}", currentVersion.get(), toVersion.get());
-				migration.apply();
+	public Version from() {
+		return Version.of(4);
+	}
+
+	@Override
+	public Version to() {
+		return Version.of(5);
+	}
+
+	@Override
+	public void apply() {
+		logger.info("Dropping a foreign key from the SQL table opush_sync_state");
+		try {
+			switch (databaseDriverConfigurationProvider.get().getFlavour()) {
+			case PGSQL:
+				execute(dbcp, PG_ALTER_QUERY);
+				break;
+			case MYSQL:
+				execute(dbcp, MY_ALTER_QUERY);
+				break;
+			default:
+				logger.info("Nothing to do with a {} database", databaseDriverConfigurationProvider.get().getFlavour());
 			}
+		} catch (SQLException e) {
+			logger.error("Failed!");
+			throw Throwables.propagate(e);
 		}
 	}
 
-	@VisibleForTesting boolean versionGapNeedsThisMigration(Version currentVersion, Version toVersion, CodedMigration migration) {
-		return currentVersion.equals(migration.from()) && toVersion.equals(migration.to());
+	private void execute(DatabaseConnectionProvider dbcp, String sqlRequest)
+			throws SQLException {
+
+		Connection connection = dbcp.getConnection();
+		connection.setReadOnly(false);
+		
+		logger.info("The request performed is {}", sqlRequest);
+		connection.prepareCall(sqlRequest).execute();
+		logger.info("Done");
 	}
 
-	public static interface CodedMigration {
-		
-		Version from();
-		Version to();
-		void apply();
-		
-	}
 }
