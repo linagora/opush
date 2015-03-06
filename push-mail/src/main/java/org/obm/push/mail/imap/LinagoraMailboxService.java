@@ -82,6 +82,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -305,16 +306,20 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 
 	@Override
-	public InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid) throws MailException {
-		return getMessageInputStream(udr, path, uid);
+	public InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid, Optional<Long> truncation) throws MailException {
+		return getMessageInputStream(udr, path, uid, truncation);
 	}
 
-	private InputStream getMessageInputStream(UserDataRequest udr, MailboxPath path, long messageUID) 
+	private InputStream getMessageInputStream(UserDataRequest udr, MailboxPath path, long messageUID, Optional<Long> truncation) 
 			throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
 			store.select(path.getPath());
-			return store.uidFetchMessage(messageUID);
+			if (truncation.isPresent()) {
+				return store.uidFetchMessage(messageUID, truncation.get());
+			} else {
+				return store.uidFetchMessage(messageUID);
+			}
 		} catch (OpushLocatorException e) {
 			throw new MailException(e);
 		} catch (IMAPException e) {

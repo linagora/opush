@@ -69,6 +69,7 @@ import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.resource.ResourcesHolder;
 import org.obm.push.utils.DateUtils;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.util.GreenMail;
@@ -257,7 +258,7 @@ public class MailboxServiceTest {
 
 		MailboxTestUtils.storeInInbox(udr, mailboxService, tinyInputStream);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(IMAP_INBOX_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(IMAP_INBOX_NAME), 1l, Optional.<Long> absent());
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("test\r\n\r\n");
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);
 	}
@@ -270,7 +271,7 @@ public class MailboxServiceTest {
 		InputStream inputStream = StreamMailTestsUtils.newInputStreamFromString("mail sent");
 		MailboxTestUtils.storeInSent(udr, mailboxService, inputStream);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(EmailConfiguration.IMAP_SENT_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(EmailConfiguration.IMAP_SENT_NAME), 1l, Optional.<Long> absent());
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("mail sent\r\n\r\n");
 
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);
@@ -323,7 +324,7 @@ public class MailboxServiceTest {
 
 		mailboxService.storeInSent(udr, reader);
 
-		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(OpushEmailConfiguration.IMAP_SENT_NAME), 1l);
+		InputStream fetchMailStream = mailboxService.fetchMailStream(udr, MailboxPath.of(OpushEmailConfiguration.IMAP_SENT_NAME), 1l, Optional.<Long> absent());
 		InputStream expectedEmailData = StreamMailTestsUtils.newInputStreamFromString("mail sent\r\n\r\n");
 
 		assertThat(fetchMailStream).hasContentEqualTo(expectedEmailData);

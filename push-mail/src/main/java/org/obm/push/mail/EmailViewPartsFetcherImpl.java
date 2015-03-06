@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteStreams;
@@ -200,7 +201,7 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 						"Cannot fetch bodyData for collectionPath:%s, uid:%d, address:%s, truncation:%b",
 						path, uid, address, truncation!=null));
 			} else {
-				return mailboxService.fetchMailStream(udr, path, uid);
+				return mailboxService.fetchMailStream(udr, path, uid, getTruncation(fetchInstruction));
 			}
 		} catch (IOException e) {
 			throw new MailException(e);
@@ -209,6 +210,13 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 		}
 		
 	}
+
+	private Optional<Long> getTruncation(FetchInstruction fetchInstruction) {
+		if (fetchInstruction == null || fetchInstruction.getTruncation() == null) {
+			return Optional.absent();
+		}
+		return Optional.of(fetchInstruction.getTruncation().longValue());
+	}
 	
 	@VisibleForTesting void fetchAttachments(Builder emailViewBuilder, FetchInstruction fetchInstruction, long uid) {
 		MimePart parentMessage = fetchInstruction.getMimePart().findRootMimePartInTree();
@@ -216,7 +224,7 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 		if (isCalendarOperation(children)) {
 			return;
 		}
-		
+
 		EmailViewAttachments.Builder attachments = EmailViewAttachments.builder()
 				.uid(uid)
 				.collectionId(collectionId);

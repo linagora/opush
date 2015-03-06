@@ -401,7 +401,7 @@ public class MailboxBackendTest {
 	}
 
 	public void expectFetchMailStream(MailboxPath path, long uid, InputStream mailStream) {
-		expect(mailboxService.fetchMailStream(udr, path, uid))
+		expect(mailboxService.fetchMailStream(udr, path, uid, Optional.<Long> absent()))
 				.andReturn(mailStream);
 	}
 

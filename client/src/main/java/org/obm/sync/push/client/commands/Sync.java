@@ -37,6 +37,7 @@ import java.util.List;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.protocol.bean.SyncResponse;
@@ -149,6 +150,10 @@ public class Sync extends AbstractCommand<SyncResponse> {
 						if (filterType != null) {
 							DOMUtils.createElementAndText(option, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
 						}
+
+						Element bodyPreferenceEl = DOMUtils.createElement(option, "AirSyncBase:" + SyncRequestFields.BODY_PREFERENCE.getName());
+						DOMUtils.createElementAndText(bodyPreferenceEl, "AirSyncBase:" + SyncRequestFields.TYPE.getName(), MSEmailBodyType.HTML.asXmlValue());
+						DOMUtils.createElementAndText(bodyPreferenceEl, "AirSyncBase:" + SyncRequestFields.TRUNCATION_SIZE.getName(), options.getTruncation());
 					}
 
 					appendDataClass(col, collection);

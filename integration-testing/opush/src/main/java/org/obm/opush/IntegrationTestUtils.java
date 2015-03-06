@@ -162,8 +162,8 @@ public class IntegrationTestUtils {
 			.andReturn(ImmutableList.of(mimeMessage));
 	}
 
-	public void expectFetchMailStream(UserDataRequest udr, MailboxPath path, int uid, InputStream mailStream) {
-		expect(mailboxService.fetchMailStream(udr, path, uid))
+	public void expectFetchMailStream(UserDataRequest udr, MailboxPath path, int uid, InputStream mailStream, Optional<Long> truncation) {
+		expect(mailboxService.fetchMailStream(udr, path, uid, truncation))
 				.andReturn(mailStream);
 	}
 

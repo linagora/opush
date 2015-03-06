@@ -59,6 +59,7 @@ import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.resource.ResourcesHolder;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.util.GreenMail;
@@ -100,7 +101,7 @@ public class MailboxStoreAPITest {
 		
 		MailboxTestUtils.storeInInbox(udr, mailboxService, emailData);
 		
-		InputStream fetchedMailStream = mailboxService.fetchMailStream(udr, inboxPath, 1);
+		InputStream fetchedMailStream = mailboxService.fetchMailStream(udr, inboxPath, 1, Optional.<Long> absent());
 		InputStream expectedEmailData = loadEmail("plainText.eml");
 		Assertions.assertThat(fetchedMailStream).hasContentEqualTo(expectedEmailData);
 	}
@@ -112,7 +113,7 @@ public class MailboxStoreAPITest {
 		MailboxTestUtils.storeInInbox(udr, mailboxService, emailData);
 
 		InputStream expected = loadEmail("androidInvit.eml");
-		InputStream fetchedContent = mailboxService.fetchMailStream(udr, inboxPath, 1);
+		InputStream fetchedContent = mailboxService.fetchMailStream(udr, inboxPath, 1, Optional.<Long> absent());
 		Assertions.assertThat(fetchedContent).hasContentEqualTo(expected);
 	}
 
@@ -123,7 +124,7 @@ public class MailboxStoreAPITest {
 
 		MailboxTestUtils.storeInInbox(udr, mailboxService, notAnEmailData);
 		
-		InputStream fetchedContent = mailboxService.fetchMailStream(udr, inboxPath, 1);
+		InputStream fetchedContent = mailboxService.fetchMailStream(udr, inboxPath, 1, Optional.<Long> absent());
 		Assertions.assertThat(fetchedContent).hasContentEqualTo(new ByteArrayInputStream(data));
 	}
 	

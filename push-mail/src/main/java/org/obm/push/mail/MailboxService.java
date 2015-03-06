@@ -58,6 +58,8 @@ import org.obm.push.mail.mime.MimeAddress;
 import org.obm.push.mail.mime.MimeMessage;
 import org.obm.push.mail.mime.MimePart;
 
+import com.google.common.base.Optional;
+
 public interface MailboxService {
 	
 	MailboxFolders listSubscribedFolders(UserDataRequest udr) throws MailException;
@@ -71,7 +73,7 @@ public interface MailboxService {
 	MessageSet move(UserDataRequest udr, MailboxPath srcFolder, MailboxPath dstFolder, MessageSet messages)
 			throws MailException, DaoException, ImapMessageNotFoundException, UnsupportedBackendFunctionException;
 
-	InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid) throws MailException;
+	InputStream fetchMailStream(UserDataRequest udr, MailboxPath path, long uid, Optional<Long> truncation) throws MailException;
 
 	void setAnsweredFlag(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException, ImapMessageNotFoundException;
 

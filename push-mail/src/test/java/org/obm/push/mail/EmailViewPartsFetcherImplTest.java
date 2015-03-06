@@ -86,6 +86,7 @@ import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -1103,7 +1104,51 @@ public class EmailViewPartsFetcherImplTest {
 		expect(mimeMessage.findMainMessage(anyObject(ContentType.class))).andReturn(null).anyTimes();
 		expect(mimeMessage.findRootMimePartInTree()).andReturn(mimeMessage).anyTimes();
 		expect(mimeMessage.listLeaves(true, true)).andReturn(ImmutableList.<MimePart> of()).anyTimes();
-
+		
 		return mimeMessage;
+	}
+	
+	@Test
+	public void fetchBodyDataShouldNotTruncateWhenNoMimePartAddressAndNoTruncation() throws Exception {
+		MimePart message = control.createMock(MimePart.class);
+		expect(message.getAddress())
+			.andReturn(null);
+		
+		FetchInstruction fetchInstruction = FetchInstruction.builder()
+				.mimePart(message)
+				.build();
+		
+		MailboxService mailboxService = control.createMock(MailboxService.class);
+		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = newFetcherFromExpectedFixture(mailboxService);
+		
+		expect(mailboxService.fetchMailStream(udr, messageCollectionPath, messageFixture.uid, Optional.<Long> absent()))
+			.andReturn(control.createMock(InputStream.class));
+		
+		control.replay();
+		emailViewPartsFetcherImpl.fetchBodyData(fetchInstruction, 1);
+		control.verify();
+	}
+	
+	@Test
+	public void fetchBodyDataShouldTruncateWhenNoMimePartAddressAndTruncation() throws Exception {
+		MimePart message = control.createMock(MimePart.class);
+		expect(message.getAddress())
+			.andReturn(null);
+		
+		int truncation = 20000;
+		FetchInstruction fetchInstruction = FetchInstruction.builder()
+				.mimePart(message)
+				.truncation(truncation)
+				.build();
+		
+		MailboxService mailboxService = control.createMock(MailboxService.class);
+		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = newFetcherFromExpectedFixture(mailboxService);
+		
+		expect(mailboxService.fetchMailStream(udr, messageCollectionPath, messageFixture.uid, Optional.of(Long.valueOf(truncation))))
+			.andReturn(control.createMock(InputStream.class));
+		
+		control.replay();
+		emailViewPartsFetcherImpl.fetchBodyData(fetchInstruction, 1);
+		control.verify();
 	}
 }

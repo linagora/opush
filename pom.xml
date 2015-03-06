@@ -58,7 +58,7 @@
 		<maven-site-plugin.version>3.4</maven-site-plugin.version>
 		<maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
 		<maven-war-plugin.version>2.6</maven-war-plugin.version>
-		<mina-core.version>2.0.9</mina-core.version>
+		<mina-core.version>2.0.7</mina-core.version>
 		<powermock.version>1.6.1</powermock.version>
 		<resteasy.version>3.0.10.Final</resteasy.version>
 		<scala.version>2.10.4</scala.version>
@@ -180,7 +180,7 @@
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
 				<artifactId>linagora-imap</artifactId>
-				<version>${obm.version}</version>
+				<version>3.1.2+OBMFULL-6375</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
