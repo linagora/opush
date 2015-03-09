@@ -46,9 +46,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.obm.push.cassandra.exception.NoVersionException;
+import org.obm.push.bean.migration.NoVersionException;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.schema.DaoTables;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.utils.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;

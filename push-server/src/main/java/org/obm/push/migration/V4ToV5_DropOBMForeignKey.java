@@ -29,15 +29,15 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration.coded;
+package org.obm.push.migration;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
-import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
-import org.obm.push.cassandra.schema.Version;
+import org.obm.push.bean.migration.CodedMigration;
+import org.obm.push.bean.migration.Version;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;

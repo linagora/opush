@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,65 +29,19 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.store;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import java.util.List;
 
-public class Version implements Comparable<Version> {
-	
-	private static final int VERSION_INTERVAL = 1;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.bean.migration.VersionUpdate;
 
-	public static Version of(int version) {
-		return new Version(version);
-	}
+public interface SchemaDao {
 
-	private final int version;
-	
-	private Version(int version) {
-		Preconditions.checkArgument(version >= 1);
-		this.version = version;
-	}
-	
-	public int get() {
-		return version;
-	}
-	
-	public Version increment() {
-		return new Version(version + VERSION_INTERVAL);
-	}
-	
-	@Override
-	public int compareTo(Version o) {
-		return version - o.version;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(version);
-	}
-	
-	@Override
-	public final boolean equals(Object object){
-		if (object instanceof Version) {
-			Version that = (Version) object;
-			return Objects.equal(this.version, that.version);
-		}
-		return false;
-	}
+	public abstract VersionUpdate getCurrentVersion();
 
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-			.add("version", version)
-			.toString();
-	}
+	public abstract List<VersionUpdate> getHistory();
 
-	public boolean isLessThan(Version version) {
-		return compareTo(version) < 0;
-	}
+	public abstract void updateVersion(Version target);
 
-	public boolean isGreaterThanOrEqual(Version version) {
-		return compareTo(version) >= 0;
-	}
 }

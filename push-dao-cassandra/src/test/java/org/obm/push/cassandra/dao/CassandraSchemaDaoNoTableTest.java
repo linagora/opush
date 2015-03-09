@@ -37,11 +37,12 @@ import org.cassandraunit.CassandraCQLUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.bean.migration.NoTableException;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.PublicCassandraService;
 import org.obm.push.cassandra.TestCassandraConfiguration;
-import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.store.SchemaDao;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class CassandraSchemaDaoNoTableTest {
 	
 	private Logger logger = LoggerFactory.getLogger(CassandraSchemaDaoNoTableTest.class);
 	
-	private CassandraSchemaDao schemaDao;
+	private SchemaDao schemaDao;
 	
 	@Before
 	public void init() {

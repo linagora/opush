@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.obm.push.bean.migration.CodedMigration;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotTable;
@@ -45,8 +47,6 @@ import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
-import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.utils.jvm.VMArgumentsUtils;
 import org.slf4j.Logger;
 

@@ -54,6 +54,10 @@ import org.obm.push.bean.change.hierarchy.CollectionChange;
 import org.obm.push.bean.change.hierarchy.CollectionDeletion;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
+import org.obm.push.bean.migration.MigrationResult;
+import org.obm.push.bean.migration.StatusSummary;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.bean.migration.VersionUpdate;
 import org.obm.push.bean.ms.MSEmailMetadata;
 import org.obm.push.bean.ms.UidMSEmail;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
@@ -138,6 +142,10 @@ public class BeansTest {
 					.add(Update.class)
 					.add(Deletion.class)
 					.add(Fetch.class)
+					.add(Version.class)
+					.add(VersionUpdate.class) 
+					.add(StatusSummary.class) 
+					.add(MigrationResult.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		

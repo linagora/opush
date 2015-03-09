@@ -56,6 +56,7 @@ import org.obm.push.configuration.CassandraConfigurationFileImpl;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.store.ContactCreationDao;
 import org.obm.push.store.MonitoredCollectionDao;
+import org.obm.push.store.SchemaDao;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.store.WindowingDao;
@@ -80,18 +81,18 @@ public class OpushCassandraModule extends AbstractModule {
 	
 	@Override
 	protected void configure() {
-		install(new MigrationModule());
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
 		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
 		bindSession();
 		bindDao();
-		
+
 		Multibinder<LifecycleListener> lifecycleListeners = Multibinder.newSetBinder(binder(), LifecycleListener.class);
 		lifecycleListeners.addBinding().to(CassandraSessionProvider.class);
 	}
 
 	private void bindDao() {
+		bind(SchemaDao.class).to(CassandraSchemaDao.class);
 		bind(SyncedCollectionDao.class).to(SyncedCollectionDaoCassandraImpl.class);
 		bind(MonitoredCollectionDao.class).to(MonitoredCollectionDaoCassandraImpl.class);
 		bind(WindowingDao.class).to(WindowingDaoCassandraImpl.class);

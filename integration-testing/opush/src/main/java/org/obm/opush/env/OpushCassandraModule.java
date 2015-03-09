@@ -39,13 +39,14 @@ import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.opush.CassandraSessionSupplierImpl;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.CassandraService;
 import org.obm.push.cassandra.CassandraSessionSupplier;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
-import org.obm.push.cassandra.migration.CodedMigrationService;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.json.JSONService;
+import org.obm.push.migration.CodedMigrationService;
+import org.obm.push.store.SchemaDao;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 
@@ -62,7 +63,7 @@ public class OpushCassandraModule extends AbstractOverrideModule {
 	}
 	
 	@Provides @Singleton
-	public CassandraSchemaDao buildSchemaDao(Provider<Session> sessionProvider, JSONService jsonService, 
+	public SchemaDao buildSchemaDao(Provider<Session> sessionProvider, JSONService jsonService, 
 			@Named(LoggerModule.CASSANDRA)Logger logger,
 			CassandraService cassandraService) {
 		return new CassandraSchemaDao(sessionProvider, jsonService, logger, cassandraService, new DateProvider() {

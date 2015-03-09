@@ -44,6 +44,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.dao.CassandraStructure.MonitoredCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.Schema;
 import org.obm.push.cassandra.dao.CassandraStructure.SnapshotIndex;
@@ -55,7 +56,6 @@ import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
 import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
 import org.obm.push.cassandra.dao.OpushCassandraCQLUnit;
 import org.obm.push.cassandra.dao.SessionProvider;
-import org.obm.push.cassandra.schema.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

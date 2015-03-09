@@ -29,24 +29,65 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.bean.migration;
 
-import org.obm.push.bean.migration.Version;
-import org.obm.push.cassandra.OpushCassandraModule;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
-public class DaoTestsSchemaProducer {
+public class Version implements Comparable<Version> {
+	
+	private static final int VERSION_INTERVAL = 1;
 
-	private final SchemaProducerImpl schemaProducerImpl;
+	public static Version of(int version) {
+		return new Version(version);
+	}
 
-	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
+	private final int version;
+	
+	private Version(int version) {
+		Preconditions.checkArgument(version >= 1);
+		this.version = version;
 	}
 	
-	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
-		return schemaProducerImpl.lastSchemaForDAO(clazz);
+	public int get() {
+		return version;
 	}
 	
-	public String schema(Version version) {
-		return schemaProducerImpl.schema(version);
+	public Version increment() {
+		return new Version(version + VERSION_INTERVAL);
+	}
+	
+	@Override
+	public int compareTo(Version o) {
+		return version - o.version;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(version);
+	}
+	
+	@Override
+	public final boolean equals(Object object){
+		if (object instanceof Version) {
+			Version that = (Version) object;
+			return Objects.equal(this.version, that.version);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("version", version)
+			.toString();
+	}
+
+	public boolean isLessThan(Version version) {
+		return compareTo(version) < 0;
+	}
+
+	public boolean isGreaterThanOrEqual(Version version) {
+		return compareTo(version) >= 0;
 	}
 }

@@ -43,12 +43,13 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.bean.migration.NoVersionException;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.bean.migration.VersionUpdate;
 import org.obm.push.cassandra.PublicCassandraService;
 import org.obm.push.cassandra.TestCassandraConfiguration;
-import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.schema.Version;
-import org.obm.push.cassandra.schema.VersionUpdate;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.store.SchemaDao;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class CassandraSchemaDaoTest {
 
 	protected IMocksControl control;
 	protected DateProvider dateProvider;
-	protected CassandraSchemaDao schemaDao;
+	protected SchemaDao schemaDao;
 	protected CassandraConfiguration configuration;
 	
 	@Before

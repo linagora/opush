@@ -29,28 +29,28 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration;
+package org.obm.push.migration;
 
-import static org.obm.push.cassandra.MigrationModule.LATEST_SCHEMA_VERSION_NAME;
-import static org.obm.push.cassandra.MigrationModule.MINIMAL_SCHEMA_VERSION_NAME;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.EXECUTION_ERROR;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_AVAILABLE;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.UP_TO_DATE;
+import static org.obm.push.bean.migration.StatusSummary.Status.EXECUTION_ERROR;
+import static org.obm.push.bean.migration.StatusSummary.Status.NOT_INITIALIZED;
+import static org.obm.push.bean.migration.StatusSummary.Status.UPGRADE_AVAILABLE;
+import static org.obm.push.bean.migration.StatusSummary.Status.UPGRADE_REQUIRED;
+import static org.obm.push.bean.migration.StatusSummary.Status.UP_TO_DATE;
+import static org.obm.push.migration.MigrationModule.LATEST_SCHEMA_VERSION_NAME;
+import static org.obm.push.migration.MigrationModule.MINIMAL_SCHEMA_VERSION_NAME;
 
 import java.util.Set;
 
-import org.obm.breakdownduration.bean.Watch;
-import org.obm.push.bean.BreakdownGroups;
-import org.obm.push.cassandra.dao.CassandraSchemaDao;
-import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.migration.MigrationResult.Status;
-import org.obm.push.cassandra.schema.SchemaInstaller;
-import org.obm.push.cassandra.schema.StatusSummary;
-import org.obm.push.cassandra.schema.Version;
-import org.obm.push.cassandra.schema.VersionUpdate;
+import org.obm.push.bean.migration.MigrationResult;
+import org.obm.push.bean.migration.MigrationResult.Status;
+import org.obm.push.bean.migration.NoTableException;
+import org.obm.push.bean.migration.NoVersionException;
+import org.obm.push.bean.migration.StatusSummary;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.bean.migration.VersionUpdate;
+import org.obm.push.service.MigrationService;
+import org.obm.push.service.SchemaInstaller;
+import org.obm.push.store.SchemaDao;
 
 import com.google.inject.Inject;
 import com.google.inject.ProvisionException;
@@ -62,7 +62,7 @@ public class OpushMigrationService {
 
 	private static final Version FIRST_VERSION = Version.of(1);
 	
-	private final CassandraSchemaDao schemaDao;
+	private final SchemaDao schemaDao;
 	private final SchemaInstaller schemaInstaller;
 	private final Set<MigrationService> migrationServices;
 	private final Version minimalVersionUpdate;
@@ -71,7 +71,7 @@ public class OpushMigrationService {
 
 	@Inject
 	public OpushMigrationService(
-			CassandraSchemaDao schemaDao,
+			SchemaDao schemaDao,
 			SchemaInstaller schemaInstaller,
 			Set<MigrationService> migrationServices,
 			@Named(MINIMAL_SCHEMA_VERSION_NAME) Version minimalVersionUpdate,
@@ -164,11 +164,5 @@ public class OpushMigrationService {
 			}
 			currentVersion = migrationVersion;
 		}
-	}
-	
-	public static interface MigrationService {
-		
-		void migrate(Version currentVersion, Version toVersion);
-		
 	}
 }

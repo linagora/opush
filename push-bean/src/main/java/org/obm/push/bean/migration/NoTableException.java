@@ -29,11 +29,27 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.bean.migration;
 
+public class NoTableException extends RuntimeException {
 
-public interface SchemaInstaller {
-
-	void install(Version latestVersionUpdate);
+	public NoTableException() {
+		super();
+	}
 	
+	public NoTableException(String tableName) {
+		super(String.format("%s table does not exists", tableName));
+	}
+
+	public NoTableException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public NoTableException(Throwable cause) {
+		super(cause);
+	}
+	
+	public NoTableException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

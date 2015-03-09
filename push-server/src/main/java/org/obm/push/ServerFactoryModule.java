@@ -33,10 +33,10 @@ package org.obm.push;
 
 import java.util.TimeZone;
 
-import org.obm.push.cassandra.migration.OpushMigrationService;
-import org.obm.push.cassandra.schema.StatusSummary;
-import org.obm.push.cassandra.schema.StatusSummary.Status;
+import org.obm.push.bean.migration.StatusSummary;
+import org.obm.push.bean.migration.StatusSummary.Status;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.migration.OpushMigrationService;
 import org.obm.sync.LifecycleListenerHelper;
 import org.obm.sync.XTrustProvider;
 import org.slf4j.Logger;

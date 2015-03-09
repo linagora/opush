@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,8 +29,70 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.exception;
+package org.obm.push.bean.migration;
 
-public class NoVersionException extends RuntimeException {
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
+public class MigrationResult {
+
+	public enum Status {
+		OK, ERROR;
+	}
+
+	public static MigrationResult success(String message) {
+		return result(Status.OK, message);
+	}
+
+	public static MigrationResult error(String message) {
+		return result(Status.ERROR, message);
+	}
+	
+	private static MigrationResult result(Status status, String message) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(message), "message required");
+		return new MigrationResult(status, message);
+	}
+
+	private final Status status;
+	private final String message;
+
+	private MigrationResult(Status status, String message) {
+		this.status = status;
+		this.message = message;
+	}
+	
+	public Status getStatus() {
+		return status;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(status, message);
+	}
+	
+	@Override
+	public final boolean equals(Object object) {
+		if (object == this) {
+			return true;
+		}
+		if (object instanceof MigrationResult) {
+			MigrationResult that = (MigrationResult) object;
+			return Objects.equal(this.status, that.status)
+				&& Objects.equal(this.message, that.message);
+		}
+		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("status", status)
+				.add("message", message)
+				.toString();
+	}
 }

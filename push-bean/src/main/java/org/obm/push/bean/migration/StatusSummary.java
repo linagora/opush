@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.bean.migration;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

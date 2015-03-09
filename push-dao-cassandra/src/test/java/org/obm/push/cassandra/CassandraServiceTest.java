@@ -35,12 +35,12 @@ import org.cassandraunit.CassandraCQLUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.obm.push.bean.migration.NoTableException;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.dao.CassandraStructure;
 import org.obm.push.cassandra.dao.DaoTestsSchemaProducer;
 import org.obm.push.cassandra.dao.OpushCassandraCQLUnit;
 import org.obm.push.cassandra.dao.SessionProvider;
-import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.configuration.CassandraConfiguration;
 
 public class CassandraServiceTest {

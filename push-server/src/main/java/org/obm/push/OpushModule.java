@@ -36,6 +36,7 @@ import org.obm.healthcheck.HealthCheckModule;
 import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.migration.MigrationModule;
 import org.obm.push.store.jdbc.JdbcDaoModule;
 import org.obm.push.store.jdbc.OpushDatabaseModule;
 
@@ -68,6 +69,7 @@ public class OpushModule extends AbstractModule {
 		install(new HealthCheckModule(new HealthCheckDefaultHandlersModule()));
 		install(new OpushCassandraModule());
 		install(new JdbcDaoModule(databaseModule));
+		install(new MigrationModule());
 		bind(Boolean.class).annotatedWith(Names.named("enable-push")).toInstance(false);
  	}
 

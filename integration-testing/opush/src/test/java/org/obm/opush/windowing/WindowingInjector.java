@@ -44,6 +44,7 @@ import org.obm.push.cassandra.OpushCassandraModule;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
+import org.obm.push.migration.MigrationModule;
 import org.obm.push.store.WindowingDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,9 @@ public class WindowingInjector implements InjectorSource {
 			OpushConfigurationFixture configuration = configuration();
 			install(Modules.override(new OpushCassandraModule())
 					.with(new org.obm.opush.env.OpushCassandraModule(createControl())));
+			
+			install(new MigrationModule());
+			
 			bind(Session.class).toProvider(CassandraSessionProvider.class);
 			bind(OpushConfiguration.class).toInstance(new OpushStaticConfiguration(configuration));
 			bind(TransactionConfiguration.class).toInstance(new StaticConfigurationService.Transaction(configuration.transaction));
@@ -97,4 +101,5 @@ public class WindowingInjector implements InjectorSource {
 			return configuration;
 		}
 	}
+	
 }

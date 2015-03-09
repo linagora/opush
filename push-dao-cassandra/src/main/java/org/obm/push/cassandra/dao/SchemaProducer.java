@@ -33,7 +33,7 @@ package org.obm.push.cassandra.dao;
 
 import java.util.SortedSet;
 
-import org.obm.push.cassandra.schema.Version;
+import org.obm.push.bean.migration.Version;
 
 public interface SchemaProducer {
 

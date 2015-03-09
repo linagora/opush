@@ -41,8 +41,8 @@ import java.util.SortedSet;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.schema.Version;
+import org.obm.push.bean.migration.NoVersionException;
+import org.obm.push.bean.migration.Version;
 
 import com.google.common.collect.ImmutableSet;
 

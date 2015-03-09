@@ -39,10 +39,10 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.ServerFactoryModule.NoopServer;
-import org.obm.push.cassandra.migration.OpushMigrationService;
-import org.obm.push.cassandra.schema.StatusSummary;
-import org.obm.push.cassandra.schema.StatusSummary.Status;
+import org.obm.push.bean.migration.StatusSummary;
+import org.obm.push.bean.migration.StatusSummary.Status;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.migration.OpushMigrationService;
 import org.slf4j.Logger;
 
 import com.google.inject.Injector;

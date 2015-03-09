@@ -29,17 +29,17 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration;
+package org.obm.push.migration;
 
 import java.util.Set;
 
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
-import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
+import org.obm.push.bean.migration.CodedMigration;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.migration.coded.V2ToV3_TTL;
-import org.obm.push.cassandra.migration.coded.V4ToV5_DropOBMForeignKey;
-import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.LoggerModule;
+import org.obm.push.service.MigrationService;
 import org.slf4j.Logger;
 
 import com.datastax.driver.core.Session;
@@ -81,13 +81,5 @@ public class CodedMigrationService implements MigrationService {
 
 	@VisibleForTesting boolean versionGapNeedsThisMigration(Version currentVersion, Version toVersion, CodedMigration migration) {
 		return currentVersion.equals(migration.from()) && toVersion.equals(migration.to());
-	}
-
-	public static interface CodedMigration {
-		
-		Version from();
-		Version to();
-		void apply();
-		
 	}
 }

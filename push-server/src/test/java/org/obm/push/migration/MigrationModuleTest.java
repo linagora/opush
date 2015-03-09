@@ -29,24 +29,40 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.migration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
 import org.obm.push.bean.migration.Version;
-import org.obm.push.cassandra.OpushCassandraModule;
 
-public class DaoTestsSchemaProducer {
-
-	private final SchemaProducerImpl schemaProducerImpl;
-
-	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
+public class MigrationModuleTest {
+	
+	@Test
+	public void testMinimalSchemaVersionFromConstant() {
+		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "");
+		Version version = new MigrationModule().minimalSchemaVersion();
+		assertThat(version).isEqualTo(MigrationModule.MINIMAL_SCHEMA_VERSION);
 	}
 	
-	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
-		return schemaProducerImpl.lastSchemaForDAO(clazz);
+	@Test
+	public void testMinimalSchemaVersionFromVMArguments() {
+		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "2014");
+		Version version = new MigrationModule().minimalSchemaVersion();
+		assertThat(version).isEqualTo(Version.of(2014));
 	}
-	
-	public String schema(Version version) {
-		return schemaProducerImpl.schema(version);
+
+	@Test
+	public void testLatestSchemaVersionFromConstant() {
+		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "");
+		Version version = new MigrationModule().latestSchemaVersion();
+		assertThat(version).isEqualTo(MigrationModule.LATEST_SCHEMA_VERSION);
+	}
+
+	@Test
+	public void testLatestSchemaVersionFromVMArguments() {
+		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "2014");
+		Version version = new MigrationModule().latestSchemaVersion();
+		assertThat(version).isEqualTo(Version.of(2014));
 	}
 }

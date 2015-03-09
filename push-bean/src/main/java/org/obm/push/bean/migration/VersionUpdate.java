@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.bean.migration;
 
 import java.util.Date;
 

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,40 +29,12 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra;
+package org.obm.push.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.obm.push.bean.migration.Version;
 
-import org.junit.Test;
-import org.obm.push.cassandra.schema.Version;
-
-public class MigrationModuleTest {
+public interface MigrationService {
 	
-	@Test
-	public void testMinimalSchemaVersionFromConstant() {
-		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "");
-		Version version = new MigrationModule().minimalSchemaVersion();
-		assertThat(version).isEqualTo(MigrationModule.MINIMAL_SCHEMA_VERSION);
-	}
+	void migrate(Version currentVersion, Version toVersion);
 	
-	@Test
-	public void testMinimalSchemaVersionFromVMArguments() {
-		System.setProperty(MigrationModule.MINIMAL_SCHEMA_VERSION_NAME, "2014");
-		Version version = new MigrationModule().minimalSchemaVersion();
-		assertThat(version).isEqualTo(Version.of(2014));
-	}
-
-	@Test
-	public void testLatestSchemaVersionFromConstant() {
-		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "");
-		Version version = new MigrationModule().latestSchemaVersion();
-		assertThat(version).isEqualTo(MigrationModule.LATEST_SCHEMA_VERSION);
-	}
-
-	@Test
-	public void testLatestSchemaVersionFromVMArguments() {
-		System.setProperty(MigrationModule.LATEST_SCHEMA_VERSION_NAME, "2014");
-		Version version = new MigrationModule().latestSchemaVersion();
-		assertThat(version).isEqualTo(Version.of(2014));
-	}
 }

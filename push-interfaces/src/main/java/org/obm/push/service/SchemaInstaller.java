@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2014 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,24 +29,12 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.service;
 
 import org.obm.push.bean.migration.Version;
-import org.obm.push.cassandra.OpushCassandraModule;
 
-public class DaoTestsSchemaProducer {
+public interface SchemaInstaller {
 
-	private final SchemaProducerImpl schemaProducerImpl;
-
-	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
-	}
+	void install(Version latestVersionUpdate);
 	
-	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
-		return schemaProducerImpl.lastSchemaForDAO(clazz);
-	}
-	
-	public String schema(Version version) {
-		return schemaProducerImpl.schema(version);
-	}
 }

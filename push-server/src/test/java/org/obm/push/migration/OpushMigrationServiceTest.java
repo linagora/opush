@@ -29,15 +29,15 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration;
+package org.obm.push.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.dateUTC;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.NOT_INITIALIZED;
-import static org.obm.push.cassandra.schema.StatusSummary.Status.UPGRADE_REQUIRED;
+import static org.obm.push.bean.migration.StatusSummary.Status.NOT_INITIALIZED;
+import static org.obm.push.bean.migration.StatusSummary.Status.UPGRADE_REQUIRED;
 
 import java.net.InetSocketAddress;
 import java.util.Set;
@@ -45,15 +45,16 @@ import java.util.Set;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
-import org.obm.push.cassandra.dao.CassandraSchemaDao;
-import org.obm.push.cassandra.exception.NoTableException;
-import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
-import org.obm.push.cassandra.schema.SchemaInstaller;
-import org.obm.push.cassandra.schema.StatusSummary;
-import org.obm.push.cassandra.schema.StatusSummary.Status;
-import org.obm.push.cassandra.schema.Version;
-import org.obm.push.cassandra.schema.VersionUpdate;
+import org.obm.push.bean.migration.StatusSummary;
+import org.obm.push.bean.migration.StatusSummary.Status;
+import org.obm.push.bean.migration.MigrationResult;
+import org.obm.push.bean.migration.NoTableException;
+import org.obm.push.bean.migration.NoVersionException;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.bean.migration.VersionUpdate;
+import org.obm.push.service.MigrationService;
+import org.obm.push.service.SchemaInstaller;
+import org.obm.push.store.SchemaDao;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -63,7 +64,7 @@ import com.google.common.collect.ImmutableSet;
 public class OpushMigrationServiceTest {
 
 	IMocksControl mocks;
-	CassandraSchemaDao schemaDao;
+	SchemaDao schemaDao;
 	SchemaInstaller schemaInstaller;
 	MigrationService migrationService;
 	Set<MigrationService> migrationServices;
@@ -71,7 +72,7 @@ public class OpushMigrationServiceTest {
 	@Before
 	public void setUp() {
 		mocks = createControl();
-		schemaDao = mocks.createMock(CassandraSchemaDao.class);
+		schemaDao = mocks.createMock(SchemaDao.class);
 		schemaInstaller = mocks.createMock(SchemaInstaller.class);
 		migrationService = mocks.createMock(MigrationService.class);
 		

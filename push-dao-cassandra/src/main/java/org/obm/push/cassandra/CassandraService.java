@@ -34,7 +34,7 @@ package org.obm.push.cassandra;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-import org.obm.push.cassandra.exception.NoTableException;
+import org.obm.push.bean.migration.NoTableException;
 import org.obm.push.configuration.CassandraConfiguration;
 
 import com.datastax.driver.core.ResultSet;

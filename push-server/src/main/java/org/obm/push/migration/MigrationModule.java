@@ -29,15 +29,12 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra;
+package org.obm.push.migration;
 
-import org.obm.push.cassandra.dao.SchemaProducer;
-import org.obm.push.cassandra.dao.SchemaProducerImpl;
-import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
-import org.obm.push.cassandra.migration.CodedMigrationService;
+import org.obm.push.bean.migration.Version;
 import org.obm.push.cassandra.migration.CqlFilesMigrationService;
-import org.obm.push.cassandra.schema.SchemaInstaller;
-import org.obm.push.cassandra.schema.Version;
+import org.obm.push.service.MigrationService;
+import org.obm.push.service.SchemaInstaller;
 import org.obm.push.utils.jvm.VMArgumentsUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -56,7 +53,6 @@ public class MigrationModule extends AbstractModule {
 	protected void configure() {
 		bind(Version.class).annotatedWith(Names.named(MINIMAL_SCHEMA_VERSION_NAME)).toInstance(minimalSchemaVersion());
 		bind(Version.class).annotatedWith(Names.named(LATEST_SCHEMA_VERSION_NAME)).toInstance(latestSchemaVersion());
-		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
 		bind(SchemaInstaller.class).to(CqlFilesMigrationService.class);
 		
 		Multibinder<MigrationService> migrationServices = Multibinder.newSetBinder(binder(), MigrationService.class);

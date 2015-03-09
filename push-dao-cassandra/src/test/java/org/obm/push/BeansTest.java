@@ -34,10 +34,6 @@ package org.obm.push;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.cassandra.dao.Table;
-import org.obm.push.cassandra.migration.MigrationResult;
-import org.obm.push.cassandra.schema.StatusSummary;
-import org.obm.push.cassandra.schema.Version;
-import org.obm.push.cassandra.schema.VersionUpdate;
 import org.obm.sync.bean.EqualsVerifierUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -56,11 +52,7 @@ public class BeansTest {
 	public void test() {
 		ImmutableList<Class<?>> list = 
 				ImmutableList.<Class<?>>builder()
-					.add(Version.class)
-					.add(VersionUpdate.class) 
-					.add(StatusSummary.class) 
 					.add(Table.class)
-					.add(MigrationResult.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 	}

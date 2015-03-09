@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2014  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,34 +29,8 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.bean.migration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public class NoVersionException extends RuntimeException {
 
-import org.junit.Test;
-import org.obm.push.cassandra.schema.StatusSummary.Status;
-
-
-public class StatusSummaryTest {
-
-	@Test
-	public void allowsStartupWhenNotInitialized() {
-		assertThat(Status.NOT_INITIALIZED.allowsStartup()).isFalse();
-	}
-	
-	@Test
-	public void allowsStartupWhenUpgradeRequired() {
-		assertThat(Status.UPGRADE_REQUIRED.allowsStartup()).isFalse();
-	}
-	
-	@Test
-	public void allowsStartupWhenUpgradeAvailable() {
-		assertThat(Status.UPGRADE_AVAILABLE.allowsStartup()).isTrue();
-	}
-	
-	@Test
-	public void allowsStartupWhenUpToDate() {
-		assertThat(Status.UP_TO_DATE.allowsStartup()).isTrue();
-	}
-	
 }

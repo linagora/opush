@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014 Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,27 +29,13 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.exception;
+package org.obm.push.bean.migration;
 
-public class NoTableException extends RuntimeException {
 
-	public NoTableException() {
-		super();
-	}
+public interface CodedMigration {
 	
-	public NoTableException(String tableName) {
-		super(String.format("%s table does not exists", tableName));
-	}
-
-	public NoTableException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public NoTableException(Throwable cause) {
-		super(cause);
-	}
+	Version from();
+	Version to();
+	void apply();
 	
-	public NoTableException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
 }

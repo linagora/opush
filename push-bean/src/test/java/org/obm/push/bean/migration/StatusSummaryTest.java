@@ -1,10 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
-<<<<<<< HEAD
- * Copyright (C) 2014  Linagora
-=======
  * Copyright (C) 2014 Linagora
->>>>>>> 6cce91c... OBMFULL-5830 Add status command
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -33,56 +29,34 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.schema;
+package org.obm.push.bean.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.obm.push.bean.migration.StatusSummary.Status;
 
-public class VersionTest {
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testZeroVersionThrowsException() {
-		Version.of(0);
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testNegativeVersionThrowsException() {
-		Version.of(-1);
-	}
+public class StatusSummaryTest {
 
 	@Test
-	public void testVersion() {
-		assertThat(Version.of(1).get()).isEqualTo(1);
+	public void allowsStartupWhenNotInitialized() {
+		assertThat(Status.NOT_INITIALIZED.allowsStartup()).isFalse();
 	}
 	
 	@Test
-	public void isLessThanWhenLess() {
-		assertThat(Version.of(4).isLessThan(Version.of(5))).isTrue();
+	public void allowsStartupWhenUpgradeRequired() {
+		assertThat(Status.UPGRADE_REQUIRED.allowsStartup()).isFalse();
 	}
 	
 	@Test
-	public void isLessThanWhenEquals() {
-		assertThat(Version.of(5).isLessThan(Version.of(5))).isFalse();
+	public void allowsStartupWhenUpgradeAvailable() {
+		assertThat(Status.UPGRADE_AVAILABLE.allowsStartup()).isTrue();
 	}
 	
 	@Test
-	public void isLessThanWhenGreater() {
-		assertThat(Version.of(5).isLessThan(Version.of(4))).isFalse();
+	public void allowsStartupWhenUpToDate() {
+		assertThat(Status.UP_TO_DATE.allowsStartup()).isTrue();
 	}
 	
-	@Test
-	public void isGreaterThanOrEqualWhenLess() {
-		assertThat(Version.of(4).isGreaterThanOrEqual(Version.of(5))).isFalse();
-	}
-	
-	@Test
-	public void isGreaterThanOrEqualWhenEquals() {
-		assertThat(Version.of(5).isGreaterThanOrEqual(Version.of(5))).isTrue();
-	}
-	
-	@Test
-	public void isGreaterThanOrEqualWhenGreater() {
-		assertThat(Version.of(5).isGreaterThanOrEqual(Version.of(4))).isTrue();
-	}
 }

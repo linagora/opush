@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.migration;
+package org.obm.push.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,8 +37,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
-import org.obm.push.cassandra.migration.CodedMigrationService.CodedMigration;
-import org.obm.push.cassandra.schema.Version;
+import org.obm.push.bean.migration.CodedMigration;
+import org.obm.push.bean.migration.Version;
+import org.obm.push.migration.CodedMigrationService;
 import org.slf4j.Logger;
 
 import com.datastax.driver.core.Session;
