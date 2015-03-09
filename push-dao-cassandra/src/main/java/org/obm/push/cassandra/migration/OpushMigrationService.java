@@ -58,8 +58,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 @Singleton
-@Watch(BreakdownGroups.CASSANDRA)
-public class CassandraMigrationService {
+public class OpushMigrationService {
 
 	private static final Version FIRST_VERSION = Version.of(1);
 	
@@ -71,7 +70,7 @@ public class CassandraMigrationService {
 
 
 	@Inject
-	public CassandraMigrationService(
+	public OpushMigrationService(
 			CassandraSchemaDao schemaDao,
 			SchemaInstaller schemaInstaller,
 			Set<MigrationService> migrationServices,

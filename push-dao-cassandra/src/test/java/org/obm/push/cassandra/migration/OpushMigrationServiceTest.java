@@ -48,7 +48,7 @@ import org.junit.Test;
 import org.obm.push.cassandra.dao.CassandraSchemaDao;
 import org.obm.push.cassandra.exception.NoTableException;
 import org.obm.push.cassandra.exception.NoVersionException;
-import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.StatusSummary.Status;
@@ -60,7 +60,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public class CassandraMigrationServiceTest {
+public class OpushMigrationServiceTest {
 
 	IMocksControl mocks;
 	CassandraSchemaDao schemaDao;
@@ -78,8 +78,8 @@ public class CassandraMigrationServiceTest {
 		migrationServices = ImmutableSet.of(migrationService);
 	}
 
-	private CassandraMigrationService testee(Version minimalVersion, Version latestVersion) {
-		return new CassandraMigrationService(schemaDao, schemaInstaller, migrationServices, minimalVersion, latestVersion);
+	private OpushMigrationService testee(Version minimalVersion, Version latestVersion) {
+		return new OpushMigrationService(schemaDao, schemaInstaller, migrationServices, minimalVersion, latestVersion);
 	}
 	
 	@Test

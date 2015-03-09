@@ -35,7 +35,7 @@ import java.util.Set;
 
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.dbcp.DatabaseDriverConfigurationProvider;
-import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
 import org.obm.push.cassandra.migration.coded.V2ToV3_TTL;
 import org.obm.push.cassandra.migration.coded.V4ToV5_DropOBMForeignKey;
 import org.obm.push.cassandra.schema.Version;

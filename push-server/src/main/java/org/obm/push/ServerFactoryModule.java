@@ -33,7 +33,7 @@ package org.obm.push;
 
 import java.util.TimeZone;
 
-import org.obm.push.cassandra.migration.CassandraMigrationService;
+import org.obm.push.cassandra.migration.OpushMigrationService;
 import org.obm.push.cassandra.schema.StatusSummary;
 import org.obm.push.cassandra.schema.StatusSummary.Status;
 import org.obm.push.configuration.LoggerModule;
@@ -93,7 +93,7 @@ public class ServerFactoryModule extends AbstractModule {
 		}
 		
 		@VisibleForTesting OpushServer createServer() {
-			StatusSummary statusSummary = injector.getInstance(CassandraMigrationService.class).getStatus();
+			StatusSummary statusSummary = injector.getInstance(OpushMigrationService.class).getStatus();
 			Logger logger = injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)));
 			if (statusSummary.getStatus().allowsStartup()) {
 				return createJettyServer(statusSummary, logger);

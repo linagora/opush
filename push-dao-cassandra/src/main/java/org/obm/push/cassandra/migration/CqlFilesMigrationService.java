@@ -33,7 +33,7 @@ package org.obm.push.cassandra.migration;
 
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.exception.InstallSchemaNotFoundException;
-import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
 import org.obm.push.cassandra.schema.Version;
 import org.obm.push.configuration.LoggerModule;

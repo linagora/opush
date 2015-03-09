@@ -33,7 +33,7 @@ package org.obm.push.cassandra;
 
 import org.obm.push.cassandra.dao.SchemaProducer;
 import org.obm.push.cassandra.dao.SchemaProducerImpl;
-import org.obm.push.cassandra.migration.CassandraMigrationService.MigrationService;
+import org.obm.push.cassandra.migration.OpushMigrationService.MigrationService;
 import org.obm.push.cassandra.migration.CodedMigrationService;
 import org.obm.push.cassandra.migration.CqlFilesMigrationService;
 import org.obm.push.cassandra.schema.SchemaInstaller;
