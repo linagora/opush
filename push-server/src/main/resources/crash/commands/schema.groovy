@@ -30,14 +30,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 import org.crsh.text.ui.UIBuilder
-import org.obm.push.cassandra.schema.StatusSummary.Status
-import org.obm.push.cassandra.schema.VersionUpdate
+import org.obm.push.bean.migration.StatusSummary.Status
+import org.obm.push.bean.migration.VersionUpdate
 
 @Usage("Cassandra schema management")
 class schema extends CRaSHCommand {
   
   def getMigrationService() {
-    context.attributes.beans["org.obm.push.cassandra.migration.CassandraMigrationService"]
+    context.attributes.beans["org.obm.push.migration.OpushMigrationService"]
   }
   
   @Usage("Print schema status summary")
