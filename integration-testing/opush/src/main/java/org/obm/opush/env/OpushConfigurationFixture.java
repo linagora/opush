@@ -33,6 +33,7 @@ package org.obm.opush.env;
 
 import org.obm.Configuration;
 import org.obm.push.ExpungePolicy;
+import org.obm.push.configuration.CassandraRetryPolicy;
 
 import com.datastax.driver.core.SocketOptions;
 
@@ -44,6 +45,8 @@ public class OpushConfigurationFixture extends Configuration {
 		public String user = "cassandra";
 		public String password = "cassandra";
 		public int readTimeoutMs = SocketOptions.DEFAULT_READ_TIMEOUT_MILLIS;
+		public CassandraRetryPolicy retryPolicy = CassandraRetryPolicy.ALWAYS_RETRY;
+		public int maxRetries = 3;
 	}
 	
 	public static class Mail {

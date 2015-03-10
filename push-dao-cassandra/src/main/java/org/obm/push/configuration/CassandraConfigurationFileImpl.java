@@ -39,6 +39,7 @@ import com.datastax.driver.core.SocketOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -53,6 +54,10 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	@VisibleForTesting static final String CASSANDRA_USER = "cassandra.user";
 	@VisibleForTesting static final String CASSANDRA_PASSWORD = "cassandra.password";
 	@VisibleForTesting static final String CASSANDRA_READ_TIMEOUT_MS = "cassandra.read-timeout-ms";
+	@VisibleForTesting static final String CASSANDRA_RETRY_POLICY = "cassandra.retry-policy";
+	@VisibleForTesting static final CassandraRetryPolicy DEFAULT_CASSANDRA_RETRY_POLICY = CassandraRetryPolicy.ALWAYS_RETRY;
+	@VisibleForTesting static final String CASSANDRA_WRITE_RETRIES = "cassandra.max-retries";
+	@VisibleForTesting static final int DEFAULT_CASSANDRA_WRITE_RETRIES = 3;
 	
 	public static class Factory {
 		
@@ -105,6 +110,19 @@ public class CassandraConfigurationFileImpl implements CassandraConfiguration {
 	private String getMandatoryStringValue(String key) {
 		String value = iniFile.getStringValue(key);
 		Preconditions.checkNotNull(value, "Missing Cassandra " + key + " key in " + CONFIG_FILE_PATH + " configuration file");
+		return value;
+	}
+
+	@Override
+	public CassandraRetryPolicy retryPolicy() {
+		String value = iniFile.getStringValue(CASSANDRA_RETRY_POLICY);
+		return Strings.isNullOrEmpty(value) ? DEFAULT_CASSANDRA_RETRY_POLICY : CassandraRetryPolicy.valueOf(value.toUpperCase());
+	}
+
+	@Override
+	public int maxRetries() {
+		int value = iniFile.getIntValue(CASSANDRA_WRITE_RETRIES, DEFAULT_CASSANDRA_WRITE_RETRIES);
+		Preconditions.checkState(value > 0, "Negative or null write retries value in " + CONFIG_FILE_PATH + " configuration file");
 		return value;
 	}
 }

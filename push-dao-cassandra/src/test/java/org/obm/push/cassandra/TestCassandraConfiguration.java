@@ -34,6 +34,7 @@ package org.obm.push.cassandra;
 import java.util.Collection;
 
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.configuration.CassandraRetryPolicy;
 
 import com.datastax.driver.core.SocketOptions;
 import com.google.common.collect.ImmutableSet;
@@ -69,5 +70,15 @@ public class TestCassandraConfiguration implements CassandraConfiguration {
 	@Override
 	public int readTimeoutMs() {
 		return SocketOptions.DEFAULT_READ_TIMEOUT_MILLIS;
+	}
+
+	@Override
+	public CassandraRetryPolicy retryPolicy() {
+		return CassandraRetryPolicy.ALWAYS_RETRY;
+	}
+
+	@Override
+	public int maxRetries() {
+		return 3;
 	}
 }

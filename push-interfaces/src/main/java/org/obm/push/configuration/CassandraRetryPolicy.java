@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2013  Linagora
+ * Copyright (C) 2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,22 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.configuration;
 
-import java.util.Collection;
+public enum CassandraRetryPolicy {
 
-
-public interface CassandraConfiguration {
-
-	Collection<String> seeds();
-	
-	String keyspace();
-	
-	String user();
-	
-	String password();
-
-	int readTimeoutMs();
-	
-	CassandraRetryPolicy retryPolicy();
-	
-	int maxRetries();
+	ALWAYS_RETRY, RETRY_OR_CL_DOWNGRADE;
 }

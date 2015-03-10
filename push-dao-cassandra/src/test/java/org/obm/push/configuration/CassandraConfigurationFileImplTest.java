@@ -270,4 +270,116 @@ public class CassandraConfigurationFileImplTest {
 		
 		assertThat(readTimeoutMs).isEqualTo(_20seconds);
 	}
+
+	@Test
+	public void retryPolicyNotInConfigurationFile() {
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_RETRY_POLICY))
+			.andReturn(null);
+	
+		control.replay();
+		CassandraRetryPolicy retryPolicy = new CassandraConfigurationFileImpl(iniFile).retryPolicy();
+		control.verify();
+		
+		assertThat(retryPolicy).isEqualTo(CassandraRetryPolicy.ALWAYS_RETRY);
+	}
+
+	@Test
+	public void retryPolicyEmptyInConfigurationFile() {
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_RETRY_POLICY))
+			.andReturn("");
+	
+		control.replay();
+		CassandraRetryPolicy retryPolicy = new CassandraConfigurationFileImpl(iniFile).retryPolicy();
+		control.verify();
+		
+		assertThat(retryPolicy).isEqualTo(CassandraRetryPolicy.ALWAYS_RETRY);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void retryPolicyBadValueInConfigurationFile() {
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_RETRY_POLICY))
+			.andReturn("bad");
+	
+		control.replay();
+		try {
+			new CassandraConfigurationFileImpl(iniFile).retryPolicy();
+		} finally {
+			control.verify();
+		}
+	}
+
+	@Test
+	public void retryPolicyRetry() {
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_RETRY_POLICY))
+			.andReturn(CassandraRetryPolicy.ALWAYS_RETRY.name());
+	
+		control.replay();
+		CassandraRetryPolicy retryPolicy = new CassandraConfigurationFileImpl(iniFile).retryPolicy();
+		control.verify();
+		
+		assertThat(retryPolicy).isEqualTo(CassandraRetryPolicy.ALWAYS_RETRY);
+	}
+
+	@Test
+	public void retryPolicyDowngrade() {
+		expect(iniFile.getStringValue(CassandraConfigurationFileImpl.CASSANDRA_RETRY_POLICY))
+			.andReturn(CassandraRetryPolicy.RETRY_OR_CL_DOWNGRADE.name());
+	
+		control.replay();
+		CassandraRetryPolicy retryPolicy = new CassandraConfigurationFileImpl(iniFile).retryPolicy();
+		control.verify();
+		
+		assertThat(retryPolicy).isEqualTo(CassandraRetryPolicy.RETRY_OR_CL_DOWNGRADE);
+	}
+	
+	@Test
+	public void maxRetriesDefaultValue() {
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_WRITE_RETRIES, 3))
+			.andReturn(3);
+
+		control.replay();
+		int maxRetries = new CassandraConfigurationFileImpl(iniFile).maxRetries();
+		control.verify();
+		
+		assertThat(maxRetries).isEqualTo(3);
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void maxRetriesZero() {
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_WRITE_RETRIES, 3))
+			.andReturn(0);
+
+		control.replay();
+		try {
+			new CassandraConfigurationFileImpl(iniFile).maxRetries();
+		} finally {
+			control.verify();
+		}
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void maxRetriesNegative() {
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_WRITE_RETRIES, 3))
+			.andReturn(-1);
+
+		control.replay();
+		try {
+			new CassandraConfigurationFileImpl(iniFile).maxRetries();
+		} finally {
+			control.verify();
+		}
+	}
+
+	@Test
+	public void maxRetriesRetries() {
+		int expectedMaxRetries = 3;
+		expect(iniFile.getIntValue(CassandraConfigurationFileImpl.CASSANDRA_WRITE_RETRIES, 3))
+			.andReturn(expectedMaxRetries);
+
+		control.replay();
+		int maxRetries = new CassandraConfigurationFileImpl(iniFile).maxRetries();
+		control.verify();
+		
+		assertThat(maxRetries).isEqualTo(expectedMaxRetries);
+	}
 }

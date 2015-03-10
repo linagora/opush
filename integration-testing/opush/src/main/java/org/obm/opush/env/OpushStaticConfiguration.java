@@ -42,6 +42,7 @@ import org.obm.StaticLocatorConfiguration;
 import org.obm.configuration.SyncPermsConfigurationService;
 import org.obm.push.ExpungePolicy;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.configuration.CassandraRetryPolicy;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.configuration.RemoteConsoleConfiguration;
@@ -194,6 +195,16 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 		@Override
 		public int readTimeoutMs() {
 			return configuration.readTimeoutMs;
+		}
+
+		@Override
+		public CassandraRetryPolicy retryPolicy() {
+			return configuration.retryPolicy;
+		}
+
+		@Override
+		public int maxRetries() {
+			return configuration.maxRetries;
 		}
 	}
 	
