@@ -1709,4 +1709,52 @@ public class SyncHandlerWithBackendTest {
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		assertThat(mail.getBody().isTruncated()).isTrue();
 	}
+	
+	@Test
+	public void syncShouldRespectContentDisposition() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/only_attachments.eml");
+		
+		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
+		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
+				.syncKey(firstAllocatedSyncKey)
+				.id(3)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(4)
+				.build();
+		
+		ServerId emailServerId = inboxCollectionId.serverId(1);
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
+		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
+		expectLastCall().once();
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		SyncResponse response = opClient.run(
+				Sync.builder(decoder)
+					.collection(AnalysedSyncCollection.builder()
+							.collectionId(inboxCollectionId)
+							.syncKey(firstAllocatedSyncKey)
+							.options(SyncCollectionOptions.builder()
+									.filterType(FilterType.ONE_WEEK_BACK)
+									.truncation(200000)
+									.build())
+							.build())
+					.build());
+		mocksControl.verify();
+
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
+		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
+		assertThat(mail.getAttachments()).hasSize(2);
+	}
 }
