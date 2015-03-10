@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.util.Collection;
@@ -46,6 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.james.mime4j.MimeException;
@@ -128,8 +132,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -540,7 +546,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	public void sendEmail(UserDataRequest udr, byte[] mailContent, boolean saveInSent) throws ProcessingEmailException {
 		try {
 			Message message = mime4jUtils.parseMessage(mailContent);
-			SendEmail sendEmail = new SendEmail(getUserEmail(udr), message);
+			SendEmail sendEmail = new SendEmail(getUserEmail(udr).toString(), message);
 			send(udr, sendEmail, saveInSent);
 		} catch (UnexpectedObmSyncServerException e) {
 			throw new ProcessingEmailException(e);
@@ -571,7 +577,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 			if (emailViews.size() > 0) {
 				Message message = mime4jUtils.parseMessage(mailContent);
-				ReplyEmail replyEmail = new ReplyEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message,
+				ReplyEmail replyEmail = new ReplyEmail(opushConfiguration, mime4jUtils, getUserEmail(udr).toString(), emailViews, message,
 						ImmutableMap.<String, MSAttachementData>of());
 				send(udr, replyEmail, saveInSent);
 				mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));
@@ -615,7 +621,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				}
 				
 				ForwardEmail forwardEmail = 
-						new ForwardEmail(opushConfiguration, mime4jUtils, getUserEmail(udr), emailViews, message, originalMailAttachments);
+						new ForwardEmail(opushConfiguration, mime4jUtils, getUserEmail(udr).toString(), emailViews, message, originalMailAttachments);
 				send(udr, forwardEmail, saveInSent);
 				try{
 					mailboxService.setAnsweredFlag(udr, collectionPath, MessageSet.singleton(uid));
@@ -689,9 +695,19 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			} 
 		}
 	}
-	
-	private String getUserEmail(UserDataRequest udr) throws UnexpectedObmSyncServerException {
-		return authenticationService.getUserEmail(udr);
+
+	@VisibleForTesting InternetAddress getUserEmail(UserDataRequest udr) throws UnexpectedObmSyncServerException {
+		String email = authenticationService.getUserEmail(udr);
+		try {
+			InternetAddress address = new InternetAddress(email, true);
+			address.setPersonal(udr.getUser().getDisplayName(), Charsets.UTF_8.name());
+			return address;
+
+		} catch (UnsupportedEncodingException | AddressException e) {
+			logger.warn("Cannot set internet address", e);
+			throw Throwables.propagate(e);
+		} 
+
 	}
 
 	private void send(UserDataRequest udr, SendEmail sendEmail, boolean saveInSent) throws ProcessingEmailException {

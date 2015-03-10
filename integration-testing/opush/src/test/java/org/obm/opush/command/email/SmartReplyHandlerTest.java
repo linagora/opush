@@ -37,6 +37,8 @@ import static org.obm.DateUtils.date;
 
 import java.util.Date;
 
+import javax.mail.internet.InternetAddress;
+
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.util.Files;
@@ -230,6 +232,22 @@ public class SmartReplyHandlerTest {
 		
 		assertThat(success).isTrue();
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(2);
+	}
+
+	@Test
+	public void testSentEmailAttribute() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/OBMFULL-4924-inboxEmail.eml");
+
+		mocksControl.replay();
+		opushServer.start();
+		boolean success = opClient().emailReply(testUtils.loadEmail("eml/OBMFULL-4924-replyingEmail.eml"), inboxCollectionId, serverId);
+		mocksControl.verify();
+
+		assertThat(success).isTrue();
+		assertThat(sentFolder.getMessageCount()).isEqualTo(1);
+		InternetAddress fromAddress = (InternetAddress) sentFolder.getMessages().get(0).getMimeMessage().getFrom()[0];
+		assertThat(fromAddress.toString()).isEqualTo("Jean Jaures <jaures@sfio.fr>");
+
 	}
 
 	private OPClient opClient() {

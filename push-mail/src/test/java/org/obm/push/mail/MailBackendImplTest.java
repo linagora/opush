@@ -51,6 +51,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.mail.internet.InternetAddress;
+
 import org.apache.james.mime4j.dom.Message;
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -95,6 +97,7 @@ import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.transformer.Transformer.TransformersFactory;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.service.AuthenticationService;
 import org.obm.push.service.DateService;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
@@ -130,7 +133,7 @@ public class MailBackendImplTest {
 	private SmtpSender smtpSender;
 	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
-
+	private AuthenticationService authenticationService;
 	private MailBackendImpl testee;
 
 	@Before
@@ -156,8 +159,9 @@ public class MailBackendImplTest {
 		dateService = control.createMock(DateService.class);
 		expect(mappingService.getCollectionPathFor(collectionId)).andReturn(collectionPath).anyTimes();
 		emailConfiguration = control.createMock(OpushEmailConfiguration.class);
+		authenticationService = control.createMock(AuthenticationService.class);
 		
-		testee = new MailBackendImpl(mailboxService, null, null, null, snapshotDao,
+		testee = new MailBackendImpl(mailboxService, authenticationService, null, null, snapshotDao,
 				serverEmailChangesBuilder, mappingService, msEmailFetcher, transformersFactory, null, mailBackendSyncDataFactory,
 				windowingDao, smtpSender, emailConfiguration, dateService);
 	}
@@ -1007,4 +1011,35 @@ public class MailBackendImplTest {
 				.build()
 		);
 	}
+
+	@Test
+	public void getEmailUserTest() throws Exception {
+
+		expect(authenticationService.getUserEmail(udr)).andReturn("test@test.fr");
+		control.replay();
+		InternetAddress internetAddresse = testee.getUserEmail(udr);
+		control.verify();
+		assertThat(internetAddresse.toString()).isEqualTo("\"user@domain\" <test@test.fr>");
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void getEmailUserWithoutEmailTest(){
+		expect(authenticationService.getUserEmail(udr)).andReturn("");
+		control.replay();
+		InternetAddress internetAddresse = testee.getUserEmail(udr);
+		control.verify();
+		assertThat(internetAddresse.toString()).isEqualTo("\"user@domain\" <>");
+	}
+
+	@Test
+	public void getEmailUserWithoutDisplayNameTest(){
+		User userWithoutDisplayName = Factory.create().createUser("user@domain", "user@domain",null);
+		UserDataRequest userDataRequest = new UserDataRequest(new Credentials(userWithoutDisplayName, "password".toCharArray()),  null, device);
+		expect(authenticationService.getUserEmail(userDataRequest)).andReturn("user@domain");
+		control.replay();
+		InternetAddress internetAddresse = testee.getUserEmail(userDataRequest);
+		control.verify();
+		assertThat(internetAddresse.toString()).isEqualTo("user@domain");
+	}
+	
 }

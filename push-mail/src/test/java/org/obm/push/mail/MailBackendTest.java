@@ -149,8 +149,8 @@ public class MailBackendTest {
 		AuthenticationService authenticationService = mocksControl.createMock(AuthenticationService.class);
 		UserDataRequest userDataRequest = mocksControl.createMock(UserDataRequest.class);
 		
-		expect(authenticationService.getUserEmail(userDataRequest))
-			.andReturn(user.getLoginAtDomain()).once();
+		expect(authenticationService.getUserEmail(userDataRequest)).andReturn(user.getLoginAtDomain()).once();
+		expect(userDataRequest.getUser()).andReturn(user).once();
 		
 		Set<Address> addrs = Sets.newHashSet();
 		smtpSender.sendEmail(anyObject(UserDataRequest.class), anyObject(Address.class), 
