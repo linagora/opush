@@ -70,7 +70,9 @@ public abstract class ItemOperationFetchCommand extends AbstractCommand<ItemOper
 			String serverId = DOMUtils.getElementText(fetch, "ServerId");
 			Element data = DOMUtils.getUniqueElement(fetch, "Properties");
 			fetchResponses.add(new ItemOperationFetchResponse(
-					ItemOperationsStatus.fromSpecificationValue(statusAsString), ServerId.of(serverId), data));
+					ItemOperationsStatus.fromSpecificationValue(statusAsString), 
+					serverId == null ? null : ServerId.of(serverId), 
+					data));
 		}
 		
 		String status = DOMUtils.getElementText(documentElement, "Status");

@@ -190,10 +190,11 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 			FetchAttachmentResult fileReferenceFetch = processFileReferenceFetch(udr, fetch.getFileReference());
 			mailboxFetchResponse.setFetchAttachmentResult(fileReferenceFetch);
 			
-		} else if (fetch.getCollectionId() != null && fetch.getServerId() != null) {
+		} else if (fetch.getCollectionId().isPresent() && fetch.getServerId().isPresent()) {
 			try {
-				CollectionId collectionId = fetch.getCollectionId();
-				mailboxFetchResponse.setFetchItemResult(fetchItem(fetch.getServerId(), collectionId, fetch.getType(), udr));
+				CollectionId collectionId = fetch.getCollectionId().get();
+				ServerId serverId = fetch.getServerId().get();
+				mailboxFetchResponse.setFetchItemResult(fetchItem(serverId, collectionId, fetch.getType(), udr));
 			} catch (NumberFormatException e) {
 				throw new CollectionNotFoundException(e);
 			}

@@ -35,14 +35,16 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.StoreName;
 
+import com.google.common.base.Optional;
+
 public class ItemOperationsRequest {
 
 	public static class Fetch {
 		
 		private StoreName storeName;
 		private String fileReference;
-		private CollectionId collectionId;
-		private ServerId serverId;
+		private Optional<CollectionId> collectionId;
+		private Optional<ServerId> serverId;
 		private MSEmailBodyType type;
 		
 		public Fetch() {
@@ -64,19 +66,19 @@ public class ItemOperationsRequest {
 			this.fileReference = fileReference;
 		}
 		
-		public CollectionId getCollectionId() {
+		public Optional<CollectionId> getCollectionId() {
 			return collectionId;
 		}
 		
-		public void setCollectionId(CollectionId collectionId) {
+		public void setCollectionId(Optional<CollectionId> collectionId) {
 			this.collectionId = collectionId;
 		}
 		
-		public ServerId getServerId() {
+		public Optional<ServerId> getServerId() {
 			return serverId;
 		}
 		
-		public void setServerId(ServerId serverId) {
+		public void setServerId(Optional<ServerId> serverId) {
 			this.serverId = serverId;
 		}
 

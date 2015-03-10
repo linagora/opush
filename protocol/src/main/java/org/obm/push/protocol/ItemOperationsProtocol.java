@@ -59,6 +59,8 @@ import org.w3c.dom.Element;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -105,20 +107,33 @@ public class ItemOperationsProtocol implements ActiveSyncProtocol<ItemOperations
 	/* package */ Fetch buildFetch(Element root) {
 		Element fetchNode = DOMUtils.getUniqueElement(root, "Fetch");
 		if (fetchNode != null) {
-			StoreName storeName = StoreName.fromSpecificationValue(DOMUtils.getElementText(fetchNode,	"Store"));
-			String reference = DOMUtils.getElementText(fetchNode, "FileReference");
-			String collectionId = DOMUtils.getElementText(fetchNode, "CollectionId");
-			String serverId = DOMUtils.getElementText(fetchNode, "ServerId");
+			StoreName storeName = StoreName.fromSpecificationValue(DOMUtils.getElementText(fetchNode, "Store"));
 
 			Fetch fetch = new Fetch();
 			fetch.setStoreName(storeName);
-			fetch.setFileReference(reference);
-			fetch.setCollectionId(CollectionId.of(collectionId));
-			fetch.setServerId(ServerId.of(serverId));
+			fetch.setFileReference(DOMUtils.getElementText(fetchNode, "FileReference"));
+			fetch.setCollectionId(getCollectionId(fetchNode));
+			fetch.setServerId(getServerId(fetchNode));
 			fetch.setType(getType(fetchNode));
 			return fetch;
 		}
 		return null;
+	}
+	
+	private Optional<CollectionId> getCollectionId(Element fetchNode) {
+		String value = DOMUtils.getElementText(fetchNode, "CollectionId");
+		if (Strings.isNullOrEmpty(value)) {
+			return Optional.absent();
+		}
+		return Optional.of(CollectionId.of(value));
+	}
+
+	private Optional<ServerId> getServerId(Element fetchNode) {
+		String value = DOMUtils.getElementText(fetchNode, "ServerId");
+		if (Strings.isNullOrEmpty(value)) {
+			return Optional.absent();
+		}
+		return Optional.of(ServerId.of(value));
 	}
 
 	private MSEmailBodyType getType(Element fetchNode) {

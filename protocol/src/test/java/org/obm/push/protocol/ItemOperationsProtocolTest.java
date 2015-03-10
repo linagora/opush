@@ -32,6 +32,7 @@
 package org.obm.push.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -108,8 +109,8 @@ public class ItemOperationsProtocolTest {
 		ItemOperationsRequest decodedRequest = itemOperationsProtocol.decodeRequest(document);
 		
 		assertThat(decodedRequest).isNotNull();
-		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
-		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo(CollectionId.of(1400).serverId(350025));
+		assertThat(decodedRequest.getFetch().getCollectionId()).contains(CollectionId.of(1400));
+		assertThat(decodedRequest.getFetch().getServerId()).contains(CollectionId.of(1400).serverId(350025));
 		assertThat(decodedRequest.getFetch().getType()).isEqualTo(MSEmailBodyType.HTML);
 	}
 
@@ -128,9 +129,29 @@ public class ItemOperationsProtocolTest {
 		ItemOperationsRequest decodedRequest = itemOperationsProtocol.decodeRequest(document);
 
 		assertThat(decodedRequest).isNotNull();
-		assertThat(decodedRequest.getFetch().getCollectionId()).isEqualTo(CollectionId.of(1400));
-		assertThat(decodedRequest.getFetch().getServerId()).isEqualTo(CollectionId.of(1400).serverId(350025));
+		assertThat(decodedRequest.getFetch().getCollectionId()).contains(CollectionId.of(1400));
+		assertThat(decodedRequest.getFetch().getServerId()).contains(CollectionId.of(1400).serverId(350025));
 		assertThat(decodedRequest.getFetch().getType()).isNull();
+	}
+
+	@Test
+	public void testByFileReference() throws SAXException, IOException, FactoryConfigurationError {
+		Document document = getXml(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<ItemOperations>" +
+				"<Fetch>" +
+				"<Store>Mailbox</Store>" +
+				"<FileReference>expected value</FileReference>" +
+				"</Fetch>" +
+				"</ItemOperations>");
+
+		ItemOperationsRequest decodedRequest = itemOperationsProtocol.decodeRequest(document);
+
+		assertThat(decodedRequest).isNotNull();
+		assertThat(decodedRequest.getFetch().getCollectionId()).isAbsent();
+		assertThat(decodedRequest.getFetch().getServerId()).isAbsent();
+		assertThat(decodedRequest.getFetch().getType()).isNull();
+		assertThat(decodedRequest.getFetch().getFileReference()).isEqualTo("expected value");
 	}
 
 	@Test

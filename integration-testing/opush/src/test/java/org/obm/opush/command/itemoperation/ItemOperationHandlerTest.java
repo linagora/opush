@@ -173,6 +173,26 @@ public class ItemOperationHandlerTest {
 	}
 
 	@Test
+	public void testFetchByFileReference() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
+		String fileReference = inboxCollectionId.asString() + "_1_2_YXBwbGljYXRpb24vaWNz_QkFTRTY0";
+		userAccessUtils.mockUsersAccess(user);
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		ItemOperationResponse itemOperationFetch = opClient.itemOperationFetch(fileReference);
+		mocksControl.verify();
+
+		ItemOperationFetchResponse fetchResponse = Iterables.getOnlyElement(itemOperationFetch.getFetchResponses());
+		assertThat(fetchResponse.getStatus()).isEqualTo(ItemOperationsStatus.SUCCESS);
+		assertThat(fetchResponse.getServerId()).isNull();
+		Element data = fetchResponse.getData();
+		assertThat(DOMUtils.getUniqueElement(data, "ContentType").getTextContent()).isEqualTo("application/ics");
+		assertThat(DOMUtils.getUniqueElement(data, "Data").getTextContent()).contains("Weekly Team Feedback");
+	}
+
+	@Test
 	public void shouldReturnDocumentNotFoundWhenFetchAbsentEmail() throws Exception {
 		userAccessUtils.mockUsersAccess(user);
 		
