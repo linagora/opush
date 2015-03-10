@@ -180,11 +180,15 @@ public abstract class OPClient implements AutoCloseable {
 	}
 
 	public ItemOperationResponse itemOperationFetch(CollectionId collectionId, ServerId... serverId) throws Exception {
-		return run(new ItemOperationFetchCommand(collectionId, serverId));
+		return run(new ItemOperationFetchCommand.ByServerId(collectionId, serverId));
 	}
 
 	public ItemOperationResponse itemOperationFetch(CollectionId collectionId, MSEmailBodyType bodyType, ServerId... serverId) throws Exception {
-		return run(new ItemOperationFetchCommand(collectionId, bodyType, serverId));
+		return run(new ItemOperationFetchCommand.ByServerId(collectionId, bodyType, serverId));
+	}
+	
+	public ItemOperationResponse itemOperationFetch(String fileReference) throws Exception {
+		return run(new ItemOperationFetchCommand.ByFileReference(fileReference));
 	}
 
 	public MoveItemsResponse moveItems(Move...moves) throws Exception {

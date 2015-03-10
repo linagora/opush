@@ -52,42 +52,12 @@ import org.xml.sax.SAXException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResponse> {
+public abstract class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResponse> {
 
-	public ItemOperationFetchCommand(CollectionId collectionId, ServerId... serverIds) throws SAXException, IOException {
-		this(collectionId, null, serverIds);
+	private ItemOperationFetchCommand(TemplateDocument document) {
+		super(NS.ItemOperations, "ItemOperations", document);
 	}
-	
-	public ItemOperationFetchCommand(final CollectionId collectionId, final MSEmailBodyType bodyType, final ServerId... serverIds)
-			throws SAXException, IOException {
 		
-		super(NS.ItemOperations, "ItemOperations", new TemplateDocument("ItemOperationsFetchRequest.xml") {
-
-			@Override
-			protected void customize(Document document, AccountInfos accountInfos) {
-				Element documentElement = document.getDocumentElement();
-				
-				for (ServerId serverId : serverIds) {
-					Element fetchElement = DOMUtils.createElement(documentElement, "Fetch");
-					DOMUtils.createElementAndText(fetchElement, "Store", "Mailbox");
-					DOMUtils.createElementAndText(fetchElement, "AirSync:CollectionId", collectionId.asString());
-					DOMUtils.createElementAndText(fetchElement, "AirSync:ServerId", serverId.asString());
-					customizeOptions(fetchElement);
-				}
-			}
-
-			private void customizeOptions(Element fetchElement) {
-				if (bodyType != null) {
-					Element options = DOMUtils.createElement(fetchElement, "Options");
-					Element bodyPreferences = DOMUtils.createElement(options, "AirSyncBase:BodyPreference");
-					DOMUtils.createElementAndText(bodyPreferences, "AirSyncBase:Type", bodyType.asXmlValue());
-					
-				}
-			}
-			
-		});
-	}
-
 	@Override
 	protected ItemOperationResponse parseResponse(Document document) {
 		Element documentElement = document.getDocumentElement();
@@ -120,6 +90,62 @@ public class ItemOperationFetchCommand extends AbstractCommand<ItemOperationResp
 		@Override
 		public ItemOperationResponse parse(Document document) {
 			return parseResponse(document);
+		}
+	}
+	
+	
+	public static class ByServerId extends ItemOperationFetchCommand {
+
+		public ByServerId(CollectionId collectionId, ServerId... serverIds) throws SAXException, IOException {
+			this(collectionId, null, serverIds);
+		}
+		
+		public ByServerId(final CollectionId collectionId, final MSEmailBodyType bodyType, final ServerId... serverIds)
+				throws SAXException, IOException {
+			
+			super(new TemplateDocument("ItemOperationsFetchRequest.xml") {
+	
+				@Override
+				protected void customize(Document document, AccountInfos accountInfos) {
+					Element documentElement = document.getDocumentElement();
+					
+					for (ServerId serverId : serverIds) {
+						Element fetchElement = DOMUtils.createElement(documentElement, "Fetch");
+						DOMUtils.createElementAndText(fetchElement, "Store", "Mailbox");
+						DOMUtils.createElementAndText(fetchElement, "AirSync:CollectionId", collectionId.asString());
+						DOMUtils.createElementAndText(fetchElement, "AirSync:ServerId", serverId.asString());
+						customizeOptions(fetchElement);
+					}
+				}
+	
+				private void customizeOptions(Element fetchElement) {
+					if (bodyType != null) {
+						Element options = DOMUtils.createElement(fetchElement, "Options");
+						Element bodyPreferences = DOMUtils.createElement(options, "AirSyncBase:BodyPreference");
+						DOMUtils.createElementAndText(bodyPreferences, "AirSyncBase:Type", bodyType.asXmlValue());
+						
+					}
+				}
+				
+			});
+		}
+	}
+
+	public static class ByFileReference extends ItemOperationFetchCommand {
+
+		public ByFileReference(final String fileReference) throws SAXException, IOException {
+			
+			super(new TemplateDocument("ItemOperationsFetchRequest.xml") {
+	
+				@Override
+				protected void customize(Document document, AccountInfos accountInfos) {
+					Element documentElement = document.getDocumentElement();
+					Element fetchElement = DOMUtils.createElement(documentElement, "Fetch");
+					DOMUtils.createElementAndText(fetchElement, "Store", "Mailbox");
+					DOMUtils.createElementAndText(fetchElement, "AirSyncBase:FileReference", fileReference);
+				}
+	
+			});
 		}
 	}
 }
