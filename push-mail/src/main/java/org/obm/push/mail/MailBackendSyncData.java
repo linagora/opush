@@ -113,11 +113,11 @@ public class MailBackendSyncData {
 				Snapshot previousStateSnapshot, SyncCollectionOptions actualOptions,
 				Date dataDeltaDate, long currentUIDNext) throws FilterTypeChangedException {
 			
-			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions);
 			if (mustSyncByDate(previousStateSnapshot)) {
 				Date searchEmailsFromDate = searchEmailsFromDate(actualOptions.getFilterType(), dataDeltaDate);
 				return mailboxService.fetchEmails(udr, path, searchEmailsFromDate);
 			}
+			assertSnapshotHasSameOptionsThanRequest(previousStateSnapshot, actualOptions);
 			return searchSnapshotAndActualChanges(udr, path, previousStateSnapshot, currentUIDNext);
 		}
 

@@ -295,6 +295,28 @@ public class MailBackendSyncDataTest {
 		control.verify();
 		assertThat(searchEmailsToManage).isEqualTo(expectedEmails);
 	}
+	
+	@Test
+	public void searchEmailsToManageShouldNotCheckOptionsWhenFirstSync() {
+		SyncCollectionOptions syncCollectionOptions = SyncCollectionOptions.builder().filterType(FilterType.ALL_ITEMS).build();
+
+		long newEmailUID = 9;
+		Email newEmail = Email.builder()
+				.uid(newEmailUID)
+				.date(date("2004-12-14T22:00:00"))
+				.read(false)
+				.answered(false)
+				.build();
+		
+		long currentUIDNext = 10;
+		Set<Email> expectedEmails = ImmutableSet.of(newEmail);
+		expect(mailboxService.fetchEmails(udr, inboxPath, DateUtils.getEpochPlusOneSecondCalendar().getTime()))
+			.andReturn(expectedEmails).once();
+
+		control.replay();
+		testee.searchEmailsToManage(udr, inboxPath, null, syncCollectionOptions, date("2004-10-14T22:00:00"), currentUIDNext);
+		control.verify();
+	}
 
 	@Test(expected=FilterTypeChangedException.class)
 	public void testSyncByDateWhenFilterTypeChanged() throws Exception {
@@ -309,7 +331,6 @@ public class MailBackendSyncDataTest {
 				.answered(false)
 				.build();
 		Set<Email> previousEmailsInServer = ImmutableSet.of(email);
-		Set<Email> actualEmailsInServer = ImmutableSet.of(email);
 		
 		Snapshot snapshot = Snapshot.builder()
 				.emails(previousEmailsInServer)
@@ -320,14 +341,18 @@ public class MailBackendSyncDataTest {
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
 		expectSnapshotDaoHasEntry(syncKey, snapshot);
-		expectActualEmailServerStateByDate(actualEmailsInServer, fromDate, uidNext);
+		expect(mailboxService.fetchUIDNext(udr, inboxPath)).andReturn(uidNext);
 		
 		control.replay();
-		testee.create(udr, ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(syncKey)
-				.build(), 
-				inboxFolder, syncCollectionOptions);
+		try {
+			testee.create(udr, ItemSyncState.builder()
+					.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
+					.syncKey(syncKey)
+					.build(), 
+					inboxFolder, syncCollectionOptions);
+		} finally {
+			control.verify();
+		}
 	}
 	
 	@Test
