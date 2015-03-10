@@ -33,6 +33,7 @@ package org.obm.push.cassandra;
 
 import org.obm.configuration.module.LoggerModule;
 import org.obm.push.configuration.CassandraConfiguration;
+import org.obm.push.configuration.CassandraRetryPolicy;
 import org.slf4j.Logger;
 
 import com.datastax.driver.core.Cluster;
@@ -41,6 +42,8 @@ import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.policies.LoggingRetryPolicy;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -76,6 +79,7 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 								.setConsistencyLevel(ConsistencyLevel.QUORUM))
 							.withSocketOptions(new SocketOptions()
 								.setReadTimeoutMillis(cassandraConfiguration.readTimeoutMs()))
+							.withRetryPolicy(retryPolicy(cassandraConfiguration))
 							.build()
 							.connect(cassandraConfiguration.keyspace());
 				} catch (NoHostAvailableException e) {
@@ -84,6 +88,13 @@ public class CassandraSessionSupplierImpl implements CassandraSessionSupplier {
 				}
 			}
 		});
+	}
+	
+	private RetryPolicy retryPolicy(CassandraConfiguration cassandraConfiguration) {
+		if (CassandraRetryPolicy.RETRY_OR_CL_DOWNGRADE == cassandraConfiguration.retryPolicy()) {
+			return new LoggingRetryPolicy(new RetryOrCLDowngradeRetryPolicy(cassandraConfiguration, new RetryNTimesRetryPolicy(cassandraConfiguration)));
+		}
+		return new LoggingRetryPolicy(new RetryNTimesRetryPolicy(cassandraConfiguration));
 	}
 
 	@Override

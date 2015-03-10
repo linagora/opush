@@ -23,6 +23,7 @@
 	</appender>
 
 	<logger name="MIGRATION" level="INFO" />
+	<logger name="com.datastax.driver.core.policies.LoggingRetryPolicy" level="INFO" />
 	
 	<root level="WARN">
 		<appender-ref ref="PROD" />
