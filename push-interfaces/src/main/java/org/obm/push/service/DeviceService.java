@@ -47,4 +47,6 @@ public interface DeviceService {
 	Device getDevice(User user, DeviceId deviceId, String userAgent, ProtocolVersion protocolVersion) throws DaoException;
 
 	Long getPolicyKey(User user, DeviceId deviceId) throws DaoException;
+
+	void forgetDeviceRelatedData(User user, DeviceId deviceId);
 }

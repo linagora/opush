@@ -37,6 +37,7 @@ import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.User;
 import org.obm.push.exception.DaoException;
+import org.obm.push.service.DeviceDataCleaner;
 import org.obm.push.service.DeviceService;
 import org.obm.push.store.DeviceDao;
 import org.obm.push.store.DeviceDao.PolicyStatus;
@@ -56,11 +57,16 @@ public class DeviceServiceImpl implements DeviceService {
 	
 	private final DeviceDao deviceDao;
 	private final SyncPermsConfigurationService syncPermsConfigurationService;
+	private final DeviceDataCleaner deviceDataCleaner;
 	
 	@Inject
-	private DeviceServiceImpl(SyncPermsConfigurationService syncPermsConfigurationService, DeviceDao deviceDao){
+	private DeviceServiceImpl(
+			SyncPermsConfigurationService syncPermsConfigurationService, 
+			DeviceDao deviceDao,
+			DeviceDataCleaner deviceDataCleaner){
 		this.syncPermsConfigurationService = syncPermsConfigurationService;
 		this.deviceDao = deviceDao;
+		this.deviceDataCleaner = deviceDataCleaner;
 	}
 	
 	@Override
@@ -114,4 +120,8 @@ public class DeviceServiceImpl implements DeviceService {
 		return deviceDao.getPolicyKey(user, deviceId, PolicyStatus.ACCEPTED);
 	}
 	
+	@Override
+	public void forgetDeviceRelatedData(User user, DeviceId deviceId) {
+		deviceDataCleaner.clean(user, deviceId);
+	}
 }

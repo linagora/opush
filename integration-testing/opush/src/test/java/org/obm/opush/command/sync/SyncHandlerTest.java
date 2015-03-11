@@ -705,7 +705,10 @@ public class SyncHandlerTest {
 	}
 	
 	@Test(expected=HttpRequestException.class)
-	public void testSyncWhenDeviceNotFound() throws Exception {
+	public void syncWhenDeviceNotFoundShouldCleanUserRelatedData() throws Exception {
+		folderSnapshotDao.create(users.blum.user, users.blum.device, knownFolderSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
+		
 		SyncKey incomingSK = new SyncKey("888a5e46-3fe9-4684-879f-d935c5788888");
 		SyncKey outgoingSK = new SyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
 		
@@ -728,25 +731,45 @@ public class SyncHandlerTest {
 		} catch (Exception e) {
 			assertThat(e).isInstanceOf(HttpRequestException.class);
 			assertThat(((HttpRequestException)e).getStatusCode()).isEqualTo(449);
-			assertThatUserHasFolderSnapshot();
-			assertThatUserHasFolderMapping();
+			assertThatUserHasNoFolderSnapshot(users.jaures);
+			assertThatUserHasNoFolderMapping(users.jaures);
+			assertThatUserHasFolderSnapshot(users.blum);
+			assertThatUserHasFolderMapping(users.blum);
 			throw e;
 		}
 	}
 
-	private void assertThatUserHasFolderSnapshot() {
+	private void assertThatUserHasFolderSnapshot(OpushUser user) {
 		try {
-			assertThat(folderSnapshotDao.get(users.jaures.user, users.jaures.device, knownFolderSyncKey)).isNotNull();
+			assertThat(folderSnapshotDao.get(user.user, user.device, knownFolderSyncKey)).isNotNull();
 		} catch (FolderSnapshotNotFoundException e) {
 			fail("FolderSnapshotNotFoundException was not expected");
 		}
 	}
 	
-	private void assertThatUserHasFolderMapping() {
+	private void assertThatUserHasFolderMapping(OpushUser user) {
 		try {
-			assertThat(folderSnapshotDao.get(users.jaures.user, users.jaures.device, inboxCollectionId)).isNotNull();
+			assertThat(folderSnapshotDao.get(user.user, user.device, inboxCollectionId)).isNotNull();
 		} catch (CollectionNotFoundException e) {
 			fail("CollectionNotFoundException was not expected");
+		}
+	}
+
+	private void assertThatUserHasNoFolderSnapshot(OpushUser user) {
+		try {
+			folderSnapshotDao.get(user.user, user.device, knownFolderSyncKey);
+			fail("FolderSnapshotNotFoundException was expected");
+		} catch (FolderSnapshotNotFoundException e) {
+			// expected
+		}
+	}
+	
+	private void assertThatUserHasNoFolderMapping(OpushUser user) {
+		try {
+			folderSnapshotDao.get(user.user, user.device, inboxCollectionId);
+			fail("CollectionNotFoundException was expected");
+		} catch (CollectionNotFoundException e) {
+			// expected
 		}
 	}
 

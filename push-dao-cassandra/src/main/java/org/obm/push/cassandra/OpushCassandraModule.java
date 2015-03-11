@@ -53,6 +53,7 @@ import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
 import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
+import org.obm.push.service.DeviceDataCleaner;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.store.ContactCreationDao;
 import org.obm.push.store.MonitoredCollectionDao;
@@ -84,6 +85,7 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(CassandraConfiguration.class).toInstance(new CassandraConfigurationFileImpl.Factory().create());
 		bind(CassandraSessionSupplier.class).to(CassandraSessionSupplierImpl.class);
 		bind(SchemaProducer.class).to(SchemaProducerImpl.class);
+		bind(DeviceDataCleaner.class).to(CassandraDeviceDataCleaner.class);
 		bindSession();
 		bindDao();
 

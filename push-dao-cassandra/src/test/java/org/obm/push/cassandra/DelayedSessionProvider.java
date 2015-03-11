@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2014  Linagora
+ * Copyright (C) 2015 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,28 +29,23 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.cassandra.dao;
+package org.obm.push.cassandra;
 
-import org.obm.push.bean.migration.Version;
-import org.obm.push.cassandra.OpushCassandraModule;
+import com.datastax.driver.core.Session;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
-public class DaoTestsSchemaProducer {
+@Singleton
+public class DelayedSessionProvider implements Provider<Session> {
 
-	private final SchemaProducerImpl schemaProducerImpl;
-
-	public DaoTestsSchemaProducer() {
-		schemaProducerImpl = new SchemaProducerImpl(OpushCassandraModule.TABLES_OF_DAO);
+	private Session session = null;
+	
+	@Override
+	public Session get() {
+		return session;
 	}
 	
-	public String schemaForDAO(Class<? extends CassandraDao> clazz) {
-		return schemaProducerImpl.lastSchemaForDAO(clazz);
-	}
-	
-	public String schema(Version version) {
-		return schemaProducerImpl.schema(version);
-	}
-	
-	public String lastSchema() {
-		return schemaProducerImpl.lastSchema();
+	public void ready(Session session) {
+		this.session = session;
 	}
 }

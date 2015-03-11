@@ -163,7 +163,8 @@ public class ActiveSyncServlet extends HttpServlet {
 			checkAuthorizedDevice(asrequest, credentials);
 
 			if (policyService.needProvisionning(asrequest, credentials.getUser())) {
-				logger.debug("forcing device (ua: {}) provisioning", asrequest.getUserAgent());
+				forgetDeviceRelatedData(asrequest, credentials);
+				logger.warn("forcing device (ua: {}) provisioning", asrequest.getUserAgent());
 				sendNeedProvisionningResponse(response);
 				return;
 			} else {
@@ -179,6 +180,13 @@ public class ActiveSyncServlet extends HttpServlet {
 			logger.info(e.getMessage());
 			httpErrorResponder.returnHttpUnauthorized(request, response);
 		}
+	}
+
+	private void forgetDeviceRelatedData(ActiveSyncRequest request, Credentials credentials) {
+		logger.warn("Dropping user-device related data from the datastore for {} - {}", 
+			credentials.getUser().getLoginAtDomain(),
+			request.getDeviceId().getDeviceId());
+		deviceService.forgetDeviceRelatedData(credentials.getUser(), request.getDeviceId());
 	}
 
 	private void handleContinuation(HttpServletRequest request, HttpServletResponse response, IContinuation c) {
