@@ -32,6 +32,7 @@
 package org.obm.opush.command.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -67,6 +68,7 @@ import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
+import org.obm.push.ProtocolVersion;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -100,6 +102,7 @@ import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.exception.ConversionException;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
@@ -111,11 +114,15 @@ import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.FolderSnapshotDao;
+import org.obm.push.service.FolderSnapshotDao.FolderSnapshotNotFoundException;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.store.CollectionDao;
+import org.obm.push.store.DeviceDao;
+import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.task.TaskBackend;
 import org.obm.push.utils.DateUtils;
 import org.obm.push.utils.SerializableInputStream;
+import org.obm.sync.push.client.HttpRequestException;
 import org.obm.sync.push.client.OPClient;
 import org.obm.sync.push.client.commands.Sync;
 
@@ -145,6 +152,7 @@ public class SyncHandlerTest {
 	@Inject private SyncTestUtils syncTestUtils;
 	@Inject private CollectionDao collectionDao;
 	@Inject private FolderSnapshotDao folderSnapshotDao;
+	@Inject private DeviceDao deviceDao;
 
 	@Inject CalendarBackend calendarBackend;
 	@Inject TaskBackend taskBackend;
@@ -155,6 +163,7 @@ public class SyncHandlerTest {
 	private CloseableHttpClient httpClient;
 	private Folder inboxFolder;
 	private CollectionId inboxCollectionId;
+	private FolderSyncKey knownFolderSyncKey;
 
 	@Before
 	public void init() throws Exception {
@@ -172,8 +181,8 @@ public class SyncHandlerTest {
 			.parentBackendIdOpt(Optional.<BackendId>absent())
 			.build();
 		
-		FolderSyncKey folderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
-		folderSnapshotDao.create(users.jaures.user, users.jaures.device, folderSyncKey, 
+		knownFolderSyncKey = new FolderSyncKey("c8355d6c-9325-490a-87ec-2522b2e23b99");
+		folderSnapshotDao.create(users.jaures.user, users.jaures.device, knownFolderSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(inboxFolder)));
 	}
 	
@@ -693,6 +702,52 @@ public class SyncHandlerTest {
 
 		assertThat(syncEmailResponse).isNotNull();
 		assertThat(syncEmailResponse.getStatus()).isEqualTo(SyncStatus.SERVER_ERROR);
+	}
+	
+	@Test(expected=HttpRequestException.class)
+	public void testSyncWhenDeviceNotFound() throws Exception {
+		SyncKey incomingSK = new SyncKey("888a5e46-3fe9-4684-879f-d935c5788888");
+		SyncKey outgoingSK = new SyncKey("770a5e46-3fe9-4684-879f-d935c5721e1f");
+		
+		syncKeyTestUtils.mockNextGeneratedSyncKey(outgoingSK);
+		userAccessUtils.expectUserLoginFromOpush(userAsList);
+		
+		expect(deviceDao.getDevice(users.jaures.user, users.jaures.deviceId, users.jaures.userAgent, ProtocolVersion.V121))
+			.andReturn(null);
+		deviceDao.registerNewDevice(users.jaures.user, users.jaures.deviceId, users.jaures.deviceType);
+		expectLastCall();
+		expect(deviceDao.getPolicyKey(users.jaures.user, users.jaures.deviceId, PolicyStatus.ACCEPTED))
+			.andReturn(null);
+		
+		mocksControl.replay();
+		opushServer.start();
+
+		OPClient opClient = testUtils.buildWBXMLOpushClient(users.jaures, opushServer.getHttpPort(), httpClient);
+		try {
+			opClient.syncEmail(decoder, incomingSK, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		} catch (Exception e) {
+			assertThat(e).isInstanceOf(HttpRequestException.class);
+			assertThat(((HttpRequestException)e).getStatusCode()).isEqualTo(449);
+			assertThatUserHasFolderSnapshot();
+			assertThatUserHasFolderMapping();
+			throw e;
+		}
+	}
+
+	private void assertThatUserHasFolderSnapshot() {
+		try {
+			assertThat(folderSnapshotDao.get(users.jaures.user, users.jaures.device, knownFolderSyncKey)).isNotNull();
+		} catch (FolderSnapshotNotFoundException e) {
+			fail("FolderSnapshotNotFoundException was not expected");
+		}
+	}
+	
+	private void assertThatUserHasFolderMapping() {
+		try {
+			assertThat(folderSnapshotDao.get(users.jaures.user, users.jaures.device, inboxCollectionId)).isNotNull();
+		} catch (CollectionNotFoundException e) {
+			fail("CollectionNotFoundException was not expected");
+		}
 	}
 
 	private void mockEmailSyncThrowsException(SyncKey syncKey, Throwable throwable)
