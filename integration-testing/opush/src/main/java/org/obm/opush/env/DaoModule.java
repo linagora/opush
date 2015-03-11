@@ -36,7 +36,6 @@ import org.obm.guice.AbstractOverrideModule;
 import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.DeviceDao;
-import org.obm.push.store.FolderSnapshotDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.sync.date.DateProvider;
@@ -54,7 +53,6 @@ public class DaoModule extends AbstractOverrideModule {
 		bindWithMock(HeartbeatDao.class);
 		bindWithMock(CalendarDao.class);
 		bindWithMock(ItemTrackingDao.class);
-		bindWithMock(FolderSnapshotDao.class);
 		bindWithMock(DateProvider.class);
 	}
 
