@@ -169,20 +169,7 @@ public class SyncProtocol implements AsymetricActiveSyncProtocol<SyncRequest, Cl
 	
 	private void buildUpdateItemChange(Device device, SyncCollectionResponse collectionResponse, Element ce) throws IOException {
 		
-		Element commands = DOMUtils.createElement(ce, "Commands");
-		
-		List<ItemDeletion> itemChangesDeletion = collectionResponse.getItemDeletions();
-		for (ItemDeletion deletion: itemChangesDeletion) {
-			serializeDeletion(commands, deletion);
-		}
-		
-		for (ItemChange itemChange : collectionResponse.getItemChanges()) {
-			String commandName = selectCommandName(itemChange);
-			Element command = DOMUtils.createElement(commands, commandName);
-			DOMUtils.createElementAndText(command, "ServerId", itemChange.getServerId().asString());
-			serializeChange(device, command, itemChange.getData());
-		}
-
+		// OP-186, Responses should be first, then Commands else you get an issue on WindowsPhone 8
 		Element responses = DOMUtils.createElement(ce, "Responses");
 		SyncCollectionResponsesResponse responsesToClientCommands = collectionResponse.getResponses();
 		for (SyncCollectionCommandResponse responseToClientCommand : responsesToClientCommands.getCommands()) {
@@ -211,6 +198,20 @@ public class SyncProtocol implements AsymetricActiveSyncProtocol<SyncRequest, Cl
 				serializeChange(device, fetch, responseToClientCommand.getApplicationData());
 				break;
 			}
+		}
+
+		Element commands = DOMUtils.createElement(ce, "Commands");
+		
+		List<ItemDeletion> itemChangesDeletion = collectionResponse.getItemDeletions();
+		for (ItemDeletion deletion: itemChangesDeletion) {
+			serializeDeletion(commands, deletion);
+		}
+		
+		for (ItemChange itemChange : collectionResponse.getItemChanges()) {
+			String commandName = selectCommandName(itemChange);
+			Element command = DOMUtils.createElement(commands, commandName);
+			DOMUtils.createElementAndText(command, "ServerId", itemChange.getServerId().asString());
+			serializeChange(device, command, itemChange.getData());
 		}
 
 		if (commands.getChildNodes().getLength() == 0) {

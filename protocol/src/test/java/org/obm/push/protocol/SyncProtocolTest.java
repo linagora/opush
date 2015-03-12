@@ -1745,4 +1745,70 @@ public class SyncProtocolTest {
 		Document response = testee.encodeResponse(device, syncResponse);
 		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
 	}
+
+	@Test
+	public void encodeResponseShouldEncodeResponsesThenCommands() throws Exception {
+		CollectionId collectionId = CollectionId.of(3);
+		SyncKey syncKey = new SyncKey("eb4ff3bb-ef52-4daf-b040-7fb81ec51141");
+		ServerId serverId = collectionId.serverId(6);
+		String clientId = "123";
+		MSContact contact = new MSContact();
+		contact.setEmail1Address("opush@obm.org");
+		contact.setFileAs("Dobney, JoLynn Julie");
+		contact.setFirstName("JoLynn");
+		
+		SyncResponse syncResponse = SyncResponse.builder()
+			.status(SyncStatus.OK)
+			.addResponse(SyncCollectionResponse.builder()
+					.collectionId(collectionId)
+					.status(SyncStatus.OK)
+					.syncKey(syncKey)
+					.dataType(PIMDataType.CONTACTS)
+					.moreAvailable(false)
+					.responses(SyncCollectionResponsesResponse.builder()
+							.updates(ImmutableList.of(new SyncClientCommands.Update(serverId, SyncStatus.OK)))
+							.build())
+					.commands(SyncCollectionCommandsResponse.builder()
+							.addCommand(SyncCollectionCommandResponse.builder()
+									.type(SyncCommand.CHANGE)
+									.serverId(serverId)
+									.clientId(clientId)
+									.applicationData(contact)
+									.build())
+							.build())
+					.build())
+			.build();
+		
+		String expectedResponse = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<Class>Contacts</Class>" +
+							"<SyncKey>" + syncKey.getSyncKey() + "</SyncKey>" +
+							"<CollectionId>" + collectionId.asString() + "</CollectionId>" +
+							"<Status>1</Status>" +
+							"<Responses>" +
+							"<Change>" +
+								"<ServerId>" + serverId.asString() + "</ServerId>" +
+								"<Status>1</Status>" +
+							"</Change>" +
+							"</Responses>" +
+							"<Commands>" +
+								"<Change>" +
+									"<ServerId>" + serverId.asString() + "</ServerId>" +
+									"<ApplicationData>" +
+										"<Contacts:FileAs>Dobney, JoLynn Julie</Contacts:FileAs>" +
+										"<Contacts:FirstName>JoLynn</Contacts:FirstName>" +
+										"<Contacts:Email1Address>opush@obm.org</Contacts:Email1Address>" +
+									"</ApplicationData>" +
+								"</Change>" +
+							"</Commands>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>";
+
+		Document response = testee.encodeResponse(device, syncResponse);
+		assertThat(DOMUtils.serialize(response)).isEqualTo(expectedResponse);
+	}
 }
