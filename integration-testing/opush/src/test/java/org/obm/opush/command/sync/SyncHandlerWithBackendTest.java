@@ -109,6 +109,7 @@ import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
+import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
@@ -346,7 +347,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendTwoEmailsToImapServer();
+		sendEmailsToImapServer(2);
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		
@@ -533,7 +534,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendTwoEmailsToImapServer();
+		sendEmailsToImapServer(2);
 		AnalysedSyncCollection.Builder configuredSyncCollection = AnalysedSyncCollection.builder()
 				.collectionId(calendarCollectionId)
 				.windowSize(ONE_WINDOWS_SIZE)
@@ -738,10 +739,11 @@ public class SyncHandlerWithBackendTest {
 		expectLastCall();
 	}
 
-	private void sendTwoEmailsToImapServer() throws InterruptedException {
-		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject", "body", greenMail.getSmtp().getServerSetup());
-		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
-		greenMail.waitForIncomingEmail(2);
+	private void sendEmailsToImapServer(int mailCount) throws InterruptedException {
+		for(int i = 0; i < mailCount; i++){
+			GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject"+i, "body", greenMail.getSmtp().getServerSetup());
+		}
+		greenMail.waitForIncomingEmail(mailCount);
 	}
 
 	private void assertEmailCountInMailbox(String mailbox, Integer expectedNumberOfEmails) {
@@ -1343,7 +1345,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendTwoEmailsToImapServer();
+		sendEmailsToImapServer(2);
 		opClient.run(Sync.builder(decoder)
 						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR)
 								.syncKey(initialSyncKey)		
@@ -1453,7 +1455,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendTwoEmailsToImapServer();
+		sendEmailsToImapServer(2);
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
 		SyncResponse newFirstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_WINDOWS_SIZE);
@@ -1528,7 +1530,7 @@ public class SyncHandlerWithBackendTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		sendTwoEmailsToImapServer();
+		sendEmailsToImapServer(2);
 		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
 		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
 		SyncResponse newFirstSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, ONE_HUNDRED_WINDOWS_SIZE);
@@ -1560,6 +1562,110 @@ public class SyncHandlerWithBackendTest {
 						.serverId(inboxCollectionId.serverId(2))
 						.isNew(true)
 						.build()));
+	}
+
+	@Test
+	public void syncShouldGetAllChangesWhenWindowingDifferentKindOfChange() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("d6b223c4-c7ea-499e-8f65-d94e3121efb8");
+		SyncKey secondAllocatedSyncKey = new SyncKey("0e5e9ebc-5210-423f-a15d-5d360c031220");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("279cf50e-9f28-4c92-8ac6-7d3e7cab1056");
+		SyncKey fourthAllocatedSyncKey = new SyncKey("fee34558-8068-45b0-b741-d21711998019");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int thirdAllocatedStateId = 5;
+		int fourthAllocatedStateId = 6;
+		int deletedEmails = 2;
+		int newEmails = 4;
+		
+		userAccessUtils.mockUsersAccess(Arrays.asList(user));
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, 
+				thirdAllocatedSyncKey, fourthAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:25:17"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(thirdAllocatedStateId)
+				.build();
+		ItemSyncState fourthAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T17:28:17"))
+				.syncKey(fourthAllocatedSyncKey)
+				.id(fourthAllocatedStateId)
+				.build();
+		
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
+		expect(dateService.getCurrentDate()).andReturn(firstAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(fourthAllocatedState.getSyncDate());
+		
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, thirdAllocatedSyncKey, thirdAllocatedState, fourthAllocatedState, inboxCollectionId);
+		
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(1))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, inboxCollectionId.serverId(2))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, inboxCollectionId.serverId(3))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, inboxCollectionId.serverId(4))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, inboxCollectionId.serverId(5))).andReturn(false);
+		expect(itemTrackingDao.isServerIdSynced(secondAllocatedState, inboxCollectionId.serverId(6))).andReturn(false);
+		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		sendEmailsToImapServer(2);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
+		greenMail.deleteEmailFromInbox(greenMailUser, 1l);
+		greenMail.deleteEmailFromInbox(greenMailUser, 2l);
+		sendEmailsToImapServer(4);
+		SyncResponse firstWindowingResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, newEmails);
+		SyncResponse secondWindowingResponse = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, deletedEmails);
+		
+		mocksControl.verify();
+
+		assertThat(firstWindowingResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse response1 = syncTestUtils.getCollectionWithId(firstWindowingResponse, inboxCollectionId);
+		syncTestUtils.assertEqualsWithoutApplicationData(response1.getItemChanges(), ImmutableList.of(
+				ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(3))
+				.isNew(true)
+				.build(),
+				ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(4))
+				.isNew(true)
+				.build(),
+				ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(5))
+				.isNew(true)
+				.build(),
+				ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(6))
+				.isNew(true)
+				.build()));
+
+		assertThat(secondWindowingResponse.getStatus()).isEqualTo(SyncStatus.OK);
+		SyncCollectionResponse response2 = syncTestUtils.getCollectionWithId(secondWindowingResponse, inboxCollectionId);
+		assertThat(response2.getItemDeletions()).containsOnly(
+				ItemDeletion.builder().serverId(inboxCollectionId.serverId(1)).build(),
+				ItemDeletion.builder().serverId(inboxCollectionId.serverId(2)).build());
+		
 	}
 
 	@Test

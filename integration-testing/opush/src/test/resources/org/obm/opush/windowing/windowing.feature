@@ -6,6 +6,13 @@ Feature: store and retrieve emails by chunks
     Then user get 25 elements
     And there is 975 elements left in store
 
+  Scenario: user synchronize a mailbox with both adds and deletions
+    Given user has 10 new elements, 10 changes and 10 deletions
+    And user ask for the first 5 elements
+    When user ask repeatedly for 5 elements
+    Then user get 25 elements in 5 iterations
+    And there is 0 elements left in store
+    
   Scenario: user synchronize a very big mailbox by 25 elements then 10 elements
     Given user has 1000 elements in INBOX
     And user ask for the first 25 elements

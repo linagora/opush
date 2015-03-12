@@ -160,7 +160,22 @@ public class WindowingStepdefs {
 		assertThat(retreivingChangesSum).isEqualTo(elements);
 		assertThat(retreivingChangesIteration).isEqualTo(iterations);
 	}
-
+	
+	@Given("user has (\\d+) new elements, (\\d+) changes and (\\d+) deletions$")
+	public void newBunchOfEmails(long adds, long changes, long deletions) {
+		EmailChanges.Builder newInbox = EmailChanges.builder();
+		for (long uid : ContiguousSet.create(Range.closedOpen(0l, adds), DiscreteDomain.longs())) {
+			newInbox.addition(Email.builder().uid(uid).build());
+		}
+		for (long uid : ContiguousSet.create(Range.closedOpen(adds, adds + changes), DiscreteDomain.longs())) {
+			newInbox.change(Email.builder().uid(uid).build());
+		}
+		for (long uid : ContiguousSet.create(Range.closedOpen(adds + changes, adds + changes + deletions), DiscreteDomain.longs())) {
+			newInbox.deletion(Email.builder().uid(uid).build());
+		}
+		inbox = newInbox.build();
+	}
+	
 	private void startToRetrieveElements() {
 		retrievedElements = null;
 		retreivingChangesIteration = 0;

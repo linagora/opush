@@ -48,7 +48,6 @@ import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Colum
 import static org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex.Columns.WINDOWING_KIND;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.obm.breakdownduration.bean.Watch;
@@ -244,24 +243,25 @@ public class WindowingDaoCassandraImpl extends AbstractCassandraDao implements W
 		UUID windowingUUID = UUID.randomUUID();
 		int index = STARTING_WINDOWING_INDEX;
 		
-		batch = pushWindowingChanges(batch, windowingUUID, index, changes.additions(), ChangeType.ADD);
-		batch = pushWindowingChanges(batch, windowingUUID, index, changes.changes(), ChangeType.CHANGE);
-		batch = pushWindowingChanges(batch, windowingUUID, index, changes.deletions(), ChangeType.DELETE);
+		for (WindowingItem item : changes.additions()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.ADD);
+			batch = commitBatchIfNeeded(batch);
+		}
+		for (WindowingItem item : changes.changes()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.CHANGE);
+			batch = commitBatchIfNeeded(batch);
+		}
+		for (WindowingItem item : changes.deletions()) {
+			addInsertStatementInBatch(batch, windowingUUID, index++, item, ChangeType.DELETE);
+			batch = commitBatchIfNeeded(batch);
+		}
 		commitBatch(batch);
 		
 		return windowingUUID;
-	}
+	}	
 
 	private BatchStatement newBatch() {
 		return new BatchStatement(Type.LOGGED);
-	}
-	
-	private BatchStatement pushWindowingChanges(BatchStatement batch, UUID windowingUUID, int index, Set<? extends WindowingItem> changes, ChangeType type) {
-		for (WindowingItem item : changes) {
-			addInsertStatementInBatch(batch, windowingUUID, index++, item, type);
-			batch = commitBatchIfNeeded(batch);
-		}
-		return batch;
 	}
 	
 	private BatchStatement commitBatchIfNeeded(BatchStatement batch) {

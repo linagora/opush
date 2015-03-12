@@ -160,6 +160,25 @@ public abstract class WindowingDaoTest {
 
 		assertThat(resultBuilder.build().sumOfChanges()).isEqualTo(2);
 	}
+	
+	@Test
+	public void popNextChangesButWithRemainingElements() {
+		SyncKey syncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		WindowingKey key = new WindowingKey(user, deviceId, collectionId, syncKey);
+		
+		int popSize = 10;
+		int remainingSize = 5;
+		EmailChanges emailChanges = generateEmails(popSize + remainingSize);
+		testee.pushPendingChanges(key, emailChanges, PIMDataType.EMAIL);
+
+		WindowingChangesBuilder<Email> resultBuilder = 
+				testee.popNextChanges(key, popSize, syncKey, EmailChanges.builder());
+		WindowingChangesBuilder<Email> resultBuilder2 = 
+				testee.popNextChanges(key, popSize, syncKey, EmailChanges.builder());
+
+		assertThat(resultBuilder.build().sumOfChanges()).isEqualTo(popSize);
+		assertThat(resultBuilder2.build().sumOfChanges()).isEqualTo(remainingSize);
+	}
 
 	@Test
 	public void hasPendingElementsNoIndex() {
