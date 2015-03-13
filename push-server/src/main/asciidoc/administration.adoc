@@ -320,6 +320,39 @@ And a response:
 WARNING: You need to configure your server according to
 <<_opush_server_access>> in order to have Autodiscover working
 
+
+=== Retry policy on Cassandra
+
+Two retry policies are available on the *Cassandra* client configuration used by Opush.
+
+[source]
+.+/etc/opush/cassandra.ini+
+----
+include::sources/cassandra.ini[]
+----
+
+You may choose one of those two different policies by changing the +cassandra.retry-policy+ entry:
+
+  * *ALWAYS_RETRY*: retry the request when a read, write or unavailable timeout is raised. +
+When a read or a write timeouts, it means that enough *Cassandra* replicas are up but one of them was too slow to reply. +
+Opush will retry the same request few times to be sure that its read or write query cannot succeed prior to make the EAS request failing.
+  * *RETRY_OR_CL_DOWNGRADE*: like *ALWAYS_RETRY* on read and write timeout, downgrade the consistency level on unavailable. +
+This policy allows Opush to switch to failsoft when too many nodes get down in your *Cassandra* cluster. +
+When not enough replicas are up to get the QUORUM, Opush will downgrade the request's CL . +
+A http://wiki.apache.org/cassandra/Operations#Repairing_missing_or_inconsistent_data[+nodetool repair+] on dead nodes might be required when the cluster gets back to a healthy state
+
+The +cassandra.max-retries+ entry determines the maximum number of retries applied on the selected policy.
+
+In order to identify when the retry policy is applied, the Opush administrator has to check in the Opush log file (+/var/log/opush/opush.log+) for such messages logged by the +LoggingRetryPolicy+ logger:
+----
+....
+[INFO ] {c.d.d.c.p.LoggingRetryPolicy} [t/c/r/] Retrying on write timeout at consistency QUORUM(initial consistency: QUORUM, write type: SIMPLE, required acknowledgments: 2, received acknowledgments: 1, retries: 0)
+....
+[INFO ] {c.d.d.c.p.LoggingRetryPolicy} [t/c/r/] Retrying on unavailable exception at consistency ONE (initial consistency: QUORUM, required replica: 2, alive replica: 1, retries: 0)
+....
+----
+
+ 
 == Logs
 
 Opush generates several log files located at +/var/log/opush/+:
