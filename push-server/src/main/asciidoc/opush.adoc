@@ -50,6 +50,18 @@ However, there's a limited list of officially supported devices:
 |Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |===============================================================================
 
+=== Limitations
+
+As Microsoft Exchange Server, Opush can't go over some clients limitations (or bugs)!
+
+Be aware that users with Android (=> 4.4) have such https://ci-obm.linagora.com/jira/browse/OP-185[limitations on address books synchronization]. 
+Their secondary address books (others than the "contacts" one) are read-only, so please note that:
+
+  * contacts in such address book are in a read-only state, every modification and deletion will be taken into account on your device but ignored by the server.
+  * dropping an address book does not remove related contacts on the device
+  
+All kind of operations are available (and encouraged) on the main address book.
+
 include::architecture.adoc[]
 
 include::cassandra-installation.adoc[]
