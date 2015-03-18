@@ -92,7 +92,7 @@ public class ObmEventToMSEventConverterImpl implements ObmEventToMSEventConverte
 		mse.setSubject(e.getTitle());
 		mse.setDescription(e.getDescription());
 		mse.setLocation(e.getLocation());
-		setStartTimeVersusAllDayProperty(e, mse);
+		mse.setStartTime(e.getStartDate());
 
 		Date endtTime = endTime(mse.getStartTime().getTime(), e.getDuration());
 		mse.setEndTime(endtTime);
@@ -105,15 +105,6 @@ public class ObmEventToMSEventConverterImpl implements ObmEventToMSEventConverte
 
 		mse.setCategories(category(e));
 		mse.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
-	}
-
-	private void setStartTimeVersusAllDayProperty(Event event, MSEventCommon mse) {
-		if(event.isAllday()) {
-			DateTime startMidnight = new DateTime(event.getStartDate()).withTimeAtStartOfDay();
-			mse.setStartTime(startMidnight.toDate());
-		} else {
-			mse.setStartTime(event.getStartDate());
-		}
 	}
 
 	private Date endTime(long startTime, int duration) {

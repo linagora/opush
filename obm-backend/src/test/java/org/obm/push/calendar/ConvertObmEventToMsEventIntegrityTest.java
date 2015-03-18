@@ -185,7 +185,19 @@ public abstract class ConvertObmEventToMsEventIntegrityTest {
 		User jaures = jauresUser();
 		MSEvent msEvent = converter.convert(event, new MSEventUid("mseventuid"), jaures);
 		assertThat(msEvent.getAllDayEvent()).isEqualTo(true);
-		assertThat(msEvent.getEndTime()).isEqualTo(new DateTime("2004-12-14T00:00:00", DateTimeZone.UTC).toLocalDateTime().toDate());
+		assertThat(msEvent.getEndTime()).isEqualTo(new DateTime("2004-12-14T21:39:45Z", DateTimeZone.UTC).toLocalDateTime().toDate());
+	}
+	
+	@Test
+	public void testAllDayEventShouldKeepStartTimeOfObmEvent() throws ConversionException {
+		DateTime obmSyncStartTime = new DateTime("2015-03-18T21:00:00Z");
+		Event event = basicEvent();
+		event.setAllday(true);
+		event.setStartDate(obmSyncStartTime.toDate());
+		User jaures = jauresUser();
+		MSEvent msEvent = converter.convert(event, new MSEventUid("mseventuid"), jaures);
+		assertThat(msEvent.getStartTime()).isEqualTo(obmSyncStartTime.toDate());
+		assertThat(msEvent.getEndTime()).isEqualTo(obmSyncStartTime.plusDays(1).toDate());
 	}
 	
 	@Test
