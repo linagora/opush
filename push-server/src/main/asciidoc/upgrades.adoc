@@ -116,3 +116,49 @@ That protection is implemented using the hash of every contact created by a devi
 When a contact hash is already known by Opush, it'll not send the creation command to its backend.
 
 This fix has been done to handle the _never fixed_ "ClientId" bug of Android, see https://code.google.com/p/android/issues/detail?id=61100
+
+=== 3.0.6 to 3.1.0
+
+.Information about this migration
+- Some SQL tables will not be used anymore, Opush will instead store its data in Cassandra. Those tables are +opush_folder_mapping+, +opush_folder_snapshot+ and +opush_folder_sync_state+.
+- The foreign-key constraint +opush_sync_state.collection_id+ will be dropped 
+- As usually the migration steps are:
+. Install Opush 3.1.0
+. Connect the <<_administration_with_the_strong_crash_strong_console, *CRaSH* console>>
+. Run the <<crash-usage.adoc#__code_schema_update_code, schema update>> command
+. Restart Opush
+. Well done, you're up-to-date!
+
+[WARNING]
+====
+Every synchronized device will forget its OBM data, synchronization states will be reinitialized from scratch
+====
+
+.Changelog (highlights)
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+2+^| *Features*
+|http://ci-obm.linagora.com/jira/browse/OP-53[OP-53]|Mailboxes are now displayed as a tree
+|http://ci-obm.linagora.com/jira/browse/OP-157[OP-157]|Set the display name of the sender on emails sent by Opush
+2+^| *Bug fixes*
+|http://ci-obm.linagora.com/jira/browse/OP-53[OP-53]|Repair contact creation on some Androids
+|http://ci-obm.linagora.com/jira/browse/OP-135[OP-135]|Always respect the "synchronize all items" option
+|http://ci-obm.linagora.com/jira/browse/OP-168[OP-168]|Item changes are not skipped anymore when many modifications are discovered at the same time
+|http://ci-obm.linagora.com/jira/browse/OP-177[OP-177]|Ability to reduce the max WindowSize from server side
+|http://ci-obm.linagora.com/jira/browse/OP-180[OP-180]|Limit the amount of data retrieved by IMAP on only attachments emails
+|http://ci-obm.linagora.com/jira/browse/OP-183[OP-183]|First attachment of only attachments emails is no more skipped
+|http://ci-obm.linagora.com/jira/browse/OP-181[OP-181]|More elegant first synchronization on Androids
+|http://ci-obm.linagora.com/jira/browse/OP-184[OP-184]|Faster synchronization thanks to a SQL query improvement 
+|http://ci-obm.linagora.com/jira/browse/OP-186[OP-186]|Restore the Windows Phone synchronization capability
+|http://ci-obm.linagora.com/jira/browse/OP-189[OP-189]|Allday event date can be moved on the device when something modified by obm-ui
+2+^| *Cassandra*
+|http://ci-obm.linagora.com/jira/browse/OP-137[OP-137]|Retry a Cassandra query when a timeout is encountered
+|http://ci-obm.linagora.com/jira/browse/OP-190[OP-190]|Failsoft capacity when too many nodes are down to get the QUORUM
+2+^| *Packaging*
+|http://ci-obm.linagora.com/jira/browse/OP-78[OP-78]|LSB compliance of the "status" command
+|http://ci-obm.linagora.com/jira/browse/OP-106[OP-106]|Installation using the "noninteractive" mode is now supported
+|http://ci-obm.linagora.com/jira/browse/OP-107[OP-107]|Folders deletion is done when opush and opush-conf packages are purged
+|=====================================
+
+
