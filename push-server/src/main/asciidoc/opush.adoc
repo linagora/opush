@@ -46,7 +46,7 @@ However, there's a limited list of officially supported devices:
 |Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Motorola (Android 4.4.2)	|Moto G		|[red]#NO# http://ci-obm.linagora.com/jira/browse/OP-53[OP-53]	|[green]#YES#	|[green]#YES#	
+|Motorola (Android 4.4.4)	|Moto G		|[green]#YES# http://ci-obm.linagora.com/jira/browse/OP-185[(OP-185)]	|[green]#YES#	|[green]#YES#	
 |Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
 |===============================================================================
 
@@ -54,10 +54,10 @@ However, there's a limited list of officially supported devices:
 
 As Microsoft Exchange Server, Opush can't go over some clients limitations (or bugs)!
 
-Be aware that users with Android (=> 4.4) have such https://ci-obm.linagora.com/jira/browse/OP-185[limitations on address books synchronization]. 
+Be aware that users with Android (> 4.4) have https://ci-obm.linagora.com/jira/browse/OP-185[limitations on address books synchronization]. 
 Their secondary address books (others than the "contacts" one) are read-only, so please note that:
 
-  * contacts in such address book are in a read-only state, every modification and deletion will be taken into account on your device but ignored by the server.
+  * contacts in such address book are in a read-only state, every modification and deletion will be taken into account on your device but ignored by the server
   * dropping an address book does not remove related contacts on the device
   
 All kind of operations are available (and encouraged) on the main address book.
