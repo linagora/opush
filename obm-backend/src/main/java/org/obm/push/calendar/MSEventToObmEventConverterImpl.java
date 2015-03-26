@@ -159,7 +159,7 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 		EventOpacity busyStatus = convertBusyStatusToOpacity(msEvent);
 		convertedEvent.setOpacity(busyStatus);
 
-		EventPrivacy eventPrivacy = convertSensitivityToPrivacyKeepingOldValue(msEvent, eventFromDB);
+		EventPrivacy eventPrivacy = convertSensitivityToPrivacy(msEvent, eventFromDB);
 		convertedEvent.setPrivacy(eventPrivacy);
 		
 		Date dtStamp = convertDtStamp(eventFromDB, msEvent);
@@ -255,8 +255,7 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 		EventOpacity busyStatus = convertBusyStatusToOpacity(parentEvent, msEvent);
 		convertedEvent.setOpacity(busyStatus);
 
-		EventPrivacy eventPrivacy = convertSensitivityToPrivacy(parentEvent, msEvent);
-		convertedEvent.setPrivacy(eventPrivacy);
+		convertedEvent.setPrivacy(parentEvent.getPrivacy());
 		
 		Date dtStamp = convertDtStamp(parentEvent, eventFromDB, msEvent);
 		convertedEvent.setTimeCreate(dtStamp);
@@ -325,26 +324,14 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 				.build();
 	}	
 	
-	@VisibleForTesting EventPrivacy convertSensitivityToPrivacyKeepingOldValue(MSEventCommon msEvent, Event eventFromDB) {
-		if (eventFromDB != null) {
-			return eventFromDB.getPrivacy();
-		}
+	@VisibleForTesting EventPrivacy convertSensitivityToPrivacy(MSEventCommon msEvent, Event eventFromDB) {
 		if (msEvent.getSensitivity() != null) {
 			return Objects.firstNonNull(SENSITIVITY_TO_PRIVACY.get(msEvent.getSensitivity()), EventPrivacy.PUBLIC);
 		}
-		return EventPrivacy.PUBLIC;
-	}
-
-	private EventPrivacy convertSensitivityToPrivacy(Event parentEvent, MSEventCommon msEvent) {
-		EventPrivacy eventPrivacy = EventPrivacy.PUBLIC;
-		if (msEvent.getSensitivity() != null) {
-			eventPrivacy = convertSensitivityToPrivacyKeepingOldValue(msEvent, parentEvent);
-		} else {
-			if (parentEvent.getPrivacy() != null) {
-				eventPrivacy = parentEvent.getPrivacy();
-			}
+		if (eventFromDB != null) {
+			return eventFromDB.getPrivacy();
 		}
-		return eventPrivacy;
+		return EventPrivacy.PUBLIC;
 	}
 
 	private String convertLocation(MSEventCommon msEvent) {

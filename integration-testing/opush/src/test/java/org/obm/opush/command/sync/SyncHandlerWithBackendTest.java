@@ -1288,21 +1288,24 @@ public class SyncHandlerWithBackendTest {
 		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
 		EventExtId eventExtId = new EventExtId("1");
 		EventObmId eventObmId = new EventObmId(1);
-		Event event = new Event();
-		event.setUid(eventObmId);
-		event.setTitle("event");
-		event.setExtId(eventExtId);
-		event.setOwner(user.user.getEmail());
-		event.setOwnerEmail(user.user.getEmail());
-		event.setStartDate(secondDate);
-		event.setMeetingStatus(EventMeetingStatus.IS_NOT_A_MEETING);
-		event.setPrivacy(EventPrivacy.CONFIDENTIAL);
+		Event eventKnownByObmSync = new Event();
+		eventKnownByObmSync.setUid(eventObmId);
+		eventKnownByObmSync.setTitle("event");
+		eventKnownByObmSync.setExtId(eventExtId);
+		eventKnownByObmSync.setOwner(user.user.getEmail());
+		eventKnownByObmSync.setOwnerEmail(user.user.getEmail());
+		eventKnownByObmSync.setStartDate(secondDate);
+		eventKnownByObmSync.setMeetingStatus(EventMeetingStatus.IS_NOT_A_MEETING);
+		eventKnownByObmSync.setPrivacy(EventPrivacy.CONFIDENTIAL);
+		
+		Event eventModifiedByOpush = eventKnownByObmSync.clone();
+		eventModifiedByOpush.setPrivacy(EventPrivacy.PUBLIC);
 		
 		// First Sync
 		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
 			.andReturn(EventChanges.builder()
 					.lastSync(secondDate)
-					.updates(Lists.newArrayList(event))
+					.updates(Lists.newArrayList(eventKnownByObmSync))
 					.build());
 		expect(calendarClient.getUserEmail(user.accessToken))
 			.andReturn(user.user.getLoginAtDomain()).anyTimes();
@@ -1313,7 +1316,7 @@ public class SyncHandlerWithBackendTest {
 		MSEvent msEvent = new MSEvent();
 		msEvent.setUid(msEventUid);
 		msEvent.setSubject("event");
-		msEvent.setSensitivity(CalendarSensitivity.CONFIDENTIAL);
+		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
 		msEvent.setBusyStatus(CalendarBusyStatus.FREE);
 		msEvent.setAllDayEvent(false);
 		msEvent.setDtStamp(calendar.getTime());
@@ -1333,10 +1336,10 @@ public class SyncHandlerWithBackendTest {
 		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
 			.andReturn(eventExtId);
 		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
-			.andReturn(event);
+			.andReturn(eventKnownByObmSync);
 		// We check that the Privacy of the Event is not modified on update (only this field, other may vary
-		expect(calendarClient.modifyEvent(eq(user.accessToken), eq(user.user.getEmail()), eventPrivacyEq(event), eq(true), eq(true)))
-			.andReturn(event);
+		expect(calendarClient.modifyEvent(eq(user.accessToken), eq(user.user.getEmail()), eventPrivacyEq(eventModifiedByOpush), eq(true), eq(true)))
+			.andReturn(eventModifiedByOpush);
 		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
 			.andReturn(EventChanges.builder()
 					.lastSync(secondDate)
@@ -1361,7 +1364,6 @@ public class SyncHandlerWithBackendTest {
 								.build())
 						.build());
 		
-		msEvent.setSensitivity(CalendarSensitivity.PERSONAL);
 		SyncResponse updatedSyncResponse = opClient.run(
 				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
 					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
@@ -1386,21 +1388,21 @@ public class SyncHandlerWithBackendTest {
 		syncTestUtils.assertEqualsWithoutApplicationData(updatedCollectionResponse.getItemChanges(), 
 				ImmutableList.<ItemChange> of());
 	}
-	
+
 	private static Event eventPrivacyEq(Event value) {
 		reportMatcher(new EventPrivacyEquals(value));
 		return null;
 	}
 
 	/*
-	 * Checks only Event.privacy attribute 
+	 * Checks only Event.privacy attribute
 	 */
 	private static class EventPrivacyEquals extends Equals {
-
+		
 		public EventPrivacyEquals(Object expected) {
 			super(expected);
 		}
-		
+
 		@Override
 		public boolean matches(final Object actual) {
 			if (this.getExpected() == null) {

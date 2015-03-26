@@ -1424,29 +1424,58 @@ public class MSEventToObmEventConverterTest {
 	}
 
 	@Test
-	public void testConvertSensitivityToPrivacyKeepingOldValueWithoutPreviousValue() {
+	public void convertPrivacyShouldBeTakenFromMSEventWhenNoEventFromDb() {
 		MSEventCommon msEventCommon = new MSEvent();
 		msEventCommon.setSensitivity(CalendarSensitivity.CONFIDENTIAL);
 		
-		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacyKeepingOldValue(msEventCommon, null);
+		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(msEventCommon, null);
 		assertThat(eventPrivacy).isEqualTo(
 				MSEventToObmEventConverterImpl.SENSITIVITY_TO_PRIVACY.get(msEventCommon.getSensitivity()));
 	}
 
 	@Test
-	public void testConvertSensitivityToPrivacyKeepingOldValueWithPreviousValue() {
+	public void convertPrivacyShouldBeTakenFromEventFromDbWhenNotGivenInMsEvent() {
 		MSEventCommon msEventCommon = new MSEvent();
-		msEventCommon.setSensitivity(CalendarSensitivity.CONFIDENTIAL);
+		msEventCommon.setSensitivity(null);
 		
 		Event eventFromDB = new Event();
-		eventFromDB.setPrivacy(EventPrivacy.PUBLIC);
-		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacyKeepingOldValue(msEventCommon, eventFromDB);
-		assertThat(eventPrivacy).isEqualTo(eventFromDB.getPrivacy());
+		eventFromDB.setPrivacy(EventPrivacy.CONFIDENTIAL);
+		
+		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(msEventCommon, eventFromDB);
+		
+		assertThat(eventPrivacy).isEqualTo(EventPrivacy.CONFIDENTIAL);
 	}
 
 	@Test
+	public void convertPrivacyShouldBeChangedToPublicWhenPreviousWasPrivate() {
+		MSEventCommon msEventCommon = new MSEvent();
+		msEventCommon.setSensitivity(CalendarSensitivity.NORMAL);
+		
+		Event eventFromDB = new Event();
+		eventFromDB.setPrivacy(EventPrivacy.PRIVATE);
+		
+		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(msEventCommon, eventFromDB);
+		
+		assertThat(eventPrivacy).isEqualTo(EventPrivacy.PUBLIC);
+	}
+	
+	@Test
+	public void convertPrivacyShouldBeChangedToPublicWhenPreviousWasConfidential() {
+		MSEventCommon msEventCommon = new MSEvent();
+		msEventCommon.setSensitivity(CalendarSensitivity.NORMAL);
+		
+		Event eventFromDB = new Event();
+		eventFromDB.setPrivacy(EventPrivacy.CONFIDENTIAL);
+		
+		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(msEventCommon, eventFromDB);
+		
+		assertThat(eventPrivacy).isEqualTo(EventPrivacy.PUBLIC);
+	}
+
+	
+	@Test
 	public void testConvertSensitivityToPrivacyKeepingOldValueDefaultValue() {
-		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacyKeepingOldValue(new MSEvent(), null);
+		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(new MSEvent(), null);
 		assertThat(eventPrivacy).isEqualTo(EventPrivacy.PUBLIC);
 	}
 	
