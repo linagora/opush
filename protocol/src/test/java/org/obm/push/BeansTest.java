@@ -36,6 +36,8 @@ import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionResponse;
 import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.SyncStatus;
+import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
+import org.obm.push.bean.change.hierarchy.FolderCreateResponse;
 import org.obm.push.protocol.bean.ASSystemTime;
 import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.protocol.bean.AnalysedSyncRequest;
@@ -93,6 +95,8 @@ public class BeansTest {
 					.add(AnalysedSyncRequest.class)
 					.add(SendEmailSyncRequest.class)
 					.add(Estimate.class)
+					.add(FolderCreateRequest.class)
+					.add(FolderCreateResponse.class)
 					.build();
 		
 		EqualsVerifierBuilder.builder()
