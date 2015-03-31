@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -34,6 +34,7 @@ package org.obm.push.protocol.data;
 import org.obm.push.bean.SyncDefaultValues;
 import org.obm.push.exception.activesync.ASRequestBooleanFieldException;
 import org.obm.push.exception.activesync.ASRequestIntegerFieldException;
+import org.obm.push.exception.activesync.ProtocolException;
 import org.obm.push.utils.DOMUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,14 @@ public class ActiveSyncDecoder implements SyncDefaultValues {
 		return elementText;
 	}
 
+	public String requiredStringFieldValue(Element root, ActiveSyncFields stringField) {
+		String value = uniqueStringFieldValue(root, stringField);
+		if (value == null) {
+			throw new ProtocolException("The field " + stringField.getName() + " is required");
+		}
+		return value;
+	}
+	
 	public Boolean uniqueBooleanFieldValue(Element root, ActiveSyncFields booleanField) {
 		Element element = DOMUtils.getUniqueElement(root, booleanField.getName());
 		if (element == null) {
@@ -85,6 +94,14 @@ public class ActiveSyncDecoder implements SyncDefaultValues {
 			return Ints.checkedCast(value);
 		}
 		return null;
+	}
+	
+	public Integer requiredIntegerFieldValue(Element root, ActiveSyncFields integerField) {
+		Integer value = uniqueIntegerFieldValue(root, integerField);
+		if (value == null) {
+			throw new ProtocolException("The field " + integerField.getName() + " is required");
+		}
+		return value;
 	}
 
 	public Long uniqueLongFieldValue(Element root, ActiveSyncFields longField) {
@@ -128,4 +145,5 @@ public class ActiveSyncDecoder implements SyncDefaultValues {
 			root.appendChild(value);
 		}
 	}
+	
 }
