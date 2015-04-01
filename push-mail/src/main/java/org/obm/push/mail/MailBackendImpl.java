@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -77,8 +77,10 @@ import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.WindowingKey;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.Folder;
+import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.MSEmailChanges;
@@ -95,6 +97,7 @@ import org.obm.push.exception.SendEmailException;
 import org.obm.push.exception.UnexpectedObmSyncServerException;
 import org.obm.push.exception.UnsupportedBackendFunctionException;
 import org.obm.push.exception.activesync.AttachementNotFoundException;
+import org.obm.push.exception.activesync.BackendNotSupportedException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
@@ -104,6 +107,7 @@ import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
+import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.conversation.EmailView;
@@ -847,7 +851,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				ItemSyncState previousItemSyncState, SyncKey newSyncKey) 
 			throws ProcessingEmailException {
 
-
 		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
 				.collectionId(collectionId)
 				.deviceId(udr.getDevId())
@@ -879,5 +882,16 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 					.emails(ImmutableList.<Email> of())
 					.filterType(filterType)
 					.build());
+	}
+
+	@Override
+	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest)
+		throws BackendNotSupportedException {
+		
+		MailboxFolder mailboxFolder = new MailboxFolder(folderCreateRequest.getFolderDisplayName());
+		
+		mailboxService.createFolder(udr, mailboxFolder);
+		
+		return MailboxPath.of(folderCreateRequest.getFolderDisplayName());
 	}
 }

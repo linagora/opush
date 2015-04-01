@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2015  Linagora
+ * Copyright (C) 2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,56 +29,46 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push;
+package org.obm.sync.push.client.commands;
 
-import java.util.Iterator;
-import java.util.List;
-
-import org.obm.push.backend.IHierarchyExporter;
-import org.obm.push.backend.PIMBackend;
-import org.obm.push.bean.UserDataRequest;
-import org.obm.push.bean.change.hierarchy.BackendFolder;
-import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
-import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
+import org.obm.push.bean.change.hierarchy.FolderCreateResponse;
+import org.obm.push.protocol.FolderCreateProtocol;
+import org.obm.sync.push.client.ResponseTransformer;
+import org.obm.sync.push.client.beans.AccountInfos;
+import org.obm.sync.push.client.beans.NS;
+import org.w3c.dom.Document;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+public class FolderCreate extends AbstractCommand<FolderCreateResponse> {
 
-@Singleton
-public class HierarchyExporter implements IHierarchyExporter {
+	private static final FolderCreateProtocol PROTOCOL = new FolderCreateProtocol();
 
-	private final Backends backends;
-
-	@Inject
-	@VisibleForTesting HierarchyExporter(Backends backends) {
-		this.backends = backends;
-	}
-
-	@Override
-	public BackendFolders getBackendFolders(UserDataRequest udr) {
-		
-		final List<BackendFolders> allFoldersIterables = Lists.newArrayList();
-		for (PIMBackend backend: backends) {
-			allFoldersIterables.add(backend.getBackendFolders(udr));
+	public FolderCreate(final FolderCreateRequest request) {
+		super(NS.FolderHierarchy, "FolderCreate", new DocumentProvider() {
 			
-		}
-		return new BackendFolders() {
-
 			@Override
-			public Iterator<BackendFolder> iterator() {
-				return Iterables.concat(allFoldersIterables).iterator();
+			public Document get(AccountInfos accountInfos) {
+				return PROTOCOL.encodeRequest(request);
 			}
-		};
+		});
 	}
 
 	@Override
-	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest) {
-		return backends.getBackend(folderCreateRequest.getFolderType().getPIMDataType())
-			.createFolder(udr, folderCreateRequest);
+	protected FolderCreateResponse parseResponse(Document responseDocument) {
+		return PROTOCOL.decodeResponse(responseDocument);
+	}
+
+	@Override
+	protected ResponseTransformer<FolderCreateResponse> responseTransformer() {
+		return new Transformer();
+	}
+	
+	private class Transformer implements ResponseTransformer<FolderCreateResponse> {
+
+		@Override
+		public FolderCreateResponse parse(Document document) {
+			return parseResponse(document);
+		}
 	}
 
 }

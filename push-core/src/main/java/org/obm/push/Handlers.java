@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -30,6 +30,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
+
+import org.obm.push.handler.FolderCreateHandler;
 import org.obm.push.handler.FolderSyncHandler;
 import org.obm.push.handler.GetAttachmentHandler;
 import org.obm.push.handler.GetItemEstimateHandler;
@@ -58,6 +60,7 @@ public class Handlers {
 
 	@Inject
 	private Handlers(FolderSyncHandler folderSyncHandler,
+			FolderCreateHandler folderCreateHandler,
 			SyncHandler syncHandler,
 			GetItemEstimateHandler getItemEstimateHandler,
 			ProvisionHandler provisionHandler,
@@ -74,6 +77,7 @@ public class Handlers {
 		
 		handlers = ImmutableMap.<String, IRequestHandler>builder()
 				.put("FolderSync",		folderSyncHandler)
+				.put("FolderCreate",	folderCreateHandler)
 				.put("Sync", 			syncHandler)
 				.put("GetItemEstimate", getItemEstimateHandler)
 				.put("Provision", 		provisionHandler)

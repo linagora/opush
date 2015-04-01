@@ -142,7 +142,128 @@ public class FolderSnapshotServiceTest {
 
 		assertThat(snapshot).isEqualTo(expectedSnapshot);
 	}
+	
+	@Test
+	public void addingFolderToSnapshotShouldContainAllFoldersAndIncrementNextId() throws Exception {
+		Folder newFolder = Folder.builder()
+				.displayName("name")
+				.backendId(new TestBackendId("12"))
+				.collectionId(CollectionId.of(2))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER).build();
 
+		BackendFolder backendFolder = BackendFolder.builder()
+			.displayName("name")
+			.backendId(new TestBackendId("12"))
+			.parentId(Optional.<BackendId>absent())
+			.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.build();
+		
+		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(2).folders(ImmutableSet.<Folder>of());
+		FolderSnapshot expectedSnapshot = FolderSnapshot.nextId(3).folders(ImmutableSet.of(newFolder));
+		
+		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
+		
+		folderSnapshotDao.create(user, device, outgoingSyncKey, expectedSnapshot);
+		
+		expectLastCall();
+		mocks.replay();
+		
+		CollectionId collectionId = testee.createSnapshotAddingFolder(
+				udr, outgoingSyncKey, knownSnapshot, backendFolder);
+		
+		mocks.verify();
+
+		assertThat(collectionId).isEqualTo(CollectionId.of(2));
+	}
+
+	@Test
+	public void addingFolderToSnapshotWithFoldersShouldContainAllFoldersAndIncrementNextId() throws Exception {
+		Folder folderAlreadyInSnapshot = Folder.builder()
+				.displayName("oldSnapshot")
+				.backendId(new TestBackendId("11"))
+				.collectionId(CollectionId.of(2))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER).build();
+
+		
+		Folder newFolder = Folder.builder()
+				.displayName("name")
+				.backendId(new TestBackendId("12"))
+				.collectionId(CollectionId.of(3))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER).build();
+
+		BackendFolder backendFolder = BackendFolder.builder()
+			.displayName("name")
+			.backendId(new TestBackendId("12"))
+			.parentId(Optional.<BackendId>absent())
+			.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.build();
+		
+		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(3)
+				.folders(ImmutableSet.of(folderAlreadyInSnapshot));
+		FolderSnapshot expectedSnapshot = FolderSnapshot.nextId(4)
+				.folders(ImmutableSet.of(folderAlreadyInSnapshot, newFolder));
+		
+		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
+		
+		folderSnapshotDao.create(user, device, outgoingSyncKey, expectedSnapshot);
+		expectLastCall();
+
+		mocks.replay();
+		
+		CollectionId collectionId = testee.createSnapshotAddingFolder(
+				udr, outgoingSyncKey, knownSnapshot, backendFolder);
+		
+		mocks.verify();
+
+		assertThat(collectionId).isEqualTo(CollectionId.of(3));
+	}
+
+	@Test
+	public void addingFolderWithANameAlreadyTakenToSnapshotShouldGiveANewCollectionId() throws Exception {
+		Folder folderAlreadyInSnapshot = Folder.builder()
+				.displayName("name")
+				.backendId(new TestBackendId("11"))
+				.collectionId(CollectionId.of(2))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER).build();
+		
+		Folder newFolder = Folder.builder()
+				.displayName("name")
+				.backendId(new TestBackendId("12"))
+				.collectionId(CollectionId.of(3))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER).build();
+
+		BackendFolder backendFolder = BackendFolder.builder()
+				.displayName("name")
+				.backendId(new TestBackendId("12"))
+				.parentId(Optional.<BackendId>absent())
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.build();
+		
+		FolderSnapshot knownSnapshot = FolderSnapshot.nextId(3)
+				.folders(ImmutableSet.<Folder>of(folderAlreadyInSnapshot)); 
+		FolderSnapshot expectedSnapshot = FolderSnapshot.nextId(4)
+				.folders(ImmutableSet.of(folderAlreadyInSnapshot, newFolder));
+		
+		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");
+		
+		folderSnapshotDao.create(user, device, outgoingSyncKey, expectedSnapshot);
+		expectLastCall();
+		
+		mocks.replay();
+
+		CollectionId collectionId = testee.createSnapshotAddingFolder(
+				udr, outgoingSyncKey, knownSnapshot, backendFolder);
+		
+		mocks.verify();
+
+		assertThat(collectionId).isEqualTo(CollectionId.of(3));
+	}
+	
 	@Test
 	public void snapshotShouldContainsOneFolderAndSameNextIdWhenOneRemovedFolder() {
 		FolderSyncKey outgoingSyncKey = new FolderSyncKey("1234");

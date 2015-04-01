@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2013  Linagora
+ * Copyright (C) 2013-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -86,7 +86,7 @@ public class SummaryLoggerService {
 	public void logOutgoingFolderSync(FolderSyncResponse folderSyncResponse) {
 		loggerOut.info(folderSyncResponse.getSummary().summary());
 	}
-
+	
 	public void logIncomingMoveItem(MoveItemsRequest moveItemsRequest) {
 		loggerIn.info(moveItemsRequest.getSummary().summary());
 	}

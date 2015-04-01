@@ -8,4 +8,5 @@ java/.classpath
 .includepath
 java/sync/integration-testing/data/
 .idea/
+pull_request
 *.iml

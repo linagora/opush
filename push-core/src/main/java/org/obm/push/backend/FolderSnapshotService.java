@@ -101,6 +101,23 @@ public class FolderSnapshotService {
 		folderSnapshotDao.create(udr.getUser(), udr.getDevice(), outgoingSyncKey, snapshot);
 		return snapshot;
 	}
+	
+	public CollectionId createSnapshotAddingFolder(UserDataRequest udr, FolderSyncKey outgoingSyncKey,
+			FolderSnapshot knownSnapshot, BackendFolder backendFolder) throws Exception {
+		int nextId = knownSnapshot.getNextId();
+		
+		CollectionId collectionId = CollectionId.of(nextId++);
+
+		Set<Folder> knownFolders = knownSnapshot.getFolders();
+		
+		Set<Folder> newFolders = Sets.union(
+				knownFolders, ImmutableSet.of(Folder.from(backendFolder, collectionId)));
+
+		FolderSnapshot snapshot = FolderSnapshot.nextId(nextId).folders(newFolders);
+		folderSnapshotDao.create(udr.getUser(), udr.getDevice(), outgoingSyncKey, snapshot);
+		
+		return collectionId;
+	}
 
 	private boolean isKnownFolder(Map<BackendId, Folder> knownFolders, BackendFolder currentFolder) {
 		return knownFolders.containsKey(currentFolder.getBackendId());

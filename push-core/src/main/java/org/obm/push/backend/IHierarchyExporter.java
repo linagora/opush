@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -32,10 +32,14 @@
 package org.obm.push.backend;
 
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
+import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
 
 public interface IHierarchyExporter {
 
 	BackendFolders getBackendFolders(UserDataRequest udr);
+
+	BackendId createFolder(UserDataRequest userDataRequest, FolderCreateRequest folderCreateRequest);
 	
 }

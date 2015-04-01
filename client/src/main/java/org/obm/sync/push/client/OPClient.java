@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2015  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -52,6 +52,8 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
+import org.obm.push.bean.change.hierarchy.FolderCreateResponse;
 import org.obm.push.protocol.PingProtocol;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.FolderSyncResponse;
@@ -68,6 +70,7 @@ import org.obm.sync.push.client.commands.EmailDeleteSyncRequest;
 import org.obm.sync.push.client.commands.EmailSyncCommand;
 import org.obm.sync.push.client.commands.EmailSyncCommandWithWait;
 import org.obm.sync.push.client.commands.EmailSyncNoOptionsCommand;
+import org.obm.sync.push.client.commands.FolderCreate;
 import org.obm.sync.push.client.commands.FolderSync;
 import org.obm.sync.push.client.commands.GetItemEstimateEmailFolderCommand;
 import org.obm.sync.push.client.commands.ItemOperationFetchCommand;
@@ -131,6 +134,10 @@ public abstract class OPClient implements AutoCloseable {
 
 	public FolderSyncResponse folderSync(FolderSyncKey key) throws Exception {
 		return run(new FolderSync(key));
+	}
+
+	public FolderCreateResponse folderCreate(FolderCreateRequest request) throws Exception {
+		return run(new FolderCreate(request));
 	}
 
 	public SyncResponse partialSync(SyncDecoder decoder) throws Exception {
