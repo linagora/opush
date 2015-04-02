@@ -9,14 +9,14 @@ If you already have a +/etc/obm/obm_conf.ini+ configured on the Opush machine, y
 Then you may skip this section.
 ====
 
-You have to edit the main configuration file:
+If you need to edit the main configuration file, here is the information it contains:
 [source]
 .+/etc/opush/opush.ini+
 ----
 include::sources/opush.ini[]
 ----
 
-And then replace the default values:
+The following variables have to be filled:
 
   * +@DBHOST@+: Your *OBM* host
   * +@DBTYPE@+: +PGSQL+ or +MYSQL+ (*OBM* database kind)
