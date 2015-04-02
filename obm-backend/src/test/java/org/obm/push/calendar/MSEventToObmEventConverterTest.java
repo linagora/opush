@@ -1460,7 +1460,7 @@ public class MSEventToObmEventConverterTest {
 	}
 	
 	@Test
-	public void convertPrivacyShouldBeChangedToPublicWhenPreviousWasConfidential() {
+	public void convertPrivacyShouldNotBeChangedWhenPreviousWasConfidential() {
 		MSEventCommon msEventCommon = new MSEvent();
 		msEventCommon.setSensitivity(CalendarSensitivity.NORMAL);
 		
@@ -1469,7 +1469,7 @@ public class MSEventToObmEventConverterTest {
 		
 		EventPrivacy eventPrivacy = converter.convertSensitivityToPrivacy(msEventCommon, eventFromDB);
 		
-		assertThat(eventPrivacy).isEqualTo(EventPrivacy.PUBLIC);
+		assertThat(eventPrivacy).isEqualTo(EventPrivacy.CONFIDENTIAL);
 	}
 
 	

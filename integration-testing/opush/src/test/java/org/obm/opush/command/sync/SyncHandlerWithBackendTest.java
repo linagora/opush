@@ -1248,7 +1248,7 @@ public class SyncHandlerWithBackendTest {
 	}
 
 	@Test
-	public void testEventSensitivityNotModifiedByDevices() throws Exception {
+	public void confidentialEventSensitivityNotModifiedByDevices() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
 		SyncKey firstAllocatedSyncKey = new SyncKey("b91c285a-46c3-436e-8ad5-4b851830150e");
 		SyncKey secondAllocatedSyncKey = new SyncKey("96e8dcae-ac37-4b6f-a310-f7fcd5c3d858");
@@ -1299,7 +1299,7 @@ public class SyncHandlerWithBackendTest {
 		eventKnownByObmSync.setPrivacy(EventPrivacy.CONFIDENTIAL);
 		
 		Event eventModifiedByOpush = eventKnownByObmSync.clone();
-		eventModifiedByOpush.setPrivacy(EventPrivacy.PUBLIC);
+		eventModifiedByOpush.setPrivacy(EventPrivacy.CONFIDENTIAL);
 		
 		// First Sync
 		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
@@ -1338,6 +1338,148 @@ public class SyncHandlerWithBackendTest {
 		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
 			.andReturn(eventKnownByObmSync);
 		// We check that the Privacy of the Event is not modified on update (only this field, other may vary
+		expect(calendarClient.modifyEvent(eq(user.accessToken), eq(user.user.getEmail()), eventPrivacyEq(eventModifiedByOpush), eq(true), eq(true)))
+			.andReturn(eventModifiedByOpush);
+		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
+			.andReturn(EventChanges.builder()
+					.lastSync(secondDate)
+					.build());
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		sendEmailsToImapServer(2);
+		opClient.run(Sync.builder(decoder)
+						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR)
+								.syncKey(initialSyncKey)		
+								.windowSize(ONE_WINDOWS_SIZE)
+								.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+								.build())
+						.build());
+		SyncResponse syncResponse = opClient.run(Sync.builder(decoder)
+						.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId).dataType(CALENDAR)
+								.syncKey(firstAllocatedSyncKey)
+								.windowSize(ONE_WINDOWS_SIZE)
+								.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+								.build())
+						.build());
+		
+		SyncResponse updatedSyncResponse = opClient.run(
+				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
+					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+							.syncKey(secondAllocatedSyncKey).dataType(CALENDAR)
+							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
+									.serverId(serverId).clientId(clientId).applicationData(msEvent).build())									
+							.options(SyncCollectionOptions.builder().filterType(FilterType.THREE_DAYS_BACK).build())
+							.build())
+					.build());
+		
+		mocksControl.verify();
+
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(syncResponse, calendarCollectionId);
+		SyncCollectionResponse updatedCollectionResponse = syncTestUtils.getCollectionWithId(updatedSyncResponse, calendarCollectionId);
+
+		syncTestUtils.assertEqualsWithoutApplicationData(collectionResponse.getItemChanges(), 
+				ImmutableList.of(
+					ItemChange.builder()
+						.serverId(serverId)
+						.isNew(true)
+						.build()));
+		syncTestUtils.assertEqualsWithoutApplicationData(updatedCollectionResponse.getItemChanges(), 
+				ImmutableList.<ItemChange> of());
+	}
+
+	@Test
+	public void publicEventSensitivityModifiedByDevices() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("b91c285a-46c3-436e-8ad5-4b851830150e");
+		SyncKey secondAllocatedSyncKey = new SyncKey("96e8dcae-ac37-4b6f-a310-f7fcd5c3d858");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("82a066ae-c8c5-4a89-a706-0ea5e7750f5e");
+		int firstAllocatedStateId = 3;
+		int secondAllocatedStateId = 4;
+		int thirdAllocatedStateId = 5;
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, 
+				secondAllocatedSyncKey, thirdAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(firstAllocatedStateId)
+				.build();
+		Date secondDate = date("2012-10-10T16:22:53");
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(secondDate)
+				.syncKey(secondAllocatedSyncKey)
+				.id(secondAllocatedStateId)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(secondDate)
+				.syncKey(thirdAllocatedSyncKey)
+				.id(thirdAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).anyTimes();
+		
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, calendarCollectionId);
+		syncTestUtils.mockCollectionDaoPerformSync(user.device, secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, calendarCollectionId);
+
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).once();
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).once();
+		EventExtId eventExtId = new EventExtId("1");
+		EventObmId eventObmId = new EventObmId(1);
+		Event eventKnownByObmSync = new Event();
+		eventKnownByObmSync.setUid(eventObmId);
+		eventKnownByObmSync.setTitle("event");
+		eventKnownByObmSync.setExtId(eventExtId);
+		eventKnownByObmSync.setOwner(user.user.getEmail());
+		eventKnownByObmSync.setOwnerEmail(user.user.getEmail());
+		eventKnownByObmSync.setStartDate(secondDate);
+		eventKnownByObmSync.setMeetingStatus(EventMeetingStatus.IS_NOT_A_MEETING);
+		eventKnownByObmSync.setPrivacy(EventPrivacy.PUBLIC);
+		
+		Event eventModifiedByOpush = eventKnownByObmSync.clone();
+		eventModifiedByOpush.setPrivacy(EventPrivacy.PRIVATE);
+		
+		// First Sync
+		expect(calendarClient.getFirstSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))
+			.andReturn(EventChanges.builder()
+					.lastSync(secondDate)
+					.updates(Lists.newArrayList(eventKnownByObmSync))
+					.build());
+		expect(calendarClient.getUserEmail(user.accessToken))
+			.andReturn(user.user.getLoginAtDomain()).anyTimes();
+		
+		TimeZone timeZone = TimeZone.getTimeZone("GMT");
+		Calendar calendar = DateUtils.getEpochCalendar(timeZone);
+		MSEventUid msEventUid = new MSEventUid("1");
+		MSEvent msEvent = new MSEvent();
+		msEvent.setUid(msEventUid);
+		msEvent.setSubject("event");
+		msEvent.setSensitivity(CalendarSensitivity.PRIVATE);
+		msEvent.setBusyStatus(CalendarBusyStatus.FREE);
+		msEvent.setAllDayEvent(false);
+		msEvent.setDtStamp(calendar.getTime());
+		msEvent.setTimeZone(timeZone);
+		msEvent.setStartTime(secondDate);
+		msEvent.setEndTime(secondDate);
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
+			.andReturn(msEventUid);
+		
+		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(msEvent.getUid().serializeToString()));
+		String clientId = null;
+		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, serverId)).andReturn(false);
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+
+		// Second Sync
+		expect(calendarDao.getEventExtIdFor(msEventUid, user.device))
+			.andReturn(eventExtId);
+		expect(calendarClient.getEventFromId(user.accessToken, user.user.getEmail(), eventObmId))
+			.andReturn(eventKnownByObmSync);
+		// We check that the Privacy of the Event is modified on update (only this field, other may vary)
 		expect(calendarClient.modifyEvent(eq(user.accessToken), eq(user.user.getEmail()), eventPrivacyEq(eventModifiedByOpush), eq(true), eq(true)))
 			.andReturn(eventModifiedByOpush);
 		expect(calendarClient.getSyncEventDate(eq(user.accessToken), eq(user.user.getLoginAtDomain()), anyObject(Date.class)))

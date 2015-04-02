@@ -326,6 +326,9 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 	
 	@VisibleForTesting EventPrivacy convertSensitivityToPrivacy(MSEventCommon msEvent, Event eventFromDB) {
 		if (msEvent.getSensitivity() != null) {
+			if (eventFromDB != null && eventFromDB.getPrivacy() == EventPrivacy.CONFIDENTIAL) {
+				return eventFromDB.getPrivacy();
+			}
 			return Objects.firstNonNull(SENSITIVITY_TO_PRIVACY.get(msEvent.getSensitivity()), EventPrivacy.PUBLIC);
 		}
 		if (eventFromDB != null) {
