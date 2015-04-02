@@ -1,5 +1,10 @@
 #!/bin/sh -e
 
 if [ $1 = 'purge' ]; then
+  ucf --debconf-ok --purge /etc/opush/opush.ini
+  ucfr --purge opush-conf /etc/opush/opush.ini
+  
+  echo PURGE | debconf-communicate opush-conf 2>&1
+  
   rm -rf /etc/opush
 fi
