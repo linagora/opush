@@ -133,6 +133,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -885,18 +886,31 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	@Override
-	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest)
-			throws BackendNotSupportedException {
+	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
+			Optional<BackendId> parent)
+		throws BackendNotSupportedException {
 		
-		String folderDisplayName = folderCreateRequest.getFolderDisplayName();
-		MailboxPath mailboxPath = MailboxPath.of(folderDisplayName);
-
+		MailboxFolder newMailboxFolder = findNameRelatedToParent(folderCreateRequest, parent);
+		MailboxPath mailboxPath = MailboxPath.of(
+				newMailboxFolder.getName(), newMailboxFolder.getImapSeparator());
+		
 		if (mailboxService.folderExists(udr, mailboxPath)) {
 			throw new FolderAlreadyExistsException("Cannot create two times a folder.");
 		} 
 		
-		mailboxService.createFolder(udr, new MailboxFolder(folderDisplayName));
+		mailboxService.createFolder(udr, newMailboxFolder);
 		
 		return mailboxPath;
+	}
+
+	private MailboxFolder findNameRelatedToParent(
+			FolderCreateRequest folderCreateRequest, Optional<BackendId> parent) {
+		
+		if (parent.isPresent()) {
+			MailboxPath backendId = (MailboxPath) parent.get();
+			return new MailboxFolder(backendId.getPath() + backendId.getSeparator() + 
+					folderCreateRequest.getFolderDisplayName());
+		}
+		return new MailboxFolder(folderCreateRequest.getFolderDisplayName());
 	}
 }

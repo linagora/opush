@@ -135,9 +135,9 @@ public class FolderCreateHandlerTest {
 
 		folderSnapshotDao.create(user.user, user.device, requestSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
-				.backendId(MailboxPath.of("same folder"))
+				.backendId(MailboxPath.of("folder"))
 				.parentBackendIdOpt(Optional.<BackendId>absent())
-				.displayName("same folder")
+				.displayName("folder")
 				.collectionId(CollectionId.of(4))
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.build())));
@@ -225,9 +225,9 @@ public class FolderCreateHandlerTest {
 
 		folderSnapshotDao.create(user.user, user.device, newSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
-				.backendId(MailboxPath.of("same folder"))
+				.backendId(MailboxPath.of("folder"))
 				.parentBackendIdOpt(Optional.<BackendId>absent())
-				.displayName("same folder")
+				.displayName("folder")
 				.collectionId(CollectionId.of(4))
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.build())));
@@ -254,15 +254,15 @@ public class FolderCreateHandlerTest {
 	}
 	
 	@Test
-	public void createEmailFolderShouldReturnStatusOK() throws Exception {
+	public void createRootEmailFolderShouldReturnStatusOK() throws Exception {
 		FolderSyncKey requestSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
 		FolderSyncKey nextSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
 
 		folderSnapshotDao.create(user.user, user.device, requestSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
-				.backendId(MailboxPath.of("same folder"))
+				.backendId(MailboxPath.of("folder"))
 				.parentBackendIdOpt(Optional.<BackendId>absent())
-				.displayName("same folder")
+				.displayName("folder")
 				.collectionId(CollectionId.of(4))
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.build())));
@@ -291,6 +291,84 @@ public class FolderCreateHandlerTest {
 	}
 	
 	@Test
+	public void createEmailFolderWithAParentThatExistsShouldReturnStatusOK() throws Exception {
+		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
+		FolderSyncKey secondSyncKey = new FolderSyncKey("12342234-1234-1234-1234-123456123456");
+		FolderSyncKey thirdSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+
+		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
+			FolderSnapshot.nextId(5).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("same folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("same folder")
+				.collectionId(CollectionId.of(4))
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondSyncKey, thirdSyncKey);
+		mocksControl.replay();
+		opushServer.start();
+		
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		
+		FolderCreateResponse rootFolderCreate = opClient.folderCreate(FolderCreateRequest.builder()
+				.folderSyncKey(firstSyncKey)
+				.folderDisplayName("root")
+				.folderParentId(CollectionId.of(4))
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.build());
+
+		FolderCreateResponse folderCreateResponseWithParentRoot = 
+				opClient.folderCreate(FolderCreateRequest.builder()
+						.folderSyncKey(secondSyncKey)
+						.folderDisplayName("email")
+						.folderParentId(rootFolderCreate.getCollectionId())
+						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+						.build());
+
+		
+		mocksControl.verify();
+		
+		assertThat(folderCreateResponseWithParentRoot.getStatus()).isEqualTo(FolderCreateStatus.OK);
+	}
+	
+	@Test
+	public void createEmailFolderWithAParentThatDoesntExistShouldReturnStatusParentNotFound() 
+			throws Exception {
+		FolderSyncKey requestSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
+		FolderSyncKey nextSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+
+		folderSnapshotDao.create(user.user, user.device, requestSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("same folder")
+				.collectionId(CollectionId.of(4))
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(nextSyncKey);
+		mocksControl.replay();
+		opushServer.start();
+		
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		FolderCreateResponse folderCreateResponse = 
+				opClient.folderCreate(FolderCreateRequest.builder()
+						.folderSyncKey(requestSyncKey)
+						.folderDisplayName("email")
+						.folderParentId(CollectionId.of(89796654))
+						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+						.build());
+		
+		mocksControl.verify();
+		
+		assertThat(folderCreateResponse.getStatus())
+			.isEqualTo(FolderCreateStatus.PARENT_FOLDER_NOT_FOUND);
+	}
+	
+	@Test
 	public void createTwiceAFolderShouldReturnAStatusAlreadyExist() throws Exception {
 		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
 		FolderSyncKey secondSyncKey = new FolderSyncKey("12342234-1234-1234-1234-123456123456");
@@ -298,9 +376,9 @@ public class FolderCreateHandlerTest {
 
 		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
-				.backendId(MailboxPath.of("same folder"))
+				.backendId(MailboxPath.of("folder"))
 				.parentBackendIdOpt(Optional.<BackendId>absent())
-				.displayName("same folder")
+				.displayName("folder")
 				.collectionId(CollectionId.of(4))
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.build())));
@@ -331,5 +409,51 @@ public class FolderCreateHandlerTest {
 		mocksControl.verify();
 	
 		assertThat(sameFolderCreateResponse.getStatus()).isEqualTo(FolderCreateStatus.ALREADY_EXISTS);
+	}
+
+	@Test
+	public void createFolderWithNameAlreadyUsedButWithAnOtherParentFolderShouldNotReturnStatusAlreadyExist() 
+			throws Exception {
+		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
+		FolderSyncKey secondSyncKey = new FolderSyncKey("192f9742-259f-4f90-b0da-88e5d1a6cd0a");
+		FolderSyncKey thirdSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+
+		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("folder")
+				.collectionId(CollectionId.of(4))
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondSyncKey, thirdSyncKey);
+		mocksControl.replay();
+		opushServer.start();
+		
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		
+		opClient.folderCreate(FolderCreateRequest.builder()
+				.folderSyncKey(firstSyncKey)
+				.folderDisplayName("email")
+				.folderParentId(CollectionId.ROOT)
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.build());
+		
+
+		FolderCreateResponse sameFolderNameWithAnOtherParentFolderCreateResponse = 
+				opClient.folderCreate(FolderCreateRequest.builder()
+						.folderSyncKey(secondSyncKey)
+						.folderDisplayName("email")
+						.folderParentId(CollectionId.of(4))
+						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+						.build());
+
+		
+		mocksControl.verify();
+	
+		assertThat(sameFolderNameWithAnOtherParentFolderCreateResponse.getStatus())
+			.isEqualTo(FolderCreateStatus.OK);
 	}
 }

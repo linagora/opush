@@ -38,12 +38,14 @@ import org.obm.push.bean.FolderCreateStatus;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
+import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
 import org.obm.push.bean.change.hierarchy.FolderCreateResponse;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.exception.activesync.BackendNotSupportedException;
 import org.obm.push.exception.activesync.FolderAlreadyExistsException;
 import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
+import org.obm.push.exception.activesync.ParentFolderNotFoundException;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.impl.DOMDumper;
 import org.obm.push.impl.Responder;
@@ -55,7 +57,10 @@ import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.wbxml.WBXMLTools;
 import org.w3c.dom.Document;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -98,6 +103,8 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 			sendResponse(responder, protocol.encodeErrorResponse(FolderCreateStatus.INVALID_SYNC_KEY));
 		} catch (TimeoutException e) {
 			sendError(responder, FolderCreateStatus.REQUEST_TIMED_OUT, e);
+		} catch (ParentFolderNotFoundException e) {
+			sendError(responder, FolderCreateStatus.PARENT_FOLDER_NOT_FOUND, e);
 		} catch (BackendNotSupportedException e) {
 			//ALREADY_EXISTS is the sole error well supported by the devices
 			sendError(responder, FolderCreateStatus.ALREADY_EXISTS, e);
@@ -124,9 +131,11 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 		FolderSnapshot knownSnapshot = folderSnapshotService
 				.findFolderSnapshot(udr, folderCreateRequest.getSyncKey());
 		
-		BackendId backendId = hierarchyExporter.createFolder(udr, folderCreateRequest);
+		Optional<BackendId> parentBackendId = findParentBackendId(folderCreateRequest, knownSnapshot);
+		
+		BackendId backendId = hierarchyExporter.createFolder(udr, folderCreateRequest, parentBackendId);
 		CollectionId collectionId = snapshotWithNewFolder(udr,
-				folderCreateRequest, outgoingSyncKey, knownSnapshot, backendId);
+				folderCreateRequest, outgoingSyncKey, knownSnapshot, backendId, parentBackendId);
 			
 		return FolderCreateResponse.builder()
 				.status(FolderCreateStatus.OK)
@@ -134,18 +143,52 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 				.syncKey(outgoingSyncKey)
 				.build();
 	}
-
-	private CollectionId snapshotWithNewFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
-			FolderSyncKey outgoingSyncKey, FolderSnapshot knownSnapshot, BackendId backendId) throws Exception {
+	
+	private CollectionId snapshotWithNewFolder(UserDataRequest udr, 
+			FolderCreateRequest folderCreateRequest,FolderSyncKey outgoingSyncKey, 
+			FolderSnapshot knownSnapshot, BackendId backendId, Optional<BackendId> parentBackendId) 
+					throws Exception {
 		
 		BackendFolder backendFolder = BackendFolder.builder()
 				.backendId(backendId)
 				.displayName(folderCreateRequest.getFolderDisplayName())
 				.folderType(folderCreateRequest.getFolderType())
-				.parentId(Optional.<BackendId>absent())
+				.parentId(parentBackendId)				
 				.build();
 		
 		return folderSnapshotService.createSnapshotAddingFolder(
 				udr, outgoingSyncKey, knownSnapshot, backendFolder);
+	}
+
+	private Optional<BackendId> findParentBackendId(FolderCreateRequest folderCreateRequest,
+			FolderSnapshot knownSnapshot) {
+		if (CollectionId.ROOT.equals(folderCreateRequest.getFolderParentId())) {
+			return Optional.<BackendId>absent();
+		} 
+		
+		Optional<BackendId> backendId = findBackendId(folderCreateRequest, knownSnapshot);
+		if (backendId.isPresent()) {
+			return backendId;
+		}
+		
+		throw new ParentFolderNotFoundException("Parent of a non-root folder not found");
+	}
+
+	private Optional<BackendId> findBackendId(final FolderCreateRequest folderCreateRequest, 
+			FolderSnapshot knownSnapshot) {
+
+		return Iterables
+			.tryFind(knownSnapshot.getFolders(), new Predicate<Folder>() {
+				@Override
+				public boolean apply(Folder folder) {
+					return folder.getCollectionId().equals(folderCreateRequest.getFolderParentId());
+				}
+			})
+			.transform( new Function<Folder, BackendId>() {
+				@Override
+				public BackendId apply(Folder folder) {
+					return folder.getBackendId();
+				}
+			});
 	}
 }

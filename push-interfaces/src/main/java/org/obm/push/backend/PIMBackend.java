@@ -62,6 +62,8 @@ import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
 
+import com.google.common.base.Optional;
+
 public interface PIMBackend extends PIMTyped {
 
 	ServerId createOrUpdate(UserDataRequest udr, CollectionId collectionId,
@@ -102,6 +104,6 @@ public interface PIMBackend extends PIMTyped {
 	
 	void initialize(DeviceId deviceId, CollectionId collectionId, FilterType filterType, SyncKey newSyncKey);
 
-	BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest) 
+	BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest, Optional<BackendId> parentBackendId) 
 		throws BackendNotSupportedException ;
 }

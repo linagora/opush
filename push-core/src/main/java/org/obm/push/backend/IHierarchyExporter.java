@@ -36,10 +36,12 @@ import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
 
+import com.google.common.base.Optional;
+
 public interface IHierarchyExporter {
 
 	BackendFolders getBackendFolders(UserDataRequest udr);
 
-	BackendId createFolder(UserDataRequest userDataRequest, FolderCreateRequest folderCreateRequest);
+	BackendId createFolder(UserDataRequest userDataRequest, FolderCreateRequest folderCreateRequest, Optional<BackendId> parentBackendId);
 	
 }

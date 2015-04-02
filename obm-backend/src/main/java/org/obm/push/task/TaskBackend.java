@@ -62,6 +62,8 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.protocol.bean.CollectionId;
 
+import com.google.common.base.Optional;
+
 @Watch(BreakdownGroups.TASKS)
 public class TaskBackend implements PIMBackend {
 
@@ -138,7 +140,8 @@ public class TaskBackend implements PIMBackend {
 	}
 
 	@Override
-	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest)
+	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
+			Optional<BackendId> backendId)
 			throws BackendNotSupportedException {
 		throw new BackendNotSupportedException("Create a folder is not supported for tasks");
 	}

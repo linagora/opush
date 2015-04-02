@@ -382,8 +382,8 @@ public class ContactsBackend extends ObmSyncBackend<WindowingContact> {
 	}
 
 	@Override
-	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest)
-		throws BackendNotSupportedException {
+	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
+			Optional<BackendId> backendId) throws BackendNotSupportedException {
 		throw new BackendNotSupportedException("Create folder not supported for contacts");
 	}
 }
