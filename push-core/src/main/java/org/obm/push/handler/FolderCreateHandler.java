@@ -42,6 +42,7 @@ import org.obm.push.bean.change.hierarchy.FolderCreateRequest;
 import org.obm.push.bean.change.hierarchy.FolderCreateResponse;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.exception.activesync.BackendNotSupportedException;
+import org.obm.push.exception.activesync.FolderAlreadyExistsException;
 import org.obm.push.exception.activesync.InvalidFolderSyncKeyException;
 import org.obm.push.exception.activesync.TimeoutException;
 import org.obm.push.impl.DOMDumper;
@@ -100,10 +101,12 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 		} catch (BackendNotSupportedException e) {
 			//ALREADY_EXISTS is the sole error well supported by the devices
 			sendError(responder, FolderCreateStatus.ALREADY_EXISTS, e);
+		} catch (FolderAlreadyExistsException e) {
+			sendError(responder, FolderCreateStatus.ALREADY_EXISTS, e);
 		} catch (Exception e) {
 			sendError(responder, FolderCreateStatus.SERVER_ERROR, e);
 		}
-	}
+	} 
 
 	private void sendResponse(Responder responder, Document ret) {
 		responder.sendWBXMLResponse("FolderHierarchy", ret);
@@ -122,10 +125,9 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 				.findFolderSnapshot(udr, folderCreateRequest.getSyncKey());
 		
 		BackendId backendId = hierarchyExporter.createFolder(udr, folderCreateRequest);
-		
 		CollectionId collectionId = snapshotWithNewFolder(udr,
 				folderCreateRequest, outgoingSyncKey, knownSnapshot, backendId);
-		
+			
 		return FolderCreateResponse.builder()
 				.status(FolderCreateStatus.OK)
 				.collectionId(collectionId)
@@ -133,10 +135,8 @@ public class FolderCreateHandler extends WbxmlRequestHandler {
 				.build();
 	}
 
-	private CollectionId snapshotWithNewFolder(UserDataRequest udr,
-			FolderCreateRequest folderCreateRequest,
-			FolderSyncKey outgoingSyncKey, FolderSnapshot knownSnapshot,
-			BackendId backendId) throws Exception {
+	private CollectionId snapshotWithNewFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
+			FolderSyncKey outgoingSyncKey, FolderSnapshot knownSnapshot, BackendId backendId) throws Exception {
 		
 		BackendFolder backendFolder = BackendFolder.builder()
 				.backendId(backendId)

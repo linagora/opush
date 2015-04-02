@@ -284,9 +284,52 @@ public class FolderCreateHandlerTest {
 		mocksControl.verify();
 		
 		Collection<MailFolder> mailfolders = greenMail.getManagers().getImapHostManager()
-			.listSubscribedMailboxes(greenmailUser, "*");
+			.listMailboxes(greenmailUser, "*");
 		
 		assertThat(mailfolders).extracting("name").contains("email");
 		assertThat(folderCreateResponse.getStatus()).isEqualTo(FolderCreateStatus.OK);
+	}
+	
+	@Test
+	public void createTwiceAFolderShouldReturnAStatusAlreadyExist() throws Exception {
+		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
+		FolderSyncKey secondSyncKey = new FolderSyncKey("12342234-1234-1234-1234-123456123456");
+		FolderSyncKey thirdSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+
+		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("same folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("same folder")
+				.collectionId(CollectionId.of(4))
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondSyncKey, thirdSyncKey);
+		mocksControl.replay();
+		opushServer.start();
+		
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		
+		opClient.folderCreate(FolderCreateRequest.builder()
+				.folderSyncKey(firstSyncKey)
+				.folderDisplayName("email")
+				.folderParentId(CollectionId.ROOT)
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.build());
+
+		FolderCreateResponse sameFolderCreateResponse = 
+				opClient.folderCreate(FolderCreateRequest.builder()
+						.folderSyncKey(secondSyncKey)
+						.folderDisplayName("email")
+						.folderParentId(CollectionId.ROOT)
+						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+						.build());
+
+		
+		mocksControl.verify();
+	
+		assertThat(sameFolderCreateResponse.getStatus()).isEqualTo(FolderCreateStatus.ALREADY_EXISTS);
 	}
 }

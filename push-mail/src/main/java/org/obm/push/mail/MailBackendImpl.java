@@ -99,6 +99,7 @@ import org.obm.push.exception.UnsupportedBackendFunctionException;
 import org.obm.push.exception.activesync.AttachementNotFoundException;
 import org.obm.push.exception.activesync.BackendNotSupportedException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
+import org.obm.push.exception.activesync.FolderAlreadyExistsException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
@@ -172,7 +173,6 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final FolderSnapshotDao folderSnapshotDao;
 
 	private final OpushEmailConfiguration emailConfiguration;
-
 
 	@Inject
 	/* package */ MailBackendImpl(MailboxService mailboxService, 
@@ -886,12 +886,17 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 	@Override
 	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest)
-		throws BackendNotSupportedException {
+			throws BackendNotSupportedException {
 		
-		MailboxFolder mailboxFolder = new MailboxFolder(folderCreateRequest.getFolderDisplayName());
+		String folderDisplayName = folderCreateRequest.getFolderDisplayName();
+		MailboxPath mailboxPath = MailboxPath.of(folderDisplayName);
+
+		if (mailboxService.folderExists(udr, mailboxPath)) {
+			throw new FolderAlreadyExistsException("Cannot create two times a folder.");
+		} 
 		
-		mailboxService.createFolder(udr, mailboxFolder);
+		mailboxService.createFolder(udr, new MailboxFolder(folderDisplayName));
 		
-		return MailboxPath.of(folderCreateRequest.getFolderDisplayName());
+		return mailboxPath;
 	}
 }

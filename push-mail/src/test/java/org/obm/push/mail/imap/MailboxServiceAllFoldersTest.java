@@ -31,9 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail.imap;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Date;
 
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,7 @@ import org.obm.guice.GuiceRunner;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailboxService;
 import org.obm.push.mail.bean.MailboxFolder;
@@ -90,7 +92,7 @@ public class MailboxServiceAllFoldersTest {
 	@Test
 	public void testDefaultFolderList() throws Exception {
 		MailboxFolders emails = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(emails).containsOnly(inbox());
+		assertThat(emails).containsOnly(inbox());
 	}
 	
 
@@ -99,7 +101,7 @@ public class MailboxServiceAllFoldersTest {
 		MailboxFolder newFolder = folder("NEW");
 		mailboxService.createFolder(udr, newFolder);
 		MailboxFolders after = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(after).containsOnly(
+		assertThat(after).containsOnly(
 				inbox(),
 				newFolder);
 	}
@@ -109,7 +111,7 @@ public class MailboxServiceAllFoldersTest {
 		MailboxFolder newFolder = folder("INBOX.NEW");
 		mailboxService.createFolder(udr, newFolder);
 		MailboxFolders after = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(after).containsOnly(
+		assertThat(after).containsOnly(
 				inbox(),
 				newFolder);
 	}
@@ -119,7 +121,7 @@ public class MailboxServiceAllFoldersTest {
 		MailboxFolder newFolder = folder("INBOX.LEVEL1.LEVEL2.LEVEL3.LEVEL4");
 		mailboxService.createFolder(udr, newFolder);
 		MailboxFolders after = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(after).containsOnly(
+		assertThat(after).containsOnly(
 				inbox(),
 				folder("INBOX.LEVEL1"),
 				folder("INBOX.LEVEL1.LEVEL2"),
@@ -132,7 +134,7 @@ public class MailboxServiceAllFoldersTest {
 		MailboxFolder newFolder = folder("TOP");
 		mailboxService.createFolder(udr, newFolder);
 		MailboxFolders after = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(after).containsOnly(
+		assertThat(after).containsOnly(
 				inbox(),
 				folder("TOP"));
 	}
@@ -142,12 +144,27 @@ public class MailboxServiceAllFoldersTest {
 		MailboxFolder newFolder = folder("TOP.LEVEL1");
 		mailboxService.createFolder(udr, newFolder);
 		MailboxFolders after = mailboxService.listAllFolders(udr);
-		Assertions.assertThat(after).containsOnly(
+		assertThat(after).containsOnly(
 				inbox(),
 				folder("TOP"),
 				folder("TOP.LEVEL1"));
 	}
-
+	
+	@Test
+	public void folderExistsShouldReturnTrueIfTheFolderExists() throws Exception {
+		MailboxFolder newFolder = folder("TOP.LEVEL1");
+		mailboxService.createFolder(udr, newFolder);
+		boolean folderExists = mailboxService.folderExists(
+				udr, MailboxPath.of(newFolder.getName(), newFolder.getImapSeparator()));
+		assertThat(folderExists).isEqualTo(true);
+	}
+	
+	@Test
+	public void folderExistsShouldReturnFalseIfTheFolderDoesntExist() throws Exception {
+		boolean folderExists = mailboxService.folderExists(udr, MailboxPath.of("ABCDEF"));
+		assertThat(folderExists).isEqualTo(false);
+	}
+	
 	protected MailboxFolder folder(String name) {
 		return testUtils.folder(name);
 	}
