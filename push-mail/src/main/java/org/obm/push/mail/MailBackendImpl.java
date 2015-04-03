@@ -103,6 +103,7 @@ import org.obm.push.exception.activesync.FolderAlreadyExistsException;
 import org.obm.push.exception.activesync.InvalidSyncKeyException;
 import org.obm.push.exception.activesync.ItemNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
+import org.obm.push.exception.activesync.ParentFolderNotFoundException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
@@ -890,7 +891,11 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Optional<BackendId> parent)
 		throws BackendNotSupportedException {
 		
-		MailboxFolder newMailboxFolder = findNameRelatedToParent(folderCreateRequest, parent);
+		char serverDelimiter = findServerSeparator(udr, parent);
+		
+		MailboxFolder newMailboxFolder = 
+				findNameRelatedToParent(folderCreateRequest, parent, serverDelimiter);
+		
 		MailboxPath mailboxPath = MailboxPath.of(
 				newMailboxFolder.getName(), newMailboxFolder.getImapSeparator());
 		
@@ -899,18 +904,34 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		} 
 		
 		mailboxService.createFolder(udr, newMailboxFolder);
+		mailboxService.subscribeToFolder(udr, newMailboxFolder);
 		
 		return mailboxPath;
 	}
 
+	private char findServerSeparator(UserDataRequest udr, Optional<BackendId> parent) {
+		if (!parent.isPresent()) {
+			return MailboxPath.DEFAULT_SEPARATOR;
+		}
+		
+		MailboxPath parentPath = (MailboxPath)parent.get();
+		Optional<MailboxFolder> mailboxFolder = mailboxService.getFolder(udr, parentPath);
+
+		if (mailboxFolder.isPresent()) {
+			return mailboxFolder.get().getImapSeparator();
+		} 
+			
+		throw new ParentFolderNotFoundException(parent.get().toString());	
+	}
+
 	private MailboxFolder findNameRelatedToParent(
-			FolderCreateRequest folderCreateRequest, Optional<BackendId> parent) {
+			FolderCreateRequest folderCreateRequest, Optional<BackendId> parent, char serverDelimiter) {
 		
 		if (parent.isPresent()) {
 			MailboxPath backendId = (MailboxPath) parent.get();
-			return new MailboxFolder(backendId.getPath() + backendId.getSeparator() + 
-					folderCreateRequest.getFolderDisplayName());
+			return new MailboxFolder(backendId.getPath() + serverDelimiter + 
+					folderCreateRequest.getFolderDisplayName(), serverDelimiter);
 		}
-		return new MailboxFolder(folderCreateRequest.getFolderDisplayName());
+		return new MailboxFolder(folderCreateRequest.getFolderDisplayName(), serverDelimiter);
 	}
 }

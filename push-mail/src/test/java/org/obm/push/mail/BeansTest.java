@@ -31,6 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import nl.jqno.equalsverifier.Warning;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
@@ -57,7 +59,6 @@ public class BeansTest {
 				ImmutableList.<Class<?>>builder()
 					.add(FetchInstruction.class)
 					.add(EmailChanges.class)
-					.add(MailboxPath.class)
 					.build();
 		equalsVerifierUtilsTest.test(list);
 		
@@ -66,5 +67,12 @@ public class BeansTest {
 					BodyParams.builder().add(new BodyParam("white", "wine")).build(),
 					BodyParams.builder().add(new BodyParam("blond", "beer")).build())
 			.verify();
+	}
+	
+	@Test
+	public void testClassesThatDontAcceptNullValues() {
+		EqualsVerifierUtils
+			.createEqualsVerifier(MailboxPath.class)
+			.suppress(Warning.NULL_FIELDS).verify();
 	}
 }

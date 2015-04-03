@@ -85,6 +85,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -161,6 +162,21 @@ public class LinagoraMailboxService implements MailboxService {
 	}
 	
 	@Override
+	public Optional<MailboxFolder> getFolder(UserDataRequest udr, MailboxPath path) 
+			throws MailException {
+		try {
+			ListResult listFolders = 
+					imapClientProvider.getImapClient(udr).listAll(NO_REFERENCE_NAME, path.getPath());
+			
+			return Iterables.tryFind(mailboxFolders(listFolders), Predicates.alwaysTrue());
+		} catch (OpushLocatorException | IMAPException e) {
+			throw new MailException(e);
+		} catch (ImapTimeoutException e) {
+			throw new TimeoutException(e);
+		}
+	}
+	
+	@Override
 	public MailboxFolders listAllFolders(UserDataRequest udr) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
@@ -201,6 +217,21 @@ public class LinagoraMailboxService implements MailboxService {
 				throw new MailException("Folder creation failed for : " + folder.getName());
 			}
 		} catch (OpushLocatorException | IMAPException e) {
+			throw new MailException(e);
+		} catch (ImapTimeoutException e) {
+			throw new TimeoutException(e);
+		}
+	}
+	
+	public void subscribeToFolder(UserDataRequest udr, MailboxFolder folder) throws MailException {
+		try {
+			StoreClient store = imapClientProvider.getImapClient(udr);
+			if (!store.subscribe(folder.getName())) {
+				throw new MailException("Mailbox subscription failed for : " + folder.getName());
+			}
+		} catch (OpushLocatorException e) {
+			throw new MailException(e);
+		} catch (IMAPException e) {
 			throw new MailException(e);
 		} catch (ImapTimeoutException e) {
 			throw new TimeoutException(e);

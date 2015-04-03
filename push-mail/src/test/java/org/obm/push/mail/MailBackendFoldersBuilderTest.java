@@ -160,7 +160,7 @@ public class MailBackendFoldersBuilderTest {
 	}
 
 	@Test
-	public void buildDoNotSupportParentMatchingWhenDifferentSeparator() {
+	public void buildSupportsParentMatchingWhenDifferentSeparators() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
 			new MailboxFolder("custom", DEFAULT_SEPARATOR),
 			new MailboxFolder("custom/sub", DEFAULT_SEPARATOR),
@@ -188,7 +188,7 @@ public class MailBackendFoldersBuilderTest {
 				.backendId(MailboxPath.of("custom.sub2", '.'))
 				.displayName("custom.sub2")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
-				.parentId(Optional.<BackendId>absent())
+				.parentId(Optional.<BackendId>of(MailboxPath.of("custom", DEFAULT_SEPARATOR)))
 				.build()
 		);
 	}

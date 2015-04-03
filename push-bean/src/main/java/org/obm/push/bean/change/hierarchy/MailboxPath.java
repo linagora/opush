@@ -90,15 +90,16 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(path, separator);
+		return Objects.hashCode(path);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof MailboxPath) {
 			MailboxPath that = (MailboxPath)obj;
-			return Objects.equal(path, that.path)
-				&& Objects.equal(separator, that.separator);
+			
+			return Objects.equal(path.replace(Character.toString(separator), ""), 
+					that.path.replace(Character.toString(that.separator), ""));
 		}
 		return false;
 	}

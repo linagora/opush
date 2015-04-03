@@ -74,22 +74,22 @@ public class HierarchyChangesTestUtils {
 			.build());
 	}
 
-	private void expectEmptyTaskFolders() {
+	public void expectEmptyTaskFolders() {
 		expect(taskBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance());
 	}
 
-	private void expectEmptyMailFolders() {
+	public void expectEmptyMailFolders() {
 		expect(mailBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance());
 	}
 
-	private void expectEmptyCalendarFolders() {
+	public void expectEmptyCalendarFolders() {
 		expect(calendarBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance());
 	}
 
-	private void expectEmptyContactFolders() {
+	public void expectEmptyContactFolders() {
 		expect(contactsBackend.getBackendFolders(anyObject(UserDataRequest.class)))
 			.andReturn(BackendFolders.EMPTY.instance());
 	}

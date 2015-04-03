@@ -100,6 +100,8 @@ public interface MailboxService {
 	MailboxFolders listAllFolders(UserDataRequest udr) throws MailException;
 	
 	void createFolder(UserDataRequest udr, MailboxFolder folder) throws MailException;
+
+	void subscribeToFolder(UserDataRequest udr, MailboxFolder folder) throws MailException;
 	
 	Collection<FastFetch> fetchFast(UserDataRequest udr, MailboxPath path, MessageSet messages) throws MailException;
 
@@ -128,4 +130,6 @@ public interface MailboxService {
 	void expunge(UserDataRequest udr, MailboxPath path);
 
 	boolean folderExists(UserDataRequest udr, MailboxPath path) throws MailException;
+
+	Optional<MailboxFolder> getFolder(UserDataRequest udr, MailboxPath path) throws MailException;
 }

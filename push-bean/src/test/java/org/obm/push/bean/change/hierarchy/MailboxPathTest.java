@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.TreeSet;
 
 import org.junit.Test;
-import org.obm.push.bean.change.hierarchy.MailboxPath;
 
 import com.google.common.collect.Sets;
 
@@ -122,5 +121,33 @@ public class MailboxPathTest {
 				MailboxPath.of("INBOX/sub", SLASH),
 				MailboxPath.of("INBOX", SLASH)
 			);
+	}
+
+	@Test
+	public void equalShouldNotTakeCareAboutSeparatorWhenNoSeparatorInPath() {
+		assertThat(MailboxPath.of("name", SLASH))
+			.isEqualTo(MailboxPath.of("name", '.'))
+			.isNotEqualTo(MailboxPath.of("NAME", '.'))
+			.isNotEqualTo(MailboxPath.of("name2", '.'));
+	}
+	
+	@Test
+	public void equalShouldReturnTrueWhenComparingTwoIdenticPathsWithIdenticSeparators() {
+		assertThat(MailboxPath.of("INBOX/sub", SLASH)).isEqualTo(MailboxPath.of("INBOX/sub", SLASH));
+	}
+	
+	@Test
+	public void equalShouldReturnTrueWhenComparingTwoIdenticPathsWithDifferentSeparators() {
+		assertThat(MailboxPath.of("INBOX/sub", SLASH)).isEqualTo(MailboxPath.of("INBOX.sub", '.'));
+	}
+	
+	@Test
+	public void equalShouldReturnFalseWhenComparingTwoDifferentPathsWithIdenticSeparators() {
+		assertThat(MailboxPath.of("INBOX/sub", SLASH)).isNotEqualTo(MailboxPath.of("INBOX.sub", SLASH));
+	}
+
+	@Test
+	public void equalShouldReturnFalseWhenComparingTwoDifferentPathsWithSameSeparators() {
+		assertThat(MailboxPath.of("INBOX/abcdef", SLASH)).isNotEqualTo(MailboxPath.of("INBOX/sub", SLASH));
 	}
 }

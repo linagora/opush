@@ -32,9 +32,11 @@
 package org.obm.opush.command.sync.folder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
 import java.util.Collection;
+import java.util.Date;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -48,6 +50,7 @@ import org.obm.Configuration;
 import org.obm.ConfigurationModule.PolicyConfigurationProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.GuiceRunner;
+import org.obm.opush.HierarchyChangesTestUtils;
 import org.obm.opush.IntegrationTestUtils;
 import org.obm.opush.IntegrationUserAccessUtils;
 import org.obm.opush.SyncKeyTestUtils;
@@ -57,6 +60,7 @@ import org.obm.opush.command.sync.SyncHandlerWithBackendTestModule;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FolderCreateStatus;
+import org.obm.push.bean.FolderSyncStatus;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
@@ -68,10 +72,14 @@ import org.obm.push.calendar.CalendarBackend;
 import org.obm.push.contacts.ContactsBackend;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.state.FolderSyncKeyFactory;
 import org.obm.push.task.TaskBackend;
+import org.obm.sync.auth.AccessToken;
+import org.obm.sync.client.book.BookClient;
+import org.obm.sync.items.FolderChanges;
 import org.obm.sync.push.client.OPClient;
 
 import com.google.common.base.Optional;
@@ -85,6 +93,7 @@ import com.icegreen.greenmail.util.GreenMail;
 @GuiceModule(SyncHandlerWithBackendTestModule.class)
 public class FolderCreateHandlerTest {
 	
+	private static final int NON_EXISTING_PARENT = 89796654;
 	@Inject private Users users;
 	@Inject private OpushServer opushServer;
 	@Inject private IMocksControl mocksControl;
@@ -97,6 +106,8 @@ public class FolderCreateHandlerTest {
 	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private SyncKeyTestUtils syncKeyTestUtils;
 	@Inject private FolderSyncKeyFactory folderSyncKeyFactory;
+	@Inject private BookClient bookClient;
+	@Inject private HierarchyChangesTestUtils hierarchyChangesTestUtils;
 	
 	@Inject CalendarBackend calendarBackend;
 	@Inject TaskBackend taskBackend;
@@ -291,50 +302,89 @@ public class FolderCreateHandlerTest {
 	}
 	
 	@Test
-	public void createEmailFolderWithAParentThatExistsShouldReturnStatusOK() throws Exception {
+	public void folderShouldBeCreatedAsSubscribed() throws Exception {
 		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
-		FolderSyncKey secondSyncKey = new FolderSyncKey("12342234-1234-1234-1234-123456123456");
+		FolderSyncKey secondSyncKey = new FolderSyncKey("7dd9234e-ce66-4e39-9c38-6f95c4602bb5");
 		FolderSyncKey thirdSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+		
+		greenMail.getManagers().getImapHostManager().createMailbox(greenmailUser, "folder");
+		greenMail.getManagers().getImapHostManager().subscribe(greenmailUser, "folder");
 
 		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
 			FolderSnapshot.nextId(5).folders(ImmutableSet.of(Folder.builder()
-				.backendId(MailboxPath.of("same folder"))
+				.backendId(MailboxPath.of("folder"))
 				.parentBackendIdOpt(Optional.<BackendId>absent())
-				.displayName("same folder")
+				.displayName("folder")
+				.collectionId(CollectionId.of(4))
+				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
+				.build())));
+
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondSyncKey, thirdSyncKey);
+		
+		hierarchyChangesTestUtils.expectEmptyTaskFolders();
+		expect(bookClient.listAddressBooksChanged(anyObject(AccessToken.class), anyObject(Date.class)))
+			.andReturn(FolderChanges.builder().build());
+		
+		mocksControl.replay();
+		
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		opClient.folderCreate(FolderCreateRequest.builder()
+			.folderSyncKey(firstSyncKey)
+			.folderDisplayName("email")
+			.folderParentId(CollectionId.ROOT)
+			.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.build());
+		
+		FolderSyncResponse folderSyncResponse = opClient.folderSync(secondSyncKey);
+		
+		mocksControl.verify();
+		
+		assertThat(folderSyncResponse.getNewSyncKey()).isEqualTo(thirdSyncKey);
+		assertThat(folderSyncResponse.getStatus()).isEqualTo(FolderSyncStatus.OK);
+		assertThat(folderSyncResponse.getCollectionsDeleted()).isEmpty();
+	}
+	
+	@Test
+	public void createEmailFolderWithParentThatExistsShouldReturnStatusOK() throws Exception {
+		FolderSyncKey requestSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
+		FolderSyncKey nextSyncKey = new FolderSyncKey("12342234-1234-1234-1234-123456123456");
+
+		greenMail.getManagers().getImapHostManager().createMailbox(greenmailUser, "folder");
+		greenMail.getManagers().getImapHostManager().subscribe(greenmailUser, "folder");
+		
+		folderSnapshotDao.create(user.user, user.device, requestSyncKey, 
+			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
+				.backendId(MailboxPath.of("folder"))
+				.parentBackendIdOpt(Optional.<BackendId>absent())
+				.displayName("folder")
 				.collectionId(CollectionId.of(4))
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.build())));
 		
 		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondSyncKey, thirdSyncKey);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(nextSyncKey);
 		mocksControl.replay();
 		opushServer.start();
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		
-		FolderCreateResponse rootFolderCreate = opClient.folderCreate(FolderCreateRequest.builder()
-				.folderSyncKey(firstSyncKey)
-				.folderDisplayName("root")
-				.folderParentId(CollectionId.of(4))
-				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
-				.build());
-
-		FolderCreateResponse folderCreateResponseWithParentRoot = 
+		FolderCreateResponse folderCreateResponse = 
 				opClient.folderCreate(FolderCreateRequest.builder()
-						.folderSyncKey(secondSyncKey)
+						.folderSyncKey(requestSyncKey)
 						.folderDisplayName("email")
-						.folderParentId(rootFolderCreate.getCollectionId())
+						.folderParentId(CollectionId.of(4))
 						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
 						.build());
-
 		
 		mocksControl.verify();
 		
-		assertThat(folderCreateResponseWithParentRoot.getStatus()).isEqualTo(FolderCreateStatus.OK);
+		assertThat(folderCreateResponse.getStatus()).isEqualTo(FolderCreateStatus.OK);
 	}
 	
 	@Test
-	public void createEmailFolderWithAParentThatDoesntExistShouldReturnStatusParentNotFound() 
+	public void createEmailFolderWithParentThatDoesntExistShouldReturnStatusParentNotFound() 
 			throws Exception {
 		FolderSyncKey requestSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
 		FolderSyncKey nextSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
@@ -358,7 +408,7 @@ public class FolderCreateHandlerTest {
 				opClient.folderCreate(FolderCreateRequest.builder()
 						.folderSyncKey(requestSyncKey)
 						.folderDisplayName("email")
-						.folderParentId(CollectionId.of(89796654))
+						.folderParentId(CollectionId.of(NON_EXISTING_PARENT))
 						.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
 						.build());
 		
@@ -417,6 +467,9 @@ public class FolderCreateHandlerTest {
 		FolderSyncKey firstSyncKey = new FolderSyncKey("12341234-1234-1234-1234-123456123456");
 		FolderSyncKey secondSyncKey = new FolderSyncKey("192f9742-259f-4f90-b0da-88e5d1a6cd0a");
 		FolderSyncKey thirdSyncKey = new FolderSyncKey("d58ea559-d1b8-4091-8ba5-860e6fa54875");
+		
+		greenMail.getManagers().getImapHostManager().createMailbox(greenmailUser, "folder");
+		greenMail.getManagers().getImapHostManager().subscribe(greenmailUser, "folder");
 
 		folderSnapshotDao.create(user.user, user.device, firstSyncKey, 
 			FolderSnapshot.nextId(2).folders(ImmutableSet.of(Folder.builder()
