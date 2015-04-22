@@ -180,7 +180,7 @@
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
 				<artifactId>linagora-imap</artifactId>
-				<version>3.1.2+OBMFULL-6375-OP-183</version>
+				<version>3.1.2+OBMFULL6375-OP183-OBMFULL6390</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linagora.obm</groupId>
