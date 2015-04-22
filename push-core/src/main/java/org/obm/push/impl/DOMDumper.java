@@ -31,13 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.impl;
 
-import java.io.ByteArrayOutputStream;
-
 import javax.xml.transform.TransformerException;
 
 import org.obm.push.configuration.LoggerModule;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.DOMUtils.XMLVersion;
+import org.obm.push.utils.LimitedOutputStream;
 import org.obm.push.utils.stream.UTF8Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +50,8 @@ import com.google.inject.name.Named;
 
 @Singleton
 public class DOMDumper {
+
+	private static final int MAX_LOG_SIZE = 2097152; // 2 megabyte
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
@@ -77,8 +78,8 @@ public class DOMDumper {
 	
 	public void dumpXml(Document doc, XMLVersion xmlVersion) {
 		try {
-			fullRequestLogging(DOMUtils.cloneDOM(doc), xmlVersion);
-			trimRequestLogging(DOMUtils.cloneDOM(doc), xmlVersion);
+			fullRequestLogging(doc, xmlVersion);
+			trimRequestLogging(doc, xmlVersion);
 		} catch (TransformerException e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -92,7 +93,8 @@ public class DOMDumper {
 
 	private void trimRequestLogging(Document doc, XMLVersion xmlVersion) throws TransformerException {
 		if (trimREQlogger.isInfoEnabled()) {
-			NodeList nl = doc.getElementsByTagName("ApplicationData");
+			Document clonedDOM = DOMUtils.cloneDOM(doc);
+			NodeList nl = clonedDOM.getElementsByTagName("ApplicationData");
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node e = nl.item(i);
 				NodeList children = e.getChildNodes();
@@ -102,12 +104,12 @@ public class DOMDumper {
 				}
 				e.setTextContent("[trimmed_output]");
 			}
-			log(trimREQlogger, doc, xmlVersion);
+			log(trimREQlogger, clonedDOM, xmlVersion);
 		}
 	}
 	
 	private void log(Logger logger, Document doc, XMLVersion xmlVersion) throws TransformerException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		LimitedOutputStream out = new LimitedOutputStream(MAX_LOG_SIZE);
 		DOMUtils.serialize(doc, out, true, xmlVersion);
 		logger.info(UTF8Utils.asString(out));
 	}
