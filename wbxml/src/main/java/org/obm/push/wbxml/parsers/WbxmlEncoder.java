@@ -69,28 +69,22 @@ public class WbxmlEncoder {
 	 * converts the XML data from the given SAX InputSource and writes the
 	 * result to the given OutputStream
 	 */
-	public void convert(InputSource in, OutputStream out) throws SAXException,
+	public void convert(InputSource in, ByteArrayOutputStream out) throws SAXException,
 			IOException {
-
-		buf = new ByteArrayOutputStream();
+		
+		buf = out;
+		
+		// ok, write header
+		buf.write(0x03); // version
+		buf.write(0x01); // unknown or missing public identifier
+		buf.write(0x6a); // UTF-8
+		buf.write(0x00); // no string table
 
 		// perform conv.
 		parser.parse(in, new EncoderHandler(this, buf, defaultNamespace));
-
-		// ok, write header
-
-		out.write(0x03); // version
-		out.write(0x01); // unknown or missing public identifier
-		out.write(0x6a); // UTF-8
-		out.write(0x00); // no string table
-
-		// write buf
-
-		buf.writeTo(out);
-
+		
 		// ready!
-
-		out.flush();
+		buf.flush();
 	}
 
 	// internal methods

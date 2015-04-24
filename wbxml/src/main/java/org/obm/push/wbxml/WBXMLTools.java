@@ -36,7 +36,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.transform.TransformerException;
 
@@ -50,6 +60,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -59,10 +70,17 @@ public class WBXMLTools {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final XMLVersion XML_SERIALIZING_VERSION = XMLVersion.XML_10;
+	public static final int MIN_POOL_SIZE = 1;
+	public static final int MAX_POOL_SIZE = 10000;
+
+	private final ExecutorService threadPool;
 
 	@Inject
 	public WBXMLTools() {
 		super();
+		threadPool = new ThreadPoolExecutor(MIN_POOL_SIZE, MAX_POOL_SIZE,
+                        60L, TimeUnit.SECONDS,
+                        new SynchronousQueue<Runnable>());
 	}
 	
 	/**
@@ -126,24 +144,32 @@ public class WBXMLTools {
 		}
 	}
 
-	public byte[] toWbxml(String defaultNamespace, Document doc)
+	public byte[] toWbxml(final String defaultNamespace, final Document doc)
 			throws WBXmlException, IOException {
-		WbxmlEncoder encoder = new WbxmlEncoder(defaultNamespace);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
-			DOMUtils.serialize(doc, out, XML_SERIALIZING_VERSION);
-			StringReader stringReader = new StringReader(new String(out.toByteArray(), "UTF-8"));
-			InputSource is = new InputSource(stringReader);
-			out = new ByteArrayOutputStream();
-			encoder.convert(is, out);
-			byte[] ret = out.toByteArray();
+		
+		try (	PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream(in)){
 
-			return ret;
-		} catch (SAXException e) {
-			throw new WBXmlException("error during wbxml encoding", e);
-		} catch (TransformerException e) {
+			Future<byte[]> futureStream = submitEncodeTask(defaultNamespace, in);
+			DOMUtils.serialize(doc, out, XML_SERIALIZING_VERSION);
+			out.close();
+			return futureStream.get();
+		} catch (TransformerException | InterruptedException | ExecutionException e) {
 			throw new WBXmlException("error during wbxml encoding", e);
 		}
+	}
+
+	private Future<byte[]> submitEncodeTask(final String namespace, final InputStream in) {
+		return threadPool.submit(new Callable<byte[]>() {
+			
+			@Override
+			public byte[] call() throws Exception {
+				InputSource sourceStream = new InputSource(new InputStreamReader(in, Charsets.UTF_8));
+				ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
+				new WbxmlEncoder(namespace).convert(sourceStream, resultStream);
+				return resultStream.toByteArray();
+			}
+		});
 	}
 
 }
