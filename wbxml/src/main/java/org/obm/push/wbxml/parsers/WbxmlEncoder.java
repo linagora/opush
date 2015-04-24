@@ -21,8 +21,10 @@
 package org.obm.push.wbxml.parsers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Map;
 
 import javax.xml.parsers.SAXParser;
@@ -42,10 +44,13 @@ public class WbxmlEncoder {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(WbxmlEncoder.class);
+	private final String defaultNamespace;
+
 	private SAXParser parser;
 	private Map<String, Integer> stringTable;
+	
 	private ByteArrayOutputStream buf;
-	private final String defaultNamespace;
+	private OutputStreamWriter bufWriter;
 
 	/**
 	 * The constructor creates an internal document handler. The given parser is
@@ -73,6 +78,7 @@ public class WbxmlEncoder {
 			IOException {
 		
 		buf = out;
+		bufWriter = new OutputStreamWriter(buf, Charsets.UTF_8);
 		
 		// ok, write header
 		buf.write(0x03); // version
@@ -104,10 +110,11 @@ public class WbxmlEncoder {
 		out.write(buf[0]);
 	}
 
-	void writeStrI(OutputStream out, String s) throws IOException {
-		out.write(Wbxml.STR_I);
-		out.write(s.getBytes(Charsets.UTF_8));
-		out.write(0);
+	void writeStrI(CharArrayWriter from) throws IOException {
+		buf.write(Wbxml.STR_I);
+		from.writeTo(bufWriter);
+		bufWriter.flush();
+		buf.write(0);
 	}
 
 	public void switchPage(Integer integer) throws IOException {

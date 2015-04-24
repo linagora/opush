@@ -20,6 +20,7 @@
 package org.obm.push.wbxml.parsers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Stack;
@@ -40,7 +41,7 @@ class EncoderHandler extends DefaultHandler {
 	private final ByteArrayOutputStream buf;
 	private final String defaultNamespace;
 	private String currentXmlns;
-	private StringBuilder currentCharacter;
+	private CharArrayWriter currentCharsWriter;
 
 	private final Stack<String> stackedStarts;
 	private final Stack<Boolean> currentNodeHasSubnodes;
@@ -98,11 +99,11 @@ class EncoderHandler extends DefaultHandler {
 	}
 
 	private void dropIgnorableWhitespace() throws SAXException {
-		if (currentCharacter != null) {
-			if (!containsIgnorableWhitespaces(currentCharacter.toString())) {
+		if (currentCharsWriter != null) {
+			if (!containsIgnorableWhitespaces(currentCharsWriter.toString())) {
 				throw new SAXException("unexpected characters between to opening tags");
 			}
-			currentCharacter = null;
+			currentCharsWriter = null;
 		}
 	}
 
@@ -147,8 +148,7 @@ class EncoderHandler extends DefaultHandler {
 		if (!stackedStarts.isEmpty()) {
 			flushNormal();
 		}
-		String s = new String(chars, start, len);
-		appendCharacter(s);
+		appendCharacter(chars, start, len);
 	}
 
 	@Override
@@ -170,19 +170,18 @@ class EncoderHandler extends DefaultHandler {
 		}
 	}
 
-	private void appendCharacter(String characters){
-		
-		if(this.currentCharacter == null){
-			this.currentCharacter = new StringBuilder();
+	private void appendCharacter(char[] chars, int start, int len){
+		if(this.currentCharsWriter == null){
+			this.currentCharsWriter = new CharArrayWriter(len);
 		}
-		currentCharacter.append(characters);
+		currentCharsWriter.write(chars, start, len);
 	}
 	
 	private void flushCharacter(){
-		if(this.currentCharacter != null){
+		if(this.currentCharsWriter != null){
 			try {
-				we.writeStrI(buf, currentCharacter.toString());
-				currentCharacter = null;
+				we.writeStrI(currentCharsWriter);
+				currentCharsWriter = null;
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
 			}
