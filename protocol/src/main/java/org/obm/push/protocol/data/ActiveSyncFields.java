@@ -31,8 +31,42 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
+import com.google.common.base.Objects;
+
 public interface ActiveSyncFields {
 
 	String getName();
 	
+	public static class ByName implements ActiveSyncFields {
+
+		private final String name;
+
+		public ByName(String name) {
+			this.name = name;
+		}
+		
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public final int hashCode(){
+			return Objects.hashCode(name);
+		}
+		
+		@Override
+		public final boolean equals(Object object){
+			if (object instanceof ActiveSyncFields) {
+				ActiveSyncFields that = (ActiveSyncFields) object;
+				return Objects.equal(this.name, that.getName());
+			}
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
 }

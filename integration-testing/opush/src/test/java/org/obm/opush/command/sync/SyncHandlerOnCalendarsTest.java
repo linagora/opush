@@ -91,10 +91,9 @@ import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.FolderSnapshot;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
-import org.obm.push.protocol.data.EncoderFactory;
-import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.service.DateService;
 import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.state.FolderSyncKey;
@@ -124,8 +123,7 @@ public class SyncHandlerOnCalendarsTest {
 	@Inject private OpushServer opushServer;
 	@Inject private IMocksControl mocksControl;
 	@Inject private Configuration configuration;
-	@Inject private SyncDecoder decoder;
-	@Inject private EncoderFactory encoderFactory;
+	@Inject private Sync.Builder syncBuilder;
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
@@ -270,28 +268,32 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
-		SyncResponse syncResponse = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.options(SyncCollectionOptions.builder()
-										.filterType(FilterType.ONE_WEEK_BACK)
-										.build())
-							.build())
-					.build());
-		SyncResponse sameSyncResponse = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.options(SyncCollectionOptions.builder()
-										.filterType(FilterType.ONE_WEEK_BACK)
-										.build())
-							.build())
-					.build());
+		SyncResponse initialSyncResponse = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(initialSyncKey)
+					.dataType(PIMDataType.CALENDAR)
+					.build())
+				.build())
+			.build());
+		
+		SyncResponse syncResponse = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.build())
+				.build())
+			.build());
+		
+		SyncResponse sameSyncResponse = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.build())
+				.build())
+			.build());
 		
 		mocksControl.verify();
 
@@ -448,31 +450,39 @@ public class SyncHandlerOnCalendarsTest {
 		opushServer.start();
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse initialSyncResponse = opClient.run(
-				Sync.builder(decoder)
-				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-						.syncKey(initialSyncKey).dataType(PIMDataType.CALENDAR).build()).build());
-		SyncResponse syncResponse = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.options(SyncCollectionOptions.builder()
-										.filterType(FilterType.ONE_WEEK_BACK)
-										.build())
-							.build())
-					.build());
+		SyncResponse initialSyncResponse = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(initialSyncKey)
+					.dataType(PIMDataType.CALENDAR).build())
+				.build())
+			.build());
 		
-		SyncResponse updateSyncResponse = opClient.run(
-				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.CHANGE)
-										.serverId(serverId).clientId(clientId).applicationData(msEventUpdated).build())
-							.options(SyncCollectionOptions.builder()
-										.filterType(FilterType.ONE_WEEK_BACK)
-										.build())
-							.build())
-					.build());
+		SyncResponse syncResponse = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(firstAllocatedSyncKey)
+					.dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.build())
+				.build())
+			.build());
+		
+		SyncResponse updateSyncResponse = opClient.run(syncBuilder
+			.device(user.device)
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(secondAllocatedSyncKey)
+					.dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.command(SyncCollectionCommandRequest.builder()
+						.type(SyncCommand.CHANGE)
+						.serverId(serverId)
+						.clientId(clientId)
+						.applicationData(msEventUpdated).build())
+					.build())
+				.build())
+			.build());
 		mocksControl.verify();
 
 		SyncCollectionResponse initialCollectionResponse = syncTestUtils.getCollectionWithId(initialSyncResponse, calendarCollectionId);
@@ -599,27 +609,30 @@ public class SyncHandlerOnCalendarsTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.run(Sync.builder(decoder)
-				.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-						.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-						.options(SyncCollectionOptions.builder()
-									.filterType(FilterType.ONE_WEEK_BACK)
-									.build())
-						.build())
-				.build());
+		opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(firstAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.build())
+				.build())
+			.build());
 		
 		ServerId serverId = calendarCollectionId.serverId(Integer.valueOf(createdMSEvent.getUid().serializeToString()));
-		SyncResponse updateSyncResponse = opClient.run(
-				Sync.builder(decoder).encoder(encoderFactory).device(user.device)
-					.collection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
-							.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
-							.options(SyncCollectionOptions.builder()
-										.filterType(FilterType.ONE_WEEK_BACK)
-										.build())
-							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.ADD)
-										.serverId(serverId).clientId(clientId).applicationData(createdMSEvent).build())
-							.build())
-					.build());
+		SyncResponse updateSyncResponse = opClient.run(syncBuilder
+			.device(user.device)
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(calendarCollectionId)
+					.syncKey(secondAllocatedSyncKey).dataType(PIMDataType.CALENDAR)
+					.options(SyncCollectionOptions.builder().filterType(FilterType.ONE_WEEK_BACK).build())
+					.command(SyncCollectionCommandRequest.builder()
+						.type(SyncCommand.ADD)
+						.serverId(serverId)
+						.clientId(clientId)
+						.applicationData(createdMSEvent).build())
+					.build())
+				.build())
+			.build());
 		mocksControl.verify();
 
 		assertThat(updateSyncResponse.getStatus()).isEqualTo(SyncStatus.OK);

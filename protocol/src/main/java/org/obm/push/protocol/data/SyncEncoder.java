@@ -37,6 +37,7 @@ import java.util.Set;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.protocol.bean.ClientSyncRequest;
@@ -44,6 +45,7 @@ import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -65,7 +67,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		
 		appendPartial(root, request);
 		appendWait(root, request);
-		appendWindowSize(root, request.getWindowSize());
+		appendWindowSize(root, Optional.fromNullable(request.getWindowSize()));
 		appendCollections(root, request, device);
 		return doc;
 	}
@@ -82,9 +84,9 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		}
 	}
 	
-	private void appendWindowSize(Element root, Integer windowSize) {
-		if (windowSize != null) {
-			appendInteger(root, SyncRequestFields.WINDOW_SIZE, windowSize);
+	private void appendWindowSize(Element root, Optional<Integer> windowSize) {
+		if (windowSize.isPresent()) {
+			appendInteger(root, SyncRequestFields.WINDOW_SIZE, windowSize.get());
 		}
 	}
 
@@ -105,7 +107,7 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		appendDataClass(collectionEl, collection);
 		appendString(collectionEl, SyncRequestFields.SYNC_KEY, collection.getSyncKey().getSyncKey());
 		appendInteger(collectionEl, SyncRequestFields.COLLECTION_ID, collection.getCollectionId().asInt());
-		appendWindowSize(collectionEl, collection.getWindowSize().get());
+		appendWindowSize(collectionEl, collection.getWindowSize());
 		appendOptions(collectionEl, collection.getOptions());
 		appendCommands(collectionEl, collection.getCommands(), device);
 	}
@@ -136,14 +138,18 @@ public class SyncEncoder extends ActiveSyncDecoder {
 	}
 
 	private void appendBodyPreference(Element optionsElement, BodyPreference bodyPreference) {
-		Element bodyPreferenceEl = DOMUtils.createElement(optionsElement, SyncRequestFields.BODY_PREFERENCE.getName());
+		Element bodyPreferenceEl = DOMUtils.createElement(optionsElement, baseNS(SyncRequestFields.BODY_PREFERENCE).getName());
 		if (bodyPreference.getType() != null) {
-			appendInteger(bodyPreferenceEl, SyncRequestFields.TYPE, bodyPreference.getType().asXmlValue());
+			appendInteger(bodyPreferenceEl, baseNS(SyncRequestFields.TYPE), bodyPreference.getType().asXmlValue());
 		}
-		appendInteger(bodyPreferenceEl, SyncRequestFields.TRUNCATION_SIZE, bodyPreference.getTruncationSize());
-		appendBoolean(bodyPreferenceEl, SyncRequestFields.ALL_OR_NONE, bodyPreference.isAllOrNone());
+		appendInteger(bodyPreferenceEl, baseNS(SyncRequestFields.TRUNCATION_SIZE), bodyPreference.getTruncationSize());
+		appendBoolean(bodyPreferenceEl, baseNS(SyncRequestFields.ALL_OR_NONE), bodyPreference.isAllOrNone());
 	}
 	
+	private ActiveSyncFields baseNS(SyncRequestFields field) {
+		return new ActiveSyncFields.ByName("AirSyncBase:" + field.getName());
+	}
+
 	private void appendCommands(Element collectionElement, Iterable<SyncCollectionCommandRequest> commands, Device device) {
 		if (Iterables.isEmpty(commands)) {
 			return;
@@ -156,7 +162,10 @@ public class SyncEncoder extends ActiveSyncDecoder {
 
 	private void appendCommand(Element commandsElement, SyncCollectionCommandRequest command, Device device) {
 		Element commandElement = DOMUtils.createElement(commandsElement, command.getType().asSpecificationValue());
-		appendString(commandElement, SyncRequestFields.SERVER_ID, command.getServerId().asString());
+		ServerId serverId = command.getServerId();
+		if (serverId != null) {
+			appendString(commandElement, SyncRequestFields.SERVER_ID, serverId.asString());
+		}
 		appendString(commandElement, SyncRequestFields.CLIENT_ID, command.getClientId());
 		if (command.getApplicationData() != null) {
 			try {

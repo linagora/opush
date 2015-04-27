@@ -84,6 +84,7 @@ import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
@@ -118,6 +119,7 @@ public class MailBackendGetChangedTest {
 	@Inject private IMocksControl mocksControl;
 	@Inject private Configuration configuration;
 	@Inject private SyncDecoder decoder;
+	@Inject private Sync.Builder syncBuilder;
 	@Inject private PolicyConfigurationProvider policyConfigurationProvider;
 	@Inject private CassandraServer cassandraServer;
 	@Inject private IntegrationTestUtils testUtils;
@@ -1120,13 +1122,14 @@ public class MailBackendGetChangedTest {
 		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 
 		ServerId serverId = inboxCollectionId.serverId(1);
-		SyncResponse syncResponseWithFetch = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder()
-							.collectionId(inboxCollectionId).syncKey(secondAllocatedSyncKey).dataType(PIMDataType.EMAIL)
-							.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
-							.build())
-					.build());
+		SyncResponse syncResponseWithFetch = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder()
+					.collectionId(inboxCollectionId).syncKey(secondAllocatedSyncKey).dataType(PIMDataType.EMAIL)
+					.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+					.build())
+				.build())
+			.build());
 		
 		mocksControl.verify();
 
@@ -1204,13 +1207,14 @@ public class MailBackendGetChangedTest {
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		
-		SyncResponse response = opClient.run(
-				Sync.builder(decoder)
-					.collection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId)
-						.dataType(PIMDataType.EMAIL).syncKey(secondAllocatedSyncKey)
-						.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
-						.build())
-					.build());
+		SyncResponse response = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder().collectionId(inboxCollectionId)
+					.dataType(PIMDataType.EMAIL).syncKey(secondAllocatedSyncKey)
+					.command(SyncCollectionCommandRequest.builder().type(SyncCommand.FETCH).serverId(serverId).build())
+					.build())
+				.build())
+			.build());
 		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();

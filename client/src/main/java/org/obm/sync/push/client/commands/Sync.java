@@ -31,60 +31,36 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.push.client.commands;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
-import org.obm.push.bean.FilterType;
-import org.obm.push.bean.MSEmailBodyType;
-import org.obm.push.bean.SyncCollectionCommandRequest;
-import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.SyncResponse;
-import org.obm.push.protocol.data.EncoderFactory;
 import org.obm.push.protocol.data.SyncDecoder;
-import org.obm.push.protocol.data.SyncRequestFields;
-import org.obm.push.utils.DOMUtils;
+import org.obm.push.protocol.data.SyncEncoder;
 import org.obm.sync.push.client.ResponseTransformer;
 import org.obm.sync.push.client.beans.AccountInfos;
 import org.obm.sync.push.client.beans.NS;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 
-/**
- * Performs a Sync AS command for the given folders with 0 as syncKey
- */
 public class Sync extends AbstractCommand<SyncResponse> {
 
-	public static Builder builder(SyncDecoder decoder) {
-		return new Builder(decoder);
-	}
-	
 	public static class Builder {
 		
-		private final SyncDecoder decoder;
-		private final ImmutableList.Builder<AnalysedSyncCollection> collections;
+		private final SyncDecoder syncDecoder;
+		private final SyncEncoder syncEncoder;
 		
-		private EncoderFactory encoderFactory;
 		private Device device;
+		private ClientSyncRequest request;
 
-		private Builder(SyncDecoder decoder) {
-			this.decoder = decoder;
-			this.collections = ImmutableList.builder();
+		@Inject
+		protected Builder(SyncDecoder syncDecoder, SyncEncoder syncEncoder) {
+			this.syncDecoder = syncDecoder;
+			this.syncEncoder = syncEncoder;
 		}
-		
-		public Builder encoder(EncoderFactory encoderFactory) {
-			this.encoderFactory = encoderFactory;
-			return this;
-		}
-		
-		public Builder collection(AnalysedSyncCollection collection) {
-			this.collections.add(collection);
+
+		public Builder request(ClientSyncRequest request) {
+			this.request = request;
 			return this;
 		}
 		
@@ -94,21 +70,21 @@ public class Sync extends AbstractCommand<SyncResponse> {
 		}
 		
 		public Sync build() {
-			return new Sync(decoder, new SimpleSyncDocumentProvider(encoderFactory, device, collections.build()));
+			return new Sync(syncDecoder, new SimpleSyncDocumentProvider(syncEncoder, device, request));
 		}
 
 	}
 
-	private final SyncDecoder decoder;
+	private final SyncDecoder syncDecoder;
 
-	public Sync(SyncDecoder decoder, DocumentProvider documentProvider) {
+	public Sync(SyncDecoder syncDecoder, DocumentProvider documentProvider) {
 		super(NS.AirSync, "Sync", documentProvider);
-		this.decoder = decoder;
+		this.syncDecoder = syncDecoder;
 	}
 
 	@Override
 	protected SyncResponse parseResponse(Document responseDocument) {
-		return decoder.decodeSyncResponse(responseDocument);
+		return syncDecoder.decodeSyncResponse(responseDocument);
 	}
 
 	@Override
@@ -118,75 +94,21 @@ public class Sync extends AbstractCommand<SyncResponse> {
 	
 	private static class SimpleSyncDocumentProvider implements DocumentProvider {
 
-		private final List<AnalysedSyncCollection> collections;
-		private Device device;
-		private EncoderFactory encoders;
+		private final SyncEncoder syncEncoder;
+		private final ClientSyncRequest request;
+		private final Device device;
 
-		private SimpleSyncDocumentProvider(EncoderFactory encoders, Device device, List<AnalysedSyncCollection> collections) {
-			this.collections = collections;
-			this.encoders = encoders;
+		private SimpleSyncDocumentProvider(SyncEncoder syncEncoder, Device device, ClientSyncRequest request) {
+			this.syncEncoder = syncEncoder;
+			this.request = request;
 			this.device = device;
 		}
 
 		@Override
 		public Document get(AccountInfos accountInfos) {
-			Document document = DOMUtils.createDoc(null, "Sync");
-			Element root = document.getDocumentElement();
-
-			try {
-				final Element cols = DOMUtils.createElement(root, SyncRequestFields.COLLECTIONS.getName());
-				for (AnalysedSyncCollection collection: collections) {
-					Element col = DOMUtils.createElement(cols, SyncRequestFields.COLLECTION.getName());
-					DOMUtils.createElementAndText(col, SyncRequestFields.SYNC_KEY.getName(), collection.getSyncKey().getSyncKey());
-					DOMUtils.createElementAndText(col, SyncRequestFields.COLLECTION_ID.getName(), collection.getCollectionId().asString());
-					Optional<Integer> windowSize = collection.getWindowSize();
-					if (windowSize.isPresent()) {
-						DOMUtils.createElementAndText(col, SyncRequestFields.WINDOW_SIZE.getName(), String.valueOf(windowSize.get()));
-					}
-					SyncCollectionOptions options = collection.getOptions();
-					if (options != null) {
-						Element option = DOMUtils.createElement(col, SyncRequestFields.OPTIONS.getName());
-						FilterType filterType = options.getFilterType();
-						if (filterType != null) {
-							DOMUtils.createElementAndText(option, SyncRequestFields.FILTER_TYPE.getName(), filterType.asSpecificationValue());
-						}
-
-						Element bodyPreferenceEl = DOMUtils.createElement(option, "AirSyncBase:" + SyncRequestFields.BODY_PREFERENCE.getName());
-						DOMUtils.createElementAndText(bodyPreferenceEl, "AirSyncBase:" + SyncRequestFields.TYPE.getName(), MSEmailBodyType.HTML.asXmlValue());
-						DOMUtils.createElementAndText(bodyPreferenceEl, "AirSyncBase:" + SyncRequestFields.TRUNCATION_SIZE.getName(), options.getTruncation());
-					}
-
-					appendDataClass(col, collection);
-
-					Element commandsEl = DOMUtils.createElement(col, SyncRequestFields.COMMANDS.getName());
-					for (SyncCollectionCommandRequest command: collection.getCommands()) {
-						Element commandEl = DOMUtils.createElement(commandsEl, command.getType().asSpecificationValue());
-						if (command.getServerId() != null) {
-							DOMUtils.createElementAndText(commandEl, SyncRequestFields.SERVER_ID.getName(), command.getServerId().asString());
-						}
-						if (!Strings.isNullOrEmpty(command.getClientId())) {
-							DOMUtils.createElementAndText(commandEl, SyncRequestFields.CLIENT_ID.getName(), command.getClientId());
-						}
-						if (command.getApplicationData() != null) {
-							Element applicationDataEl = DOMUtils.createElement(commandEl, SyncRequestFields.APPLICATION_DATA.getName());
-							encoders.encode(device, applicationDataEl, command.getApplicationData(), false);
-						}
-					}
-				}
-			} catch (IOException e) {
-				Throwables.propagate(e);
-			}
-			return document;
+			return syncEncoder.encodeSync(request, device);
 		}
 		
-		private void appendDataClass(Element collectionEl, AnalysedSyncCollection collection) {
-			if (collection.getDataType() != null) {
-				String xmlValue = collection.getDataType().asXmlValue();
-				if (xmlValue != null) {
-					DOMUtils.createElementAndText(collectionEl, "Class", xmlValue);
-				}
-			}
-		}
 	}
 
 	private class SyncResponseTransformer implements ResponseTransformer<SyncResponse> {
