@@ -42,6 +42,7 @@ import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionCommandResponse;
 import org.obm.push.bean.SyncCollectionResponse;
@@ -534,7 +535,7 @@ public class SyncDecoderTest {
 		assertThat(collection.getOptions().getFilterType()).isEqualTo(FilterType.ONE_MONTHS_BACK);
 		assertThat(collection.getOptions().getConflict()).isEqualTo(1);
 		assertThat(collection.getOptions().getMimeTruncation()).isEqualTo(8);
-		assertThat(collection.getOptions().getMimeSupport()).isEqualTo(2);
+		assertThat(collection.getOptions().getMimeSupport()).contains(MimeSupport.ALWAYS);
 		assertThat(collection.getOptions().getBodyPreferences()).containsOnly(
 				BodyPreference.builder().bodyType(MSEmailBodyType.MIME).truncationSize(1000).allOrNone(true).build(),
 				BodyPreference.builder().bodyType(MSEmailBodyType.HTML).truncationSize(5000).allOrNone(false).build());
@@ -629,7 +630,7 @@ public class SyncDecoderTest {
 		
 		SyncCollection collection = new SyncDecoder(null).getCollection(request.getDocumentElement());
 
-		assertThat(collection.getOptions().getMimeSupport()).isNull();
+		assertThat(collection.getOptions().getMimeSupport()).isAbsent();
 	}
 
 	@Test

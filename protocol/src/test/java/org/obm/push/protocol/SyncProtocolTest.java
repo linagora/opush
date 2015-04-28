@@ -56,6 +56,7 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSContact;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommandRequest;
@@ -364,6 +365,35 @@ public class SyncProtocolTest {
 	}
 
 	@Test
+	public void testOptionAsOptional() throws Exception {
+		int syncingCollectionId = 3;
+		String syncingCollectionSyncKey = "1234-5678";
+		Document request = DOMUtils.parse(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<Sync>" +
+					"<Collections>" +
+						"<Collection>" +
+							"<SyncKey>" + syncingCollectionSyncKey  + "</SyncKey>" +
+							"<CollectionId>" +syncingCollectionId + "</CollectionId>" +
+							"<Options>" +
+							"</Options>" +
+						"</Collection>" +
+					"</Collections>" +
+				"</Sync>");
+
+		SyncRequest syncRequest = testee.decodeRequest(request);
+
+		assertThat(syncRequest.getCollections()).hasSize(1);
+		SyncCollection syncCollection = syncRequest.getCollections().iterator().next();
+		SyncCollectionOptions syncCollectionOptions = syncCollection.getOptions();
+		assertThat(syncCollectionOptions.getBodyPreferences()).isEmpty();
+		assertThat(syncCollectionOptions.getConflict()).isEqualTo(1);
+		assertThat(syncCollectionOptions.getFilterType()).isEqualTo(FilterType.ALL_ITEMS);
+		assertThat(syncCollectionOptions.getMimeSupport()).isAbsent();
+		assertThat(syncCollectionOptions.getMimeTruncation()).isNull();
+	}
+
+	@Test
 	public void testOptionToZero() throws Exception {
 		int syncingCollectionId = 3;
 		String syncingCollectionSyncKey = "1234-5678";
@@ -392,7 +422,7 @@ public class SyncProtocolTest {
 		assertThat(syncCollectionOptions.getBodyPreferences()).isEmpty();
 		assertThat(syncCollectionOptions.getConflict()).isEqualTo(0);
 		assertThat(syncCollectionOptions.getFilterType()).isEqualTo(FilterType.ALL_ITEMS);
-		assertThat(syncCollectionOptions.getMimeSupport()).isEqualTo(0);
+		assertThat(syncCollectionOptions.getMimeSupport()).contains(MimeSupport.NEVER);
 		assertThat(syncCollectionOptions.getMimeTruncation()).isEqualTo(0);
 	}
 
@@ -425,7 +455,7 @@ public class SyncProtocolTest {
 		assertThat(syncCollectionOptions.getBodyPreferences()).isEmpty();
 		assertThat(syncCollectionOptions.getConflict()).isEqualTo(1);
 		assertThat(syncCollectionOptions.getFilterType()).isEqualTo(FilterType.ONE_MONTHS_BACK);
-		assertThat(syncCollectionOptions.getMimeSupport()).isEqualTo(2);
+		assertThat(syncCollectionOptions.getMimeSupport()).contains(MimeSupport.ALWAYS);
 		assertThat(syncCollectionOptions.getMimeTruncation()).isEqualTo(8);
 	}
 

@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 public class SyncCollectionOptions implements Serializable {
@@ -51,7 +52,7 @@ public class SyncCollectionOptions implements Serializable {
 	
 	public static class Builder {
 		private Integer truncation;
-		private Integer mimeSupport;
+		private MimeSupport mimeSupport;
 		private Integer mimeTruncation;
 		private Integer conflict;
 		private Boolean deletesAsMoves;
@@ -65,7 +66,11 @@ public class SyncCollectionOptions implements Serializable {
 			return this;
 		}
 		
-		public Builder mimeSupport(Integer mimeSupport) {
+		public Builder mimeSupport(int mimeSupport) {
+			return mimeSupport(MimeSupport.fromSpecificationValue(mimeSupport));
+		}
+
+		public Builder mimeSupport(MimeSupport mimeSupport) {
 			this.mimeSupport = mimeSupport;
 			return this;
 		}
@@ -98,7 +103,8 @@ public class SyncCollectionOptions implements Serializable {
 		public SyncCollectionOptions build() {
 			return new SyncCollectionOptions(
 					Objects.firstNonNull(truncation, SYNC_TRUNCATION_ALL),
-					mimeSupport, mimeTruncation, 
+					Optional.fromNullable(mimeSupport), 
+					mimeTruncation, 
 					Objects.firstNonNull(conflict, 1),
 					Objects.firstNonNull(deletesAsMoves, true), 
 					Objects.firstNonNull(filterType, FilterType.DEFAULT), 
@@ -107,14 +113,16 @@ public class SyncCollectionOptions implements Serializable {
 	}
 	
 	private final Integer truncation;
-	private final Integer mimeSupport;
+	private final Optional<MimeSupport> mimeSupport;
 	private final Integer mimeTruncation;
 	private final Integer conflict;
 	private final Boolean deletesAsMoves;
 	private final FilterType filterType;
 	private final List<BodyPreference> bodyPreferences;
 	
-	private SyncCollectionOptions(Integer truncation, Integer mimeSupport, Integer mimeTruncation, Integer conflict, Boolean deletesAsMoves, FilterType filterType, List<BodyPreference> bodyPreferences) {
+	private SyncCollectionOptions(Integer truncation, Optional<MimeSupport> mimeSupport, 
+			Integer mimeTruncation, Integer conflict, Boolean deletesAsMoves, 
+			FilterType filterType, List<BodyPreference> bodyPreferences) {
 		this.truncation = truncation;
 		this.mimeSupport = mimeSupport;
 		this.mimeTruncation = mimeTruncation;
@@ -140,7 +148,7 @@ public class SyncCollectionOptions implements Serializable {
 		return filterType;
 	}
 
-	public Integer getMimeSupport() {
+	public Optional<MimeSupport> getMimeSupport() {
 		return mimeSupport;
 	}
 
@@ -160,8 +168,8 @@ public class SyncCollectionOptions implements Serializable {
 		if (cloningFromOptions.getFilterType() != null) {
 			builder.filterType(cloningFromOptions.getFilterType());
 		}
-		if (cloningFromOptions.getMimeSupport() != null) {
-			builder.mimeSupport(cloningFromOptions.getMimeSupport());
+		if (cloningFromOptions.getMimeSupport().isPresent()) {
+			builder.mimeSupport(cloningFromOptions.getMimeSupport().get());
 		}
 		if (cloningFromOptions.getMimeTruncation() != null) {
 			builder.mimeTruncation(cloningFromOptions.getMimeTruncation());

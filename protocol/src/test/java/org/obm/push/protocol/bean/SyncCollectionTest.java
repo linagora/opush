@@ -37,6 +37,7 @@ import static org.assertj.guava.api.Assertions.assertThat;
 import org.junit.Test;
 import org.obm.push.bean.EncodedSyncCollectionCommandRequest;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
@@ -114,7 +115,7 @@ public class SyncCollectionTest {
 				.filterType(FilterType.ONE_DAY_BACK)
 				.conflict(2)
 				.mimeTruncation(3)
-				.mimeSupport(4)
+				.mimeSupport(MimeSupport.ALWAYS)
 				.build();
 		
 		SyncCollection syncRequestCollection = builderWithRequirement().options(options).build();

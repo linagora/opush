@@ -68,6 +68,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.MSTask;
 import org.obm.push.bean.MethodAttachment;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
@@ -500,7 +501,7 @@ public class JSONServiceTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(MimeSupport.ALWAYS)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()
@@ -520,7 +521,7 @@ public class JSONServiceTest {
 					"\"conflict\":5," + 
 					"\"deletesAsMoves\":false," + 
 					"\"filterType\":\"ONE_DAY_BACK\"," + 
-					"\"mimeSupport\":6," + 
+					"\"mimeSupport\":2," + 
 					"\"mimeTruncation\":400," + 
 					"\"truncation\":420" + 
 				"}");
@@ -539,7 +540,7 @@ public class JSONServiceTest {
 					"\"conflict\":5," + 
 					"\"deletesAsMoves\":false," + 
 					"\"filterType\":\"ONE_DAY_BACK\"," + 
-					"\"mimeSupport\":6," + 
+					"\"mimeSupport\":2," + 
 					"\"mimeTruncation\":400," + 
 					"\"truncation\":420" + 
 				"}");
@@ -548,7 +549,7 @@ public class JSONServiceTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(2)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()
@@ -1627,7 +1628,7 @@ public class JSONServiceTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(MimeSupport.NEVER)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()
@@ -1715,7 +1716,7 @@ public class JSONServiceTest {
 							"\"conflict\":5," + 
 							"\"deletesAsMoves\":false," + 
 							"\"filterType\":\"ONE_DAY_BACK\"," + 
-							"\"mimeSupport\":6," + 
+							"\"mimeSupport\":0," + 
 							"\"mimeTruncation\":400," + 
 							"\"truncation\":420" + 
 						"}," + 
@@ -1744,7 +1745,7 @@ public class JSONServiceTest {
 							"\"conflict\":5," + 
 							"\"deletesAsMoves\":false," + 
 							"\"filterType\":\"ONE_DAY_BACK\"," + 
-							"\"mimeSupport\":6," + 
+							"\"mimeSupport\":1," + 
 							"\"mimeTruncation\":400," + 
 							"\"truncation\":420" + 
 						"}," + 
@@ -1757,7 +1758,7 @@ public class JSONServiceTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(MimeSupport.SMIME_ONLY)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()
@@ -1806,7 +1807,7 @@ public class JSONServiceTest {
 							"\"conflict\":5," + 
 							"\"deletesAsMoves\":false," + 
 							"\"filterType\":\"ONE_DAY_BACK\"," + 
-							"\"mimeSupport\":6," + 
+							"\"mimeSupport\":0," + 
 							"\"mimeTruncation\":400," + 
 							"\"truncation\":420" + 
 						"}," + 
@@ -1819,7 +1820,7 @@ public class JSONServiceTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(MimeSupport.NEVER)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()

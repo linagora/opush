@@ -71,6 +71,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.MSTask;
 import org.obm.push.bean.MethodAttachment;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
@@ -218,7 +219,7 @@ public class JSONServiceCompatibilityTest {
 				.conflict(5)
 				.deletesAsMoves(false)
 				.filterType(FilterType.ONE_DAY_BACK)
-				.mimeSupport(6)
+				.mimeSupport(MimeSupport.NEVER)
 				.mimeTruncation(400)
 				.truncation(420)
 				.bodyPreferences(ImmutableList.of(BodyPreference.builder()

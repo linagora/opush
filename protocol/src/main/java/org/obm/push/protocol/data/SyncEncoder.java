@@ -131,7 +131,9 @@ public class SyncEncoder extends ActiveSyncDecoder {
 		}
 		appendInteger(optionsElement, SyncRequestFields.CONFLICT, options.getConflict());
 		appendInteger(optionsElement, SyncRequestFields.MIME_TRUNCATION, options.getMimeTruncation());
-		appendInteger(optionsElement, SyncRequestFields.MIME_SUPPORT, options.getMimeSupport());
+		if (options.getMimeSupport().isPresent()) {
+			appendInteger(optionsElement, SyncRequestFields.MIME_SUPPORT, options.getMimeSupport().get().asSpecificationValue());
+		}
 		for (BodyPreference bodyPreference : options.getBodyPreferences()) {
 			appendBodyPreference(optionsElement, bodyPreference);
 		}

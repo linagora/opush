@@ -144,8 +144,12 @@ public class SyncDecoder extends ActiveSyncDecoder {
 		
 		SyncCollectionOptions.Builder builder = SyncCollectionOptions.builder()
 			.conflict(uniqueIntegerFieldValue(optionElement, SyncRequestFields.CONFLICT))
-			.mimeSupport(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_SUPPORT))
 			.mimeTruncation(uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_TRUNCATION));
+
+		Integer mimeSupport = uniqueIntegerFieldValue(optionElement, SyncRequestFields.MIME_SUPPORT);
+		if (mimeSupport != null) {
+			builder.mimeSupport(mimeSupport);
+		}
 		
 		String filterType = uniqueStringFieldValue(optionElement, SyncRequestFields.FILTER_TYPE);
 		if (Strings.isNullOrEmpty(filterType)) {

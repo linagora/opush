@@ -50,6 +50,7 @@ import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SyncCollectionCommandRequest;
 import org.obm.push.bean.SyncCollectionCommandResponse;
@@ -96,6 +97,7 @@ import org.obm.push.json.mixin.MSMeetingRequestCategoryMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestMixIn;
 import org.obm.push.json.mixin.MSMeetingRequestRecurrenceMixIn;
 import org.obm.push.json.mixin.MailboxPathMixIn;
+import org.obm.push.json.mixin.MimeSupportMixIn;
 import org.obm.push.json.mixin.ServerIdMixIn;
 import org.obm.push.json.mixin.SnapshotMixIn;
 import org.obm.push.json.mixin.SyncCollectionCommandRequestMixIn;
@@ -222,6 +224,7 @@ public class JSONService {
 			.setMixInAnnotation(BodyPreference.class, BodyPreferenceMixIn.class)
 			.setMixInAnnotation(Email.class, EmailMixIn.class)
 			.setMixInAnnotation(EmailChanges.class, EmailChangesMixIn.class)
+			.setMixInAnnotation(MimeSupport.class, MimeSupportMixIn.class)
 			.setMixInAnnotation(MSAddress.class, MSAddressMixIn.class)
 			.setMixInAnnotation(MSEmailBody.class, MSEmailBodyMixIn.class)
 			.setMixInAnnotation(MSEmailHeader.class, MSEmailHeaderMixIn.class)

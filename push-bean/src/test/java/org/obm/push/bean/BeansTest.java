@@ -67,6 +67,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.sync.bean.EqualsVerifierUtils;
 import org.obm.sync.bean.EqualsVerifierUtils.EqualsVerifierBuilder;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 
@@ -107,7 +108,6 @@ public class BeansTest {
 					.add(SearchResult.class)
 					.add(ServerId.class)
 					.add(Sync.class)
-					.add(SyncCollectionOptions.class)
 					.add(SyncCollectionCommandRequest.class)
 					.add(SyncCollectionCommandResponse.class)
 					.add(ItemSyncState.class)
@@ -167,6 +167,14 @@ public class BeansTest {
 								.serverId(CollectionId.of(1).serverId(4))
 								.build())) 
 			.prefabValue(ImmutableList.class, ImmutableList.of("potato"), ImmutableList.of("banana"))
+			.verify();
+	}
+	
+	@Test
+	public void testSyncCollectionOptions() {
+		EqualsVerifierBuilder.builder()
+			.equalsVerifiers(SyncCollectionOptions.class)
+			.prefabValue(Optional.class, Optional.absent(), Optional.of(MimeSupport.ALWAYS))
 			.verify();
 	}
 	

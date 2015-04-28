@@ -32,6 +32,7 @@
 package org.obm.push.bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class SyncCollectionOptionsTest {
 				.conflict(1)
 				.deletesAsMoves(true)
 				.filterType(FilterType.ONE_MONTHS_BACK)
-				.mimeSupport(5)
+				.mimeSupport(1)
 				.mimeTruncation(2)
 				.truncation(100)
 				.bodyPreferences(bodyPreferences)
@@ -112,7 +113,7 @@ public class SyncCollectionOptionsTest {
 		
 		SyncCollectionOptions cloned = SyncCollectionOptions.cloneOnlyByExistingFields(cloningFromOptions);
 		
-		assertThat(cloned.getMimeSupport()).isNull();
+		assertThat(cloned.getMimeSupport()).isAbsent();
 	}
 
 	@Test
@@ -164,7 +165,7 @@ public class SyncCollectionOptionsTest {
 		SyncCollectionOptions defaultOptions = SyncCollectionOptions.defaultOptions();
 		assertThat(defaultOptions.getConflict()).isEqualTo(1);
 		assertThat(defaultOptions.getFilterType()).isEqualTo(FilterType.DEFAULT);
-		assertThat(defaultOptions.getMimeSupport()).isNull();
+		assertThat(defaultOptions.getMimeSupport()).isAbsent();
 		assertThat(defaultOptions.getMimeTruncation()).isNull();
 		assertThat(defaultOptions.getTruncation()).isEqualTo(9);
 		assertThat(defaultOptions.getBodyPreferences()).isEmpty();
