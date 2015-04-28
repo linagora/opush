@@ -46,29 +46,37 @@ public class MimePartSelector {
 	
 	private static final Logger logger = LoggerFactory.getLogger(MimePartSelector.class);
 	
-	public FetchInstruction select(BodyPreferencePolicy bodyPreferencePolicy, List<BodyPreference> bodyPreferences, MimeMessage mimeMessage) {
+	private final BodyPreferencePolicy bodyPreferencePolicy;
+	private final List<BodyPreference> bodyPreferences;
+
+	public MimePartSelector(BodyPreferencePolicy bodyPreferencePolicy, List<BodyPreference> bodyPreferences) {
+		this.bodyPreferencePolicy = bodyPreferencePolicy;
+		this.bodyPreferences = bodyPreferences;
+	}
+	
+	public FetchInstruction select(MimeMessage mimeMessage) {
 		logger.debug("BodyPreferences {} MimeMessage {}", bodyPreferences, mimeMessage.getMimePart());
 		
 		List<BodyPreference> safeBodyPreferences = bodyPreferencePolicy.bodyPreferencesMatchingPolicy(bodyPreferences);
-		List<FetchInstruction> fetchInstructions = fetchIntructions(bodyPreferencePolicy, safeBodyPreferences, mimeMessage);
+		List<FetchInstruction> fetchInstructions = fetchIntructions(safeBodyPreferences, mimeMessage);
 		return bodyPreferencePolicy.selectBetterFit(fetchInstructions, safeBodyPreferences);
 	}
 
-	private List<FetchInstruction> fetchIntructions(BodyPreferencePolicy bodyPreferencePolicy, List<BodyPreference> bodyPreferences, MimeMessage mimeMessage) {
-		List<FetchInstruction> fetchInstructions = findMatchingInstructions(bodyPreferencePolicy, bodyPreferences, mimeMessage);
+	private List<FetchInstruction> fetchIntructions(List<BodyPreference> safeBodyPreferences, MimeMessage mimeMessage) {
+		List<FetchInstruction> fetchInstructions = findMatchingInstructions(safeBodyPreferences, mimeMessage);
 		if (!fetchInstructions.isEmpty()) {
 			return fetchInstructions;
 		} else if (bodyPreferencePolicy.mayUsesDefaultBodyPreferences()) {
-			return findMatchingInstructions(bodyPreferencePolicy, BodyPreferencePolicy.DEFAULT_BODY_PREFERENCES, mimeMessage);
+			return findMatchingInstructions(BodyPreferencePolicy.DEFAULT_BODY_PREFERENCES, mimeMessage);
 		}
 		return fetchInstructions;
 	}
 	
-	private List<FetchInstruction> findMatchingInstructions(BodyPreferencePolicy bodyPreferencePolicy, List<BodyPreference> bodyPreferences, MimeMessage mimeMessage) {
+	private List<FetchInstruction> findMatchingInstructions(List<BodyPreference> bodyPreferences, MimeMessage mimeMessage) {
 		List<FetchInstruction> fetchInstructions = Lists.newArrayList();
 		for (BodyPreference bodyPreference: bodyPreferences) {
 			if (isContentType(bodyPreference)) {
-				fetchInstructions.addAll(findMatchingInstruction(bodyPreferencePolicy, mimeMessage, bodyPreference));
+				fetchInstructions.addAll(findMatchingInstruction(mimeMessage, bodyPreference));
 			} else {
 				fetchInstructions.add(buildFetchInstruction(FetchInstruction.builder(), mimeMessage, bodyPreference));
 			}
@@ -76,7 +84,7 @@ public class MimePartSelector {
 		return fetchInstructions;
 	}
 
-	private List<FetchInstruction> findMatchingInstruction(BodyPreferencePolicy bodyPreferencePolicy, MimeMessage mimeMessage, BodyPreference bodyPreference) {
+	private List<FetchInstruction> findMatchingInstruction(MimeMessage mimeMessage, BodyPreference bodyPreference) {
 		List<FetchInstruction> fetchInstructions = Lists.newArrayList();
 		for (FetchHints hints: bodyPreferencePolicy.listContentTypes(bodyPreference.getType())) {
 			MimePart mimePart =  mimeMessage.findMainMessage(hints.getContentType());

@@ -445,8 +445,8 @@ public class MailboxFetchAPITest {
 		BodyPreference bodyPreference = BodyPreference.builder().bodyType(MSEmailBodyType.HTML).build();
 		List<BodyPreference> bodyPreferences = Lists.newArrayList(bodyPreference);
 		
-		MimePartSelector mimeMessageSelector = new MimePartSelector();
-		FetchInstruction fetchInstruction = mimeMessageSelector.select(new AnyMatchBodyPreferencePolicy(), bodyPreferences, Iterables.getOnlyElement(mimeMessages));
+		MimePartSelector mimeMessageSelector = new MimePartSelector(new AnyMatchBodyPreferencePolicy(), bodyPreferences);
+		FetchInstruction fetchInstruction = mimeMessageSelector.select(Iterables.getOnlyElement(mimeMessages));
 		
 		InputStream mimePartData = mailboxService.fetchMimePartStream(udr, inbox, sentEmail.getUid(), fetchInstruction.getMimePart().getAddress());
 		String data = CharStreams.toString(new InputStreamReader(mimePartData));
@@ -468,8 +468,8 @@ public class MailboxFetchAPITest {
 		BodyPreference bodyPreference = BodyPreference.builder().bodyType(MSEmailBodyType.HTML).truncationSize(truncationSize).build();
 		List<BodyPreference> bodyPreferences = Lists.newArrayList(bodyPreference);
 		
-		MimePartSelector mimeMessageSelector = new MimePartSelector();
-		FetchInstruction fetchInstruction = mimeMessageSelector.select(new AnyMatchBodyPreferencePolicy(), bodyPreferences, Iterables.getOnlyElement(mimeMessages));
+		MimePartSelector mimeMessageSelector = new MimePartSelector(new AnyMatchBodyPreferencePolicy(), bodyPreferences);
+		FetchInstruction fetchInstruction = mimeMessageSelector.select(Iterables.getOnlyElement(mimeMessages));
 		
 		InputStream mimePartData = mailboxService.fetchPartialMimePartStream(udr, inbox, sentEmail.getUid(), 
 				fetchInstruction.getMimePart().getAddress(), fetchInstruction.getTruncation());
@@ -490,8 +490,8 @@ public class MailboxFetchAPITest {
 		BodyPreference bodyPreference = BodyPreference.builder().bodyType(MSEmailBodyType.RTF).build();
 		List<BodyPreference> bodyPreferences = Lists.newArrayList(bodyPreference);
 		
-		MimePartSelector mimeMessageSelector = new MimePartSelector();
-		FetchInstruction fetchInstruction = mimeMessageSelector.select(new AnyMatchBodyPreferencePolicy(), bodyPreferences, Iterables.getOnlyElement(mimeMessages));
+		MimePartSelector mimeMessageSelector = new MimePartSelector(new AnyMatchBodyPreferencePolicy(), bodyPreferences);
+		FetchInstruction fetchInstruction = mimeMessageSelector.select(Iterables.getOnlyElement(mimeMessages));
 		
 		InputStream mimePartData = mailboxService.fetchMimePartStream(udr, inbox, sentEmail.getUid(), fetchInstruction.getMimePart().getAddress());
 		String data = CharStreams.toString(new InputStreamReader(mimePartData));
