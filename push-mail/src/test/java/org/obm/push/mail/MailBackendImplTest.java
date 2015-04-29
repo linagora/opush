@@ -243,7 +243,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
 
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, emailChanges, itemChanges);
 		
 		control.replay();
 		DataDelta actual = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -288,7 +288,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.hasPendingChanges(windowingKey.withSyncKey(newSyncKey))).andReturn(false);
 		expectSnapshotDaoRecordOneSnapshot(newSyncKey, uidNext, syncCollectionOptions, actualEmailsInServer);
 		expectMailBackendSyncData(uidNext, syncCollectionOptions, null, previousEmailsInServer, actualEmailsInServer, emailChanges, fromDate, syncState);
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), emailChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, emailChanges, itemChanges);
 		
 		EmailChanges.Builder changesBuilder = control.createMock(EmailChanges.Builder.class);
 		expect(changesBuilder.build()).andReturn(emailChanges);
@@ -387,7 +387,7 @@ public class MailBackendImplTest {
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
 		expect(dateService.getCurrentDate()).andReturn(date("2004-12-14T22:00:00"));
 
-		expectServerItemChanges(bodyPreferences, emailChanges, modifiedEmail, newEmail, deletedEmail);
+		expectServerItemChanges(syncCollectionOptions, emailChanges, modifiedEmail, newEmail, deletedEmail);
 		
 		control.replay();
 		testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -395,12 +395,12 @@ public class MailBackendImplTest {
 		control.verify();
 	}
 
-	private void expectServerItemChanges(ImmutableList<BodyPreference> bodyPreferences, EmailChanges emailChanges, Email modifiedEmail, Email newEmail, Email deletedEmail)
+	private void expectServerItemChanges(SyncCollectionOptions options, EmailChanges emailChanges, Email modifiedEmail, Email newEmail, Email deletedEmail)
 			throws EmailViewPartsFetcherException, DaoException {
 		
 		ImmutableList<ItemChange> itemChanges = itemChanges(modifiedEmail, newEmail);
 		ImmutableList<ItemDeletion> itemDeletions = itemDeletions(deletedEmail);
-		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, bodyPreferences, emailChanges))
+		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, options, emailChanges))
 			.andReturn(MSEmailChanges.builder()
 					.changes(itemChanges)
 					.deletions(itemDeletions)
@@ -609,7 +609,7 @@ public class MailBackendImplTest {
 				.build();
 		
 		expect(folderSnapshotDao.get(user, device, collectionId)).andReturn(folder);
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, fittingChanges, itemChanges);
 		
 		control.replay();
 		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -677,7 +677,7 @@ public class MailBackendImplTest {
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, fittingChanges, itemChanges);
 		
 		control.replay();
 		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -730,7 +730,7 @@ public class MailBackendImplTest {
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1, itemChange2))
 				.build();
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, fittingChanges, itemChanges);
 		
 		control.replay();
 		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -784,7 +784,7 @@ public class MailBackendImplTest {
 		MSEmailChanges itemChanges = MSEmailChanges.builder()
 				.changes(ImmutableList.of(itemChange1))
 				.build();
-		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions.getBodyPreferences(), fittingChanges, itemChanges);
+		expectBuildItemChangesByFetchingMSEmailsData(syncCollectionOptions, fittingChanges, itemChanges);
 		
 		control.replay();
 		DataDelta windowedChanges = testee.getChanged(udr, syncState, syncCollectionRequest, newSyncKey);
@@ -827,7 +827,7 @@ public class MailBackendImplTest {
 		snapshotDao.linkSyncKeyToSnapshot(newSyncKey, snapshotKey);
 		expectLastCall();
 		expect(windowingDao.popNextChanges(eq(windowingKey), eq(windowSize), eq(newSyncKey), isA(EmailChanges.Builder.class))).andReturn(changesBuilder);
-		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, syncCollectionOptions.getBodyPreferences(), fittingChanges))
+		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, syncCollectionOptions, fittingChanges))
 			.andThrow(new EmailViewPartsFetcherException("error"));
 		
 		control.replay();
@@ -870,11 +870,11 @@ public class MailBackendImplTest {
 		}
 	}
 	
-	private void expectBuildItemChangesByFetchingMSEmailsData(List<BodyPreference> bodyPreferences,
+	private void expectBuildItemChangesByFetchingMSEmailsData(SyncCollectionOptions options,
 			WindowingChanges<Email> emailChanges, MSEmailChanges itemChanges)
 					throws EmailViewPartsFetcherException, DaoException {
 		
-		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, bodyPreferences, emailChanges))
+		expect(serverEmailChangesBuilder.fetch(udr, collectionId, collectionPath, options, emailChanges))
 			.andReturn(itemChanges);
 	}
 

@@ -82,6 +82,7 @@ import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AnalysedSyncCollection;
+import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.Device;
@@ -89,9 +90,11 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSAttachement;
+import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MethodAttachment;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionCommandRequest;
@@ -111,8 +114,10 @@ import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
 import org.obm.push.bean.change.item.ItemDeletion;
 import org.obm.push.bean.ms.MSEmail;
+import org.obm.push.bean.ms.MSEmailBody;
 import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.exception.DaoException;
+import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.protocol.bean.ClientSyncRequest;
 import org.obm.push.protocol.bean.CollectionId;
@@ -840,15 +845,22 @@ public class SyncHandlerWithBackendTest {
 	}
 
 	private void initializeEmptySnapshotForSyncKey(SyncKey firstAllocatedSyncKey) throws SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException, NotSupportedException {
+		initializeSnapshot(firstAllocatedSyncKey, Snapshot.builder()
+			.uidNext(1l)
+			.filterType(FilterType.THREE_DAYS_BACK).build());
+	}
+
+
+	private void initializeSnapshot(SyncKey firstAllocatedSyncKey, Snapshot snapshot)
+			throws NotSupportedException, SystemException, RollbackException,
+			HeuristicMixedException, HeuristicRollbackException {
 		transactionProvider.get().begin();
 		snapshotDao.put(
 			SnapshotKey.builder()
 				.syncKey(firstAllocatedSyncKey)
 				.collectionId(inboxCollectionId)
 				.deviceId(user.deviceId).build(),
-			Snapshot.builder()
-				.uidNext(1l)
-				.filterType(FilterType.THREE_DAYS_BACK).build());
+			snapshot);
 		transactionProvider.get().commit();
 	}
 	
@@ -1935,7 +1947,7 @@ public class SyncHandlerWithBackendTest {
 	}
 
 	@Test
-	public void syncShouldRespectTruncationSize() throws Exception {
+	public void addInSyncShouldNotHaveBodyWhenTextBodyPreferenceButAttachmentsOnly() throws Exception {
 		testUtils.appendToINBOX(greenMailUser, "eml/only_attachments.eml");
 		
 		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
@@ -1946,7 +1958,7 @@ public class SyncHandlerWithBackendTest {
 				.id(3)
 				.build();
 		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
+				.syncDate(date("2012-10-10T16:22:53Z"))
 				.syncKey(secondAllocatedSyncKey)
 				.id(4)
 				.build();
@@ -1965,64 +1977,21 @@ public class SyncHandlerWithBackendTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		SyncResponse response = opClient.run(syncBuilder
-			.device(user.device)
 			.request(ClientSyncRequest.builder()
 				.addCollection(AnalysedSyncCollection.builder()
-						.collectionId(inboxCollectionId)
-						.syncKey(firstAllocatedSyncKey)
-						.options(SyncCollectionOptions.builder()
-								.filterType(FilterType.ONE_WEEK_BACK)
-								.truncation(200000)
-								.build())
-						.build())
-				.build())
-			.build());
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		assertThat(mail.getBody().isTruncated()).isTrue();
-	}
-	
-	@Test
-	public void syncShouldRespectContentDisposition() throws Exception {
-		testUtils.appendToINBOX(greenMailUser, "eml/only_attachments.eml");
-		
-		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
-		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
-		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-		
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.run(syncBuilder
-			.request(ClientSyncRequest.builder().addCollection(
-				AnalysedSyncCollection.builder()
 					.collectionId(inboxCollectionId)
 					.syncKey(firstAllocatedSyncKey)
+					.windowSize(25)
 					.options(SyncCollectionOptions.builder()
-							.filterType(FilterType.ONE_WEEK_BACK)
-							.truncation(200000)
-							.build())
+						.filterType(FilterType.ONE_WEEK_BACK)
+						.mimeSupport(MimeSupport.NEVER)
+						.mimeTruncation(1)
+						.bodyPreferences(ImmutableList.of(BodyPreference.builder()
+							.allOrNone(false)
+							.bodyType(MSEmailBodyType.PlainText)
+							.truncationSize(500)
+							.build()))
+						.build())
 					.build())
 				.build())
 			.build());
@@ -2031,5 +2000,80 @@ public class SyncHandlerWithBackendTest {
 		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
 		assertThat(mail.getAttachments()).hasSize(2);
+		assertThat(mail.getBody()).isEqualTo(MSEmailBody.builder()
+				.estimatedDataSize(0)
+				.truncated(false)
+				.bodyType(MSEmailBodyType.PlainText)
+				.mimeData(null)
+				.build());
+	}
+	
+	@Test
+	public void fetchInSyncShouldNotTruncateBodyWhenMimeAskedButAttachmentsOnly() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/only_attachments.eml");
+		
+		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
+		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
+				.syncKey(firstAllocatedSyncKey)
+				.id(3)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53Z"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(4)
+				.build();
+		
+		initializeSnapshot(firstAllocatedSyncKey, Snapshot.builder()
+				.uidNext(3)
+				.filterType(FilterType.ONE_WEEK_BACK)
+				.addEmail(Email.builder().uid(1l).build())
+				.build());
+		
+		ServerId emailServerId = inboxCollectionId.serverId(1);
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
+
+		expect(collectionDao.findItemStateForKey(firstAllocatedSyncKey)).andReturn(firstAllocatedState);
+		expect(collectionDao.updateState(user.device, inboxCollectionId, secondAllocatedSyncKey, firstAllocatedState.getSyncDate()))
+				.andReturn(secondAllocatedState);
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		SyncResponse response = opClient.run(syncBuilder
+			.request(ClientSyncRequest.builder()
+				.addCollection(AnalysedSyncCollection.builder()
+					.collectionId(inboxCollectionId)
+					.syncKey(firstAllocatedSyncKey)
+					.windowSize(25)
+					.changes(false)
+					.options(SyncCollectionOptions.builder()
+						.filterType(FilterType.ONE_WEEK_BACK)
+						.mimeSupport(MimeSupport.ALWAYS)
+						.bodyPreferences(ImmutableList.of(BodyPreference.builder()
+							.allOrNone(false)
+							.bodyType(MSEmailBodyType.MIME)
+							.truncationSize(5)
+							.build()))
+						.build())
+					.command(SyncCollectionCommandRequest.builder()
+						.type(SyncCommand.FETCH)
+						.serverId(emailServerId).build())
+					.build())
+				.build())
+			.build());
+		mocksControl.verify();
+
+		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
+		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemFetchs()).getData();
+		assertThat(mail.getAttachments()).hasSize(2);
+		MSEmailBody body = mail.getBody();
+		assertThat(body.getEstimatedDataSize()).isEqualTo(299831);
+		assertThat(body.isTruncated()).isFalse();
+		assertThat(body.getBodyType()).isEqualTo(MSEmailBodyType.MIME);
+		assertThat(CharStreams.toString(new InputStreamReader(body.getMimeData().get(), Charsets.UTF_8))).contains("Received: from");
 	}
 }

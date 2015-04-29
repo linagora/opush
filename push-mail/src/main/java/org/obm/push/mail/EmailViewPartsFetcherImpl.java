@@ -47,6 +47,7 @@ import net.fortuna.ical4j.model.property.Organizer;
 import org.apache.commons.io.IOUtils;
 import org.obm.icalendar.ICalendar;
 import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.EmailViewBuildException;
@@ -77,6 +78,10 @@ import com.google.common.io.ByteStreams;
 public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(EmailViewPartsFetcherImpl.class);
+
+	private static final int NO_BODY_SIZE = 0;
+	private static final BodyPreference NO_BODY_DEFAULT_PREFERENCE = 
+		BodyPreference.builder().bodyType(MSEmailBodyType.PlainText).allOrNone(false).truncationSize(NO_BODY_SIZE).build();
 
 	private final TransformersFactory transformersFactory;
 	private final MailboxService mailboxService;
@@ -109,8 +114,10 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 			FetchInstruction fetchInstruction = getFetchInstruction(bodyPreferencePolicy, mimeMessage);
 			if (fetchInstruction != null) {
 				fetchBody(emailViewBuilder, fetchInstruction, uid);
-				fetchAttachments(emailViewBuilder, fetchInstruction, uid);
+			} else {
+				configureAsNoBody(emailViewBuilder);
 			}
+			fetchAttachments(emailViewBuilder, mimeMessage, uid);
 			fetchInvitation(emailViewBuilder, mimeMessage, uid, emailViewResponse);
 			
 			return emailViewBuilder.build();
@@ -167,6 +174,13 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 		emailViewBuilder.charset(fetchInstruction.getMimePart().getCharset());
 	}
 
+	private void configureAsNoBody(Builder emailViewBuilder) {
+		BodyPreference preference = Iterables.getFirst(bodyPreferences, NO_BODY_DEFAULT_PREFERENCE);
+		emailViewBuilder.bodyType(preference.getType());
+		emailViewBuilder.estimatedDataSize(NO_BODY_SIZE);
+		emailViewBuilder.truncated(false);
+	}
+
 	private Charset transformationCharset(MimePart mimePart) {
 		try {
 			String charset = mimePart.getCharset();
@@ -218,8 +232,8 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 		return Optional.of(fetchInstruction.getTruncation().longValue());
 	}
 	
-	@VisibleForTesting void fetchAttachments(Builder emailViewBuilder, FetchInstruction fetchInstruction, long uid) {
-		MimePart parentMessage = fetchInstruction.getMimePart().findRootMimePartInTree();
+	@VisibleForTesting void fetchAttachments(Builder emailViewBuilder, MimeMessage mimeMessage, long uid) {
+		MimePart parentMessage = mimeMessage.findRootMimePartInTree();
 		Collection<MimePart> children = parentMessage.listLeaves(true, true);
 		if (isCalendarOperation(children)) {
 			return;

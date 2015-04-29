@@ -69,6 +69,7 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSAttachementData;
 import org.obm.push.bean.MSEmailBodyType;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
 import org.obm.push.bean.SnapshotKey;
@@ -288,7 +289,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		
 		MailboxPath path = folder.getTypedBackendId();
 		MSEmailChanges serverItemChanges = emailChangesFetcher.fetch(udr, collection.getCollectionId(),
-				path, collection.getOptions().getBodyPreferences(), pendingChanges);
+				path, collection.getOptions(), pendingChanges);
 		
 		return DataDelta.builder()
 				.changes(serverItemChanges.getItemChanges())
@@ -329,14 +330,14 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	}
 
 	private List<ItemChange> fetchItems(UserDataRequest udr, Folder folder, Collection<Long> uids, 
-			List<BodyPreference> bodyPreferences) throws CollectionNotFoundException, ProcessingEmailException {
+			SyncCollectionOptions options) throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
 			Builder<ItemChange> ret = ImmutableList.builder();
 			MailboxPath path = folder.getTypedBackendId();
 			
-			List<UidMSEmail> emails = 
-					msEmailFetcher.fetch(udr, folder.getCollectionId(), path, uids, bodyPreferences);
+			List<UidMSEmail> emails = msEmailFetcher.fetch(
+					udr, folder.getCollectionId(), path, uids, options.getBodyPreferences(), options.getMimeSupport());
 			
 			for (UidMSEmail email: emails) {
 				ItemChange ic = ItemChange.builder()
@@ -559,15 +560,25 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			MailboxPath path, Long uid) throws EmailViewPartsFetcherException {
 		
 		ImmutableMap.Builder<MSEmailBodyType, EmailView> emailViews = ImmutableMap.builder();
-		try {
-			emailViews.put(MSEmailBodyType.HTML, fetchBodyType(udr, collectionId, path, uid, MSEmailBodyType.HTML));
-		} catch (EmailViewBuildException e) {
-			try {
-				emailViews.put(MSEmailBodyType.PlainText, fetchBodyType(udr, collectionId, path, uid, MSEmailBodyType.PlainText));
-			} catch (EmailViewBuildException e2) {
-			}
+		if (!tryToPutViewForType(udr, collectionId, path, uid, emailViews, MSEmailBodyType.HTML)) {
+			tryToPutViewForType(udr, collectionId, path, uid, emailViews, MSEmailBodyType.PlainText);
 		}
 		return emailViews.build();
+	}
+
+	private boolean tryToPutViewForType(UserDataRequest udr, CollectionId collectionId, MailboxPath path, Long uid,
+			ImmutableMap.Builder<MSEmailBodyType, EmailView> emailViews, MSEmailBodyType type) throws EmailViewPartsFetcherException {
+		
+		try {
+			EmailView view = fetchBodyType(udr, collectionId, path, uid, type);
+			if (view.getBodyMimePartData().isPresent()) {
+				emailViews.put(type, view);
+				return true;
+			}
+		} catch (EmailViewBuildException e) {
+			logger.debug("Cannot get view for body type " + type, e);
+		}
+		return false;
 	}
 
 	private EmailView fetchBodyType(UserDataRequest udr, CollectionId collectionId, MailboxPath path, Long uid, MSEmailBodyType bodyType)
@@ -688,7 +699,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Long uid = getEmailUidFromServerId(serverId);
 			Set<Long> uids = new HashSet<Long>();
 			uids.add(uid);
-			List<UidMSEmail> emails = msEmailFetcher.fetch(udr, collectionId, path, uids, null);
+			List<UidMSEmail> emails = msEmailFetcher.fetch(udr, collectionId, path, uids, null, Optional.<MimeSupport>absent());
 			if (emails.size() > 0) {
 				return emails.get(0);
 			}
@@ -840,7 +851,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Folder folder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
 			for (Entry<CollectionId, Collection<Long>> entry : emailUids.entrySet()) {
 				Collection<Long> uids = entry.getValue();
-				fetchs.addAll(fetchItems(udr, folder, uids, collectionOptions.getBodyPreferences()));
+				fetchs.addAll(fetchItems(udr, folder, uids, collectionOptions));
 			}
 		} catch (CollectionNotFoundException e) {
 			logger.error("fetchItems : collection {} not found !", collectionId);

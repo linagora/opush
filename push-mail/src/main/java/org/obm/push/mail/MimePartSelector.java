@@ -48,13 +48,13 @@ public class MimePartSelector {
 	
 	private final BodyPreferencePolicy bodyPreferencePolicy;
 	private final List<BodyPreference> bodyPreferences;
-
+	
 	public MimePartSelector(BodyPreferencePolicy bodyPreferencePolicy, List<BodyPreference> bodyPreferences) {
 		this.bodyPreferencePolicy = bodyPreferencePolicy;
 		this.bodyPreferences = bodyPreferences;
 	}
 	
-	public FetchInstruction select(MimeMessage mimeMessage) {
+	public FetchInstruction select(final MimeMessage mimeMessage) {
 		logger.debug("BodyPreferences {} MimeMessage {}", bodyPreferences, mimeMessage.getMimePart());
 		
 		List<BodyPreference> safeBodyPreferences = bodyPreferencePolicy.bodyPreferencesMatchingPolicy(bodyPreferences);
@@ -108,11 +108,15 @@ public class MimePartSelector {
 	}
 	
 	private FetchInstruction buildFetchInstruction(FetchInstruction.Builder instruction, MimePart mimePart, BodyPreference bodyPreference) {
-		return instruction
-			.mimePart(mimePart)
-			.truncation(bodyPreference.getTruncationSize())
-			.bodyType(bodyPreference.getType())
-			.build();
+		instruction.mimePart(mimePart).bodyType(bodyPreference.getType());
+		if (isContentType(bodyPreference)) {
+			return instruction.truncation(bodyPreference.getTruncationSize()).build();
+		} else {
+			// MIME type should not be truncated
+			// 2.2.1.19.1.22 : Note that for the FETCH case, the complete MIME data 
+			// of the message is returned to the client regardless of any MIMETruncation option
+			return instruction.build();
+		}
 	}
 	
 	private boolean isContentType(BodyPreference bodyPreference) {

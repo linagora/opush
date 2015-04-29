@@ -129,6 +129,22 @@ public class MimePartSelectorTest {
 	
 		assertThat(instruction.getMimePart()).isNotNull().isSameAs(mimeMessage);
 	}
+	
+	@Test
+	public void selectPlainTextShouldReturnMimeWhenAlwaysMime() {
+		MimePart expectedMimePart = MimePartImpl.builder().contentType("text/plain").build();
+	
+		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
+		expect(mimeMessage.getMimePart()).andReturn(expectedMimePart);
+	
+		control.replay();
+		MimePartSelector testee = new MimePartSelector(new StrictMatchBodyPreferencePolicy(),
+				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.MIME));
+		FetchInstruction instruction = testee.select(mimeMessage);
+		control.verify();
+	
+		assertThat(instruction.getMimePart()).isSameAs(mimeMessage);
+	}
 
 	@Test
 	public void testSelectEmptyBodyPreferencesTextPlain() {
@@ -214,7 +230,7 @@ public class MimePartSelectorTest {
 	
 		assertThat(instruction.getMimePart()).isSameAs(mimeMessage);
 		assertThat(instruction.getBodyType()).isEqualTo(MSEmailBodyType.MIME);
-		assertThat(instruction.getTruncation()).isEqualTo(32*1024);
+		assertThat(instruction.getTruncation()).isNull();
 	}
 	
 	@Test
@@ -477,7 +493,7 @@ public class MimePartSelectorTest {
 	}
 
 	@Test
-	public void testSelectMimeStrictBodyPreference() {
+	public void testSelectMimeStrictBodyPreferenceShouldDiscardTruncation() {
 		MimePart expectedMimePart = MimePartImpl.builder().contentType("text/plain").build();
 	
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
@@ -485,11 +501,12 @@ public class MimePartSelectorTest {
 	
 		control.replay();
 		MimePartSelector testee = new MimePartSelector(new StrictMatchBodyPreferencePolicy(), 
-				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.MIME));
+			Lists.newArrayList(BodyPreference.builder().bodyType(MSEmailBodyType.MIME).truncationSize(5).build()));
 		FetchInstruction instruction = testee.select(mimeMessage);
 		control.verify();
 	
 		assertThat(instruction.getMimePart()).isNotNull().isSameAs(mimeMessage);
+		assertThat(instruction.getTruncation()).isNull();
 	}
 
 	@Test

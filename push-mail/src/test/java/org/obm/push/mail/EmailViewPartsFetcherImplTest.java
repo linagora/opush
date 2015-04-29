@@ -32,6 +32,7 @@
 package org.obm.push.mail;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -62,7 +63,6 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.User;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
-import org.obm.push.exception.EmailViewBuildException;
 import org.obm.push.exception.EmailViewPartsFetcherException;
 import org.obm.push.exception.MailException;
 import org.obm.push.mail.bean.Address;
@@ -645,21 +645,16 @@ public class EmailViewPartsFetcherImplTest {
 		MimePart multipartLeaf = MimePartImpl.builder().contentType(contentType).build();
 		int multipartLeafIndex = 5;
 
-		MimePart parentMimePart = control.createMock(MimePart.class);
-		expect(parentMimePart.findRootMimePartInTree()).andReturn(parentMimePart);
-		expect(parentMimePart.listLeaves(true, true)).andReturn(ImmutableList.of(multipartLeaf)).anyTimes();
-		multipartLeaf.defineParent(parentMimePart, multipartLeafIndex);
-		
-		FetchInstruction fetchInstruction = FetchInstruction.builder()
-			.mimePart(parentMimePart)
-			.mailTransformation(MailTransformation.NONE)
-			.build();
+		MimeMessage parentMimeMessage = control.createMock(MimeMessage.class);
+		expect(parentMimeMessage.findRootMimePartInTree()).andReturn(parentMimeMessage);
+		expect(parentMimeMessage.listLeaves(true, true)).andReturn(ImmutableList.of(multipartLeaf)).anyTimes();
+		multipartLeaf.defineParent(parentMimeMessage, multipartLeafIndex);
 		
 		EmailViewPartsFetcherImpl partsFetcher = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, CollectionId.of(16));
 		
 		control.replay();
 		long messageUid = 1l;
-		partsFetcher.fetchAttachments(shouldGetEmptyAttachmentListViewBuilder, fetchInstruction, messageUid);
+		partsFetcher.fetchAttachments(shouldGetEmptyAttachmentListViewBuilder, parentMimeMessage, messageUid);
 		
 		control.verify();
 	}
@@ -713,11 +708,10 @@ public class EmailViewPartsFetcherImplTest {
 		EmailView.Builder emailViewBuilder = control.createMock(EmailView.Builder.class);
 		expect(emailViewBuilder.attachments(Lists.newArrayList(expectedAttachment))).andReturn(emailViewBuilder);
 
-		FetchInstruction fetchInstruction = FetchInstruction.builder().mimePart(message).build();
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = new EmailViewPartsFetcherImpl(identityMailTransformerFactory(), null, null, null, null, attachmentCollection);
 		
 		control.replay();
-		emailViewPartsFetcherImpl.fetchAttachments(emailViewBuilder, fetchInstruction, attachmentMailUid);
+		emailViewPartsFetcherImpl.fetchAttachments(emailViewBuilder, message, attachmentMailUid);
 		
 		control.verify();
 	}
@@ -1083,18 +1077,18 @@ public class EmailViewPartsFetcherImplTest {
 		assertThat(emailView.getBodyType()).isEqualTo(MSEmailBodyType.RTF);
 	}
 	
-	@Test(expected=EmailViewBuildException.class)
+	@Test
 	public void testFetch() throws Exception {
 		messageFixture.bodyType = MSEmailBodyType.PlainText;
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = newFetcherFromExpectedFixture(messageFixtureToMailboxServiceMock(buildEmptyMimeMessageFromFixture()));
 		
 		control.replay();
-		try {
-			emailViewPartsFetcherImpl.fetch(1, new StrictMatchBodyPreferencePolicy());
-		} catch (EmailViewBuildException e) {
-			control.verify();
-			throw e;
-		}
+
+		EmailView emailView = emailViewPartsFetcherImpl.fetch(1, new StrictMatchBodyPreferencePolicy());
+	
+		control.verify();
+		assertThat(emailView.getBodyType()).isEqualTo(MSEmailBodyType.PlainText);
+		assertThat(emailView.getBodyMimePartData()).isAbsent();
 	}
 
 	private MimeMessage buildEmptyMimeMessageFromFixture() {

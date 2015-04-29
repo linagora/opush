@@ -31,9 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
-import java.util.List;
-
-import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.WindowingChanges;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
@@ -47,7 +45,7 @@ public interface EmailChangesFetcher {
 
 	MSEmailChanges fetch(UserDataRequest udr,
 			CollectionId collectionId, MailboxPath path,
-			List<BodyPreference> bodyPreferences, WindowingChanges<Email> emailChanges)
+			SyncCollectionOptions options, WindowingChanges<Email> emailChanges)
 					throws EmailViewPartsFetcherException, DaoException;
 	
 }

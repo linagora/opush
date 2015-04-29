@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.obm.icalendar.ICalendar;
 import org.obm.push.bean.BodyPreference;
+import org.obm.push.bean.MimeSupport;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.ms.UidMSEmail;
@@ -50,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -72,15 +74,16 @@ public class MSEmailFetcher {
 	}
 
 	public List<UidMSEmail> fetch(UserDataRequest udr, CollectionId collectionId, MailboxPath path,
-			Collection<Long> uids, List<BodyPreference> bodyPreferences) throws EmailViewPartsFetcherException, DaoException {
-		
+			Collection<Long> uids, List<BodyPreference> bodyPreferences, Optional<MimeSupport> mimeSupport)
+				throws EmailViewPartsFetcherException {
+
 		List<UidMSEmail> msEmails  = Lists.newLinkedList();
-		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
-				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, bodyPreferences, udr, path, collectionId);
+		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = new EmailViewPartsFetcherImpl(transformersFactory, 
+				mailboxService, bodyPreferences, udr, path, collectionId);
 		
 		for (Long uid: uids) {
 			try {
-				EmailView emailView = emailViewPartsFetcherImpl.fetch(uid, new AnyMatchBodyPreferencePolicy());
+				EmailView emailView = emailViewPartsFetcherImpl.fetch(uid, getMatchingPolicy(mimeSupport));
 				msEmails.add(msEmailConverter.convert(emailView, udr));
 			} catch (EmailViewBuildException e) {
 				logger.error(e.getMessage(), e);
@@ -91,9 +94,16 @@ public class MSEmailFetcher {
 		return msEmails;
 	}
 
+	private BodyPreferencePolicy getMatchingPolicy(Optional<MimeSupport> mimeSupport) {
+		if (mimeSupport.isPresent()) {
+			return new StrictMatchBodyPreferencePolicy();
+		}
+		return new AnyMatchBodyPreferencePolicy();
+	}
+
 	public ICalendar fetchInvitation(UserDataRequest udr, CollectionId collectionId, MailboxPath path, Long uid) throws EmailViewPartsFetcherException, DaoException {
-		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = 
-				new EmailViewPartsFetcherImpl(transformersFactory, mailboxService, null, udr, path, collectionId);
+		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = new EmailViewPartsFetcherImpl(transformersFactory, 
+				mailboxService, null, udr, path, collectionId);
 		
 		return emailViewPartsFetcherImpl.fetchInvitation(uid);
 	}

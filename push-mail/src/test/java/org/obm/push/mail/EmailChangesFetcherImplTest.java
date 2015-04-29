@@ -45,6 +45,7 @@ import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.MSAddress;
 import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
+import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.bean.change.item.ItemChange;
@@ -73,6 +74,7 @@ public class EmailChangesFetcherImplTest {
 	private MSEmailFetcher msEmailFetcher;
 	private List<BodyPreference> bodyPreferences;
 	private MailboxPath path;
+	private SyncCollectionOptions options;
 
 	@Before
 	public void setUp() {
@@ -80,6 +82,7 @@ public class EmailChangesFetcherImplTest {
 		udr = new UserDataRequest(null,  null, null);
 		bodyPreferences = ImmutableList.<BodyPreference>of();
 		path = MailboxPath.of("box");
+		options = SyncCollectionOptions.builder().bodyPreferences(bodyPreferences).build();
 
 		mocks = createControl();
 		msEmailFetcher = mocks.createMock(MSEmailFetcher.class); 
@@ -89,7 +92,7 @@ public class EmailChangesFetcherImplTest {
 	public void onNullChanges() throws Exception {
 		mocks.replay();
 		new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-				udr, collectionId, path, bodyPreferences, null);
+				udr, collectionId, path, options, null);
 	}
 	
 	@Test
@@ -99,7 +102,7 @@ public class EmailChangesFetcherImplTest {
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemChanges()).isEmpty();
@@ -133,13 +136,13 @@ public class EmailChangesFetcherImplTest {
 					.build())
 				.build();
 		
-		expect(msEmailFetcher.fetch(udr, collectionId, path, ImmutableList.of(33l), bodyPreferences))
+		expect(msEmailFetcher.fetch(udr, collectionId, path, ImmutableList.of(33l), bodyPreferences, options.getMimeSupport()))
 			.andReturn(ImmutableList.of(emailChangesData));
 		
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemDeletions()).isEmpty();
@@ -200,13 +203,14 @@ public class EmailChangesFetcherImplTest {
 					.build())
 				.build();
 		
-		expect(msEmailFetcher.fetch(udr, collectionId, path, ImmutableList.of(156l, 33l), bodyPreferences))
+		expect(msEmailFetcher.fetch(
+				udr, collectionId, path, ImmutableList.of(156l, 33l), bodyPreferences, options.getMimeSupport()))
 			.andReturn(ImmutableList.of(email1ChangeData, email2ChangeData));
 		
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemDeletions()).isEmpty();
@@ -233,7 +237,7 @@ public class EmailChangesFetcherImplTest {
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemDeletions()).isEmpty();
@@ -256,7 +260,7 @@ public class EmailChangesFetcherImplTest {
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemDeletions()).isEmpty();
@@ -283,7 +287,7 @@ public class EmailChangesFetcherImplTest {
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemChanges()).isEmpty();
@@ -304,7 +308,7 @@ public class EmailChangesFetcherImplTest {
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemChanges()).isEmpty();
@@ -347,13 +351,13 @@ public class EmailChangesFetcherImplTest {
 							.build())
 					.build())
 				.build();
-		expect(msEmailFetcher.fetch(udr, collectionId, path, ImmutableList.of(15l), bodyPreferences))
+		expect(msEmailFetcher.fetch(udr, collectionId, path, ImmutableList.of(15l), bodyPreferences, options.getMimeSupport()))
 			.andReturn(ImmutableList.of(emailAddedData));
 		
 		mocks.replay();
 		MSEmailChanges result = 
 				new EmailChangesFetcherImpl(msEmailFetcher).fetch(
-						udr, collectionId, path, bodyPreferences, emailChanges);
+						udr, collectionId, path, options, emailChanges);
 		mocks.verify();
 		
 		assertThat(result.getItemChanges()).containsOnly(
