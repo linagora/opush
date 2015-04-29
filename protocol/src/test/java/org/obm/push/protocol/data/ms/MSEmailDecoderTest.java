@@ -528,4 +528,28 @@ public class MSEmailDecoderTest {
 		
 		assertThat(email.getAttachments()).containsOnly(expectedAttachmentOne, expectedAttachmentTwo);
 	}
+
+	@Test
+	public void parseEstimatedDataSizeWhenAttachmentAndBody() throws Exception {
+		Document doc = DOMUtils.parse(
+				"<ApplicationData>" +
+					"<From> &lt;from@thilaire.lng.org&gt;, &lt;from2@thilaire.lng.org&gt; </From>" +
+					"<To> &lt;to@thilaire.lng.org&gt;, &lt;to2@thilaire.lng.org&gt; </To>" +
+					"<Subject>email subject</Subject>" +
+					"<Attachments>" +
+						"<Attachment>" +
+							"<EstimatedDataSize>38260</EstimatedDataSize>" +
+						"</Attachment>" +
+					"</Attachments>" +
+					"<Body>" +
+						"<Type>2</Type>" +
+						"<EstimatedDataSize>930</EstimatedDataSize>" +
+						"<Truncated>1</Truncated>" +
+						"<Data>Email data</Data>" +
+					"</Body>"+
+				"</ApplicationData>");
+
+		MSEmail email= decoder.decode(doc.getDocumentElement());
+		assertThat(email.getBody().getEstimatedDataSize()).isEqualTo(930);
+	}
 }

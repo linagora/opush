@@ -94,7 +94,7 @@ public class MSEmailDecoder extends ActiveSyncDecoder implements IDataDecoder {
 						.replyTo(addresses(uniqueStringFieldValue(data, ASEmail.REPLY_TO)))
 						.date(date(uniqueStringFieldValue(data, ASEmail.DATE_RECEIVED)))
 						.build())
-				.body(msEmailBody(data))
+				.body(msEmailBody(DOMUtils.getUniqueElement(data, ASAirs.BODY.getName())))
 				.importance(MSImportance.fromSpecificationValue(uniqueStringFieldValue(data, ASEmail.IMPORTANCE)))
 				.messageClass(MSMessageClass.fromSpecificationValue(uniqueStringFieldValue(data, ASEmail.MESSAGE_CLASS)))
 				.read(uniqueBooleanFieldValue(data, ASEmail.READ, false))
@@ -141,21 +141,25 @@ public class MSEmailDecoder extends ActiveSyncDecoder implements IDataDecoder {
 		return null;
 	}
 
-	@VisibleForTesting MSEmailBody msEmailBody(Element data) {
-		Builder bodyBuilder = MSEmailBody.builder()
-				.bodyType(MSEmailBodyType.getValueOf(uniqueIntegerFieldValue(data, ASAirs.TYPE)));
+	@VisibleForTesting MSEmailBody msEmailBody(Element body) {
+		if (body == null) {
+			return MSEmailBody.builder().build();
+		}
 		
-		Integer estimatedDataSize = uniqueIntegerFieldValue(data, ASAirs.ESTIMATED_DATA_SIZE);
+		Builder bodyBuilder = MSEmailBody.builder()
+				.bodyType(MSEmailBodyType.getValueOf(uniqueIntegerFieldValue(body, ASAirs.TYPE)));
+		
+		Integer estimatedDataSize = uniqueIntegerFieldValue(body, ASAirs.ESTIMATED_DATA_SIZE);
 		if (estimatedDataSize != null) {
 			bodyBuilder.estimatedDataSize(estimatedDataSize);
 		}
 		
-		Boolean truncated = uniqueBooleanFieldValue(data, ASAirs.TRUNCATED);
+		Boolean truncated = uniqueBooleanFieldValue(body, ASAirs.TRUNCATED);
 		if (truncated != null) {
 			bodyBuilder.truncated(truncated);
 		}
 		
-		String mimeData = uniqueStringFieldValue(data, ASAirs.DATA);
+		String mimeData = uniqueStringFieldValue(body, ASAirs.DATA);
 		if (mimeData != null) {
 			bodyBuilder.mimeData(Optional.of(new SerializableInputStream(mimeData)));
 		}
