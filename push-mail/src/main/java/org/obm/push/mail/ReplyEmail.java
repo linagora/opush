@@ -136,9 +136,9 @@ public class ReplyEmail extends SendEmail {
 	
 	@VisibleForTesting String getBodyValue(MSEmailBodyType bodyType, Map<MSEmailBodyType, EmailView> originMails) throws UnsupportedEncodingException, IOException {
 		EmailView originalPlainTextEmail = originMails.get(bodyType);
-		if (originalPlainTextEmail != null) {
+		if (originalPlainTextEmail != null && originalPlainTextEmail.getBodyMimePartData().isPresent()) {
 			String charset = Objects.firstNonNull(originalPlainTextEmail.getCharset(), DEFAULT_CHARSET.name());
-			return CharStreams.toString(new InputStreamReader(originalPlainTextEmail.getBodyMimePartData(), charset));
+			return CharStreams.toString(new InputStreamReader(originalPlainTextEmail.getBodyMimePartData().get(), charset));
 		}
 		return null;
 	}

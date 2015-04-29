@@ -37,7 +37,6 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
-import java.io.ByteArrayInputStream;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -256,7 +255,7 @@ public class MailBackendHandlerTest {
 		return MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream(message.getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream(message)))
 					.bodyType(emailBodyType)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

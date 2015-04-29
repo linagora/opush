@@ -42,6 +42,7 @@ import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 
 public class MSEmailBody implements Serializable {
 
@@ -51,17 +52,15 @@ public class MSEmailBody implements Serializable {
 	
 	public static class Builder {
 
-		private SerializableInputStream mimeData;
+		private Optional<SerializableInputStream> mimeData;
 		private MSEmailBodyType bodyType;
 		private int estimatedDataSize;
 		private Charset charset;
 		private boolean truncated;
 		
-		private Builder() {
-			super();
-		}
+		private Builder() {}
 
-		public Builder mimeData(SerializableInputStream mimeData) {
+		public Builder mimeData(Optional<SerializableInputStream> mimeData) {
 			this.mimeData = mimeData;
 			return this;
 		}
@@ -88,19 +87,21 @@ public class MSEmailBody implements Serializable {
 		
 		public MSEmailBody build() {
 			Charset charset = Objects.firstNonNull(this.charset, Charsets.UTF_8);
-			return new MSEmailBody(mimeData, bodyType, estimatedDataSize, charset, truncated);
+			return new MSEmailBody(
+				Objects.firstNonNull(mimeData, Optional.<SerializableInputStream>absent()), 
+				bodyType, estimatedDataSize, charset, truncated);
 		}
 	}
 	
 	private static final long serialVersionUID = -1451600272523495944L;
 	
-	private SerializableInputStream mimeData;
+	private Optional<SerializableInputStream> mimeData;
 	private MSEmailBodyType bodyType;
 	private int estimatedDataSize;
 	private Charset charset;
 	private boolean truncated;
 	
-	private MSEmailBody(SerializableInputStream mimeData, MSEmailBodyType bodyType, 
+	private MSEmailBody(Optional<SerializableInputStream> mimeData, MSEmailBodyType bodyType, 
 			int estimatedDataSize, Charset charset, boolean truncated) {
 		
 		this.mimeData = mimeData;
@@ -110,7 +111,7 @@ public class MSEmailBody implements Serializable {
 		this.truncated = truncated;
 	}
 	
-	public SerializableInputStream getMimeData() {
+	public Optional<SerializableInputStream> getMimeData() {
 		return mimeData;
 	}
 
@@ -157,7 +158,7 @@ public class MSEmailBody implements Serializable {
 			.add("truncated", truncated)
 			.toString();
 	}
-	
+
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		out.writeObject(mimeData);
 		out.writeObject(bodyType);
@@ -165,12 +166,14 @@ public class MSEmailBody implements Serializable {
 		out.writeUTF(charset.name());
 		out.writeObject(truncated);
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		mimeData = (SerializableInputStream) in.readObject();
+		mimeData = (Optional<SerializableInputStream>) in.readObject();
 		bodyType = (MSEmailBodyType) in.readObject();
 		estimatedDataSize = (Integer) in.readObject();
 		charset = Charset.forName(in.readUTF());
 		truncated = (Boolean) in.readObject();
 	}
+
 }

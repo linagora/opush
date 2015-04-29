@@ -31,8 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.bean.ms;
 
-import java.io.ByteArrayInputStream;
-
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -46,6 +44,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequestInstanceType;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 
 public class MSEmailTest {
@@ -53,15 +52,15 @@ public class MSEmailTest {
 	@Test(expected=IllegalStateException.class)
 	public void testMSEmailBuilderRequireBody() {
 		MSEmail.builder()
-		.header(MSEmailHeader.builder().build())
-		.build();
+			.header(MSEmailHeader.builder().build())
+			.build();
 	}
 
 	@Test(expected=IllegalStateException.class)
 	public void testMSEmailBuilderRequireHeader() {
 		MSEmail.builder()
 				.body(MSEmailBody.builder()
-						.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+						.mimeData(Optional.of(new SerializableInputStream("text")))
 						.bodyType(MSEmailBodyType.PlainText)
 						.estimatedDataSize(0)
 						.charset(Charsets.UTF_8)
@@ -146,7 +145,7 @@ public class MSEmailTest {
 		return MSEmail.builder()
 				.header(MSEmailHeader.builder().build())
 					.body(MSEmailBody.builder()
-							.mimeData(new SerializableInputStream(new ByteArrayInputStream(message.getBytes())))
+							.mimeData(Optional.of(new SerializableInputStream(message)))
 							.bodyType(emailBodyType)
 							.estimatedDataSize(0)
 							.charset(Charsets.UTF_8)

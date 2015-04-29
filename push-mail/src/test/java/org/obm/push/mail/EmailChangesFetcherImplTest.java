@@ -36,7 +36,6 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.obm.DateUtils.date;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import org.easymock.IMocksControl;
@@ -60,6 +59,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -127,7 +127,7 @@ public class EmailChangesFetcherImplTest {
 							.bodyType(MSEmailBodyType.PlainText)
 							.charset(Charsets.UTF_8)
 							.estimatedDataSize(1000)
-							.mimeData(new SerializableInputStream(new ByteArrayInputStream("mail data".getBytes())))
+							.mimeData(Optional.of(new SerializableInputStream("mail data")))
 							.truncated(false)
 							.build())
 					.build())
@@ -174,7 +174,7 @@ public class EmailChangesFetcherImplTest {
 							.bodyType(MSEmailBodyType.PlainText)
 							.charset(Charsets.UTF_8)
 							.estimatedDataSize(1000)
-							.mimeData(new SerializableInputStream(new ByteArrayInputStream("mail data".getBytes())))
+							.mimeData(Optional.of(new SerializableInputStream("mail data")))
 							.truncated(false)
 							.build())
 					.build())
@@ -194,7 +194,7 @@ public class EmailChangesFetcherImplTest {
 							.bodyType(MSEmailBodyType.PlainText)
 							.charset(Charsets.UTF_8)
 							.estimatedDataSize(1000)
-							.mimeData(new SerializableInputStream(new ByteArrayInputStream("mail data2".getBytes())))
+							.mimeData(Optional.of(new SerializableInputStream("mail data2")))
 							.truncated(false)
 							.build())
 					.build())
@@ -342,7 +342,7 @@ public class EmailChangesFetcherImplTest {
 							.bodyType(MSEmailBodyType.HTML)
 							.charset(Charsets.UTF_8)
 							.estimatedDataSize(1000)
-							.mimeData(new SerializableInputStream(new ByteArrayInputStream("mail data2".getBytes())))
+							.mimeData(Optional.of(new SerializableInputStream("mail data2")))
 							.truncated(false)
 							.build())
 					.build())

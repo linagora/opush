@@ -98,6 +98,7 @@ import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
+import org.obm.push.utils.SerializableInputStream;
 import org.obm.push.utils.UserEmailParserUtils;
 
 import com.google.common.base.Charsets;
@@ -233,7 +234,7 @@ public class MailboxBackendTest {
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
-		assertThat(actual.getBody().getMimeData()).hasContentEqualTo(loadEmail("SinglePartBase64.eml"));
+		assertThat(actual.getBody().getMimeData().get()).hasContentEqualTo(loadEmail("SinglePartBase64.eml"));
 	}
 
 	@Ignore("greenmail seems to unexpectedly decode base64 part on-the-fly")
@@ -275,7 +276,7 @@ public class MailboxBackendTest {
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
-		String bodyText = new String(ByteStreams.toByteArray(actual.getBody().getMimeData()), Charsets.UTF_8);
+		String bodyText = new String(ByteStreams.toByteArray(actual.getBody().getMimeData().get()), Charsets.UTF_8);
 		assertThat(bodyText).contains("Envoyé de mon iPhone");
 	}
 	
@@ -345,8 +346,9 @@ public class MailboxBackendTest {
 		mocks.verify();
 		
 		MSEmail actual = (MSEmail) Iterables.getOnlyElement(emails).getData();
-		assertThat(actual.getBody().getMimeData()).hasContentEqualTo(loadEmail("OBMFULL-4123.eml"));
-		actual.getBody().getMimeData().reset();
+		SerializableInputStream emailStream = actual.getBody().getMimeData().get();
+		assertThat(emailStream).hasContentEqualTo(loadEmail("OBMFULL-4123.eml"));
+		emailStream.reset();
 		assertThat(capturedStream.hasCaptured()).isTrue();
 		assertThat(capturedStream.getValue()).hasContentEqualTo(loadEmail("OBMFULL-4123.eml"));
 	}

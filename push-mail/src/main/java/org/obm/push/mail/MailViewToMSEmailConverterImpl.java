@@ -31,6 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
@@ -39,7 +40,6 @@ import java.util.Set;
 import org.obm.icalendar.ICalendar;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
 import org.obm.push.bean.MSAttachement;
-import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEmailHeader;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.MSMessageClass;
@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -138,11 +139,17 @@ public class MailViewToMSEmailConverterImpl implements MailViewToMSEmailConverte
 
 	private MSEmailBody convertBody(EmailView emailView) {
 		return MSEmailBody.builder()
-				.mimeData(new SerializableInputStream(emailView.getBodyMimePartData()))
 				.estimatedDataSize(emailView.getEstimatedDataSize())
 				.truncated(emailView.isTruncated())
 				.charset(chooseSupportedCharset(emailView.getCharset()))
-				.bodyType(convertContentType(emailView))
+				.bodyType(emailView.getBodyType())
+				.mimeData(emailView.getBodyMimePartData().transform(new Function<InputStream, SerializableInputStream>() {
+					
+					@Override
+					public SerializableInputStream apply(InputStream input) {
+						return new SerializableInputStream(input);
+					}
+				}))
 				.build();
 	}
 
@@ -161,10 +168,6 @@ public class MailViewToMSEmailConverterImpl implements MailViewToMSEmailConverte
 			logger.warn(e.getMessage());
 		}
 		return DEFAULT_CHARSET;
-	}
-	
-	private MSEmailBodyType convertContentType(EmailView emailView) {
-		return emailView.getBodyType();
 	}
 
 	private Set<MSAttachement> convertAttachment(EmailView emailView) {

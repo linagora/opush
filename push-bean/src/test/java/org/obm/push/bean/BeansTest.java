@@ -64,6 +64,7 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestCategory;
 import org.obm.push.bean.msmeetingrequest.MSMeetingRequestRecurrence;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.utils.SerializableInputStream;
 import org.obm.sync.bean.EqualsVerifierUtils;
 import org.obm.sync.bean.EqualsVerifierUtils.EqualsVerifierBuilder;
 
@@ -188,6 +189,7 @@ public class BeansTest {
 		EqualsVerifierBuilder.builder()
 					.equalsVerifiers(list)
 					.hasCharsetField()
+					.prefabValue(Optional.class, Optional.absent(), Optional.of(new SerializableInputStream()))
 					.verify();
 	}
 	
@@ -203,6 +205,7 @@ public class BeansTest {
 					.equalsVerifiers(list)
 					.hasCharsetField()
 					.withSuperClass(true)
+					.prefabValue(Optional.class, Optional.absent(), Optional.of(new SerializableInputStream()))
 					.verify();
 	}
 	

@@ -35,7 +35,6 @@ package org.obm.push.protocol.data;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createMock;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.xml.transform.TransformerException;
@@ -54,6 +53,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
 
@@ -89,7 +89,7 @@ public class MSEmailEncoderTest {
 		return MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream(message.getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream(message)))
 					.bodyType(emailBodyType)
 					.estimatedDataSize(10)
 					.charset(Charsets.UTF_8)
@@ -104,7 +104,7 @@ public class MSEmailEncoderTest {
 		Element root = reply.getDocumentElement();
 		
 		MSEmailBody emailBody = MSEmailBody.builder()
-			.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+			.mimeData(Optional.of(new SerializableInputStream("text")))
 			.bodyType(MSEmailBodyType.PlainText)
 			.estimatedDataSize(10)
 			.charset(Charsets.UTF_8)
@@ -127,7 +127,7 @@ public class MSEmailEncoderTest {
 		Element root = reply.getDocumentElement();
 		
 		MSEmailBody emailBody = MSEmailBody.builder()
-			.mimeData(new SerializableInputStream(new ByteArrayInputStream("<html></html>".getBytes())))
+			.mimeData(Optional.of(new SerializableInputStream("<html></html>")))
 			.bodyType(MSEmailBodyType.HTML)
 			.estimatedDataSize(10)
 			.charset(Charsets.UTF_8)
@@ -156,7 +156,7 @@ public class MSEmailEncoderTest {
 		MSEmail msEmail = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("text")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(10)
 					.charset(Charsets.UTF_8)

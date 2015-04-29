@@ -99,6 +99,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -394,7 +395,7 @@ public class MeetingResponseHandlerTest {
 		return MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream())
+					.mimeData(Optional.of(new SerializableInputStream()))
 					.bodyType(MSEmailBodyType.MIME)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

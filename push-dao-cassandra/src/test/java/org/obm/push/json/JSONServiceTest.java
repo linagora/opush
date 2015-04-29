@@ -33,7 +33,6 @@ package org.obm.push.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
@@ -1127,7 +1126,7 @@ public class JSONServiceTest {
 				.body(MSEmailBody.builder()
 						.charset(Charsets.UTF_8)
 						.bodyType(MSEmailBodyType.PlainText)
-						.mimeData(new SerializableInputStream("content"))
+						.mimeData(Optional.of(new SerializableInputStream("content")))
 						.build())
 				.meetingRequest(MSMeetingRequest.builder()
 						.allDayEvent(true)
@@ -1313,7 +1312,7 @@ public class JSONServiceTest {
 				.body(MSEmailBody.builder()
 						.charset(Charsets.UTF_8)
 						.bodyType(MSEmailBodyType.PlainText)
-						.mimeData(new SerializableInputStream("content"))
+						.mimeData(Optional.of(new SerializableInputStream("content")))
 						.build())
 				.meetingRequest(MSMeetingRequest.builder()
 						.allDayEvent(true)
@@ -1655,7 +1654,7 @@ public class JSONServiceTest {
 						.date(date("2008-02-03T20:37:05Z"))
 						.build())
 				.body(org.obm.push.bean.ms.MSEmailBody.builder()
-						.mimeData(new SerializableInputStream(new ByteArrayInputStream("message".getBytes())))
+						.mimeData(Optional.of(new SerializableInputStream("message")))
 						.bodyType(MSEmailBodyType.PlainText)
 						.estimatedDataSize(0)
 						.charset(Charsets.UTF_8)

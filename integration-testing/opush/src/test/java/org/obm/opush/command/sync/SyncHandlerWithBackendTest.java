@@ -1883,7 +1883,7 @@ public class SyncHandlerWithBackendTest {
 		SyncCollectionResponse firstCollectionResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
 		assertThat(firstCollectionResponse.getItemChanges()).hasSize(1);
 		MSEmail email = (MSEmail) firstCollectionResponse.getItemChanges().get(0).getData();
-		assertThat(CharStreams.toString(new InputStreamReader(email.getBody().getMimeData(), Charsets.UTF_8))).isEqualTo("new message");
+		assertThat(CharStreams.toString(new InputStreamReader(email.getBody().getMimeData().get(), Charsets.UTF_8))).isEqualTo("new message");
 	}
 
 	@Test

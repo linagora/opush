@@ -101,6 +101,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -337,7 +338,7 @@ public class JSONServiceCompatibilityTest {
 						.body(MSEmailBody.builder()
 								.charset(Charsets.UTF_8)
 								.bodyType(MSEmailBodyType.PlainText)
-								.mimeData(new SerializableInputStream("content"))
+								.mimeData(Optional.of(new SerializableInputStream("content")))
 								.build())
 						.meetingRequest(MSMeetingRequest.builder()
 								.allDayEvent(true)

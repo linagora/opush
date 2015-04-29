@@ -41,7 +41,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.obm.push.TestUtils.getXml;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -76,6 +75,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 
 public class ItemOperationsProtocolTest {
@@ -401,7 +401,7 @@ public class ItemOperationsProtocolTest {
 		return MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream(message.getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream(message)))
 					.bodyType(MSEmailBodyType.MIME)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

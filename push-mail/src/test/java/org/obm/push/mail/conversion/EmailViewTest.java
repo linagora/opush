@@ -32,6 +32,7 @@
 package org.obm.push.mail.conversion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.guava.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,15 +99,7 @@ public class EmailViewTest {
 			.bodyMimePartData(anyBodyMimePartData())
 			.uid(155)
 			.bodyType(MSEmailBodyType.PlainText)
-			.build();
-	}
-
-	@Test(expected=EmailViewBuildException.class)
-	public void testBodyMimePartDataRequired() {
-		EmailView.builder().bodyMimePartData(null)
-			.envelope(anyEnvelope())
-			.uid(155)
-			.bodyType(MSEmailBodyType.PlainText)
+			.truncated(false)
 			.build();
 	}
 	
@@ -286,12 +279,38 @@ public class EmailViewTest {
 	}
 	
 	@Test(expected=EmailViewBuildException.class)
-	public void testMimeTypeRequired() {
+	public void testMimeTypeIsRequired() {
 		EmailView.builder()
 			.envelope(anyEnvelope())
 			.bodyMimePartData(anyBodyMimePartData())
 			.uid(155)
+			.truncated(false)
 			.build();
+	}
+	
+	@Test
+	public void testMimeTypeWhenBodyIsPresent() {
+		EmailView view = EmailView.builder()
+			.envelope(anyEnvelope())
+			.uid(155)
+			.truncated(false)
+			.bodyType(MSEmailBodyType.PlainText)
+			.build();
+		
+		assertThat(view.getBodyType()).isEqualTo(MSEmailBodyType.PlainText);
+	}
+
+	@Test
+	public void testBodyMimePartDataIsNotRequired() {
+		EmailView view = EmailView.builder().bodyMimePartData(null)
+			.envelope(anyEnvelope())
+			.uid(155)
+			.truncated(false)
+			.bodyMimePartData(anyBodyMimePartData())
+			.bodyType(MSEmailBodyType.PlainText)
+			.build();
+		
+		assertThat(view.getBodyMimePartData()).isPresent();
 	}
 	
 	@Test(expected=EmailViewBuildException.class)

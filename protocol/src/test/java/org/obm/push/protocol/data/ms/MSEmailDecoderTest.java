@@ -33,7 +33,11 @@
 package org.obm.push.protocol.data.ms;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.*;
+import static org.assertj.guava.api.Assertions.assertThat;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.obm.DateUtils.date;
 
 import java.io.ByteArrayInputStream;
@@ -163,7 +167,7 @@ public class MSEmailDecoderTest {
 		assertThat(body.getBodyType()).isEqualTo(MSEmailBodyType.HTML);
 		assertThat(body.getEstimatedDataSize()).isEqualTo(930);
 		assertThat(body.isTruncated()).isTrue();
-		assertThat(body.getMimeData()).hasContentEqualTo(new ByteArrayInputStream("Email data".getBytes(Charsets.UTF_8)));
+		assertThat(body.getMimeData().get()).hasContentEqualTo(new ByteArrayInputStream("Email data".getBytes(Charsets.UTF_8)));
 	}
 
 	@Test
@@ -222,7 +226,7 @@ public class MSEmailDecoderTest {
 
 		MSEmailBody body = decoder.msEmailBody(doc.getDocumentElement());
 		
-		assertThat(body.getMimeData()).isNull();
+		assertThat(body.getMimeData()).isAbsent();
 	}
 	
 	@Test

@@ -33,7 +33,6 @@ package org.obm.push.bean;
 
 import static org.obm.DateUtils.date;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -56,6 +55,7 @@ import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -155,7 +155,7 @@ public class SerializableTest {
 				.body(MSEmailBody.builder()
 						.charset(Charsets.UTF_8)
 						.bodyType(MSEmailBodyType.PlainText)
-						.mimeData(new SerializableInputStream("content"))
+						.mimeData(Optional.of(new SerializableInputStream("content")))
 						.build())
 				.build();
 		objectOutputStream.writeObject(msEmail);
@@ -166,7 +166,7 @@ public class SerializableTest {
 		 org.obm.push.bean.ms.MSEmail msEmail = org.obm.push.bean.ms.MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(org.obm.push.bean.ms.MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("message".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("message")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -198,7 +198,7 @@ public class SerializableTest {
 		 org.obm.push.bean.ms.MSEmail msEmail = org.obm.push.bean.ms.MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(org.obm.push.bean.ms.MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("message".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("message")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

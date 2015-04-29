@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.protocol.data;
 
-import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -49,6 +48,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 
 public class MSEmailHeaderSerializingTest {
@@ -62,7 +62,7 @@ public class MSEmailHeaderSerializingTest {
 		sdf = new SimpleDateFormat(MSEmailEncoder.UTC_DATE_PATTERN);
 		serializingTest = new SerializingTest();
 		simpleBody = MSEmailBody.builder()
-				.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+				.mimeData(Optional.of(new SerializableInputStream("text")))
 				.bodyType(MSEmailBodyType.PlainText)
 				.estimatedDataSize(0)
 				.charset(Charsets.UTF_8)

@@ -47,10 +47,12 @@ import org.obm.push.bean.msmeetingrequest.MSMeetingRequest;
 import org.obm.push.protocol.bean.ASTimeZone;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.IntEncoder;
+import org.obm.push.utils.SerializableInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.inject.Inject;
@@ -132,11 +134,15 @@ public class MSEmailEncoder {
 	}
 
 	@VisibleForTesting void encodeData(MSEmailBody body, Element bodyElement) throws IOException {
+		Optional<SerializableInputStream> dataStream = body.getMimeData();
+		if (!dataStream.isPresent()) {
+			return;
+		}
+		
 		if (body.getBodyType().isCDataEncoded()) {
-			DOMUtils.createElementAndCDataText(bodyElement, ASAirs.DATA.asASValue(), 
-					body.getMimeData(), body.getCharset());
+			DOMUtils.createElementAndCDataText(bodyElement, ASAirs.DATA.asASValue(), dataStream.get(), body.getCharset());
 		} else {
-			String html = CharStreams.toString(new InputStreamReader(body.getMimeData(), body.getCharset()));
+			String html = CharStreams.toString(new InputStreamReader(dataStream.get(), body.getCharset()));
 			DOMUtils.createElementAndText(bodyElement, ASAirs.DATA.asASValue(), html);
 		}
 	}

@@ -39,7 +39,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
 import static org.obm.push.bean.FilterType.THREE_DAYS_BACK;
 
-import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -614,7 +613,7 @@ public class SyncHandlerTest {
 		return MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream(message.getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream(message)))
 					.bodyType(emailBodyType)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -840,7 +839,7 @@ public class SyncHandlerTest {
 		MSEmail clientData = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("obm")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -890,7 +889,7 @@ public class SyncHandlerTest {
 		MSEmail clientData = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("obm")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -937,7 +936,7 @@ public class SyncHandlerTest {
 		MSEmail clientData = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("obm")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -984,7 +983,7 @@ public class SyncHandlerTest {
 		MSEmail clientData = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("obm")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)
@@ -1031,7 +1030,7 @@ public class SyncHandlerTest {
 		MSEmail clientData = MSEmail.builder()
 			.header(MSEmailHeader.builder().build())
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("obm".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("obm")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

@@ -64,6 +64,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -156,7 +157,7 @@ public class MSEmailDecoder extends ActiveSyncDecoder implements IDataDecoder {
 		
 		String mimeData = uniqueStringFieldValue(data, ASAirs.DATA);
 		if (mimeData != null) {
-			bodyBuilder.mimeData(new SerializableInputStream(mimeData));
+			bodyBuilder.mimeData(Optional.of(new SerializableInputStream(mimeData)));
 		}
 		
 		return bodyBuilder.build();

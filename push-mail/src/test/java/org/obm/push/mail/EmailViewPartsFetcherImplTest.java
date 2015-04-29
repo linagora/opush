@@ -512,7 +512,7 @@ public class EmailViewPartsFetcherImplTest {
 		EmailView emailView = emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy());
 		control.verify();
 
-		assertThat(emailView.getBodyMimePartData())
+		assertThat(emailView.getBodyMimePartData().get())
 			.hasContentEqualTo(StreamMailTestsUtils.newInputStreamFromString("email data"));
 	}
 	
@@ -622,7 +622,7 @@ public class EmailViewPartsFetcherImplTest {
 		EmailView emailView = emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy());
 		control.verify();
 
-		assertThat(emailView.getBodyMimePartData()).hasContentEqualTo(
+		assertThat(emailView.getBodyMimePartData().get()).hasContentEqualTo(
 				StreamMailTestsUtils.newInputStreamFromString("Encoding bodyData to BASE64 !"));
 	}
 	

@@ -61,6 +61,7 @@ import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.utils.SerializableInputStream;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 public class MSMailTestsUtils {
 
@@ -73,7 +74,7 @@ public class MSMailTestsUtils {
 				.body(MSEmailBody.builder()
 						.charset(charset)
 						.bodyType(MSEmailBodyType.PlainText)
-						.mimeData(new SerializableInputStream(content))
+						.mimeData(Optional.of(new SerializableInputStream(content)))
 						.build())
 				.build();
 	}
@@ -98,7 +99,7 @@ public class MSMailTestsUtils {
 				.body(MSEmailBody.builder()
 						.charset(Charsets.UTF_8)
 						.bodyType(MSEmailBodyType.HTML)
-						.mimeData(new SerializableInputStream(htmlBold(content)))
+						.mimeData(Optional.of(new SerializableInputStream(htmlBold(content))))
 						.build())
 				.build();
 	}

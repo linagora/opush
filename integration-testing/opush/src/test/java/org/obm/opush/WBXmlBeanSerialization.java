@@ -33,7 +33,6 @@ package org.obm.opush;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -52,6 +51,7 @@ import org.obm.push.wbxml.WBXmlException;
 import org.w3c.dom.Document;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 
 public class WBXmlBeanSerialization {
@@ -79,7 +79,7 @@ public class WBXmlBeanSerialization {
 		return MSEmail.builder()
 			.header(msEmailHeader)
 			.body(MSEmailBody.builder()
-					.mimeData(new SerializableInputStream(new ByteArrayInputStream("text".getBytes())))
+					.mimeData(Optional.of(new SerializableInputStream("text")))
 					.bodyType(MSEmailBodyType.PlainText)
 					.estimatedDataSize(0)
 					.charset(Charsets.UTF_8)

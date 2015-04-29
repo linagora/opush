@@ -359,6 +359,40 @@ public class ReplyEmailTest {
 	}
 	
 	@Test
+	public void testReplyHtmlButNoOriginalBody() throws IOException, MimeException, NotQuotableEmailException {
+		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createViewWithoutBodyDataMap(MSEmailBodyType.HTML);
+		Message reply = MSMailTestsUtils.createMessageHtml(mime4jUtils,"response text");
+
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
+				ImmutableMap.<String, MSAttachementData>of());
+
+		Message message = replyEmail.getMimeMessage();
+		assertThat(message.isMultipart()).isFalse();
+		assertThat(message.getMimeType()).isEqualTo("text/html");
+		assertThat(message.getBody()).isInstanceOf(TextBody.class);
+		TextBody body = (TextBody) message.getBody();
+		String messageAsString = mime4jUtils.toString(body);
+		assertThat(messageAsString).contains("response text");
+	}
+	
+	@Test
+	public void testReplyTextButNoOriginalBody() throws IOException, MimeException, NotQuotableEmailException {
+		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createViewWithoutBodyDataMap(MSEmailBodyType.PlainText);
+		Message reply = MSMailTestsUtils.createMessageHtml(mime4jUtils,"response text");
+
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
+				ImmutableMap.<String, MSAttachementData>of());
+
+		Message message = replyEmail.getMimeMessage();
+		assertThat(message.isMultipart()).isFalse();
+		assertThat(message.getMimeType()).isEqualTo("text/html");
+		assertThat(message.getBody()).isInstanceOf(TextBody.class);
+		TextBody body = (TextBody) message.getBody();
+		String messageAsString = mime4jUtils.toString(body);
+		assertThat(messageAsString).contains("response text");
+	}
+	
+	@Test
 	public void testTerminationSequenceEndLineInHTMLReplyEmail() throws IOException, MimeException, NotQuotableEmailException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("jira-2362.eml");

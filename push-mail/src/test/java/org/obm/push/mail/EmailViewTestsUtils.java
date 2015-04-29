@@ -93,6 +93,18 @@ public class EmailViewTestsUtils {
 					.charset(Charsets.UTF_8.name())
 					.build());
 	}
+	
+	public static Map<MSEmailBodyType, EmailView> createViewWithoutBodyDataMap(MSEmailBodyType bodyType) {
+		return ImmutableMap.of(bodyType, 
+				EmailView.builder()
+					.uid(1)
+					.bodyType(bodyType)
+					.envelope(Envelope.builder()
+						.build())
+						.truncated(false)
+						.charset(Charsets.UTF_8.name())
+						.build());
+	}
 
 	public static Map<MSEmailBodyType, EmailView> createPlainTextAndHTMLMap(String text) {
 		return ImmutableMap.of(MSEmailBodyType.PlainText, 

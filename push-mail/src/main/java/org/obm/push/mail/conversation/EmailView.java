@@ -44,6 +44,7 @@ import org.obm.push.mail.bean.Envelope;
 import org.obm.push.mail.bean.Flag;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -135,9 +136,6 @@ public class EmailView {
 			if (envelope == null) {
 				throw new EmailViewBuildException("The envelope is required");
 			}
-			if (bodyMimePartData == null) {
-				throw new EmailViewBuildException("The bodyMimePartData is required");
-			}
 			if (bodyType == null) {
 				throw new EmailViewBuildException("The bodyType is required");
 			}
@@ -147,16 +145,17 @@ public class EmailView {
 			if (truncated == null) {
 				throw new EmailViewBuildException("The truncated field is required");
 			}
-			return new EmailView(uid, flags, envelope, bodyMimePartData, 
-					estimatedDataSize, attachments.build(), iCalendar, invitationType, bodyType,
-					charset, truncated);
+			return new EmailView(uid, flags, envelope, 
+					Optional.fromNullable(bodyMimePartData), 
+					estimatedDataSize, attachments.build(), iCalendar, invitationType, 
+					bodyType, charset, truncated);
 		}
 	}
 	
 	private final long uid;
 	private final Collection<Flag> flags;
 	private final Envelope envelope;
-	private final InputStream bodyMimePartData;
+	private final Optional<InputStream> bodyMimePartData;
 	private final Integer estimatedDataSize;
 	private final List<EmailViewAttachment> attachments;
 	private final ICalendar iCalendar;
@@ -166,7 +165,7 @@ public class EmailView {
 	private final boolean truncated;
 
 	private EmailView(long uid, Collection<Flag> flags, Envelope envelope,
-			InputStream bodyMimePartData, int estimatedDataSize, List<EmailViewAttachment> attachments, 
+			Optional<InputStream> bodyMimePartData, int estimatedDataSize, List<EmailViewAttachment> attachments, 
 			ICalendar iCalendar, EmailViewInvitationType invitationType, MSEmailBodyType bodyType,
 			String charset, boolean truncated) {
 		
@@ -178,8 +177,8 @@ public class EmailView {
 		this.attachments = attachments;
 		this.iCalendar = iCalendar;
 		this.invitationType = invitationType;
-		this.bodyType = bodyType;
 		this.charset = charset;
+		this.bodyType = bodyType;
 		this.truncated = truncated;
 	}
 
@@ -219,7 +218,7 @@ public class EmailView {
 		return envelope.getDate();
 	}
 
-	public InputStream getBodyMimePartData() {
+	public Optional<InputStream> getBodyMimePartData() {
 		return bodyMimePartData;
 	}
 
@@ -250,7 +249,6 @@ public class EmailView {
 	public boolean isTruncated() {
 		return truncated;
 	}
-
 	
 	@Override
 	public int hashCode(){
