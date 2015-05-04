@@ -43,11 +43,12 @@ import com.google.common.collect.ImmutableList;
 
 public class AnyMatchBodyPreferencePolicyTest {
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void selectBetterFitNoFetchInstructionEntry() {
-		new AnyMatchBodyPreferencePolicy().selectBetterFit(
+		FetchInstruction actual = new AnyMatchBodyPreferencePolicy().selectBetterFit(
 				ImmutableList.<FetchInstruction>of(), 
 				BodyPreferencePolicyUtils.bodyPreferences(MSEmailBodyType.HTML));
+		assertThat(actual).isNull();
 	}
 	
 	@Test

@@ -76,7 +76,7 @@ public class HtmlToText implements Transformer {
 
 	@Override
 	public MSEmailBodyType targetType() {
-		return MSEmailBodyType.HTML;
+		return MSEmailBodyType.PlainText;
 	}
 
 }

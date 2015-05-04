@@ -35,8 +35,6 @@ import java.util.List;
 
 import org.obm.push.bean.BodyPreference;
 
-import com.google.common.collect.Ordering;
-
 public class StrictMatchBodyPreferencePolicy extends BodyPreferencePolicy {
 
 	@Override
@@ -47,15 +45,5 @@ public class StrictMatchBodyPreferencePolicy extends BodyPreferencePolicy {
 	@Override
 	public boolean mayUsesDefaultBodyPreferences() {
 		return false;
-	}
-
-	@Override
-	public FetchInstruction selectBetterFit(List<FetchInstruction> fetchInstructions, List<BodyPreference> bodyPreferences) {
-		if (fetchInstructions.isEmpty()) {
-			return null;
-		}
-		return Ordering
-				.from(betterFitComparator(bodyPreferences))
-				.min(fetchInstructions);
 	}
 }

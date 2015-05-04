@@ -198,7 +198,7 @@ public class MimePartSelectorTest {
 	}
 	
 	@Test
-	public void testSelectEmptyBodyPreferencesApplicationPdf() {
+	public void testSelectEmptyBodyPreferencesApplicationPdfShouldGiveNullInstruction() {
 		MimePart mimePart = MimePartImpl.builder().contentType("application/pdf").build();
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(mimePart).anyTimes();
@@ -211,11 +211,11 @@ public class MimePartSelectorTest {
 		FetchInstruction instruction = testee.select(mimeMessage);
 		control.verify();
 	
-		assertThat(instruction.getMimePart()).isSameAs(mimeMessage);
+		assertThat(instruction).isNull();
 	}
 
 	@Test
-	public void testSelectNoMatchingMimePart() {
+	public void testSelectNoMatchingMimePartShouldGiveNullInstruction() {
 		control = createControl();
 		MimeMessage mimeMessage = control.createMock(MimeMessage.class);
 		expect(mimeMessage.getMimePart()).andReturn(null);
@@ -228,9 +228,7 @@ public class MimePartSelectorTest {
 		FetchInstruction instruction = testee.select(mimeMessage);
 		control.verify();
 	
-		assertThat(instruction.getMimePart()).isSameAs(mimeMessage);
-		assertThat(instruction.getBodyType()).isEqualTo(MSEmailBodyType.MIME);
-		assertThat(instruction.getTruncation()).isNull();
+		assertThat(instruction).isNull();
 	}
 	
 	@Test

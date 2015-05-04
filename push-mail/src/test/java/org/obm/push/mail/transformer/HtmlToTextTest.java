@@ -39,6 +39,7 @@ import java.io.InputStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.bean.MSEmailBodyType;
 
 import com.google.common.base.Charsets;
 
@@ -50,6 +51,11 @@ public class HtmlToTextTest {
 	@Before
 	public void setup() {
 		testee = new HtmlToText.Factory().create(null);
+	}
+	
+	@Test
+	public void targetTypeShouldBePlainText() {
+		assertThat(testee.targetType()).isEqualTo(MSEmailBodyType.PlainText);
 	}
 	
 	@Test(expected=NullPointerException.class)

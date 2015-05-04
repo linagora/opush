@@ -38,9 +38,7 @@ import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.MSEmailBodyType;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Ordering;
 
 public class AnyMatchBodyPreferencePolicy extends BodyPreferencePolicy {
 
@@ -52,14 +50,6 @@ public class AnyMatchBodyPreferencePolicy extends BodyPreferencePolicy {
 	@Override
 	public boolean mayUsesDefaultBodyPreferences() {
 		return true;
-	}
-
-	@Override
-	public FetchInstruction selectBetterFit(List<FetchInstruction> fetchInstructions, List<BodyPreference> bodyPreferences) {
-		Preconditions.checkArgument(!fetchInstructions.isEmpty());
-		return Ordering
-				.from(betterFitComparator(bodyPreferences))
-				.min(fetchInstructions);
 	}
 
 	@Override

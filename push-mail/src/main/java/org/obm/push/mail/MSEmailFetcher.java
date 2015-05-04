@@ -95,7 +95,7 @@ public class MSEmailFetcher {
 	}
 
 	private BodyPreferencePolicy getMatchingPolicy(Optional<MimeSupport> mimeSupport) {
-		if (mimeSupport.isPresent()) {
+		if (mimeSupport.isPresent() && mimeSupport.get() == MimeSupport.ALWAYS) {
 			return new StrictMatchBodyPreferencePolicy();
 		}
 		return new AnyMatchBodyPreferencePolicy();

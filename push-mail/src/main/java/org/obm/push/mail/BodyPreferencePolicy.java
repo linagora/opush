@@ -43,6 +43,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 
 public abstract class BodyPreferencePolicy {
 
@@ -53,15 +54,21 @@ public abstract class BodyPreferencePolicy {
 							.truncationSize(DEFAULT_TRUNCATION_SIZE).build())
 					.add(BodyPreference.builder().bodyType(MSEmailBodyType.HTML)
 							.truncationSize(DEFAULT_TRUNCATION_SIZE).build())
-					.add(BodyPreference.builder().bodyType(MSEmailBodyType.MIME)
-							.truncationSize(DEFAULT_TRUNCATION_SIZE).build())
 					.build();
 	
 	public abstract List<BodyPreference> bodyPreferencesMatchingPolicy(List<BodyPreference> bodyPreferences);
 	
 	public abstract boolean mayUsesDefaultBodyPreferences();
 	
-	public abstract FetchInstruction selectBetterFit(List<FetchInstruction> fetchInstructions, List<BodyPreference> bodyPreferences);
+
+	public FetchInstruction selectBetterFit(List<FetchInstruction> fetchInstructions, List<BodyPreference> bodyPreferences) {
+		if (fetchInstructions.isEmpty()) {
+			return null;
+		}
+		return Ordering
+				.from(betterFitComparator(bodyPreferences))
+				.min(fetchInstructions);
+	}
 	
 	public List<FetchHints> listContentTypes(MSEmailBodyType bodyType) {
 		switch (bodyType) {
