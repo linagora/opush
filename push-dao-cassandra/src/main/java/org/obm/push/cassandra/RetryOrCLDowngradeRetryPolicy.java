@@ -68,7 +68,7 @@ public class RetryOrCLDowngradeRetryPolicy implements RetryPolicy {
 		if (nbRetry >= maxNbRetry) {
 			return RetryDecision.rethrow();
 		}
-		LOGGER.warn("Opush is downgrading the consistency-level of a Cassandra request as it cannot reach enough replicas to get the QORUM." + 
+		LOGGER.warn("Opush is downgrading the consistency-level of a Cassandra request as it cannot reach enough replicas to get the QUORUM. " + 
 				"A 'nodetool repair' might be done on each node when your cluster gets back to a healthy state. Read http://docs.obm.org/opush/ for more information");
 		return DowngradingConsistencyRetryPolicy.INSTANCE.onUnavailable(statement, cl, requiredReplica, aliveReplica, 0);
 	}
