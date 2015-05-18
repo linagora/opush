@@ -1,23 +1,23 @@
 #!/bin/sh -e
 
+CONF_FILES='/etc/opush/sync_perms.ini
+/etc/opush/ldap_conf.ini
+/etc/opush/mail_conf.ini
+/etc/opush/remote_console.ini
+/etc/opush/policy.ini
+/etc/opush/cassandra.ini
+/etc/opush/logback.xml'
+
 if [ $1 = 'purge' ]; then
-  ucf --debconf-ok --purge /etc/opush/sync_perms.ini
-  ucf --debconf-ok --purge /etc/opush/ldap_conf.ini
-  ucf --debconf-ok --purge /etc/opush/mail_conf.ini
-  ucf --debconf-ok --purge /etc/opush/remote_console.ini
-  ucf --debconf-ok --purge /etc/opush/policy.ini
-  ucf --debconf-ok --purge /etc/opush/cassandra.ini
-  ucf --debconf-ok --purge /etc/opush/logback.xml
-  
-  ucfr --purge opush /etc/opush/sync_perms.ini
-  ucfr --purge opush /etc/opush/ldap_conf.ini
-  ucfr --purge opush /etc/opush/mail_conf.ini
-  ucfr --purge opush /etc/opush/remote_console.ini
-  ucfr --purge opush /etc/opush/policy.ini
-  ucfr --purge opush /etc/opush/cassandra.ini
-  ucfr --purge opush /etc/opush/logback.xml
-  
-  echo PURGE | debconf-communicate opush 2>&1
+
+  for file in $CONF_FILES
+  do
+    ucf --debconf-ok --purge $file
+    ucfr --purge opush $file
+    rm -rf $file
+  done
+
+  echo PURGE | debconf-communicate opush > /dev/null
   
   rm -rf /var/lib/opush
   rm -rf /var/run/opush
