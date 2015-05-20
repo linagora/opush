@@ -36,7 +36,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.TreeSet;
 
 import org.junit.Test;
+import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 
@@ -149,5 +151,30 @@ public class MailboxPathTest {
 	@Test
 	public void equalShouldReturnFalseWhenComparingTwoDifferentPathsWithSameSeparators() {
 		assertThat(MailboxPath.of("INBOX/abcdef", SLASH)).isNotEqualTo(MailboxPath.of("INBOX/sub", SLASH));
+	}
+
+	@Test
+	public void stripParentPathShouldReturnSamePathWhenAbsentParent() {
+		MailboxPath box = MailboxPath.of("INBOX/abcdef", SLASH);
+		assertThat(box.stripParentPath(Optional.<BackendId>absent())).isEqualTo(box.getPath());
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void stripParentPathShouldTriggerIllegalArgumentExceptionWhenWrongParentType() {
+		assertThat(MailboxPath.of("INBOX", SLASH).stripParentPath(Optional.of(AddressBookId.of(5))));
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void stripParentPathShouldTriggerIllegalArgumentExceptionWhenPathMismatch() {
+		MailboxPath box = MailboxPath.of("INBOX", SLASH);
+		MailboxPath notParentBox = MailboxPath.of("other", SLASH);
+		assertThat(box.stripParentPath(Optional.of(notParentBox)));
+	}
+
+	@Test
+	public void stripParentPathShouldStripWhenValidParent() {
+		MailboxPath box = MailboxPath.of("INBOX/sub", SLASH);
+		MailboxPath parentBox = MailboxPath.of("INBOX", SLASH);
+		assertThat(box.stripParentPath(Optional.of(parentBox))).isEqualTo("sub");
 	}
 }

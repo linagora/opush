@@ -37,6 +37,7 @@ import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -47,6 +48,7 @@ import com.google.common.collect.Iterables;
 public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 
 	public static final char DEFAULT_SEPARATOR = '/';
+	public static final int SEPARATOR_LENGTH = 1;
 	
 	public static MailboxPath of(String path) {
 		return new MailboxPath(path, DEFAULT_SEPARATOR);
@@ -81,6 +83,18 @@ public class MailboxPath implements Comparable<MailboxPath>, BackendId {
 			paths.add(MailboxPath.of(path, separator));
 		}
 		return paths.build();
+	}
+
+	public String stripParentPath(Optional<? extends BackendId> parent) {
+		if (!parent.isPresent()) {
+			return getPath();
+		}
+		BackendId backendId = parent.get();
+		Preconditions.checkArgument(backendId instanceof MailboxPath, "The parent is not a MailboxPath");
+		String parentPath = ((MailboxPath) backendId).getPath();
+		Preconditions.checkArgument(getPath().startsWith(parentPath), String.format(
+				"This mailbox (%s) seems to not belong to the given parent (%s)", toString(), backendId.toString()));
+		return getPath().substring(parentPath.length() + SEPARATOR_LENGTH);
 	}
 
 	@Override

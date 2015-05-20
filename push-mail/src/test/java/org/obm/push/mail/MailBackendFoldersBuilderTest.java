@@ -180,13 +180,13 @@ public class MailBackendFoldersBuilderTest {
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub", DEFAULT_SEPARATOR))
-				.displayName("custom/sub")
+				.displayName("sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("custom", DEFAULT_SEPARATOR)))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom.sub2", '.'))
-				.displayName("custom.sub2")
+				.displayName("sub2")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("custom", DEFAULT_SEPARATOR)))
 				.build()
@@ -214,13 +214,13 @@ public class MailBackendFoldersBuilderTest {
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("test/sub", DEFAULT_SEPARATOR))
-				.displayName("test/sub")
+				.displayName("sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("test", DEFAULT_SEPARATOR)))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("test/sub2", DEFAULT_SEPARATOR))
-				.displayName("test/sub2")
+				.displayName("sub2")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("test", DEFAULT_SEPARATOR)))
 				.build()
@@ -262,13 +262,13 @@ public class MailBackendFoldersBuilderTest {
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub"))
-				.displayName("custom/sub")
+				.displayName("sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("custom")))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/sub/sub with/some space/sub"))
-				.displayName("custom/sub/sub with/some space/sub")
+				.displayName("sub with/some space/sub")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of("custom/sub")))
 				.build(),
@@ -292,19 +292,19 @@ public class MailBackendFoldersBuilderTest {
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/submailbox"))
-				.displayName(IMAP_INBOX_NAME + "/submailbox")
+				.displayName("submailbox")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox"))
-				.displayName(IMAP_INBOX_NAME + "/sub/mailbox")
+				.displayName("sub/mailbox")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox/withparent"))
-				.displayName(IMAP_INBOX_NAME + "/sub/mailbox/withparent")
+				.displayName("withparent")
 				.folderType(FolderType.USER_CREATED_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME + "/sub/mailbox")))
 				.build(),

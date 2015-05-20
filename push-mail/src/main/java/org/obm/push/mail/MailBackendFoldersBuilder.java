@@ -77,7 +77,7 @@ public class MailBackendFoldersBuilder {
 		for (MailboxPath folder : Sets.difference(mailboxes, specialMailboxes)) {
 			Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, folder);
 			Node node = new Node(BackendFolder.builder()
-				.displayName(folder.getPath())
+				.displayName(folder.stripParentPath(searchParent.getValue()))
 				.folderType(folderType(folder))
 				.backendId(folder)
 				.parentId(searchParent.getValue())
@@ -88,7 +88,7 @@ public class MailBackendFoldersBuilder {
 		}
 		return new TreeBackendFolders(root);
 	}
-	
+
 	private Entry<Node, Optional<BackendId>> searchParent(Map<MailboxPath, Node> pathToNode,
 			Node root, MailboxPath folder) {
 		
