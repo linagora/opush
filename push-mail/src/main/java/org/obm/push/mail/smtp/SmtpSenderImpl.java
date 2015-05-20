@@ -99,7 +99,7 @@ public class SmtpSenderImpl implements SmtpSender {
 		try {
 			smtp.mail(from);
 		} catch (SMTPException e) {
-			throw new SendEmailException("Bad sender address syntax {from:" + from.getMailAddress() + "}", e);
+			throw new SendEmailException("Bad sender address syntax {from:" + from.getCanonicalMailAddress() + "}", e);
 		}
 	}
 	

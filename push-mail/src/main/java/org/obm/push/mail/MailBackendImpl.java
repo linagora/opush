@@ -684,7 +684,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		return new EmailReader(new InputStreamReader(streamMail, Charset.forName(charsetName)));
 	}
 
-	private Address validateFrom(String from) throws ProcessingEmailException {
+	private Address validateFrom(InternetAddress address) throws ProcessingEmailException {
+		String from = address.getAddress();
 		if(from == null || !from.contains("@")){
 			throw new ProcessingEmailException(""+from+"is not a valid email");
 		}

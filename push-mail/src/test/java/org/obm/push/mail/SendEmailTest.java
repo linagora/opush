@@ -79,7 +79,7 @@ public class SendEmailTest {
 		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getTo()).containsOnly(addr("a@test"), addr("b@test"));
 		assertThat(sendEmail.getCc()).containsOnly(addr("c@test"));
@@ -98,7 +98,7 @@ public class SendEmailTest {
 		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();
@@ -110,7 +110,7 @@ public class SendEmailTest {
 		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();
@@ -122,7 +122,7 @@ public class SendEmailTest {
 		InternetAddress defaultFrom = new InternetAddress("john@test.opush");
 
 		SendEmail sendEmail = new SendEmail(defaultFrom, message);
-		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom.getAddress());
+		assertThat(sendEmail.getFrom()).isEqualTo(defaultFrom);
 		assertThat(sendEmail.getMimeMessage().getFrom()).isEqualTo(from(defaultFrom));
 		assertThat(sendEmail.getCc()).isEmpty();
 		assertThat(sendEmail.getCci()).isEmpty();

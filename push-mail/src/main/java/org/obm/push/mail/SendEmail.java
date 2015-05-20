@@ -65,7 +65,7 @@ public class SendEmail {
 	private Set<Address> to;
 	private Set<Address> cc;
 	private Set<Address> cci;
-	private final String from;
+	private final InternetAddress from;
 	protected final Message originalMessage;
 	protected Message message; 
 	protected byte[] mimeData;
@@ -74,7 +74,7 @@ public class SendEmail {
 
 	public SendEmail(InternetAddress defaultFrom, Message message) throws MimeException {
 		Preconditions.checkNotNull(Strings.emptyToNull(defaultFrom.getAddress()));
-		this.from = defaultFrom.toString();
+		this.from = defaultFrom;
 		this.originalMessage = message;
 		
 		setMessage(message);
@@ -148,7 +148,7 @@ public class SendEmail {
 	}
 
 	private Field createFromField() throws MimeException {
-		return DefaultFieldParser.parse("From: " + this.from);
+		return DefaultFieldParser.parse("From: " + this.from.toString());
 	}
 
 	private Iterable<Address> convertAddressListToRistretoAddresses(AddressList addressList) {
@@ -174,7 +174,7 @@ public class SendEmail {
 		return cci;
 	}
 
-	public String getFrom() {
+	public InternetAddress getFrom() {
 		return from;
 	}
 	

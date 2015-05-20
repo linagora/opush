@@ -936,7 +936,7 @@ public class MailBackendImplTest {
 		expectLastCall().once();
 		
 		SendEmail sendEmail = control.createMock(SendEmail.class);
-		expect(sendEmail.getFrom()).andReturn("test@test.fr");
+		expect(sendEmail.getFrom()).andReturn(new InternetAddress("test@test.fr"));
 		expect(sendEmail.getTo()).andReturn(addrs);
 		expect(sendEmail.getCc()).andReturn(addrs);
 		expect(sendEmail.getCci()).andReturn(addrs);
@@ -961,7 +961,7 @@ public class MailBackendImplTest {
 		Message message = control.createMock(Message.class);
 		expect(message.getCharset()).andReturn("UTF-8");
 		SendEmail sendEmail = control.createMock(SendEmail.class);
-		expect(sendEmail.getFrom()).andReturn("test@test.fr");
+		expect(sendEmail.getFrom()).andReturn(new InternetAddress("test@test.fr"));
 		expect(sendEmail.getTo()).andReturn(addrs);
 		expect(sendEmail.getCc()).andReturn(addrs);
 		expect(sendEmail.getCci()).andReturn(addrs);
@@ -990,7 +990,34 @@ public class MailBackendImplTest {
 		Message message = control.createMock(Message.class);
 		expect(message.getCharset()).andReturn("I'm not a charset!");
 		SendEmail sendEmail = control.createMock(SendEmail.class);
-		expect(sendEmail.getFrom()).andReturn("test@test.fr");
+		expect(sendEmail.getFrom()).andReturn(new InternetAddress("test@test.fr"));
+		expect(sendEmail.getTo()).andReturn(addrs);
+		expect(sendEmail.getCc()).andReturn(addrs);
+		expect(sendEmail.getCci()).andReturn(addrs);
+		expect(sendEmail.getMimeMessage()).andReturn(message);
+		expect(sendEmail.getMessage()).andReturn(loadEmail("bigEml.eml"));
+		
+		control.replay();
+		testee.sendEmail(udr, sendEmail, saveInSent);
+		control.verify();
+	}
+	
+	@Test
+	public void sendEmailShouldGiveEmailAddressOnlyEvenWhenDisplayNameAvailable() throws Exception {
+		boolean saveInSent = true;
+		String mailAddress = "test@test.fr";
+		
+		Set<Address> addrs = Sets.newHashSet();
+		smtpSender.sendEmail(anyObject(UserDataRequest.class), eq(new Address(mailAddress)),
+				anyObject(addrs.getClass()),
+				anyObject(addrs.getClass()),
+				anyObject(addrs.getClass()), anyObject(InputStream.class));
+		expectLastCall().once();
+		
+		Message message = control.createMock(Message.class);
+		expect(message.getCharset()).andReturn("I'm not a charset!");
+		SendEmail sendEmail = control.createMock(SendEmail.class);
+		expect(sendEmail.getFrom()).andReturn(new InternetAddress(mailAddress, "display name"));
 		expect(sendEmail.getTo()).andReturn(addrs);
 		expect(sendEmail.getCc()).andReturn(addrs);
 		expect(sendEmail.getCci()).andReturn(addrs);

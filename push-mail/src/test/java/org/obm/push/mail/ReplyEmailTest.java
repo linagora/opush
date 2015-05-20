@@ -90,14 +90,14 @@ public class ReplyEmailTest {
 	}
 
 	@Test
-	public void testReplyCopyOfAddress() throws IOException, MimeException, NotQuotableEmailException {
+	public void testReplyCopyOfAddress() throws IOException, MimeException, NotQuotableEmailException, AddressException {
 		Map<MSEmailBodyType, EmailView> original = EmailViewTestsUtils.createPlainTextMap("origin");
 		Message reply = loadMimeMessage("plainText.eml");
 
 		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfiguration(), mime4jUtils, fromAddress, original, reply,
 				ImmutableMap.<String, MSAttachementData>of());
 	
-		assertThat(replyEmail.getFrom()).isEqualToIgnoringCase("from@linagora.test");
+		assertThat(replyEmail.getFrom()).isEqualTo(new InternetAddress("from@linagora.test"));
 		assertThat(replyEmail.getTo()).containsOnly(MSMailTestsUtils.addr("a@test"), MSMailTestsUtils.addr("b@test"));
 		assertThat(replyEmail.getCc()).containsOnly(MSMailTestsUtils.addr("c@test"));
 		assertThat(replyEmail.getCci()).containsOnly(MSMailTestsUtils.addr("d@test"));
