@@ -6,14 +6,14 @@
 	<parent>
 		<groupId>com.linagora.obm.opush</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.1.0-SNAPSHOT</version>
+		<version>3.1.0-rc3</version>
 	</parent>
 
 	<artifactId>spushnik-server</artifactId>
 	<packaging>jar</packaging>
 	<name>OPush Probe Server</name>
 	<url>http://www.obm.org/</url>
-	<version>3.1.0-SNAPSHOT</version>
+	<version>3.1.0-rc3</version>
 	
 	<dependencies>
 		<dependency>
