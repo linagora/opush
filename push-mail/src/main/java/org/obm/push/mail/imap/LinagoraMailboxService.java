@@ -153,7 +153,11 @@ public class LinagoraMailboxService implements MailboxService {
 	public boolean folderExists(UserDataRequest udr, MailboxPath path) throws MailException {
 		try {
 			StoreClient store = imapClientProvider.getImapClient(udr);
-			return !store.listAll(NO_REFERENCE_NAME, path.getPath()).isEmpty();
+			ListResult matchingFolder = store.listAll(NO_REFERENCE_NAME, path.getPath());
+			if (matchingFolder.isEmpty()) {
+				return false;
+			} 
+			return Iterables.getOnlyElement(matchingFolder).isSelectable();
 		} catch (OpushLocatorException | IMAPException e) {
 			throw new MailException(e);
 		} catch (ImapTimeoutException e) {

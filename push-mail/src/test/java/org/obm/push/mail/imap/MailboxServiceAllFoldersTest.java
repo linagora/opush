@@ -52,6 +52,9 @@ import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.resource.ResourcesHolder;
 
 import com.google.inject.Inject;
+import com.icegreen.greenmail.imap.ImapHostManager;
+import com.icegreen.greenmail.store.MailFolder;
+import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 
 @RunWith(GuiceRunner.class)
@@ -68,6 +71,7 @@ public class MailboxServiceAllFoldersTest {
 	private MailboxTestUtils testUtils;
 	private Date beforeTest;
 	private UserDataRequest udr;
+	private GreenMailUser greenMailUser;
 
 	@Before
 	public void setUp() {
@@ -75,7 +79,7 @@ public class MailboxServiceAllFoldersTest {
 		greenMail.start();
 		mailbox = "to@localhost.com";
 		password = "password".toCharArray();
-		greenMail.setUser(mailbox, String.valueOf(password));
+		greenMailUser = greenMail.setUser(mailbox, String.valueOf(password));
 		udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
@@ -163,6 +167,21 @@ public class MailboxServiceAllFoldersTest {
 	public void folderExistsShouldReturnFalseIfTheFolderDoesntExist() throws Exception {
 		boolean folderExists = mailboxService.folderExists(udr, MailboxPath.of("ABCDEF"));
 		assertThat(folderExists).isEqualTo(false);
+	}
+	
+	@Test
+	public void folderExistsShouldReturnFalseIfTheFolderHasNoselectFlag() throws Exception {
+		String parentName = "PARENT";
+		String childName = "PARENT.CHILD";
+		ImapHostManager manager = greenMail.getManagers().getImapHostManager();
+		
+		manager.createMailbox(greenMailUser, childName);
+		MailFolder parentFolder = manager.getFolder(greenMailUser, parentName);
+		
+		boolean parentFolderExists = mailboxService.folderExists(udr, MailboxPath.of(parentName));
+		
+		assertThat(parentFolder.isSelectable()).isFalse();
+		assertThat(parentFolderExists).isEqualTo(false);
 	}
 	
 	protected MailboxFolder folder(String name) {
