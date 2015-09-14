@@ -6,7 +6,7 @@
 	<packaging>pom</packaging>
 	<name>OPush Parent Project</name>
 	<url>http://www.obm.org/</url>	
-	<version>3.1.0</version>
+	<version>3.1.1-beta1</version>
 
 	<inceptionYear>2000</inceptionYear>
 	<organization>
@@ -20,9 +20,9 @@
 
 	<properties>
 		<obm.version>3.1.2</obm.version>
-		<opush.release>3.1.0</opush.release>
-		<opush.version>${opush.release}</opush.version>
-		<opush.packaging.version>${opush.release}</opush.packaging.version>
+		<opush.release>3.1.1</opush.release>
+		<opush.version>${opush.release}-beta1</opush.version>
+		<opush.packaging.version>${opush.release}~beta1</opush.packaging.version>
 		<opush.packaging.release>1</opush.packaging.release>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
