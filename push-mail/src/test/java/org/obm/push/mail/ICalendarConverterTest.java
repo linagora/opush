@@ -182,6 +182,14 @@ public class ICalendarConverterTest {
 					.intDBusyStatus(MSMeetingRequestIntDBusyStatus.OUT_OF_OFFICE)
 					.build());
 	}
+
+	@Test
+	public void testICalendarConverterAllowNoDTSTAMP() throws IOException, ParserException {
+		ICalendar icalendar = icalendar("noDTSTAMP.ics");
+		MSMeetingRequest msMeetingRequest = icalendarConverter.convertToMSMeetingRequest(icalendar);
+		
+		assertThat(msMeetingRequest.getDtStamp()).isEqualTo(new DateTime("1970-01-01T00:00:00Z").toDate());
+	}
 	
 	@Test
 	public void testICalendarConverterSingleBusyTentativeEvent() throws IOException, ParserException {

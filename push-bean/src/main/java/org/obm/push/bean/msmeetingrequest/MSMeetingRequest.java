@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.obm.push.bean.MSEventExtId;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.utils.UserEmailParserUtils;
@@ -182,7 +184,6 @@ public class MSMeetingRequest implements Serializable {
 		public MSMeetingRequest build() {
 			Preconditions.checkNotNull(startTime, "The field startTime is required");
 			Preconditions.checkNotNull(endTime, "The field endTime is required");
-			Preconditions.checkNotNull(dtStamp, "The field dtStamp is required");
 			Preconditions.checkNotNull(instanceType, "The field instanceType is required");
 			
 			if (!Strings.isNullOrEmpty(organizer)) {
@@ -196,6 +197,10 @@ public class MSMeetingRequest implements Serializable {
 				Preconditions.checkNotNull(recurrenceId, "The field recurrenceId is required");
 			}
 
+			if (dtStamp == null) {
+				dtStamp = new DateTime("1970-01-01T00:00:00Z", DateTimeZone.UTC).toDate();
+			}
+			
 			if (sensitivity == null) {
 				sensitivity = MSMeetingRequestSensitivity.NORMAL;
 			}

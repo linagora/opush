@@ -240,7 +240,7 @@ public class MailViewToMSEmailConverterImplTest {
 	
 	@Test
 	public void testBadInvitation() throws IOException, ParserException, DaoException {
-		emailViewFixture.attachmentInputStream = emailViewFixture.resourceAsStream("ics/noDTSTAMP.ics");
+		emailViewFixture.attachmentInputStream = emailViewFixture.resourceAsStream("ics/noVEVENT.ics");
 				
 		MSEmail convertedMSEmail = makeConversionFromEmailViewFixture();
 		
