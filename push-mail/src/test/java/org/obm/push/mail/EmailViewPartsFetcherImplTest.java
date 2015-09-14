@@ -590,7 +590,7 @@ public class EmailViewPartsFetcherImplTest {
 		assertThat(emailView.getICalendar().getICalendar()).contains("DESCRIPTION:Encoding Invitation to BASE64 !");
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void testInvitationInBadEncodingFormat() throws Exception {
 		messageFixture.isAttachment = true;
 		messageFixture.isInvitation = true;
@@ -601,12 +601,10 @@ public class EmailViewPartsFetcherImplTest {
 		EmailViewPartsFetcherImpl emailViewPartsFetcherImpl = newFetcherFromExpectedFixture(messageFixtureToMailboxServiceMock(buildFetchingMimeMessageFromFixture()));
 		
 		control.replay();
-		try {
-			emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy());
-		} catch (IllegalArgumentException e) {
-			control.verify();
-			throw e;
-		}
+		EmailView emailView = emailViewPartsFetcherImpl.fetch(messageFixture.uid, new AnyMatchBodyPreferencePolicy());
+		control.verify();
+		
+		assertThat(emailView.getICalendar()).isNull();
 	}
 	
 	@Test

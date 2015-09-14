@@ -205,8 +205,12 @@ public class MailViewToMSEmailConverterImpl implements MailViewToMSEmailConverte
 	}
 	
 	private MSMeetingRequest convertICalendar(EmailView emailView) {
-		if (isSupportedICalendar(emailView)) {
-			return new ICalendarConverter().convertToMSMeetingRequest(emailView.getICalendar());
+		try {
+			if (isSupportedICalendar(emailView)) {
+				return new ICalendarConverter().convertToMSMeetingRequest(emailView.getICalendar());
+			}
+		} catch (Exception e) {
+			logger.error("An invitation in the email " + emailView.getUid() + " cannot be fetched", e);
 		}
 		return null;
 	}

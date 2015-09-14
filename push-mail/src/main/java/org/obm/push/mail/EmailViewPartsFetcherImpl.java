@@ -125,8 +125,6 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 			throw new EmailViewPartsFetcherException(e);
 		} catch (IOException e) {
 			throw new EmailViewPartsFetcherException(e);
-		} catch (ParserException e) {
-			throw new EmailViewPartsFetcherException(e);
 		}
 	}
 
@@ -260,23 +258,25 @@ public class EmailViewPartsFetcherImpl implements EmailViewPartsFetcher {
 		});
 	}
 	
-	private void fetchInvitation(Builder emailViewBuilder, MimeMessage mimeMessage, long uid, EmailMetadata emailMetadata) 
-			throws MailException, IOException, ParserException {
-		
-		MimePart parentMessage = mimeMessage.findRootMimePartInTree();
-		for (MimePart mp : parentMessage.listLeaves(true, true)) {
-			if (mp.isInvitation()) {
-				fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
-				emailViewBuilder.invitationType(EmailViewInvitationType.REQUEST);
+	private void fetchInvitation(Builder emailViewBuilder, MimeMessage mimeMessage, long uid, EmailMetadata emailMetadata) {
+		try {
+			MimePart parentMessage = mimeMessage.findRootMimePartInTree();
+			for (MimePart mp : parentMessage.listLeaves(true, true)) {
+				if (mp.isInvitation()) {
+					fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
+					emailViewBuilder.invitationType(EmailViewInvitationType.REQUEST);
+				}
+				if (mp.isCancelInvitation()) {
+					fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
+					emailViewBuilder.invitationType(EmailViewInvitationType.CANCELED);
+				}
+				if (mp.isReplyInvitation()) {
+					fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
+					emailViewBuilder.invitationType(EmailViewInvitationType.REPLY);
+				}
 			}
-			if (mp.isCancelInvitation()) {
-				fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
-				emailViewBuilder.invitationType(EmailViewInvitationType.CANCELED);
-			}
-			if (mp.isReplyInvitation()) {
-				fetchICalendar(emailViewBuilder, mp, uid, emailMetadata);
-				emailViewBuilder.invitationType(EmailViewInvitationType.REPLY);
-			}
+		} catch (Exception e) {
+			logger.error("An invitation in the email " + uid + " cannot be fetched", e);
 		}
 	}
 

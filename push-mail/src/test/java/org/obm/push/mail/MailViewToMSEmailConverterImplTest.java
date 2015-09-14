@@ -31,12 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -236,6 +236,15 @@ public class MailViewToMSEmailConverterImplTest {
 		MSEmail convertedMSEmail = makeConversionFromEmailViewFixture();
 		
 		assertThat(convertedMSEmail.getTo()).isEmpty();
+	}
+	
+	@Test
+	public void testBadInvitation() throws IOException, ParserException, DaoException {
+		emailViewFixture.attachmentInputStream = emailViewFixture.resourceAsStream("ics/noDTSTAMP.ics");
+				
+		MSEmail convertedMSEmail = makeConversionFromEmailViewFixture();
+		
+		assertThat(convertedMSEmail.getMeetingRequest()).isNull();
 	}
 	
 	@Test
