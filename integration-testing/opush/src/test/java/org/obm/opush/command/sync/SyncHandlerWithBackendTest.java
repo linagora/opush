@@ -133,6 +133,7 @@ import org.obm.push.store.DeviceDao.PolicyStatus;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.utils.DateUtils;
+import org.obm.sync.auth.AuthFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
 import org.obm.sync.calendar.Event;
@@ -868,38 +869,8 @@ public class SyncHandlerWithBackendTest {
 	public void testNoContentDispositionPartIsSentAsAttachment() throws Exception {
 		testUtils.appendToINBOX(greenMailUser, "eml/attachmentWithoutContentDisposition.eml");
 
-		SyncKey firstAllocatedSyncKey = new SyncKey("6d2645fc-33e6-4501-a8e6-42afe3e04398");
-		SyncKey secondAllocatedSyncKey = new SyncKey("7f438c09-4bd4-4e18-be6a-9cb396d24df7");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
 		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-		
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, EMAIL);
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
 		assertThat(attachments.size()).isEqualTo(1);
 		MSAttachement attachment = Iterables.getOnlyElement(attachments);
 		
@@ -916,6 +887,114 @@ public class SyncHandlerWithBackendTest {
 	public void testMailWithICSAttachment() throws Exception {
 		testUtils.appendToINBOX(greenMailUser, "eml/iCSAsAttachment.eml");
 
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(1);
+		MSAttachement attachment = Iterables.getOnlyElement(attachments);
+		assertThat(attachment.getMethod()).isEqualTo(MethodAttachment.NormalAttachment);
+		assertThat(attachment.getDisplayName()).isEqualTo("attachment.ics");
+	}
+	
+	@Test
+	public void testForwardedEmailWithAttachments() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
+
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(2);
+		assertThat(FluentIterable.from(attachments)
+			.transform(new Function<MSAttachement, String>() {
+				
+				@Override
+				public String apply(MSAttachement input) {
+					return input.getDisplayName();
+				}
+			})).containsOnly("ATT00000.gif", "ATT00001.jpg");
+	}
+	
+	@Test
+	public void testSyncEmailWithMultipleNameHeader() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/asteriskGrouping.eml");
+
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(2);
+		assertThat(FluentIterable.from(attachments)
+			.transform(new Function<MSAttachement, String>() {
+				
+				@Override
+				public String apply(MSAttachement input) {
+					return input.getDisplayName();
+				}
+			})).containsOnly("BA + QS _ Assurance Décès pour Investisseur.pdf", "Flyer502.png");
+	}
+	
+	@Test
+	public void testSyncEmailWithNameHeaderContainingCharset() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/asteriskCharset.eml");
+
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(1);
+		assertThat(FluentIterable.from(attachments)
+			.transform(new Function<MSAttachement, String>() {
+				
+				@Override
+				public String apply(MSAttachement input) {
+					return input.getDisplayName();
+				}
+			})).containsOnly("éàyeah!@&.png");
+	}
+	
+	@Test
+	public void testSyncEmailWithNameHeaderNotContainingCharset() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/asteriskNoCharset.eml");
+
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(1);
+		assertThat(FluentIterable.from(attachments)
+			.transform(new Function<MSAttachement, String>() {
+				
+				@Override
+				public String apply(MSAttachement input) {
+					return input.getDisplayName();
+				}
+			})).containsOnly("Flyer rdv.pdf");
+	}
+	
+	@Test
+	public void testInvitationDoesntShownInAttachments() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/invitation.eml");
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
+			.andReturn(new MSEventUid("1"));
+		
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(0);
+	}
+	
+	@Test
+	public void testCancelInvitationDoesntShownInAttachments() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
+		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
+			.andReturn(new MSEventUid("1"));
+		
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(0);
+	}
+	
+	@Test
+	public void testModifiedOccurenceInvitationDoesntShownInAttachments() throws Exception {
+		testUtils.appendToINBOX(greenMailUser, "eml/modifiedOccurenceInvitation.eml");
+
+		Set<MSAttachement> attachments = syncThenGetOnlyEmailAttachments();
+		
+		assertThat(attachments.size()).isEqualTo(0);
+	}
+
+	private Set<MSAttachement> syncThenGetOnlyEmailAttachments() throws AuthFault, Exception {
 		SyncKey firstAllocatedSyncKey = new SyncKey("a548f9c2-4eab-4a81-bb29-7a9bbb2d32b3");
 		SyncKey secondAllocatedSyncKey = new SyncKey("9ecb6879-5ec9-44f7-8b4d-91530cefb044");
 		ItemSyncState firstAllocatedState = ItemSyncState.builder()
@@ -947,183 +1026,7 @@ public class SyncHandlerWithBackendTest {
 
 		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
 		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
-		assertThat(attachments.size()).isEqualTo(1);
-		MSAttachement attachment = Iterables.getOnlyElement(attachments);
-		
-		assertThat(attachment.getMethod()).isEqualTo(MethodAttachment.NormalAttachment);
-		assertThat(attachment.getDisplayName()).isEqualTo("attachment.ics");
-	}
-	
-	@Test
-	public void testForwardedEmailWithAttachments() throws Exception {
-		testUtils.appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
-
-		SyncKey firstAllocatedSyncKey = new SyncKey("626befef-21cc-4910-8e08-f9e966ca0495");
-		SyncKey secondAllocatedSyncKey = new SyncKey("33521cf6-aa8c-424b-94c3-08068c24c310");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
-		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-		
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, EMAIL);
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
-		assertThat(attachments.size()).isEqualTo(2);
-		
-		assertThat(FluentIterable.from(attachments)
-			.transform(new Function<MSAttachement, String>() {
-				
-				@Override
-				public String apply(MSAttachement input) {
-					return input.getDisplayName();
-				}
-			})).containsOnly("ATT00000.gif", "ATT00001.jpg");
-	}
-	
-	@Test
-	public void testInvitationDoesntShownInAttachments() throws Exception {
-		testUtils.appendToINBOX(greenMailUser, "eml/invitation.eml");
-
-		SyncKey firstAllocatedSyncKey = new SyncKey("bec49e8d-4bb1-43fa-beac-baa82e1b1e72");
-		SyncKey secondAllocatedSyncKey = new SyncKey("838edf22-870f-4980-93e2-8df4058cba50");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
-		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-		
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
-			.andReturn(new MSEventUid("1"));
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, EMAIL);
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
-		assertThat(attachments.size()).isEqualTo(0);
-	}
-	
-	@Test
-	public void testCancelInvitationDoesntShownInAttachments() throws Exception {
-		testUtils.appendToINBOX(greenMailUser, "eml/cancelInvitation.eml");
-
-		SyncKey firstAllocatedSyncKey = new SyncKey("9d66d5cd-f636-466a-9309-ba84feda617f");
-		SyncKey secondAllocatedSyncKey = new SyncKey("c701603f-f61b-4419-96a0-3098863fcd71");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
-		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		expect(calendarDao.getMSEventUidFor(anyObject(EventExtId.class), eq(user.device)))
-			.andReturn(new MSEventUid("1"));
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, EMAIL);
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
-		assertThat(attachments.size()).isEqualTo(0);
-	}
-	
-	@Test
-	public void testModifiedOccurenceInvitationDoesntShownInAttachments() throws Exception {
-		testUtils.appendToINBOX(greenMailUser, "eml/modifiedOccurenceInvitation.eml");
-
-		SyncKey firstAllocatedSyncKey = new SyncKey("04a3200c-064d-491f-91f3-1c04e6d46dd5");
-		SyncKey secondAllocatedSyncKey = new SyncKey("7ecea940-44bc-4525-a005-68a963408ebd");
-		ItemSyncState firstAllocatedState = ItemSyncState.builder()
-				.syncDate(DateUtils.getEpochPlusOneSecondCalendar().getTime())
-				.syncKey(firstAllocatedSyncKey)
-				.id(3)
-				.build();
-		ItemSyncState secondAllocatedState = ItemSyncState.builder()
-				.syncDate(date("2012-10-10T16:22:53"))
-				.syncKey(secondAllocatedSyncKey)
-				.id(4)
-				.build();
-		
-		ServerId emailServerId = inboxCollectionId.serverId(1);
-		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
-		expect(itemTrackingDao.isServerIdSynced(firstAllocatedState, emailServerId)).andReturn(false);
-		itemTrackingDao.markAsSynced(secondAllocatedState, ImmutableSet.of(emailServerId));
-		expectLastCall().once();
-		
-		userAccessUtils.mockUsersAccess(user);
-		syncKeyTestUtils.mockNextGeneratedSyncKey(secondAllocatedSyncKey);
-		syncTestUtils.mockCollectionDaoPerformSync(user.device, firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
-		
-		mocksControl.replay();
-		opushServer.start();
-		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		SyncResponse response = opClient.sync(decoder, firstAllocatedSyncKey, inboxCollectionId, EMAIL);
-		mocksControl.verify();
-
-		SyncCollectionResponse collectionResponse = syncTestUtils.getCollectionWithId(response, inboxCollectionId);
-		MSEmail mail = (MSEmail) Iterables.getOnlyElement(collectionResponse.getItemChanges()).getData();
-		Set<MSAttachement> attachments = mail.getAttachments();
-		assertThat(attachments.size()).isEqualTo(0);
+		return mail.getAttachments();
 	}
 
 	@Test

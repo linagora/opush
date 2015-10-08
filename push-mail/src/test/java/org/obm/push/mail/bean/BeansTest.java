@@ -40,6 +40,7 @@ import org.obm.push.mail.mime.MimeAddress;
 import org.obm.sync.bean.EqualsVerifierUtils;
 import org.obm.sync.bean.EqualsVerifierUtils.EqualsVerifierBuilder;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -58,7 +59,6 @@ public class BeansTest {
 		ImmutableList<Class<?>> list = 
 				ImmutableList.<Class<?>>builder()
 					.add(Address.class)
-					.add(BodyParam.class)
 					.add(Envelope.class)
 					.add(FastFetch.class)
 					.add(ListInfo.class)
@@ -82,6 +82,14 @@ public class BeansTest {
 			.prefabValue(ImmutableMap.class, 
 					ImmutableMap.of("key", "value"),
 					ImmutableMap.of("first", "second"))
+			.verify();
+	}
+	
+	@Test
+	public void testBodyParam() {
+		EqualsVerifierBuilder.builder()
+			.equalsVerifiers(BodyParam.class)
+			.prefabValue(Optional.class, Optional.absent(), Optional.of(5))
 			.verify();
 	}
 	
