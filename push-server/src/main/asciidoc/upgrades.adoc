@@ -161,4 +161,14 @@ Be aware that due to OP-53, every device will forget its data, synchronization s
 |http://ci-obm.linagora.com/jira/browse/OP-107[OP-107]|Folders deletion is done when opush and opush-conf packages are purged
 |=====================================
 
+=== 3.1.0 to 3.1.1
+
+.Changelog
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-217[OP-217]|Fallback on a default DTSTAMP when an ICS lacks of it
+|http://ci-obm.linagora.com/jira/browse/OP-223[OP-223]|Synchronization is not blocked anymore when an email contains an illegal ICS
+|http://ci-obm.linagora.com/jira/browse/OP-136[OP-136]|Better support of MIME headers
+|=====================================
 

@@ -1,4 +1,4 @@
-= Opush 3.1.0 Administration Guide
+= Opush 3.1.1 Administration Guide
 OBM Core Team <lgs-obm-dev@linagora.com>;
 :imagesdir: images
 :numbered:
