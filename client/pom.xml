@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.linagora.obm.opush</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.1.1-beta1</version>
+		<version>3.1.1</version>
 	</parent>
 	
 	<artifactId>client-opush</artifactId>
