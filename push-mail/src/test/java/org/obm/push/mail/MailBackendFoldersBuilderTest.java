@@ -39,6 +39,7 @@ import static org.obm.configuration.EmailConfiguration.IMAP_TRASH_NAME;
 import static org.obm.push.bean.change.hierarchy.MailboxPath.DEFAULT_SEPARATOR;
 
 import org.junit.Test;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
@@ -49,7 +50,6 @@ import org.obm.push.mail.bean.MailboxFolders;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 
 public class MailBackendFoldersBuilderTest {
@@ -76,13 +76,13 @@ public class MailBackendFoldersBuilderTest {
 	
 	@Test
 	public void buildShouldReturnRightFolderTypeWhenCommonMailboxes() {
-		ImmutableSet<String> folders = ImmutableSet.of(
-			IMAP_INBOX_NAME,
-			IMAP_DRAFTS_NAME,
-			IMAP_SENT_NAME,
-			IMAP_TRASH_NAME
-		);
-		assertThat(new MailBackendFoldersBuilder().addSpecialFolders(folders).build()).containsOnly(
+		assertThat(new MailBackendFoldersBuilder()
+			.addSpecialFolder(EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+			.build()
+		).containsOnly(
 			BackendFolder.builder()
 				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
 				.displayName(IMAP_INBOX_NAME)
@@ -111,14 +111,43 @@ public class MailBackendFoldersBuilderTest {
 	}
 	
 	@Test
-	public void buildShouldNotDuplicateSpecialMailboxesWhenAddedTwice() {
-		ImmutableSet<String> specialFolders = ImmutableSet.of(
-			IMAP_INBOX_NAME,
-			IMAP_DRAFTS_NAME,
-			IMAP_SENT_NAME,
-			IMAP_TRASH_NAME
+	public void buildShouldReturnFoldersWithINBOXParentWhenPathMatch() {
+		assertThat(new MailBackendFoldersBuilder()
+			.addSpecialFolder("INBOX", FolderType.DEFAULT_INBOX_FOLDER)
+			.addSpecialFolder("INBOX/Drafts", FolderType.DEFAULT_DRAFTS_FOLDER)
+			.addSpecialFolder("Sent", FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.addSpecialFolder("INBOX/Trash", FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+			.build()
+		).containsOnly(
+			BackendFolder.builder()
+				.backendId(MailboxPath.of(IMAP_INBOX_NAME))
+				.displayName(IMAP_INBOX_NAME)
+				.folderType(FolderType.DEFAULT_INBOX_FOLDER)
+				.parentId(Optional.<BackendId>absent())
+				.build(),
+			BackendFolder.builder()
+				.backendId(MailboxPath.of("INBOX/Drafts"))
+				.displayName(IMAP_DRAFTS_NAME)
+				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
+				.build(),
+			BackendFolder.builder()
+				.backendId(MailboxPath.of(IMAP_SENT_NAME))
+				.displayName(IMAP_SENT_NAME)
+				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+				.parentId(Optional.<BackendId>absent())
+				.build(),
+			BackendFolder.builder()
+				.backendId(MailboxPath.of("INBOX/Trash"))
+				.displayName(IMAP_TRASH_NAME)
+				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
+				.build()
 		);
-
+	}
+	
+	@Test
+	public void buildShouldNotDuplicateSpecialMailboxesWhenAddedTwice() {
 		MailboxFolders sameFoldersAsSubscribed = new MailboxFolders(ImmutableList.of(
 			new MailboxFolder(IMAP_SENT_NAME, DEFAULT_SEPARATOR),
 			new MailboxFolder(IMAP_INBOX_NAME, DEFAULT_SEPARATOR),
@@ -127,7 +156,10 @@ public class MailBackendFoldersBuilderTest {
 		);
 		
 		BackendFolders backendFolders = new MailBackendFoldersBuilder()
-			.addSpecialFolders(specialFolders)
+			.addSpecialFolder(EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
 			.addFolders(sameFoldersAsSubscribed)
 			.build();
 		
@@ -246,11 +278,10 @@ public class MailBackendFoldersBuilderTest {
 		
 		BackendFolders backendFolders = new MailBackendFoldersBuilder()
 			.addFolders(folders)
-			.addSpecialFolders(ImmutableList.of(
-				IMAP_INBOX_NAME,
-				IMAP_DRAFTS_NAME,
-				IMAP_SENT_NAME,
-				IMAP_TRASH_NAME))
+			.addSpecialFolder(EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER)
+			.addSpecialFolder(EmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
 			.build();
 		
 		assertThat(backendFolders).containsOnly(

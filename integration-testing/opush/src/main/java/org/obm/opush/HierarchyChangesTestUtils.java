@@ -35,6 +35,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
 import org.obm.configuration.EmailConfiguration;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.UserDataRequest;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.calendar.CalendarBackend;
@@ -43,7 +44,6 @@ import org.obm.push.mail.MailBackend;
 import org.obm.push.mail.MailBackendFoldersBuilder;
 import org.obm.push.task.TaskBackend;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 public class HierarchyChangesTestUtils {
@@ -70,7 +70,7 @@ public class HierarchyChangesTestUtils {
 	
 	public void mockGetBackendFoldersWithINBOX() {
 		mockGetBackendFoldersWithNewMailboxes(new MailBackendFoldersBuilder()
-			.addSpecialFolders(ImmutableSet.of(EmailConfiguration.IMAP_INBOX_NAME))
+			.addSpecialFolder(EmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER)
 			.build());
 	}
 

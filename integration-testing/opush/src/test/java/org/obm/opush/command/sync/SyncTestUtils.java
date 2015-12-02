@@ -47,6 +47,7 @@ import org.obm.push.backend.DataDelta;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.AnalysedSyncCollection;
 import org.obm.push.bean.Device;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
@@ -134,16 +135,20 @@ public class SyncTestUtils {
 		return null;
 	}
 
-	public CollectionChange lookupInbox(Iterable<CollectionChange> items) {
+	public CollectionChange lookupByType(Iterable<CollectionChange> items, final FolderType type) {
 		return FluentIterable
 				.from(items)
 				.firstMatch(new Predicate<CollectionChange>() {
 		
 					@Override
 					public boolean apply(CollectionChange input) {
-						return input.getFolderType() == org.obm.push.bean.FolderType.DEFAULT_INBOX_FOLDER;
+						return input.getFolderType() == type;
 					}
 				}).get();
+	}
+
+	public CollectionChange lookupInbox(Iterable<CollectionChange> items) {
+		return lookupByType(items, FolderType.DEFAULT_INBOX_FOLDER);
 	}
 
 	public void mockEmailSyncClasses(SyncKey syncEmailSyncKey, DataDelta delta, 

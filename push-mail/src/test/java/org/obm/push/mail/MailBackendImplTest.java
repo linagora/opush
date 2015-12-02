@@ -39,10 +39,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.obm.DateUtils.date;
-import static org.obm.configuration.EmailConfiguration.IMAP_DRAFTS_NAME;
 import static org.obm.configuration.EmailConfiguration.IMAP_INBOX_NAME;
-import static org.obm.configuration.EmailConfiguration.IMAP_SENT_NAME;
-import static org.obm.configuration.EmailConfiguration.IMAP_TRASH_NAME;
 import static org.obm.push.mail.MSMailTestsUtils.loadEmail;
 
 import java.io.InputStream;
@@ -1030,11 +1027,13 @@ public class MailBackendImplTest {
 	}
 
 	@Test
-	public void currentFoldersShouldReturnOnlyDefaultCalendar() {
+	public void currentFoldersShouldReturnSpecialAndSubscribedFolders() {
 		MailboxFolders folders = new MailboxFolders(ImmutableList.of(
 			new MailboxFolder("custom/mail/box", '/'))
 		);
-		
+		expect(emailConfiguration.imapMailboxDraft()).andReturn("Drafts");
+		expect(emailConfiguration.imapMailboxSent()).andReturn("custom sent");
+		expect(emailConfiguration.imapMailboxTrash()).andReturn("INBOX/Trash");
 		expect(mailboxService.listSubscribedFolders(udr)).andReturn(folders);
 		
 		control.replay();
@@ -1049,22 +1048,22 @@ public class MailBackendImplTest {
 				.parentId(Optional.<BackendId>absent())
 				.build(),
 			BackendFolder.builder()
-				.backendId(MailboxPath.of(IMAP_DRAFTS_NAME))
-				.displayName(IMAP_DRAFTS_NAME)
+				.backendId(MailboxPath.of("Drafts"))
+				.displayName("Drafts")
 				.folderType(FolderType.DEFAULT_DRAFTS_FOLDER)
 				.parentId(Optional.<BackendId>absent())
 				.build(),
 			BackendFolder.builder()
-				.backendId(MailboxPath.of(IMAP_SENT_NAME))
-				.displayName(IMAP_SENT_NAME)
+				.backendId(MailboxPath.of("custom sent"))
+				.displayName("custom sent")
 				.folderType(FolderType.DEFAULT_SENT_EMAIL_FOLDER)
 				.parentId(Optional.<BackendId>absent())
 				.build(),
 			BackendFolder.builder()
-				.backendId(MailboxPath.of(IMAP_TRASH_NAME))
-				.displayName(IMAP_TRASH_NAME)
+				.backendId(MailboxPath.of("INBOX/Trash"))
+				.displayName("Trash")
 				.folderType(FolderType.DEFAULT_DELETED_ITEMS_FOLDER)
-				.parentId(Optional.<BackendId>absent())
+				.parentId(Optional.<BackendId>of(MailboxPath.of(IMAP_INBOX_NAME)))
 				.build(),
 			BackendFolder.builder()
 				.backendId(MailboxPath.of("custom/mail/box"))

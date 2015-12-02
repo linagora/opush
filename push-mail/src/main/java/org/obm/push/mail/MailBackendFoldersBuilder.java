@@ -1,7 +1,7 @@
 package org.obm.push.mail;
 
-import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -11,7 +11,6 @@ import org.obm.push.bean.change.hierarchy.BackendFolder;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.BackendFolders;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
-import org.obm.push.configuration.OpushEmailConfiguration;
 import org.obm.push.mail.bean.MailboxFolder;
 import org.obm.push.mail.bean.MailboxFolders;
 
@@ -20,8 +19,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeTraverser;
@@ -29,18 +28,13 @@ import com.google.common.collect.TreeTraverser;
 
 public class MailBackendFoldersBuilder {
 	
-	private static final ImmutableMap<String, FolderType> SPECIAL_FOLDERS_TYPES = ImmutableMap.of(
-		OpushEmailConfiguration.IMAP_INBOX_NAME, FolderType.DEFAULT_INBOX_FOLDER,
-		OpushEmailConfiguration.IMAP_DRAFTS_NAME, FolderType.DEFAULT_DRAFTS_FOLDER,
-		OpushEmailConfiguration.IMAP_SENT_NAME, FolderType.DEFAULT_SENT_EMAIL_FOLDER,
-		OpushEmailConfiguration.IMAP_TRASH_NAME, FolderType.DEFAULT_DELETED_ITEMS_FOLDER);
-
 	private Set<MailboxPath> mailboxes;
-	private Set<MailboxPath> specialMailboxes;
+	private List<Entry<MailboxPath, FolderType>> specialMailboxes;
+
 	
 	public MailBackendFoldersBuilder() {
 		mailboxes = Sets.newTreeSet();
-		specialMailboxes = Sets.newHashSet();
+		specialMailboxes = Lists.newArrayList();
 	}
 	
 	public MailBackendFoldersBuilder addFolders(MailboxFolders folders) {
@@ -50,10 +44,13 @@ public class MailBackendFoldersBuilder {
 		return this;
 	}
 	
-	public MailBackendFoldersBuilder addSpecialFolders(Collection<String> folders) {
-		for (String folder : folders) {
-			specialMailboxes.add(MailboxPath.of(folder));
-		}
+	public MailBackendFoldersBuilder addSpecialFolder(String path, FolderType type) {
+		specialMailboxes.add(Maps.immutableEntry(MailboxPath.of(path), type));
+		return this;
+	}
+	
+	public MailBackendFoldersBuilder addSpecialFolders(List<Entry<MailboxPath, FolderType>> folders) {
+		specialMailboxes.addAll(folders);
 		return this;
 	}
 	
@@ -61,32 +58,29 @@ public class MailBackendFoldersBuilder {
 		Map<MailboxPath, Node> pathToNode = Maps.newHashMap(); 
 		Node root = new Node();
 		
-		// Handle special mailboxes, don't search for parent
-		for (MailboxPath folder : specialMailboxes) {
-			Node node = new Node(BackendFolder.builder()
-				.displayName(folder.getPath())
-				.folderType(folderType(folder))
-				.backendId(folder)
-				.parentId(Optional.<BackendId>absent())
-				.build());
-			
-			root.children.add(node);
-			pathToNode.put(folder, node);
+		// Handle special mailboxes first, as they can be parents of other folders
+		for (Entry<MailboxPath, FolderType> folder : specialMailboxes) {
+			appendNode(pathToNode, root, folder.getKey(), folder.getValue());
 		}
 		
-		for (MailboxPath folder : Sets.difference(mailboxes, specialMailboxes)) {
-			Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, folder);
-			Node node = new Node(BackendFolder.builder()
-				.displayName(folder.stripParentPath(searchParent.getValue()))
-				.folderType(folderType(folder))
-				.backendId(folder)
-				.parentId(searchParent.getValue())
-				.build());
-			
-			searchParent.getKey().children.add(node);
-			pathToNode.put(folder, node);
+		for (MailboxPath folder : Sets.difference(mailboxes, pathToNode.keySet())) {
+			appendNode(pathToNode, root, folder, FolderType.USER_CREATED_EMAIL_FOLDER);
 		}
+		
 		return new TreeBackendFolders(root);
+	}
+
+	private void appendNode(Map<MailboxPath, Node> pathToNode, Node root, MailboxPath path, FolderType type) {
+		Entry<Node, Optional<BackendId>> searchParent = searchParent(pathToNode, root, path);
+		Node node = new Node(BackendFolder.builder()
+			.displayName(path.stripParentPath(searchParent.getValue()))
+			.folderType(type)
+			.backendId(path)
+			.parentId(searchParent.getValue())
+			.build());
+
+		searchParent.getKey().children.add(node);
+		pathToNode.put(path, node);
 	}
 
 	private Entry<Node, Optional<BackendId>> searchParent(Map<MailboxPath, Node> pathToNode,
@@ -97,10 +91,6 @@ public class MailBackendFoldersBuilder {
 			return Maps.immutableEntry(root, Optional.<BackendId>absent());
 		}
 		return Maps.immutableEntry(pathToNode.get(find.get()), Optional.<BackendId>of(find.get()));
-	}
-
-	private FolderType folderType(MailboxPath path) {
-		return Objects.firstNonNull(SPECIAL_FOLDERS_TYPES.get(path.getPath()), FolderType.USER_CREATED_EMAIL_FOLDER);
 	}
 	
 	private static class Node {

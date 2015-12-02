@@ -65,6 +65,7 @@ import org.obm.push.bean.BodyPreference;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
+import org.obm.push.bean.FolderType;
 import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.MSAttachementData;
@@ -153,12 +154,6 @@ import com.sun.mail.util.QPDecoderStream;
 @Watch(BreakdownGroups.EMAIL)
 public class MailBackendImpl extends OpushBackend implements MailBackend {
 
-	private static final ImmutableList<String> SPECIAL_FOLDERS = 
-			ImmutableList.of(OpushEmailConfiguration.IMAP_INBOX_NAME,
-							OpushEmailConfiguration.IMAP_DRAFTS_NAME,
-							OpushEmailConfiguration.IMAP_SENT_NAME,
-							OpushEmailConfiguration.IMAP_TRASH_NAME);
-	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private final MailboxService mailboxService;
@@ -219,10 +214,18 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	public BackendFolders getBackendFolders(UserDataRequest udr) {
 		return new MailBackendFoldersBuilder()
 			.addFolders(mailboxService.listSubscribedFolders(udr))
-			.addSpecialFolders(SPECIAL_FOLDERS)
+			.addSpecialFolders(generateSpecialFolders())
 			.build();
 	}
 
+	private List<Entry<MailboxPath, FolderType>> generateSpecialFolders() {
+		return ImmutableList.of(
+			Maps.immutableEntry(MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME), FolderType.DEFAULT_INBOX_FOLDER),
+			Maps.immutableEntry(MailboxPath.of(emailConfiguration.imapMailboxDraft()), FolderType.DEFAULT_DRAFTS_FOLDER),
+			Maps.immutableEntry(MailboxPath.of(emailConfiguration.imapMailboxSent()), FolderType.DEFAULT_SENT_EMAIL_FOLDER),
+			Maps.immutableEntry(MailboxPath.of(emailConfiguration.imapMailboxTrash()), FolderType.DEFAULT_DELETED_ITEMS_FOLDER));
+	}
+	
 	@Override
 	public int getItemEstimateSize(UserDataRequest udr, ItemSyncState state, CollectionId collectionId, 
 			SyncCollectionOptions options) throws ProcessingEmailException, 
