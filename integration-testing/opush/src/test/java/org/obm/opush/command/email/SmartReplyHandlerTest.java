@@ -57,6 +57,7 @@ import org.obm.opush.MailBackendTestModule;
 import org.obm.opush.Users;
 import org.obm.opush.Users.OpushUser;
 import org.obm.opush.env.CassandraServer;
+import org.obm.opush.env.OpushStaticConfiguration;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ServerId;
@@ -75,6 +76,7 @@ import org.obm.sync.push.client.OPClient;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import com.icegreen.greenmail.imap.ImapHostManager;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.store.SimpleStoredMessage;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -96,6 +98,7 @@ public class SmartReplyHandlerTest {
 	@Inject private IntegrationUserAccessUtils userAccessUtils;
 	@Inject private FolderSnapshotDao folderSnapshotDao;
 	@Inject private UserClient userClient;
+	@Inject private OpushStaticConfiguration.Email emailConfiguration;
 	
 	private OpushUser user;
 	private GreenMailUser greenMailUser;
@@ -106,6 +109,7 @@ public class SmartReplyHandlerTest {
 	private MailFolder sentFolder;
 	private ServerId serverId;
 	private CloseableHttpClient httpClient;
+	private ImapHostManager imapHostManager;
 
 	@Before
 	public void setUp() throws Exception {
@@ -114,8 +118,9 @@ public class SmartReplyHandlerTest {
 		user = users.jaures;
 		greenMail.start();
 		greenMailUser = greenMail.setUser(user.user.getLoginAtDomain(), String.valueOf(user.password));
-		sentFolder = greenMail.getManagers().getImapHostManager().createMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
-		inboxFolder = greenMail.getManagers().getImapHostManager().getInbox(greenMailUser);
+		imapHostManager = greenMail.getManagers().getImapHostManager();
+		sentFolder = imapHostManager.createMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
+		inboxFolder = imapHostManager.getInbox(greenMailUser);
 		
 		inboxPath = MailboxPath.of(OpushEmailConfiguration.IMAP_INBOX_NAME);
 		inboxCollectionId = CollectionId.of(1234);
@@ -241,7 +246,7 @@ public class SmartReplyHandlerTest {
 	
 	@Test
 	public void smartReplyShouldNotFailWhenNoSentFolder() throws Exception {
-		greenMail.getManagers().getImapHostManager().deleteMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
+		imapHostManager.deleteMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
 		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
 		
 		mocksControl.replay();
@@ -251,6 +256,22 @@ public class SmartReplyHandlerTest {
 		
 		assertThat(success).isTrue();
 		assertThat(inboxFolder.getMessages().size()).isEqualTo(2);
+	}
+	
+	@Test
+	public void smartReplyShouldFindSpecialSentFolder() throws Exception {
+		String sentPath = "INBOX/Sent";
+		emailConfiguration.configuration.imapMailboxSent = sentPath;
+		imapHostManager.deleteMailbox(greenMailUser, OpushEmailConfiguration.IMAP_SENT_NAME);
+		MailFolder sentFolder = imapHostManager.createMailbox(greenMailUser, sentPath);
+		testUtils.appendToINBOX(greenMailUser, "eml/multipartAlternative.eml");
+		
+		mocksControl.replay();
+		opushServer.start();
+		opClient().emailReply(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		mocksControl.verify();
+		
+		assertThat(sentFolder.getMessages().size()).isEqualTo(0);
 	}
 
 	@Test

@@ -32,6 +32,7 @@
 package org.obm.opush.env;
 
 import org.obm.Configuration;
+import org.obm.configuration.EmailConfiguration;
 import org.obm.push.ExpungePolicy;
 import org.obm.push.configuration.CassandraRetryPolicy;
 
@@ -57,6 +58,9 @@ public class OpushConfigurationFixture extends Configuration {
 		public int maxMessageSize = 1024;
 		public int fetchBlockSize = 1 << 20;
 		public ExpungePolicy expungePolicy = ExpungePolicy.ALWAYS;
+		public String imapMailboxDraft = EmailConfiguration.IMAP_DRAFTS_NAME;
+		public String imapMailboxTrash = EmailConfiguration.IMAP_TRASH_NAME;
+		public String imapMailboxSent = EmailConfiguration.IMAP_SENT_NAME;
 	}	
 	
 	public static class RemoteConsole {

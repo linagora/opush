@@ -92,6 +92,7 @@ public class GreenMailEnvModule extends AbstractOverrideModule {
 					@Override
 					protected void configure() {
 						bind(EmailConfiguration.class).to(OpushGreenMailEmailConfiguration.class);
+						bind(OpushStaticConfiguration.Email.class).to(OpushGreenMailEmailConfiguration.class);
 					}
 				}));
 		}

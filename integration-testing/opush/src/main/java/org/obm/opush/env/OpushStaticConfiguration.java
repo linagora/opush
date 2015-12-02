@@ -63,7 +63,7 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 
 	public static class Email implements OpushEmailConfiguration {
 
-		private final OpushConfigurationFixture.Mail configuration;
+		public final OpushConfigurationFixture.Mail configuration;
 
 		public Email(OpushConfigurationFixture.Mail configuration) {
 			this.configuration = configuration;
@@ -86,17 +86,17 @@ public class OpushStaticConfiguration extends StaticLocatorConfiguration impleme
 
 		@Override
 		public String imapMailboxTrash() {
-			return OpushEmailConfiguration.IMAP_TRASH_NAME;
+			return configuration.imapMailboxTrash;
 		}
 
 		@Override
 		public String imapMailboxSent() {
-			return OpushEmailConfiguration.IMAP_SENT_NAME;
+			return configuration.imapMailboxSent;
 		}
 
 		@Override
 		public String imapMailboxDraft() {
-			return OpushEmailConfiguration.IMAP_DRAFTS_NAME;
+			return configuration.imapMailboxDraft;
 		}
 
 		@Override
