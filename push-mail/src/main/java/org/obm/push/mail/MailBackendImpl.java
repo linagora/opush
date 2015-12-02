@@ -371,7 +371,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				Long uid = getEmailUidFromServerId(serverId);
 				Folder sourceFolder = folderSnapshotDao.get(udr.getUser(), udr.getDevice(), collectionId);
 				MailboxPath sourcePath = sourceFolder.getTypedBackendId();
-				MailboxPath destinationPath = MailboxPath.of(EmailConfiguration.IMAP_TRASH_NAME);
+				MailboxPath destinationPath = MailboxPath.of(emailConfiguration.imapMailboxTrash());
 				if (trash && !destinationPath.equals(sourcePath)) {
 					mailboxService.move(udr, sourcePath, destinationPath, MessageSet.singleton(uid));
 				} else {

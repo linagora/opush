@@ -168,6 +168,7 @@ public class MailBackendTest {
 		mailboxService.delete(udr, trashPath, MessageSet.singleton(itemId));
 		expectLastCall();
 
+		expect(emailConfiguration.imapMailboxTrash()).andReturn(EmailConfiguration.IMAP_TRASH_NAME).once();
 		expect(emailConfiguration.expungePolicy()).andReturn(ExpungePolicy.ALWAYS).once();
 		mailboxService.expunge(udr, trashPath);
 		expectLastCall().once();
