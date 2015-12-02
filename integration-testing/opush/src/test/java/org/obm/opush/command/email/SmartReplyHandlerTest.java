@@ -271,7 +271,7 @@ public class SmartReplyHandlerTest {
 		opClient().emailReply(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
 		mocksControl.verify();
 		
-		assertThat(sentFolder.getMessages().size()).isEqualTo(0);
+		assertThat(sentFolder.getMessages().size()).isEqualTo(1);
 	}
 
 	@Test

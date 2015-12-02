@@ -100,17 +100,15 @@ public class LinagoraMailboxService implements MailboxService {
 
 	private static final String NO_REFERENCE_NAME = "";
 
-	private final boolean activateTLS;
-	private final boolean loginWithDomain;
 	private final LinagoraImapClientProvider imapClientProvider;
+	private final OpushEmailConfiguration emailConfiguration;
 
 	@Inject
 	LinagoraMailboxService(OpushEmailConfiguration emailConfiguration, 
 			LinagoraImapClientProvider imapClientProvider) {
 		
 		this.imapClientProvider = imapClientProvider;
-		this.activateTLS = emailConfiguration.activateTls();
-		this.loginWithDomain = emailConfiguration.loginWithDomain();
+		this.emailConfiguration = emailConfiguration;
 	}
 
 	@Override
@@ -376,9 +374,9 @@ public class LinagoraMailboxService implements MailboxService {
 	
 	@Override
 	public void storeInSent(UserDataRequest udr, EmailReader mailContent) throws MailException {
-		logger.info("Store mail in folder[SentBox]");
 		if (mailContent != null) {
-			MailboxPath sentboxPath = MailboxPath.of(EmailConfiguration.IMAP_SENT_NAME);
+			MailboxPath sentboxPath = MailboxPath.of(emailConfiguration.imapMailboxSent());
+			logger.info("Store mail in the sent folder: {}", sentboxPath);
 			storeInFolder(udr, mailContent, true, sentboxPath);
 		} else {
 			throw new MailException("The mail that user try to store in sent box is null.");
@@ -467,12 +465,12 @@ public class LinagoraMailboxService implements MailboxService {
 
 	@Override
 	public boolean getLoginWithDomain() {
-		return loginWithDomain;
+		return emailConfiguration.loginWithDomain();
 	}
 
 	@Override
 	public boolean getActivateTLS() {
-		return activateTLS;
+		return emailConfiguration.activateTls();
 	}
 
 	@Override

@@ -50,6 +50,9 @@ import org.obm.push.minig.imap.StoreClient;
 public class MockBasedImapMailboxServiceTest {
 
 	private UserDataRequest udr;
+	private OpushEmailConfiguration emailConfiguration;
+	private LinagoraImapClientProvider imapClientProvider;
+	private StoreClient storeClient;
 	
 	@Before
 	public void setUp() {
@@ -58,15 +61,16 @@ public class MockBasedImapMailboxServiceTest {
 	    udr = new UserDataRequest(
 				new Credentials(User.Factory.create()
 						.createUser(mailbox, mailbox, null), password), null, null);
+
+		emailConfiguration = createMock(OpushEmailConfiguration.class);
+		imapClientProvider = createMock(LinagoraImapClientProvider.class);
+		storeClient = createMock(StoreClient.class);
 	}
 	
  	@Test
 	public void testParseSpecificINBOXCase() throws Exception {
 		String userINBOXFolder = "INBOX";
-		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
-		
-		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
-		StoreClient storeClient = createMock(StoreClient.class);
+
 		expect(imapClientProvider.getImapClient(udr)).andReturn(storeClient);
 		expect(storeClient.findMailboxNameWithServerCase(userINBOXFolder))
 			.andReturn(userINBOXFolder);
@@ -85,10 +89,7 @@ public class MockBasedImapMailboxServiceTest {
 	public void testParseSpecificINBOXCaseIsntCaseSensitive() throws Exception {
 		String userINBOXFolder = "InBoX";
 		String serverINBOXFolder = "INBOX";
-		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
-		
-		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
-		StoreClient storeClient = createMock(StoreClient.class);
+
 		expect(imapClientProvider.getImapClient(udr)).andReturn(storeClient);
 		expect(storeClient.findMailboxNameWithServerCase(userINBOXFolder)).andReturn(serverINBOXFolder);
 
@@ -105,10 +106,7 @@ public class MockBasedImapMailboxServiceTest {
 	@Test
 	public void testParseINBOXWithOtherFolderEndingByINBOX() throws Exception {
 		String folderEndingByINBOX = "userFolder" + OpushEmailConfiguration.IMAP_INBOX_NAME;
-		OpushEmailConfiguration emailConfiguration = newEmailConfigurationMock();
-
-		LinagoraImapClientProvider imapClientProvider = createMock(LinagoraImapClientProvider.class);
-		StoreClient storeClient = createMock(StoreClient.class);
+		
 		expect(imapClientProvider.getImapClient(udr)).andReturn(storeClient);
 		expect(storeClient.findMailboxNameWithServerCase(folderEndingByINBOX)).andReturn(folderEndingByINBOX);
 
@@ -120,12 +118,5 @@ public class MockBasedImapMailboxServiceTest {
 		verify(emailConfiguration, imapClientProvider, storeClient);
 		
 		assertThat(parsedMailbox).isEqualTo(folderEndingByINBOX);
-	}
-
-	private OpushEmailConfiguration newEmailConfigurationMock() {
-		OpushEmailConfiguration emailConfiguration = createMock(OpushEmailConfiguration.class);
-		expect(emailConfiguration.loginWithDomain()).andReturn(true).once();
-		expect(emailConfiguration.activateTls()).andReturn(false).once();
-		return emailConfiguration;
 	}
 }
