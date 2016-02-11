@@ -33,12 +33,16 @@ package org.obm.push.mail;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.UUID;
 
+import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
+import org.obm.push.bean.SyncKey;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
 import org.obm.push.exception.DaoException;
@@ -49,11 +53,14 @@ import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.minig.imap.impl.MessageSetUtils;
+import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.store.SnapshotDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -66,17 +73,20 @@ public class MailBackendSyncData {
 		private final DateService dateService;
 		private final MailboxService mailboxService;
 		private final SnapshotDao snapshotDao;
+		private final WindowingToSnapshotDao windowingToSnapshotDao;
 		private final EmailChangesComputer emailChangesComputer;
 
 		@Inject
 		@VisibleForTesting MailBackendSyncDataFactory(DateService dateService,
 				MailboxService mailboxService,
 				SnapshotDao snapshotDao,
+				WindowingToSnapshotDao windowingToSnapshotDao,
 				EmailChangesComputer emailChangesComputer) {
 			
 			this.dateService = dateService;
 			this.mailboxService = mailboxService;
 			this.snapshotDao = snapshotDao;
+			this.windowingToSnapshotDao = windowingToSnapshotDao;
 			this.emailChangesComputer = emailChangesComputer;
 		}
 		
@@ -88,11 +98,7 @@ public class MailBackendSyncData {
 			Date dataDeltaDate = dateService.getCurrentDate();
 			long currentUIDNext = mailboxService.fetchUIDNext(udr, path);
 
-			Snapshot previousStateSnapshot = snapshotDao.get(SnapshotKey.builder()
-					.deviceId(udr.getDevId())
-					.syncKey(state.getSyncKey())
-					.collectionId(folder.getCollectionId())
-					.build());
+			Snapshot previousStateSnapshot = getPreviousSnapshot(udr, state, folder);
 			Collection<Email> managedEmails = getManagedEmails(previousStateSnapshot);
 			Collection<Email> newManagedEmails = searchEmailsToManage(
 					udr, path, previousStateSnapshot, options, dataDeltaDate, currentUIDNext);
@@ -100,6 +106,19 @@ public class MailBackendSyncData {
 			EmailChanges emailChanges = emailChangesComputer.computeChanges(managedEmails, newManagedEmails);
 				
 			return new MailBackendSyncData(dataDeltaDate, path, currentUIDNext, previousStateSnapshot, managedEmails, newManagedEmails, emailChanges);
+		}
+
+		@VisibleForTesting Snapshot getPreviousSnapshot(UserDataRequest udr, ItemSyncState state, Folder folder) {
+			CollectionId collection = folder.getCollectionId();
+			DeviceId devId = udr.getDevId();
+			SyncKey syncKey = state.getSyncKey();
+			
+			Optional<UUID> snapshotId = windowingToSnapshotDao.get(new WindowingKey(udr.getUser(), devId, collection, syncKey));
+			if (snapshotId.isPresent()) {
+				return snapshotDao.get(snapshotId.get());
+			}
+			
+			return snapshotDao.get(SnapshotKey.builder().deviceId(devId).syncKey(syncKey).collectionId(collection).build());
 		}
 
 		@VisibleForTesting Collection<Email> getManagedEmails(Snapshot previousStateSnapshot) {

@@ -37,6 +37,8 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.obm.DateUtils.date;
+import static org.obm.push.bean.FilterType.ONE_DAY_BACK;
+import static org.obm.push.bean.FilterType.THREE_DAYS_BACK;
 
 import java.util.Date;
 import java.util.List;
@@ -64,7 +66,6 @@ import org.obm.opush.env.CassandraServer;
 import org.obm.opush.env.OpushStaticConfiguration;
 import org.obm.push.OpushServer;
 import org.obm.push.bean.AnalysedSyncCollection;
-import org.obm.push.bean.FilterType;
 import org.obm.push.bean.FolderType;
 import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.PIMDataType;
@@ -227,8 +228,8 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse firstInboxResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
@@ -299,9 +300,9 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse firstInboxResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
@@ -365,10 +366,10 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse firstSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse firstInboxResponse = syncTestUtils.getCollectionWithId(firstSyncResponse, inboxCollectionId);
@@ -393,7 +394,361 @@ public class MailBackendGetChangedTest {
 		assertThat(imapConnectionCounter.selectCounter.get()).isEqualTo(2);
 		assertThat(imapConnectionCounter.listMailboxesCounter.get()).isEqualTo(0);
 	}
+	
+	@Test
+	public void testGetChangedWithoutSnapshotWhenGetBackOnPreviousSyncKey() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("4c34ea02-2ae4-45e8-85fe-bd5ed910f570");
+		SyncKey lastAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		int allocatedStateId = 3;
+		int allocatedStateId2 = 4;
+		int allocatedStateId3 = 5;
+		int lastAllocatedStateId = 6;
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, lastAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(allocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(allocatedStateId2)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T17:22:53"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(allocatedStateId3)
+				.build();
+		ItemSyncState lastAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:17:26"))
+				.syncKey(lastAllocatedSyncKey)
+				.id(lastAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(lastAllocatedState.getSyncDate()).times(1);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(thirdAllocatedSyncKey, thirdAllocatedState, lastAllocatedState, inboxCollectionId);
 
+		expect(itemTrackingDao.isServerIdSynced(anyObject(ItemSyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse1 = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse2 = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		mocksControl.verify();
+
+		SyncCollectionResponse collection1 = syncTestUtils.getCollectionWithId(syncResponse1, inboxCollectionId);
+		SyncCollectionResponse collection2 = syncTestUtils.getCollectionWithId(syncResponse2, inboxCollectionId);
+
+		syncTestUtils.assertEqualsWithoutApplicationData(collection1.getItemChanges(),ImmutableList.of(
+			ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(1))
+				.isNew(true)
+				.build(),
+			ItemChange.builder()
+				.serverId(inboxCollectionId.serverId(2))
+				.isNew(true)
+				.build()));
+		assertThat(collection2.getCommands().getCommands()).isEmpty();
+	}
+	
+	@Test
+	public void testGetChangedWithoutSnapshotWhenGetBackOnPreviousSyncKeyAndDeletions() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("4c34ea02-2ae4-45e8-85fe-bd5ed910f570");
+		SyncKey fourthAllocatedSyncKey = new SyncKey("60c4bab7-0c1d-453f-9d32-e44fae853591");
+		SyncKey lastAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		int allocatedStateId = 3;
+		int allocatedStateId2 = 4;
+		int allocatedStateId3 = 5;
+		int allocatedStateId4 = 6;
+		int lastAllocatedStateId = 7;
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, fourthAllocatedSyncKey, lastAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(allocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(allocatedStateId2)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T17:22:53"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(allocatedStateId3)
+				.build();
+		ItemSyncState fourthAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:22:53"))
+				.syncKey(fourthAllocatedSyncKey)
+				.id(allocatedStateId4)
+				.build();
+		ItemSyncState lastAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T19:17:26"))
+				.syncKey(lastAllocatedSyncKey)
+				.id(lastAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(fourthAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(lastAllocatedState.getSyncDate()).times(1);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, fourthAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(fourthAllocatedSyncKey, fourthAllocatedState, lastAllocatedState, inboxCollectionId);
+
+		expect(itemTrackingDao.isServerIdSynced(anyObject(ItemSyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		greenMail.deleteEmailFromInbox(greenMailUser, 1);
+		SyncResponse syncResponse1 = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse2 = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse3 = opClient.syncEmail(decoder, fourthAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		mocksControl.verify();
+
+		SyncCollectionResponse collection1 = syncTestUtils.getCollectionWithId(syncResponse1, inboxCollectionId);
+		SyncCollectionResponse collection2 = syncTestUtils.getCollectionWithId(syncResponse2, inboxCollectionId);
+		SyncCollectionResponse collection3 = syncTestUtils.getCollectionWithId(syncResponse3, inboxCollectionId);
+
+		assertThat(collection1.getItemDeletions()).hasSize(1);
+		assertThat(collection2.getItemDeletions()).hasSize(1);
+		assertThat(collection3.getCommands().getCommands()).isEmpty();
+	}
+	
+	@Test
+	public void testGetChangedWithSnapshotWhenGetBackOnPreviousSyncKeyAndDeletions() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("4c34ea02-2ae4-45e8-85fe-bd5ed910f570");
+		SyncKey fourthAllocatedSyncKey = new SyncKey("60c4bab7-0c1d-453f-9d32-e44fae853591");
+		SyncKey lastAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		int allocatedStateId = 3;
+		int allocatedStateId2 = 4;
+		int allocatedStateId3 = 5;
+		int allocatedStateId4 = 6;
+		int lastAllocatedStateId = 7;
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, thirdAllocatedSyncKey, fourthAllocatedSyncKey, lastAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(allocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(allocatedStateId2)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T17:22:53"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(allocatedStateId3)
+				.build();
+		ItemSyncState fourthAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:22:53"))
+				.syncKey(fourthAllocatedSyncKey)
+				.id(allocatedStateId4)
+				.build();
+		ItemSyncState lastAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T19:17:26"))
+				.syncKey(lastAllocatedSyncKey)
+				.id(lastAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate()).times(1);
+		expect(dateService.getCurrentDate()).andReturn(fourthAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(lastAllocatedState.getSyncDate()).times(1);
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, thirdAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(thirdAllocatedSyncKey, thirdAllocatedState, fourthAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(fourthAllocatedSyncKey, fourthAllocatedState, lastAllocatedState, inboxCollectionId);
+
+		expect(itemTrackingDao.isServerIdSynced(anyObject(ItemSyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 1);
+		
+		// Sync twice with the same sync key 
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 1);
+		SyncResponse syncWindowing1 = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 1);
+		
+		// Delete an already synced email during the windowing
+		greenMail.deleteEmailFromInbox(greenMailUser, 2);
+		
+		// Finish the windowing, then fetch new changes
+		SyncResponse syncWindowing2 = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 1);
+		SyncResponse syncAfterWindowing = opClient.syncEmail(decoder, fourthAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 1);
+		mocksControl.verify();
+
+		SyncCollectionResponse syncWindowing1Inbox = syncTestUtils.getCollectionWithId(syncWindowing1, inboxCollectionId);
+		SyncCollectionResponse syncWindowing2Inbox = syncTestUtils.getCollectionWithId(syncWindowing2, inboxCollectionId);
+		SyncCollectionResponse syncAfterWindowingInbox = syncTestUtils.getCollectionWithId(syncAfterWindowing, inboxCollectionId);
+
+		syncTestUtils.assertEqualsWithoutApplicationData(syncWindowing1Inbox.getItemChanges(),ImmutableList.of(
+				ItemChange.builder().serverId(inboxCollectionId.serverId(1)).isNew(true).build()));
+		syncTestUtils.assertEqualsWithoutApplicationData(syncWindowing2Inbox.getItemChanges(),ImmutableList.of(
+				ItemChange.builder().serverId(inboxCollectionId.serverId(2)).isNew(true).build()));
+		assertThat(syncAfterWindowingInbox.getItemDeletions()).containsOnly(
+				ItemDeletion.builder().serverId(inboxCollectionId.serverId(2)).build());
+	}
+	
+	@Test
+	public void testGetChangedWithWindowingWhenGetBackOnPreviousSyncKeyAndDeletions() throws Exception {
+		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
+		SyncKey firstAllocatedSyncKey = new SyncKey("e05fe721-adf6-416d-a2d9-657347096aa1");
+		SyncKey secondAllocatedSyncKey = new SyncKey("64dd1fc0-3519-480a-850f-b84c0153855d");
+		SyncKey thirdAllocatedSyncKey = new SyncKey("4c34ea02-2ae4-45e8-85fe-bd5ed910f570");
+		SyncKey fourthAllocatedSyncKey = new SyncKey("60c4bab7-0c1d-453f-9d32-e44fae853591");
+		SyncKey fifthAllocatedSyncKey = new SyncKey("1e5295dc-95f2-4d06-a340-a18cc6507581");
+		SyncKey lastAllocatedSyncKey = new SyncKey("720fc208-1e70-43a1-bfad-112d64548c7b");
+		int allocatedStateId = 3;
+		int allocatedStateId2 = 4;
+		int allocatedStateId3 = 5;
+		int allocatedStateId4 = 6;
+		int allocatedStateId5 = 7;
+		int lastAllocatedStateId = 8;
+		
+		userAccessUtils.mockUsersAccess(user);
+		syncKeyTestUtils.mockNextGeneratedSyncKey(firstAllocatedSyncKey, secondAllocatedSyncKey, 
+				thirdAllocatedSyncKey, fourthAllocatedSyncKey, fifthAllocatedSyncKey, lastAllocatedSyncKey);
+		
+		Date initialDate = DateUtils.getEpochPlusOneSecondCalendar().getTime();
+		ItemSyncState firstAllocatedState = ItemSyncState.builder()
+				.syncDate(initialDate)
+				.syncKey(firstAllocatedSyncKey)
+				.id(allocatedStateId)
+				.build();
+		ItemSyncState secondAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T16:22:53"))
+				.syncKey(secondAllocatedSyncKey)
+				.id(allocatedStateId2)
+				.build();
+		ItemSyncState thirdAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T17:22:53"))
+				.syncKey(thirdAllocatedSyncKey)
+				.id(allocatedStateId3)
+				.build();
+		ItemSyncState fourthAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T18:22:53"))
+				.syncKey(fourthAllocatedSyncKey)
+				.id(allocatedStateId4)
+				.build();
+		ItemSyncState fifthAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T19:22:53"))
+				.syncKey(fifthAllocatedSyncKey)
+				.id(allocatedStateId5)
+				.build();
+		ItemSyncState lastAllocatedState = ItemSyncState.builder()
+				.syncDate(date("2012-10-10T20:17:26"))
+				.syncKey(lastAllocatedSyncKey)
+				.id(lastAllocatedStateId)
+				.build();
+		expect(dateService.getEpochPlusOneSecondDate()).andReturn(initialDate).once();
+		expect(dateService.getCurrentDate()).andReturn(secondAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(thirdAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(fourthAllocatedState.getSyncDate());
+		expect(dateService.getCurrentDate()).andReturn(fifthAllocatedState.getSyncDate()).times(2);
+		expect(dateService.getCurrentDate()).andReturn(lastAllocatedState.getSyncDate());
+		expectCollectionDaoPerformInitialSync(firstAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(firstAllocatedSyncKey, firstAllocatedState, secondAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, thirdAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(secondAllocatedSyncKey, secondAllocatedState, fourthAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(fourthAllocatedSyncKey, fourthAllocatedState, fifthAllocatedState, inboxCollectionId);
+		expectCollectionDaoPerformSync(fifthAllocatedSyncKey, fifthAllocatedState, lastAllocatedState, inboxCollectionId);
+
+		expect(itemTrackingDao.isServerIdSynced(anyObject(ItemSyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
+		itemTrackingDao.markAsSynced(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		itemTrackingDao.markAsDeleted(anyObject(ItemSyncState.class), anyObject(Set.class));
+		expectLastCall().anyTimes();
+		
+		mocksControl.replay();
+		opushServer.start();
+		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 5);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		greenMail.deleteEmailFromInbox(greenMailUser, 1);
+		SyncResponse syncResponse1 = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		SyncResponse syncResponse2 = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		greenMail.deleteEmailFromInbox(greenMailUser, 1);
+		testUtils.sendMultipleEmails(greenMail, mailbox, 1);
+		SyncResponse syncResponse3 = opClient.syncEmail(decoder, fourthAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		SyncResponse syncResponse4 = opClient.syncEmail(decoder, fifthAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		mocksControl.verify();
+
+		SyncCollectionResponse response1 = syncTestUtils.getCollectionWithId(syncResponse1, inboxCollectionId);
+		SyncCollectionResponse response2 = syncTestUtils.getCollectionWithId(syncResponse2, inboxCollectionId);
+		SyncCollectionResponse response3 = syncTestUtils.getCollectionWithId(syncResponse3, inboxCollectionId);
+		SyncCollectionResponse response4 = syncTestUtils.getCollectionWithId(syncResponse4, inboxCollectionId);
+
+
+		syncTestUtils.assertEqualsWithoutApplicationData(response1.getItemChanges(),ImmutableList.of(
+			ItemChange.builder().serverId(inboxCollectionId.serverId(5)).isNew(true).build(),
+			ItemChange.builder().serverId(inboxCollectionId.serverId(4)).isNew(true).build()));
+		syncTestUtils.assertEqualsWithoutApplicationData(response2.getItemChanges(),ImmutableList.of(
+			ItemChange.builder().serverId(inboxCollectionId.serverId(3)).isNew(true).build(),
+			ItemChange.builder().serverId(inboxCollectionId.serverId(2)).isNew(true).build()));
+
+		assertThat(response3.getItemDeletions()).isEmpty();
+		syncTestUtils.assertEqualsWithoutApplicationData(response3.getItemChanges(),ImmutableList.of(
+				ItemChange.builder().serverId(inboxCollectionId.serverId(1)).isNew(true).build()));
+		
+		assertThat(response4.getItemDeletions()).hasSize(1);
+		syncTestUtils.assertEqualsWithoutApplicationData(response4.getItemChanges(),ImmutableList.of(
+			ItemChange.builder().serverId(inboxCollectionId.serverId(6)).isNew(true).build()));
+	}
+	
 	@Test
 	public void testInitialGetChangedNoSnapshotWithMarkAsDeleteMails() throws Exception {
 		SyncKey initialSyncKey = SyncKey.INITIAL_SYNC_KEY;
@@ -432,8 +787,8 @@ public class MailBackendGetChangedTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse secondInboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
@@ -500,11 +855,11 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse secondInboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
@@ -567,10 +922,10 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.ONE_DAY_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, ONE_DAY_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
@@ -625,8 +980,8 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		SyncResponse syncResponse = opClient.deleteEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
@@ -679,7 +1034,7 @@ public class MailBackendGetChangedTest {
 		testUtils.sendMultipleEmails(greenMail, mailbox, 1);
 		
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		opClient.deleteEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
@@ -733,13 +1088,13 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 4);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
 
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
 		
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 2);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 2);
 		mocksControl.verify();
 
 		assertEmailCountInMailbox(OpushEmailConfiguration.IMAP_INBOX_NAME, 3);
@@ -802,8 +1157,8 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		SyncResponse syncResponse = opClient.deleteEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, inboxCollectionId.serverId(1));
 		mocksControl.verify();
 
@@ -876,11 +1231,11 @@ public class MailBackendGetChangedTest {
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, 2);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		opClient.deleteEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, inboxCollectionId.serverId(emailId1));
-		opClient.syncEmail(decoder, initialSyncKey, trashCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKeyTrash, trashCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, trashCollectionId, THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKeyTrash, trashCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, trashCollectionId);
@@ -943,13 +1298,13 @@ public class MailBackendGetChangedTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
 		
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
 		
 		MailFolder folder = imapHostManager.getFolder(greenMailUser, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		folder.setFlags(new Flags(Flag.SEEN), true, 1, null, true);
 		
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
@@ -1018,13 +1373,13 @@ public class MailBackendGetChangedTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
 		
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		
 		MailFolder folder = imapHostManager.getFolder(greenMailUser, OpushEmailConfiguration.IMAP_INBOX_NAME);
 		folder.setFlags(new Flags(Flag.DELETED), true, 1, null, true);
 		
-		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 100);
+		SyncResponse syncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 100);
 		mocksControl.verify();
 
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(syncResponse, inboxCollectionId);
@@ -1094,16 +1449,16 @@ public class MailBackendGetChangedTest {
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
 		testUtils.sendMultipleEmails(greenMail, mailbox, numberOfEmails);
 		
-		SyncResponse initialSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, windowSize);
+		SyncResponse initialSyncResponse = opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, windowSize);
 		SyncCollectionResponse initialInboxResponse = syncTestUtils.getCollectionWithId(initialSyncResponse, inboxCollectionId);
 		assertThat(initialInboxResponse.getSyncKey()).isEqualTo(firstAllocatedSyncKey);
 		
-		SyncResponse firstPartSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, windowSize);
+		SyncResponse firstPartSyncResponse = opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, windowSize);
 		SyncCollectionResponse inboxResponse = syncTestUtils.getCollectionWithId(firstPartSyncResponse, inboxCollectionId);
 		assertThat(inboxResponse.getItemChanges()).hasSize(windowSize);
 		assertThat(inboxResponse.getSyncKey()).isEqualTo(secondAllocatedSyncKey);
 		
-		SyncResponse lastPartSyncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, windowSize);
+		SyncResponse lastPartSyncResponse = opClient.syncEmail(decoder, secondAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, windowSize);
 		mocksControl.verify();
 		
 		SyncCollectionResponse lastInboxResponse = syncTestUtils.getCollectionWithId(lastPartSyncResponse, inboxCollectionId);
@@ -1166,8 +1521,8 @@ public class MailBackendGetChangedTest {
 		GreenMailUtil.sendTextEmail(mailbox, mailbox, "subject2", "body", greenMail.getSmtp().getServerSetup());
 		greenMail.waitForIncomingEmail(1);
 		
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
 
 		ServerId serverId = inboxCollectionId.serverId(1);
 		SyncResponse syncResponseWithFetch = opClient.run(syncBuilder
@@ -1249,8 +1604,8 @@ public class MailBackendGetChangedTest {
 		mocksControl.replay();
 		opushServer.start();
 		OPClient opClient = testUtils.buildWBXMLOpushClient(user, opushServer.getHttpPort(), httpClient);
-		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
-		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, initialSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
+		opClient.syncEmail(decoder, firstAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
 		
 		greenMail.deleteEmailFromInbox(greenMailUser, 1);
 		greenMail.expungeInbox(greenMailUser);
@@ -1263,7 +1618,7 @@ public class MailBackendGetChangedTest {
 					.build())
 				.build())
 			.build());
-		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, FilterType.THREE_DAYS_BACK, 25);
+		SyncResponse responseContainingDeletion = opClient.syncEmail(decoder, thirdAllocatedSyncKey, inboxCollectionId, THREE_DAYS_BACK, 25);
 		
 		mocksControl.verify();
 		

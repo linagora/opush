@@ -174,7 +174,7 @@ public class ActiveSyncServletTest {
 
 	private Logger createLogger() {
 		Logger logger = mocksControl.createMock(Logger.class);
-		logger.info(anyObject(String.class), eq(user.getEmail()), eq(deviceType));
+		logger.info(anyObject(String.class), eq(user.getEmail()), eq(deviceType), eq(deviceId.getDeviceId()));
 		expectLastCall().anyTimes();
 		logger.debug(anyObject(String.class));
 		expectLastCall().anyTimes();

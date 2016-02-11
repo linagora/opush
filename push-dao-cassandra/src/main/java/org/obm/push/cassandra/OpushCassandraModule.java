@@ -42,6 +42,7 @@ import org.obm.push.cassandra.dao.CassandraStructure.SyncedCollection;
 import org.obm.push.cassandra.dao.CassandraStructure.V1;
 import org.obm.push.cassandra.dao.CassandraStructure.Windowing;
 import org.obm.push.cassandra.dao.CassandraStructure.WindowingIndex;
+import org.obm.push.cassandra.dao.CassandraStructure.WindowingToSnapshot;
 import org.obm.push.cassandra.dao.ContactCreationDaoImpl;
 import org.obm.push.cassandra.dao.FolderSnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.dao.MonitoredCollectionDaoCassandraImpl;
@@ -50,6 +51,7 @@ import org.obm.push.cassandra.dao.SchemaProducerImpl;
 import org.obm.push.cassandra.dao.SnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.dao.SyncedCollectionDaoCassandraImpl;
 import org.obm.push.cassandra.dao.WindowingDaoCassandraImpl;
+import org.obm.push.cassandra.dao.WindowingToSnapshotDaoCassandraImpl;
 import org.obm.push.cassandra.schema.DaoTables;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.obm.push.configuration.CassandraConfigurationFileImpl;
@@ -61,6 +63,7 @@ import org.obm.push.store.SchemaDao;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.SyncedCollectionDao;
 import org.obm.push.store.WindowingDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 import org.obm.sync.LifecycleListener;
 
 import com.datastax.driver.core.Session;
@@ -77,6 +80,7 @@ public class OpushCassandraModule extends AbstractModule {
 		.put(SyncedCollectionDaoCassandraImpl.class, SyncedCollection.TABLE, V1.SyncedCollection.TABLE)
 		.put(WindowingDaoCassandraImpl.class, WindowingIndex.TABLE, Windowing.TABLE)
 		.put(FolderSnapshotDaoCassandraImpl.class, FolderSnapshot.TABLE)
+		.put(WindowingToSnapshotDaoCassandraImpl.class, WindowingToSnapshot.TABLE)
 		.put(CassandraSchemaDao.class, Schema.TABLE)
 		.build();
 	
@@ -101,6 +105,7 @@ public class OpushCassandraModule extends AbstractModule {
 		bind(SnapshotDao.class).to(SnapshotDaoCassandraImpl.class);
 		bind(ContactCreationDao.class).to(ContactCreationDaoImpl.class);
 		bind(FolderSnapshotDao.class).to(FolderSnapshotDaoCassandraImpl.class);
+		bind(WindowingToSnapshotDao.class).to(WindowingToSnapshotDaoCassandraImpl.class);
 		bind(DaoTables.class).toProvider(new Provider<DaoTables>() {
 
 			@Override

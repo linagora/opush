@@ -83,6 +83,11 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 			return null;
 		}
 		
+		return get(snapshotId);
+	}
+
+	@Override
+	public Snapshot get(UUID snapshotId) {
 		ResultSet snapshotResultSet = selectSnapshot(snapshotId);
 		if (snapshotResultSet.isExhausted()) {
 			logger.debug("No snapshot found for id {}, returning null", snapshotId);
@@ -94,9 +99,13 @@ public class SnapshotDaoCassandraImpl extends AbstractCassandraDao implements Sn
 	}
 
 	@Override
-	public void put(SnapshotKey snapshotKey, Snapshot snapshot) {
+	public UUID put(SnapshotKey snapshotKey, Snapshot snapshot) {
 		Preconditions.checkNotNull(snapshot);
-		insertNewIndex(snapshotKey, insertSnapshot(snapshot));
+		
+		UUID snapshotId = insertSnapshot(snapshot);
+		insertNewIndex(snapshotKey, snapshotId);
+		
+		return snapshotId;
 	}
 
 	@Override

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -129,6 +130,7 @@ import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 import org.obm.push.tnefconverter.TNEFConverterException;
 import org.obm.push.tnefconverter.TNEFUtils;
 import org.obm.push.utils.FileUtils;
@@ -169,6 +171,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	private final EmailChangesFetcher emailChangesFetcher;
 	private final MailBackendSyncDataFactory mailBackendSyncDataFactory;
 	private final WindowingDao windowingDao;
+	private final WindowingToSnapshotDao windowingToSnapshotDao;
 	private final SmtpSender smtpSender;
 	private final DateService dateService;
 	private final FolderSnapshotDao folderSnapshotDao;
@@ -186,6 +189,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			TransformersFactory transformersFactory,
 			MailBackendSyncDataFactory mailBackendSyncDataFactory,
 			WindowingDao windowingDao,
+			WindowingToSnapshotDao windowingToSnapshotDao,
 			SmtpSender smtpSender, 
 			OpushEmailConfiguration emailConfiguration,
 			DateService dateService,
@@ -202,6 +206,7 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		this.transformersFactory = transformersFactory;
 		this.mailBackendSyncDataFactory = mailBackendSyncDataFactory;
 		this.windowingDao = windowingDao;
+		this.windowingToSnapshotDao = windowingToSnapshotDao;
 		this.smtpSender = smtpSender;
 		this.emailConfiguration = emailConfiguration;
 		this.dateService = dateService;
@@ -255,9 +260,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			
 			if (windowingDao.hasPendingChanges(windowingKey)) {
 				snapshotDao.linkSyncKeyToSnapshot(newSyncKey, SnapshotKey.builder()
-						.collectionId(collectionId)
-						.deviceId(udr.getDevId())
-						.syncKey(syncKey).build());
+					.collectionId(collectionId)
+					.deviceId(udr.getDevId())
+					.syncKey(syncKey).build());
 				
 				return continueWindowing(udr, syncCollection, folder, windowingKey, newSyncKey);
 			} else {
@@ -272,10 +277,11 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			Folder folder, WindowingKey key, SyncKey newSyncKey) throws EmailViewPartsFetcherException {
 		
 		MailBackendSyncData syncData = mailBackendSyncDataFactory.create(udr, syncState, folder, collection.getOptions());
-		takeSnapshot(udr, collection.getCollectionId(), collection.getOptions(), syncData, newSyncKey);
+		UUID snapshotId = takeSnapshot(udr, collection.getCollectionId(), collection.getOptions(), syncData, newSyncKey);
 		
 		if (syncData.getEmailChanges().hasChanges()) {
 			windowingDao.pushPendingChanges(key, syncData.getEmailChanges(), PIMDataType.EMAIL);
+			windowingToSnapshotDao.startWindowing(key, snapshotId);
 		}
 		
 		return continueWindowing(udr, collection, folder, key, newSyncKey);
@@ -286,6 +292,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 
 		WindowingChanges<Email> pendingChanges = windowingDao.popNextChanges(
 				key, collection.getWindowSize().get(), newSyncKey, EmailChanges.builder()).build();
+		windowingToSnapshotDao.windowingInProgress(newSyncKey, key);
+		
 		return fetchChanges(udr, collection, folder, key, newSyncKey, pendingChanges);
 	}
 	
@@ -306,10 +314,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				.build();
 	}
 
-	private void takeSnapshot(UserDataRequest udr, CollectionId collectionId, 
+	private UUID takeSnapshot(UserDataRequest udr, CollectionId collectionId, 
 			SyncCollectionOptions syncCollectionOptions, MailBackendSyncData syncData, SyncKey newSyncKey) {
 		
-		snapshotDao.put(
+		return snapshotDao.put(
 			SnapshotKey.builder()
 				.collectionId(collectionId)
 				.deviceId(udr.getDevId())

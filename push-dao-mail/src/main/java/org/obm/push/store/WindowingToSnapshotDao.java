@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -33,20 +33,17 @@ package org.obm.push.store;
 
 import java.util.UUID;
 
-import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncKey;
-import org.obm.push.exception.DaoException;
-import org.obm.push.mail.bean.Snapshot;
+import org.obm.push.bean.change.WindowingKey;
 
-public interface SnapshotDao {
+import com.google.common.base.Optional;
+
+public interface WindowingToSnapshotDao {
 	
-	Snapshot get(SnapshotKey snapshotKey);
+	Optional<UUID> get(WindowingKey key);
 
-	Snapshot get(UUID uuid);
+	void startWindowing(WindowingKey key, UUID snapshotId);
 
-	void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException;
-	
-	UUID put(SnapshotKey snapshotKey, Snapshot snapshot);
-
+	void windowingInProgress(SyncKey newSyncKey, WindowingKey key);
 
 }

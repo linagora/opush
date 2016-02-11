@@ -39,12 +39,14 @@ import static org.obm.DateUtils.date;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 import org.easymock.IMocksControl;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.DeviceId;
 import org.obm.push.bean.FilterType;
@@ -53,7 +55,10 @@ import org.obm.push.bean.ItemSyncState;
 import org.obm.push.bean.SnapshotKey;
 import org.obm.push.bean.SyncCollectionOptions;
 import org.obm.push.bean.SyncKey;
+import org.obm.push.bean.User;
+import org.obm.push.bean.User.Factory;
 import org.obm.push.bean.UserDataRequest;
+import org.obm.push.bean.change.WindowingKey;
 import org.obm.push.bean.change.hierarchy.BackendFolder.BackendId;
 import org.obm.push.bean.change.hierarchy.Folder;
 import org.obm.push.bean.change.hierarchy.MailboxPath;
@@ -65,6 +70,7 @@ import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
 import org.obm.push.service.DateService;
 import org.obm.push.store.SnapshotDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.base.Optional;
@@ -77,13 +83,16 @@ public class MailBackendSyncDataTest {
 
 	private UserDataRequest udr;
 	private CollectionId collectionId;
+	private DeviceId devId;
 	private Device device;
+	private User user;
 	private MailboxPath inboxPath;
 	private Folder inboxFolder;
 
 	private IMocksControl control;
 	private MailboxService mailboxService;
 	private SnapshotDao snapshotDao;
+	private WindowingToSnapshotDao windowingToSnapshotDao;
 	private EmailChangesComputer emailChangesComputer;
 	private DateService dateService;
 	private MailBackendSyncDataFactory testee;
@@ -91,8 +100,11 @@ public class MailBackendSyncDataTest {
 	@Before
 	public void setup() {
 		collectionId = CollectionId.of(13411);
-		device = new Device.Factory().create(null, "MultipleCalendarsDevice", "iOs 5", new DeviceId("my phone"), null);
-		udr = new UserDataRequest(null,  null, device);
+		user = Factory.create().createUser("test@test", "test@domain", "displayName");
+		devId = new DeviceId("my phone");
+		device = new Device.Factory().create(null, "MyPhone", "MyUA", devId, null);
+		udr = new UserDataRequest(new Credentials(user, "password".toCharArray()), "noCommand", device);
+		
 		inboxPath = MailboxPath.of("INBOX");
 		inboxFolder = Folder.builder()
 				.backendId(inboxPath)
@@ -105,10 +117,12 @@ public class MailBackendSyncDataTest {
 		control = createControl();
 		mailboxService = control.createMock(MailboxService.class);
 		snapshotDao = control.createMock(SnapshotDao.class);
+		windowingToSnapshotDao = control.createMock(WindowingToSnapshotDao.class);
 		emailChangesComputer = control.createMock(EmailChangesComputer.class);
 		dateService = control.createMock(DateService.class);
 		
-		testee = new MailBackendSyncDataFactory(dateService, mailboxService, snapshotDao, emailChangesComputer);
+		testee = new MailBackendSyncDataFactory(dateService, mailboxService, snapshotDao, 
+				windowingToSnapshotDao, emailChangesComputer);
 	}
 	
 	@Test
@@ -341,6 +355,9 @@ public class MailBackendSyncDataTest {
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
 		expectSnapshotDaoHasEntry(syncKey, snapshot);
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
+		
 		expect(mailboxService.fetchUIDNext(udr, inboxPath)).andReturn(uidNext);
 		
 		control.replay();
@@ -367,6 +384,8 @@ public class MailBackendSyncDataTest {
 
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
 		expectSnapshotDaoHasNoEntry(syncKey);
 		expectActualEmailServerStateByDate(actualEmailsInServer, fromDate, uidNext);
 		expectEmailsDiff(previousEmailsInServer, actualEmailsInServer, emailChanges);
@@ -402,6 +421,8 @@ public class MailBackendSyncDataTest {
 
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
 		expectSnapshotDaoHasNoEntry(syncKey);
 		expectActualEmailServerStateByDate(actualEmailsInServer, fromDate, uidNext);
 		expectEmailsDiff(previousEmailsInServer, actualEmailsInServer, emailChanges);
@@ -442,6 +463,8 @@ public class MailBackendSyncDataTest {
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
 		expectSnapshotDaoHasEntry(syncKey, snapshot);
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
 
 		MessageSet messages = MessageSet.builder().add(Range.closed(2l, 10l)).build();
 		expect(mailboxService.fetchEmails(udr, inboxPath, messages)).andReturn(emailsInServer).once();
@@ -494,6 +517,9 @@ public class MailBackendSyncDataTest {
 		Date fromDate = syncCollectionOptions.getFilterType().getFilteredDateTodayAtMidnight();
 		expect(dateService.getCurrentDate()).andReturn(fromDate);
 		expectSnapshotDaoHasEntry(syncKey, snapshot);
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
+		
 		MessageSet messages = MessageSet.builder().add(Range.closed(2l, 10l)).build();
 		expect(mailboxService.fetchEmails(udr, inboxPath, messages)).andReturn(actualEmailsInServer).once();
 		expect(mailboxService.fetchUIDNext(udr, inboxPath)).andReturn(uidNext);
@@ -537,6 +563,51 @@ public class MailBackendSyncDataTest {
 		control.verify();
 		assertThat(searchEmailsFromDate).isEqualTo(date);
 	}
+
+	@Test
+	public void getPreviousSnapshotShouldRequestWindowingDaoThenSnapshotDao() {
+		SyncKey syncKey = new SyncKey("cc1b58c8-26ad-465a-969f-c4c3b563f885");
+		ItemSyncState state = ItemSyncState.builder().syncDate(date("2016-12-14T22:00:00")).syncKey(syncKey).build();
+		UUID expectedSnapshotId = UUID.fromString("d022ff60-a960-4e5c-8797-8f643241646c");
+		Snapshot expectedSnapshot = Snapshot.builder()
+				.addEmail(Email.builder().uid(15).date(date("2016-12-14T21:30:00")).build())
+				.filterType(FilterType.ALL_ITEMS)
+				.uidNext(5000)
+				.build();
+		
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.of(expectedSnapshotId));
+		expect(snapshotDao.get(expectedSnapshotId))
+			.andReturn(expectedSnapshot);
+		
+		control.replay();
+		Snapshot result = testee.getPreviousSnapshot(udr, state, inboxFolder);
+		control.verify();
+		
+		assertThat(result).isEqualTo(expectedSnapshot);
+	}
+
+	@Test
+	public void getPreviousSnapshotShouldFallbackOnSnapshotDaoWhenNotFoundInWindowingDao() {
+		SyncKey syncKey = new SyncKey("cc1b58c8-26ad-465a-969f-c4c3b563f885");
+		ItemSyncState state = ItemSyncState.builder().syncDate(date("2016-12-14T22:00:00")).syncKey(syncKey).build(); 
+		Snapshot expectedSnapshot = Snapshot.builder()
+				.addEmail(Email.builder().uid(15).date(date("2016-12-14T21:30:00")).build())
+				.filterType(FilterType.ALL_ITEMS)
+				.uidNext(5000)
+				.build();
+		
+		expect(windowingToSnapshotDao.get(new WindowingKey(user, devId, collectionId, syncKey)))
+			.andReturn(Optional.<UUID>absent());
+		expect(snapshotDao.get(SnapshotKey.builder().deviceId(devId).syncKey(syncKey).collectionId(collectionId).build()))
+			.andReturn(expectedSnapshot);
+		
+		control.replay();
+		Snapshot result = testee.getPreviousSnapshot(udr, state, inboxFolder);
+		control.verify();
+		
+		assertThat(result).isEqualTo(expectedSnapshot);
+	}
 	
 	private void expectActualEmailServerStateByDate(Set<Email> emailsInServer, Date fromDate, long uidNext) {
 		expect(mailboxService.fetchEmails(udr, inboxPath, fromDate))
@@ -550,7 +621,7 @@ public class MailBackendSyncDataTest {
 
 	private void expectSnapshotDaoHasEntry(SyncKey syncKey, Snapshot snapshot) {
 		expect(snapshotDao.get(SnapshotKey.builder()
-				.deviceId(device.getDevId())
+				.deviceId(devId)
 				.syncKey(syncKey)
 				.collectionId(collectionId)
 				.build()))

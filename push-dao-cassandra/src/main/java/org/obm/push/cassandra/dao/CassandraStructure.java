@@ -157,6 +157,18 @@ public interface CassandraStructure {
 		}
 	}
 	
+	interface WindowingToSnapshot {
+		Table TABLE = Table.of("windowing_to_snapshot");
+		String[] PK = { Columns.DEVICE_ID, Columns.COLLECTION_ID, Columns.SYNC_KEY };
+		
+		interface Columns {
+			String DEVICE_ID = "device_id";
+			String COLLECTION_ID = "collection_id";
+			String SYNC_KEY = "sync_key";
+			String SNAPSHOT_ID = "snapshot_id";
+		}
+	}
+	
 	interface V1 {
 
 		interface SyncedCollection {

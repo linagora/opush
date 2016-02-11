@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,24 +29,26 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.store;
+package org.obm.push.cassandra.dao;
 
-import java.util.UUID;
+import org.cassandraunit.CassandraCQLUnit;
+import org.junit.Before;
+import org.junit.Rule;
+import org.obm.push.dao.testsuite.WindowingToSnapshotDaoTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.obm.push.bean.SnapshotKey;
-import org.obm.push.bean.SyncKey;
-import org.obm.push.exception.DaoException;
-import org.obm.push.mail.bean.Snapshot;
+public class WindowingToSnapshotDaoCassandraImplTest extends WindowingToSnapshotDaoTest {
 
-public interface SnapshotDao {
+	private static final String DAO_SCHEMA = new DaoTestsSchemaProducer().schemaForDAO(WindowingToSnapshotDaoCassandraImpl.class);
+	@Rule public CassandraCQLUnit cassandraCQLUnit = new OpushCassandraCQLUnit(DAO_SCHEMA);
 	
-	Snapshot get(SnapshotKey snapshotKey);
-
-	Snapshot get(UUID uuid);
-
-	void linkSyncKeyToSnapshot(SyncKey synckey, SnapshotKey snapshotKey) throws DaoException;
+	private Logger logger = LoggerFactory.getLogger(WindowingToSnapshotDaoCassandraImplTest.class);
 	
-	UUID put(SnapshotKey snapshotKey, Snapshot snapshot);
-
-
+	@Before
+	public void init() {
+		SessionProvider sessionProvider = new SessionProvider(cassandraCQLUnit.session);
+		testee = new WindowingToSnapshotDaoCassandraImpl(sessionProvider, new PublicJSONService(), logger);
+	}
+	
 }

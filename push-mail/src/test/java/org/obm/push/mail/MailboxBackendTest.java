@@ -98,6 +98,7 @@ import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.SnapshotDao;
 import org.obm.push.store.WindowingDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 import org.obm.push.utils.SerializableInputStream;
 import org.obm.push.utils.UserEmailParserUtils;
 
@@ -133,6 +134,7 @@ public class MailboxBackendTest {
 	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 	private FolderSnapshotDao folderSnapshotDao;
+	private WindowingToSnapshotDao windowingToSnapshotDao;
 	private CollectionId inboxCollectionId;
 
 	@Before
@@ -166,14 +168,15 @@ public class MailboxBackendTest {
 		msEmailFetcher = new MSEmailFetcher(mailboxService, transformersFactory, msEmailConverter);
 		snapshotDao = mocks.createMock(SnapshotDao.class);
 		windowingDao = mocks.createMock(WindowingDao.class);
+		windowingToSnapshotDao = mocks.createMock(WindowingToSnapshotDao.class);
 		smtpSender = mocks.createMock(SmtpSender.class);
 		emailConfiguration = mocks.createMock(OpushEmailConfiguration.class);
 		dateService = mocks.createMock(DateService.class);
 		folderSnapshotDao = mocks.createMock(FolderSnapshotDao.class);
 		
 		mailBackendImpl = new MailBackendImpl(mailboxService, null, null, null, 
-				snapshotDao, null, mappingService, msEmailFetcher, null, null, 
-				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
+				snapshotDao, null, mappingService, msEmailFetcher, null, null, windowingDao, 
+				windowingToSnapshotDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 	}
 	
 	@Test

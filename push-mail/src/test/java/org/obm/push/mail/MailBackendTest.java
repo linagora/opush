@@ -72,6 +72,7 @@ import org.obm.push.service.FolderSnapshotDao;
 import org.obm.push.service.SmtpSender;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.store.WindowingDao;
+import org.obm.push.store.WindowingToSnapshotDao;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -90,6 +91,7 @@ public class MailBackendTest {
 	private OpushEmailConfiguration emailConfiguration;
 	private DateService dateService;
 	private FolderSnapshotDao folderSnapshotDao;
+	private WindowingToSnapshotDao windowingToSnapshotDao;
 
 	private IMocksControl mocksControl;
 	private MailBackend testee;
@@ -105,14 +107,15 @@ public class MailBackendTest {
 		mailboxService = mocksControl.createMock(MailboxService.class);
 		mappingService = mocksControl.createMock(MappingService.class);
 		windowingDao = mocksControl.createMock(WindowingDao.class);
+		windowingToSnapshotDao = mocksControl.createMock(WindowingToSnapshotDao.class);
 		smtpSender = mocksControl.createMock(SmtpSender.class);
 		emailConfiguration = mocksControl.createMock(OpushEmailConfiguration.class);
 		dateService = mocksControl.createMock(DateService.class);
 		folderSnapshotDao = mocksControl.createMock(FolderSnapshotDao.class);
 		
 		testee = new MailBackendImpl(mailboxService, null, null, null, null, null,  
-				mappingService, null, null, null, 
-				windowingDao, smtpSender, emailConfiguration, dateService, folderSnapshotDao);
+				mappingService, null, null, null, windowingDao, windowingToSnapshotDao, 
+				smtpSender, emailConfiguration, dateService, folderSnapshotDao);
 	}
 	
 	@Test
@@ -136,7 +139,7 @@ public class MailBackendTest {
 				
 		MailBackend mailBackend = new MailBackendImpl(mailboxService, authenticationService, new Mime4jUtils(),
 				mockOpushConfiguration(), null, null, mappingService, null, null,
-				null, windowingDao, smtpSender, emailConfiguration,
+				null, windowingDao, windowingToSnapshotDao, smtpSender, emailConfiguration,
 				dateService, folderSnapshotDao);
 
 		mocksControl.replay();
