@@ -32,6 +32,7 @@
 package org.obm.push.spushnik.resources;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.POST;
@@ -83,7 +84,7 @@ public abstract class Scenario {
 		}
 	}
 
-	@VisibleForTesting CloseableHttpClient chooseHttpClient(Credentials credentials, String serviceUrl) {
+	@VisibleForTesting CloseableHttpClient chooseHttpClient(Credentials credentials, String serviceUrl) throws IOException {
 		Preconditions.checkNotNull(credentials);
 		Preconditions.checkNotNull(serviceUrl);
 		HttpClientBuilder httpClientBuilder = 
@@ -94,9 +95,11 @@ public abstract class Scenario {
 			return httpClientBuilder.build();
 		}
 		if (serviceNeedsClientCertificate(credentials)) {
-			return httpClientBuilder
-					.setSslcontext(SSLContextFactory.create(getPkcs12Stream(credentials), credentials.getPkcs12Password()))
-					.build();
+			try (InputStream pkcs12Stream = getPkcs12Stream(credentials)) {
+				return httpClientBuilder
+						.setSslcontext(SSLContextFactory.create(pkcs12Stream, credentials.getPkcs12Password()))
+						.build();	
+			}
 		}
 		return httpClientBuilder
 				.setSslcontext(SSLContextFactory.TRUST_ALL)

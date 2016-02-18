@@ -44,8 +44,9 @@ public abstract class TemplateDocument implements DocumentProvider {
 	protected Document template;
 
 	public TemplateDocument(String templateName) throws SAXException, IOException {
-		InputStream in = loadDataFile(templateName);
-		this.template = DOMUtils.parse(in);
+		try (InputStream in = loadDataFile(templateName)) {
+			this.template = DOMUtils.parse(in);
+		}
 	}
 
 	private InputStream loadDataFile(String name) {

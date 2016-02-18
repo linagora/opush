@@ -115,13 +115,13 @@ public class ScenarioTest {
 	}
 
 	@Test(expected=NullPointerException.class)
-	public void testChooseHttpClientWhenNullCredentials() {
+	public void testChooseHttpClientWhenNullCredentials() throws Exception {
 		Credentials credentials = null;
 		testee.chooseHttpClient(credentials, serverUrl);
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void testChooseHttpClientWhenNullUrl() {
+	public void testChooseHttpClientWhenNullUrl() throws Exception {
 		String serviceUrl = null;
 		testee.chooseHttpClient(noCertificateCredentials, serviceUrl);
 	}
