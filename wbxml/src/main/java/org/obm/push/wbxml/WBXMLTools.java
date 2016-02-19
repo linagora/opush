@@ -70,7 +70,7 @@ public class WBXMLTools {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final XMLVersion XML_SERIALIZING_VERSION = XMLVersion.XML_10;
-	public static final int MIN_POOL_SIZE = 1;
+	public static final int MIN_POOL_SIZE = 0; // Keep 0, else threads won't be closed
 	public static final int MAX_POOL_SIZE = 10000;
 
 	private final ExecutorService threadPool;
