@@ -642,6 +642,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throw new ProcessingEmailException(e);
 		} catch (StoreEmailException e) {
 			throw new ProcessingEmailException(e);
+		} finally {
+			sendEmail.dispose();
 		}
 	}
 

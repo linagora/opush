@@ -35,7 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 
+import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -75,6 +77,7 @@ import org.obm.sync.push.client.OPClient;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
+import com.google.common.io.PatternFilenameFilter;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.store.MailFolder;
 import com.icegreen.greenmail.user.GreenMailUser;
@@ -143,6 +146,23 @@ public class SmartForwardHandlerTest {
 		cassandraServer.stop();
 		httpClient.close();
 		Files.delete(configuration.dataDir);
+	}
+
+	@Test
+	public void testForwardClearTextOnEmailWithAttachments() throws Exception {
+		File tmpFolder = Paths.get(System.getProperty("java.io.tmpdir")).toFile();
+		PatternFilenameFilter tmpFilesPattern = new PatternFilenameFilter("^m4j.*");
+		
+		int testBeginM4JFileCount = tmpFolder.listFiles(tmpFilesPattern).length;
+		testUtils.appendToINBOX(greenMailUser, "eml/forwardedEmailWithAttachments.eml");
+		
+		mocksControl.replay();
+		opushServer.start();
+		opClient().emailForward(testUtils.loadEmail("eml/textPlain.eml"), inboxCollectionId, serverId);
+		mocksControl.verify();
+		
+		int testEndingM4JFileCount = tmpFolder.listFiles(tmpFilesPattern).length;
+		assertThat(testBeginM4JFileCount).isEqualTo(testEndingM4JFileCount);
 	}
 
 	@Test

@@ -190,6 +190,12 @@ public class SendEmail {
 		return message;
 	}
 	
+	public void dispose() {
+		if (message != null) {
+			message.dispose();
+		}
+	}
+	
 	protected void setMessage(Message messageToSend) throws MimeException {
 		this.message = messageToSend;
 		this.to = Sets.newHashSet(convertAddressListToRistretoAddresses(message.getTo()));
