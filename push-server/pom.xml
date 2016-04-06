@@ -307,6 +307,7 @@ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.</de
 								</mapping>
 								<mapping>
 									<directory>/etc/default/</directory>
+									<directoryIncluded>false</directoryIncluded>
 									<filemode>644</filemode>
 									<username>opush</username>
 									<groupname>opush</groupname>

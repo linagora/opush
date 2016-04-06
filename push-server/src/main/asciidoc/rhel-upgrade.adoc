@@ -2,7 +2,7 @@
 
 === System Requirements
 
-  * *RHEL 6.x* or *CentOS 6.x*
+  * *RHEL 6/7* or *CentOS 6/7*
   * *OpenJDK 7*
   * A working http://obm.org/content/install-obm-25-centos-6[*OBM*] >= 2.5.7 
 	with Opush and *obm-sync*
