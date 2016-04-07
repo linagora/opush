@@ -35,14 +35,18 @@ import java.nio.file.Paths;
 
 import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.GlobalAppConfiguration;
+import org.obm.push.configuration.LoggerModule;
 import org.obm.push.configuration.OpushConfiguration;
 import org.obm.push.configuration.OpushConfigurationLoader;
 import org.obm.push.utils.jvm.VMArgumentsUtils;
+import org.slf4j.Logger;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 
 public class OpushServerLauncher {
 
@@ -51,7 +55,7 @@ public class OpushServerLauncher {
 	private static final int SERVER_PORT = Objects.firstNonNull( 
 			VMArgumentsUtils.integerArgumentValue("opushPort"), DEFAULT_SERVER_PORT);
 
-	public static void main(String... args) throws Exception {
+	public static void main(String... args) {
 		/******************************************************************
 		 * EVERY CHANGES DONE THERE CAN SILENTLY BREAK THE OPUSH START UP *
 		 ******************************************************************/
@@ -65,12 +69,18 @@ public class OpushServerLauncher {
 				ServerConfiguration.builder().port(SERVER_PORT).build()), new OpushModule(configuration));
 		OpushServer opushServer = injector.getInstance(OpushServer.class);
 		
-		start(opushServer).join();
+		try {
+			start(opushServer).join();
+		} catch (Exception e) {
+			Logger logger = injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)));
+			logger.error("Unable to start opush, exiting. {}", e.getMessage());
+			Runtime.getRuntime().exit(1);
+		}
 	}
 
 	public static OpushServer start(OpushServer server) throws Exception {
-		registerSigTermHandler(server);
 		server.start();
+		registerSigTermHandler(server);
 		return server;
 	}
 

@@ -31,8 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import java.sql.SQLException;
 import java.util.TimeZone;
 
+import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.push.bean.migration.StatusSummary;
 import org.obm.push.bean.migration.StatusSummary.Status;
 import org.obm.push.configuration.LoggerModule;
@@ -44,6 +46,7 @@ import org.slf4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.base.Throwables;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -93,13 +96,26 @@ public class ServerFactoryModule extends AbstractModule {
 		}
 		
 		@VisibleForTesting OpushServer createServer() {
-			StatusSummary statusSummary = injector.getInstance(OpushMigrationService.class).getStatus();
 			Logger logger = injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)));
+			checkDbConnectionIsAvailable(logger);
+
+			StatusSummary statusSummary = injector.getInstance(OpushMigrationService.class).getStatus();
 			if (statusSummary.getStatus().allowsStartup()) {
 				return createJettyServer(statusSummary, logger);
 			} else {
 				logNoopServerStartup(logger, statusSummary);
 				return injector.getInstance(NoopServer.class);
+			}
+		}
+
+		private void checkDbConnectionIsAvailable(Logger logger) {
+			try {
+				DatabaseConnectionProvider provider = injector.getInstance(DatabaseConnectionProvider.class);
+				logger.warn("Checking for database connection...");
+				provider.getConnection();
+			} catch (SQLException e) {
+				logger.error("Cannot get database connection, verify your configuration then restart opush");
+				Throwables.propagate(e);
 			}
 		}
 

@@ -35,9 +35,13 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.push.ServerFactoryModule.NoopServer;
 import org.obm.push.bean.migration.StatusSummary;
 import org.obm.push.bean.migration.StatusSummary.Status;
@@ -60,6 +64,8 @@ public class ServerFactoryModuleTest {
 	private OpushServer opushServer;
 	private NoopServer noopServer;
 	private ServerConfiguration serverConfiguration;
+	private DatabaseConnectionProvider databaseConnectionProvider;
+	private Connection databaseConnection;
 
 	@Before
 	public void setUp() {
@@ -72,14 +78,21 @@ public class ServerFactoryModuleTest {
 		jettyFactory = mocks.createMock(OpushJettyServerFactory.class);
 		noopServer = mocks.createMock(NoopServer.class);
 		opushServer = mocks.createMock(OpushServer.class);
+		databaseConnectionProvider = mocks.createMock(DatabaseConnectionProvider.class);
+		databaseConnection = mocks.createMock(Connection.class);
 		
-		expect(injector.getInstance(OpushMigrationService.class)).andReturn(cassandraSchemaService);
+		expect(injector.getInstance(OpushMigrationService.class)).andReturn(cassandraSchemaService).times(0, 1);
 		expect(injector.getInstance(Key.get(Logger.class, Names.named(LoggerModule.CONTAINER)))).andReturn(logger);
+		expect(injector.getInstance(DatabaseConnectionProvider.class)).andReturn(databaseConnectionProvider);
+		
+		logger.warn("Checking for database connection...");
+		expectLastCall();
 	}
 	
 	@Test
-	public void printNoLogWhenUpToDate() {
+	public void printNoLogWhenUpToDate() throws SQLException {
 		StatusSummary status = StatusSummary.status(Status.UP_TO_DATE).build();
+		expect(databaseConnectionProvider.getConnection()).andReturn(databaseConnection);
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
 		expect(jettyFactory.buildServer(
@@ -92,8 +105,9 @@ public class ServerFactoryModuleTest {
 	}
 
 	@Test
-	public void printLogWhenUpdateAvailable() {
+	public void printLogWhenUpdateAvailable() throws SQLException {
 		StatusSummary status = StatusSummary.status(Status.UPGRADE_AVAILABLE).build();
+		expect(databaseConnectionProvider.getConnection()).andReturn(databaseConnection);
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(OpushJettyServerFactory.class)).andReturn(jettyFactory);
 		expect(jettyFactory.buildServer(
@@ -109,8 +123,9 @@ public class ServerFactoryModuleTest {
 	}
 
 	@Test
-	public void printLogWhenUpdateRequired() {
+	public void printLogWhenUpdateRequired() throws SQLException {
 		StatusSummary status = StatusSummary.status(Status.UPGRADE_REQUIRED).build();
+		expect(databaseConnectionProvider.getConnection()).andReturn(databaseConnection);
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
 		
@@ -123,8 +138,9 @@ public class ServerFactoryModuleTest {
 	}
 	
 	@Test
-	public void printLogWhenNoSchema() {
+	public void printLogWhenNoSchema() throws SQLException {
 		StatusSummary status = StatusSummary.status(Status.NOT_INITIALIZED).build();
+		expect(databaseConnectionProvider.getConnection()).andReturn(databaseConnection);
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
 		
@@ -137,8 +153,9 @@ public class ServerFactoryModuleTest {
 	}
 
 	@Test
-	public void printLogWhenExecutionError() {
+	public void printLogWhenExecutionError() throws SQLException {
 		StatusSummary status = StatusSummary.status(Status.EXECUTION_ERROR).message("expected message").build();
+		expect(databaseConnectionProvider.getConnection()).andReturn(databaseConnection);
 		expect(cassandraSchemaService.getStatus()).andReturn(status);
 		expect(injector.getInstance(NoopServer.class)).andReturn(noopServer);
 		
@@ -148,5 +165,20 @@ public class ServerFactoryModuleTest {
 		mocks.replay();
 		new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
 		mocks.verify();
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void printLogAndTriggerExceptionWhenNoDBConnection() throws SQLException {
+		expect(databaseConnectionProvider.getConnection()).andThrow(new SQLException("reason"));
+
+		logger.error("Cannot get database connection, verify your configuration then restart opush");
+		expectLastCall();
+		
+		mocks.replay();
+		try {
+			new ServerFactoryModule.LateInjectionServer(injector, serverConfiguration).createServer();
+		} finally {
+			mocks.verify();
+		}
 	}
 }

@@ -31,7 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.opush.env;
 
+import static org.easymock.EasyMock.expect;
+
+import java.sql.SQLException;
+
 import org.easymock.IMocksControl;
+import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.guice.AbstractOverrideModule;
 import org.obm.push.store.CalendarDao;
 import org.obm.push.store.CollectionDao;
@@ -39,6 +44,8 @@ import org.obm.push.store.DeviceDao;
 import org.obm.push.store.HeartbeatDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.sync.date.DateProvider;
+
+import com.google.common.base.Throwables;
 
 public class DaoModule extends AbstractOverrideModule {
 
@@ -48,12 +55,20 @@ public class DaoModule extends AbstractOverrideModule {
 
 	@Override
 	protected void configureImpl() {
+		bindWithMock(DatabaseConnectionProvider.class);
 		bindWithMock(CollectionDao.class);
 		bindWithMock(DeviceDao.class);
 		bindWithMock(HeartbeatDao.class);
 		bindWithMock(CalendarDao.class);
 		bindWithMock(ItemTrackingDao.class);
 		bindWithMock(DateProvider.class);
+
+		try {
+			expect(getMock(DatabaseConnectionProvider.class).getConnection()).andReturn(null).anyTimes();
+		} catch (SQLException e) {
+			//Won't happen
+			Throwables.propagate(e);
+		}
 	}
 
 }
