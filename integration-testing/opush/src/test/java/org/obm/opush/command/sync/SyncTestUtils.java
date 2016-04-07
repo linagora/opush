@@ -65,12 +65,14 @@ import org.obm.push.exception.activesync.HierarchyChangedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.mail.exception.FilterTypeChangedException;
 import org.obm.push.protocol.bean.CollectionId;
+import org.obm.push.protocol.bean.FolderSyncResponse;
 import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.store.CollectionDao;
 import org.obm.push.store.ItemTrackingDao;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AuthFault;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
@@ -133,6 +135,17 @@ public class SyncTestUtils {
 			}
 		}
 		return null;
+	}
+	
+	public static Optional<CollectionChange> getCollectionWithId(FolderSyncResponse response, final CollectionId lookForId) {
+		return Iterables.tryFind(response.getCollectionsAddedAndUpdated(), new Predicate<CollectionChange> () {
+			
+
+			@Override
+			public boolean apply(CollectionChange change) {
+				return lookForId.equals(change.getCollectionId());
+			}
+		});
 	}
 
 	public CollectionChange lookupByType(Iterable<CollectionChange> items, final FolderType type) {

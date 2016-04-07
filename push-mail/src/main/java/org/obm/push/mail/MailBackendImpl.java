@@ -112,6 +112,7 @@ import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
 import org.obm.push.mail.bean.MailboxFolder;
+import org.obm.push.mail.bean.MailboxFolders;
 import org.obm.push.mail.bean.MessageSet;
 import org.obm.push.mail.bean.Snapshot;
 import org.obm.push.mail.conversation.EmailView;
@@ -137,6 +138,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -907,8 +909,9 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 	public BackendId createFolder(UserDataRequest udr, FolderCreateRequest folderCreateRequest,
 			Optional<BackendId> parent)
 		throws BackendNotSupportedException {
-		
-		char serverDelimiter = findServerSeparator(udr, parent);
+
+		MailboxFolders subscribedFolders = mailboxService.listSubscribedFolders(udr);
+		char serverDelimiter = findServerSeparator(udr, parent, subscribedFolders);
 		
 		MailboxFolder newMailboxFolder = 
 				findNameRelatedToParent(folderCreateRequest, parent, serverDelimiter);
@@ -916,19 +919,22 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 		MailboxPath mailboxPath = MailboxPath.of(
 				newMailboxFolder.getName(), newMailboxFolder.getImapSeparator());
 		
-		if (mailboxService.folderExists(udr, mailboxPath)) {
+		Optional<MailboxFolder> subscribedFolder = Iterables.tryFind(subscribedFolders, Predicates.equalTo(newMailboxFolder));
+		if (subscribedFolder.isPresent()) {
 			throw new FolderAlreadyExistsException("Cannot create two times a folder.");
-		} 
-		
-		mailboxService.createFolder(udr, newMailboxFolder);
-		mailboxService.subscribeToFolder(udr, newMailboxFolder);
+		} else if (mailboxService.folderExists(udr, mailboxPath)) {
+			mailboxService.subscribeToFolder(udr, newMailboxFolder);
+		} else {
+			mailboxService.createFolder(udr, newMailboxFolder);
+			mailboxService.subscribeToFolder(udr, newMailboxFolder);
+		}
 		
 		return mailboxPath;
 	}
 
-	private char findServerSeparator(UserDataRequest udr, Optional<BackendId> parent) {
+	private char findServerSeparator(UserDataRequest udr, Optional<BackendId> parent, MailboxFolders existingFolders) {
 		if (!parent.isPresent()) {
-			return MailboxPath.DEFAULT_SEPARATOR;
+			return Iterables.getFirst(existingFolders, new MailboxFolder("fallback", MailboxPath.DEFAULT_SEPARATOR)).getImapSeparator();
 		}
 		
 		MailboxPath parentPath = (MailboxPath)parent.get();
