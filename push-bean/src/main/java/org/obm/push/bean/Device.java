@@ -94,7 +94,7 @@ public class Device implements Serializable {
 						.getResourceAsStream("hints/" + devType + ".hints");
 				hints.load(in);
 			} catch (Throwable e) {
-				logger.warn("could not load hints for device type {} ", devType); 
+				logger.info("could not load hints for device type {} ", devType);
 			} finally {
 				IOUtils.closeQuietly(in);
 			}
