@@ -61,10 +61,10 @@ public class AttachmentHelper {
 		return ret;
 	}
 
-	public static Map<String, String> parseAttachmentId(String attachmentId) {
+	public static Map<String, String> parseAttachmentId(String attachmentId) throws UnexpectedAttachmentIdException {
 		String[] tab = attachmentId.split("_");
 		if (tab.length < 4) {
-			return null;
+			throw new UnexpectedAttachmentIdException();
 		}
 		Map<String, String> data = new HashMap<String, String>();
 		data.put(COLLECTION_ID, tab[0]);
@@ -76,4 +76,7 @@ public class AttachmentHelper {
 		}
 		return data;
 	}
+	
+	public static class UnexpectedAttachmentIdException extends Exception {}
+	
 }

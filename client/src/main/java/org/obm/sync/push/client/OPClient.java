@@ -63,6 +63,7 @@ import org.obm.push.protocol.bean.SyncResponse;
 import org.obm.push.protocol.data.SyncDecoder;
 import org.obm.push.state.FolderSyncKey;
 import org.obm.push.wbxml.WBXmlException;
+import org.obm.sync.push.client.Exceptions.UnexpectedHttpStatusException;
 import org.obm.sync.push.client.beans.AccountInfos;
 import org.obm.sync.push.client.beans.GetItemEstimateSingleFolderResponse;
 import org.obm.sync.push.client.commands.DocumentProvider;
@@ -241,6 +242,7 @@ public abstract class OPClient implements AutoCloseable {
 				}
 				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
 					logger.error("method failed:{}\n{}\n",  statusLine, response.getEntity());
+					throw new UnexpectedHttpStatusException(statusLine.getStatusCode());
 				} else {
 					for (Header h : hs) {
 						logger.info(h.getName() + ": " + h.getValue());
@@ -251,7 +253,6 @@ public abstract class OPClient implements AutoCloseable {
 				request.releaseConnection();
 			}
 		}
-		return null;
 
 	}
 

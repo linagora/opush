@@ -108,6 +108,7 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ParentFolderNotFoundException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.StoreEmailException;
+import org.obm.push.mail.AttachmentHelper.UnexpectedAttachmentIdException;
 import org.obm.push.mail.MailBackendSyncData.MailBackendSyncDataFactory;
 import org.obm.push.mail.bean.Email;
 import org.obm.push.mail.bean.EmailReader;
@@ -753,17 +754,15 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 			throws AttachementNotFoundException, CollectionNotFoundException, ProcessingEmailException {
 		
 		if (attachmentId != null && !attachmentId.isEmpty()) {
-			Map<String, String> parsedAttId = AttachmentHelper.parseAttachmentId(attachmentId);
 			try {
-				String collectionId = parsedAttId
-						.get(AttachmentHelper.COLLECTION_ID);
+				Map<String, String> parsedAttId = AttachmentHelper.parseAttachmentId(attachmentId);
+				
+				String collectionId = parsedAttId.get(AttachmentHelper.COLLECTION_ID);
 				String messageId = parsedAttId.get(AttachmentHelper.MESSAGE_ID);
-				String mimePartAddress = parsedAttId
-						.get(AttachmentHelper.MIME_PART_ADDRESS);
-				String contentType = parsedAttId
-						.get(AttachmentHelper.CONTENT_TYPE);
-				String contentTransferEncoding = parsedAttId
-						.get(AttachmentHelper.CONTENT_TRANSFERE_ENCODING);
+				String mimePartAddress = parsedAttId.get(AttachmentHelper.MIME_PART_ADDRESS);
+				String contentType = parsedAttId.get(AttachmentHelper.CONTENT_TYPE);
+				String contentTransferEncoding = parsedAttId.get(AttachmentHelper.CONTENT_TRANSFERE_ENCODING);
+				
 				logger.info("attachmentId= [collectionId:" + collectionId
 						+ "] [emailUid" + messageId + "] [mimePartAddress:"
 						+ mimePartAddress + "] [contentType" + contentType
@@ -779,6 +778,10 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				FileUtils.transfer(is, out, true);
 				byte[] rawData = out.toByteArray();
+
+				if (rawData.length == 0) {
+					throw new AttachementNotFoundException("No attachment has been found for " + attachmentId);
+				}
 
 				if ("QUOTED-PRINTABLE".equals(contentTransferEncoding)) {
 					out = new ByteArrayOutputStream();
@@ -802,6 +805,8 @@ public class MailBackendImpl extends OpushBackend implements MailBackend {
 				throw new ProcessingEmailException(e);
 			} catch (OpushLocatorException e) {
 				throw new ProcessingEmailException(e);
+			} catch (UnexpectedAttachmentIdException e) {
+				throw new AttachementNotFoundException("The given attachment id is not well formated " + attachmentId);
 			}
 		}
 		

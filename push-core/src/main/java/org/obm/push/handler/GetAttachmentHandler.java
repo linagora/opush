@@ -70,12 +70,19 @@ public class GetAttachmentHandler implements IRequestHandler {
 			MSAttachementData attachment = getAttachment(udr, AttachmentName);
 			responder.sendResponseFile(attachment.getContentType(),	attachment.getFile());
 		} catch (AttachementNotFoundException e) {
-			sendErrorResponse(responder, e);
+			sendWarnResponse(responder, e);
 		} catch (CollectionNotFoundException e) {
 			sendErrorResponse(responder, e);
 		} catch (ProcessingEmailException e) {
 			sendErrorResponse(responder, e);
+		} catch (Exception e) {
+			sendErrorResponse(responder, e);
 		}
+	}
+	
+	private void sendWarnResponse(Responder responder, Exception exception) {
+		logger.warn("The attachment cannot be sent: {}", exception.getMessage());
+		responder.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 	}
 
 	private void sendErrorResponse(Responder responder, Exception exception) {

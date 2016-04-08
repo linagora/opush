@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -29,16 +29,20 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.exception.activesync;
+package org.obm.sync.push.client;
 
+public class Exceptions {
 
-public class AttachementNotFoundException extends ActiveSyncException {
-	
-	public AttachementNotFoundException() {
-		super();
-	}
+	public static class UnexpectedHttpStatusException extends Exception {
+		
+		private final int status;
 
-	public AttachementNotFoundException(String message) {
-		super(message);
+		public UnexpectedHttpStatusException(int status) {
+			this.status = status;
+		}
+
+		public int getStatus() {
+			return status;
+		}
 	}
 }
