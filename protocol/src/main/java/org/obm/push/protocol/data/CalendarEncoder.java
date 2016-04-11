@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -37,6 +37,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.codec.binary.Base64;
@@ -311,8 +312,11 @@ public class CalendarEncoder extends Encoder {
 							.get(Calendar.DAY_OF_WEEK)));
 			break;
 		case WEEKLY:
-			s(r, ASCalendar.RECURRENCE_DAY_OF_WEEK.asASValue(), ""
-					+ RecurrenceDayOfWeek.asInt(rec(ev).getDayOfWeek()));
+			Set<RecurrenceDayOfWeek> dayOfWeek = rec(ev).getDayOfWeek();
+			if (dayOfWeek != null && !dayOfWeek.isEmpty()) {
+				s(r, ASCalendar.RECURRENCE_DAY_OF_WEEK.asASValue(), ""
+						+ RecurrenceDayOfWeek.asInt(dayOfWeek));
+			}
 			break;
 		case YEARLY:
 			s(r, ASCalendar.RECURRENCE_DAY_OF_MONTH.asASValue(),

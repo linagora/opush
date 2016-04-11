@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -359,6 +359,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			logger.warn("Item with server id {} not found.", change.getServerId());
 			return new SyncClientCommands.Update(change.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
+			logger.error("Error while converting client UPDATE command", e);
 			return new SyncClientCommands.Update(change.getServerId(), SyncStatus.SERVER_ERROR);
 		}
 	}
@@ -375,6 +376,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			logger.warn("Item with server id {} not found.", addition.getServerId());
 			return new SyncClientCommands.Add(addition.getClientId(), addition.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
+			logger.error("Error while converting client ADD command", e);
 			return new SyncClientCommands.Add(addition.getClientId(), addition.getServerId(), SyncStatus.SERVER_ERROR);
 		}
 	}
@@ -392,6 +394,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			logger.warn("Item with server id {} not found.", deletion.getServerId());
 			return new SyncClientCommands.Deletion(deletion.getServerId(), SyncStatus.OBJECT_NOT_FOUND);
 		} catch (ConversionException e) {
+			logger.error("Error while converting client DELETE command", e);
 			return new SyncClientCommands.Deletion(serverId, SyncStatus.SERVER_ERROR);
 		}
 	}
@@ -413,6 +416,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			logger.warn("Item with server id {} not found.", fetch.getServerId());
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.OBJECT_NOT_FOUND, null);
 		} catch (ConversionException e) {
+			logger.error("Error while converting client FETCH command", e);
 			return new SyncClientCommands.Fetch(serverId, SyncStatus.SERVER_ERROR, null);
 		}
 	}

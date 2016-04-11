@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -31,13 +31,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push;
 
+import java.util.Date;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.sync.calendar.RecurrenceDay;
 import org.obm.sync.calendar.RecurrenceDays;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 public class RecurrenceDayOfWeekConverter {
@@ -59,5 +66,23 @@ public class RecurrenceDayOfWeekConverter {
 			recurrenceDays.add(recurrenceDay);
 		}
 		return new RecurrenceDays(recurrenceDays);
+	}
+
+	public static Map<Integer, RecurrenceDays> JODA_TO_DAYS = ImmutableMap.<Integer, RecurrenceDays>builder()
+			.put(DateTimeConstants.MONDAY, new RecurrenceDays(RecurrenceDay.Monday))
+			.put(DateTimeConstants.TUESDAY, new RecurrenceDays(RecurrenceDay.Tuesday))
+			.put(DateTimeConstants.WEDNESDAY, new RecurrenceDays(RecurrenceDay.Wednesday))
+			.put(DateTimeConstants.THURSDAY, new RecurrenceDays(RecurrenceDay.Thursday))
+			.put(DateTimeConstants.FRIDAY, new RecurrenceDays(RecurrenceDay.Friday))
+			.put(DateTimeConstants.SATURDAY, new RecurrenceDays(RecurrenceDay.Saturday))
+			.put(DateTimeConstants.SUNDAY, new RecurrenceDays(RecurrenceDay.Sunday))
+			.build();
+	
+	public static RecurrenceDays byUTCDate(Date date, TimeZone tz) {
+		int jodaDateOfWeek = new DateTime(date, DateTimeZone.UTC)
+			.withZone(DateTimeZone.forTimeZone(tz))
+			.getDayOfWeek();
+		
+		return JODA_TO_DAYS.get(jodaDateOfWeek);
 	}
 }

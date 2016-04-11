@@ -275,6 +275,42 @@ public class CalendarEncoderTest {
 	}
 	
 	@Test
+	public void testRecurrenceWhenWeeklyAndNoDayOfWeek() throws Exception {
+		MSRecurrence msRecurrence = new MSRecurrence();
+		msRecurrence.setStart(date("2016-04-11T11:15:10Z"));
+		msRecurrence.setType(RecurrenceType.WEEKLY);
+		
+		MSEvent msEvent = getFakeMSEvent(defaultTimeZone);
+		msEvent.setStartTime(msRecurrence.getStart());
+		msEvent.setExceptions(ImmutableList.<MSEventException>of());
+		msEvent.setRecurrence(msRecurrence);
+		
+		String actual = encodeMSEventAsString(msEvent);
+		
+		StringBuilder expected = new StringBuilder();
+		expected.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+		expected.append("<ApplicationData xmlns=\"test\">");
+		expected.append("<Calendar:TimeZone>" + AS_GMT + "</Calendar:TimeZone>");
+		expected.append("<Calendar:DTStamp>19700101T000000Z</Calendar:DTStamp>");
+		expected.append("<Calendar:StartTime>20160411T111510Z</Calendar:StartTime>");
+		expected.append("<Calendar:UID>FAC000123D</Calendar:UID>");
+		expected.append("<AirSyncBase:Body>");
+		expected.append("<AirSyncBase:Type>1</AirSyncBase:Type>");
+		expected.append("<AirSyncBase:EstimatedDataSize>0</AirSyncBase:EstimatedDataSize>");
+		expected.append("</AirSyncBase:Body>");
+		expected.append("<Calendar:Recurrence>");
+		expected.append("<Calendar:RecurrenceType>1</Calendar:RecurrenceType>");
+		expected.append("</Calendar:Recurrence>");
+		expected.append("<Calendar:Sensitivity>0</Calendar:Sensitivity>");
+		expected.append("<Calendar:BusyStatus>0</Calendar:BusyStatus>");
+		expected.append("<Calendar:AllDayEvent>0</Calendar:AllDayEvent>");
+		expected.append("<Calendar:MeetingStatus>0</Calendar:MeetingStatus>");
+		expected.append("<AirSyncBase:NativeBodyType>1</AirSyncBase:NativeBodyType>");
+		expected.append("</ApplicationData>");
+		assertThat(actual).isEqualTo(expected.toString());
+	}
+	
+	@Test
 	public void testRecurrenceInSpecificTimeZone() throws Exception {
 		MSEvent msEvent = getFakeMSEvent(TimeZone.getTimeZone("Europe/Paris"));
 		Calendar calendar = DateUtils.getEpochCalendar(TimeZone.getTimeZone("Europe/Paris"));

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -439,13 +439,14 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 
 	private EventRecurrence getRecurrence(MSEvent msEvent) throws ConversionException {
 		MSRecurrence msEventRecurrence = msEvent.getRecurrence();
-		EventRecurrence convertedRecurrence = convertRecurrenceType(msEventRecurrence);
+		EventRecurrence convertedRecurrence = convertRecurrenceType(
+			msEventRecurrence, msEvent.getStartTime(), msEvent.getTimeZone());
 		convertedRecurrence.setFrequence(convertRecurrenceInterval(msEventRecurrence));
 		convertedRecurrence.setEnd(calculateNewRecurrenceEndDate(msEvent));
 		return convertedRecurrence;
 	}
 
-	private EventRecurrence convertRecurrenceType(MSRecurrence msEventRecurrence) throws ConversionException {
+	private EventRecurrence convertRecurrenceType(MSRecurrence msEventRecurrence, Date date, TimeZone tz) throws ConversionException {
 		EventRecurrence convertedRecurrence = new EventRecurrence();
 		switch (msEventRecurrence.getType()) {
 		case DAILY:
@@ -463,10 +464,10 @@ public class MSEventToObmEventConverterImpl implements MSEventToObmEventConverte
 		case WEEKLY:
 			convertedRecurrence.setKind(RecurrenceKind.weekly);
 			if (msEventRecurrence.getDayOfWeek() == null || msEventRecurrence.getDayOfWeek().isEmpty()) {
-				throw new ConversionException("Weekly recurrence need DayOfWeek attribute");
+				convertedRecurrence.setDays(RecurrenceDayOfWeekConverter.byUTCDate(date, tz));
+			} else {
+				convertedRecurrence.setDays(RecurrenceDayOfWeekConverter.toRecurrenceDays(msEventRecurrence.getDayOfWeek()));
 			}
-			convertedRecurrence.setDays(RecurrenceDayOfWeekConverter.toRecurrenceDays(msEventRecurrence.getDayOfWeek()));
-			convertedRecurrence.setKind(RecurrenceKind.weekly);
 			break;
 		case YEARLY:
 			convertedRecurrence.setKind(RecurrenceKind.yearly);
