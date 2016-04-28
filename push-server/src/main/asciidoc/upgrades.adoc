@@ -172,3 +172,24 @@ Be aware that due to OP-53, every device will forget its data, synchronization s
 |http://ci-obm.linagora.com/jira/browse/OP-136[OP-136]|Better support of MIME headers
 |=====================================
 
+=== 3.1.1 to 3.2.0
+
+.Information about this migration
+A new Cassandra table is used, so this migration make mandatory to update your Cassandra to create it. +
+So you will need as usually to run the <<opush-cassandra-schema.adoc#_upgrade, schema update>> command, to make Opush able to start.
+
+.Changelog
+[width="80%",cols="0,1",options="header"]
+|=====================================
+|*Key*|*Summary*
+|http://ci-obm.linagora.com/jira/browse/OP-235[OP-235]|CentOs7 support
+|http://ci-obm.linagora.com/jira/browse/OP-226[OP-226]|Make Opush able to work with cyrus that doesn't use the "altnamespace"
+|http://ci-obm.linagora.com/jira/browse/OP-231[OP-231]|Do not miss changes on email status anymore
+|http://ci-obm.linagora.com/jira/browse/OP-232[OP-232]|Fix spushnik thread leak issue
+|http://ci-obm.linagora.com/jira/browse/OP-240[OP-240]|Ability to create weekly event, even for devices that don't give DayOfWeek
+|http://ci-obm.linagora.com/jira/browse/OP-237[OP-237]|Opush now checks the database settings before starting the service
+|http://ci-obm.linagora.com/jira/browse/OP-235[OP-235]|Cleaner handling of unexpected format for GetAttachment requests
+|http://ci-obm.linagora.com/jira/browse/OP-233[OP-233]|Create an existing but non-subscribed folder now subscribe to it
+|http://ci-obm.linagora.com/jira/browse/OP-228[OP-228]|Clean up m4j files when opush does not need them anymore
+|=====================================
+
