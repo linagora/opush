@@ -11,7 +11,7 @@ OBM Core Team <lgs-obm-dev@linagora.com>;
 == About
 
 Opush is a free (as in beer and as in speech) ActiveSync server that provides
-access to your *OBM* data. It synchronizes your *OBM* account using your device's 
+access to your *OBM* data. It synchronizes your *OBM* account using your device's
 native applications.
 
 With Opush, you don't need to have any extra applications installed on your device in order to
@@ -31,36 +31,34 @@ Opush is capable of doing bidirectional synchronization of:
 Every ActiveSync client should be able to synchronize with *OBM* through
 Opush.
 
-However, there's a limited list of officially supported devices:
+This is the list of devices that the OBM core team is able to test. However, all devices are not actively tested, so we can't give any warranty of their support.
 
 [cols="2,2,1,1,1",options="header"]
 |===============================================================================
 |Vendor (OS)			|Model		|Contacts	|Mail		|Agenda
-|Apple (iOS 5, iOS6, iOS7)	|iPhone, iPad 	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|BlackBerry (OS 10)		|Z10		|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Google (Android 4.2.1)		|Nexus 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|HTC (Android 2.3.3)		|Desire		|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|HTC (Android 2.3.5)		|Desire S	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Nokia (Windows Phone 8.0)	|Lumia 920	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Samsung (Android 2.3)		|Galaxy S/SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#	
-|Motorola (Android 4.4.4)	|Moto G		|[green]#YES# http://ci-obm.linagora.com/jira/browse/OP-185[(OP-185)]	|[green]#YES#	|[green]#YES#	
-|Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#	
+|Apple (iOS 6/7/8/9)	|iPhone, iPad 	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|LG (Android 5.1+)		|Nexus 4	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|BlackBerry (OS 10)		|Z10		|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Google (Android 4.2.1)		|Nexus 7	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|HTC (Android 2.3.3)		|Desire		|[green]#YES#	|[green]#YES#	|[green]#YES#
+|HTC (Android 2.3.5)		|Desire S	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Nokia (Windows Phone 8.0)	|Lumia 920	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 2.3)		|Galaxy S/SII	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 4.1.2)	|Galaxy SII	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 4.0+)		|Galaxy Note	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 4.0+)		|Galaxy Nexus	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 4.3)		|Galaxy S3	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Samsung (Android 6.0)		|Galaxy S6 Edge	|[green]#YES#	|[green]#YES#	|[green]#YES#
+|Motorola (Android 4.4.4)	|Moto G		|[green]#YES# |[green]#YES#	|[green]#YES#
+|Samsung (Windows Phone 7.5)	|Omnia 7	|[green]#YES#	|[green]#YES#	|[green]#YES#
 |===============================================================================
 
 === Limitations
 
 As Microsoft Exchange Server, Opush can't go over some clients limitations (or bugs)!
 
-Be aware that users with Android (> 4.4) have https://ci-obm.linagora.com/jira/browse/OP-185[limitations on address books synchronization]. 
-Their secondary address books (others than the "contacts" one) are read-only, so please note that:
-
-  * contacts in such address book are in a read-only state, every modification and deletion will be taken into account on your device but ignored by the server
-  * dropping an address book does not remove related contacts on the device
-  
-All kind of operations are available (and encouraged) on the main address book.
+  * The "OBM users" address book is read-only, so please note that every modification and deletion will be taken into account on your device but ignored by the server
+  * Dropping an address book does not remove related contacts on the device
 
 include::architecture.adoc[]
 

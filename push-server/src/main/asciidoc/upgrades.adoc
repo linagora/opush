@@ -182,7 +182,7 @@ So you will need as usually to run the <<opush-cassandra-schema.adoc#_upgrade, s
 [width="80%",cols="0,1",options="header"]
 |=====================================
 |*Key*|*Summary*
-|http://ci-obm.linagora.com/jira/browse/OP-235[OP-235]|CentOs7 support
+|http://ci-obm.linagora.com/jira/browse/OP-235[OP-235]|CentOS 7 support
 |http://ci-obm.linagora.com/jira/browse/OP-226[OP-226]|Make Opush able to work with cyrus that doesn't use the "altnamespace"
 |http://ci-obm.linagora.com/jira/browse/OP-231[OP-231]|Do not miss changes on email status anymore
 |http://ci-obm.linagora.com/jira/browse/OP-232[OP-232]|Fix spushnik thread leak issue
