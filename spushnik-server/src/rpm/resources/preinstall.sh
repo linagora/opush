@@ -1,5 +1,5 @@
-#!/bin/sh -e
+#!/bin/sh
 
 if ! id spushnik > /dev/null 2>&1 ; then
-	useradd --system --user-group --create-home --home-dir /usr/share/spushnik spushnik
+	useradd --system --user-group spushnik
 fi
