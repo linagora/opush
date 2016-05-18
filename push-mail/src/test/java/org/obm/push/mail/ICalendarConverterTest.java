@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -305,6 +305,31 @@ public class ICalendarConverterTest {
 		
 		EasyMock.verify(iCalendarEvent);
 		assertThat(reminder).isNull();
+	}
+	
+	@Test
+	public void testICalendarConverterWithoutInterval() throws IOException, ParserException {
+		ICalendar icalendar = icalendar("recur_event_freq-daily_no_interval.zimbra.ics");
+		MSMeetingRequest msMeetingRequest = icalendarConverter.convertToMSMeetingRequest(icalendar);
+		
+		assertThat(msMeetingRequest).isEqualTo(
+				MSMeetingRequest.builder()
+					.startTime(dateInBrussels("2012-04-24T07:00:00"))
+					.dtStamp(new DateTime("2012-04-23T13:04:28Z").toDate())
+					.endTime(dateInBrussels("2012-04-24T07:30:00"))
+					.organizer("user@obm.lng.org")
+					.location("Lyon")
+					.instanceType(MSMeetingRequestInstanceType.MASTER_RECURRING)
+					.timeZone(TimeZone.getTimeZone("Europe/Brussels"))
+					.msEventExtId(new MSEventExtId("f28d13af-a5b5-44cf-83c9-3e76aa743179"))
+					.responseRequested(true)
+					.recurrenceId(dateInBrussels("2012-04-24T07:00:00"))
+					.recurrences(Lists.newArrayList(
+							MSMeetingRequestRecurrence.builder()
+							.interval(1)
+							.type(MSMeetingRequestRecurrenceType.DAILY)
+							.build()))
+					.build());
 	}
 	
 	@Test

@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2014  Linagora
+ * Copyright (C) 2011-2016 Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -264,7 +264,7 @@ public class ICalendarConverter {
 		
 		meetingRequestRecurrences.add(
 				MSMeetingRequestRecurrence.builder()
-				.interval(iCalendarRule.interval())
+				.interval(interval(iCalendarRule))
 				.until(iCalendarRule.until())
 				.dayOfWeek(dayList)
 				.type(type)
@@ -274,6 +274,14 @@ public class ICalendarConverter {
 				.occurrences(iCalendarRule.count())
 				.build());
 		msMeetingRequestBuilder.recurrences(meetingRequestRecurrences);
+	}
+
+	private Integer interval(ICalendarRecur iCalendarRule) {
+		Integer interval = iCalendarRule.interval();
+		if (interval != null) {
+			return Math.max(interval, 1);
+		}
+		return null;
 	}
 
 	private Integer monthOfYear(MSMeetingRequestRecurrenceType type, ICalendarRecur iCalendarRule,
