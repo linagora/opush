@@ -6,7 +6,7 @@
 	<packaging>pom</packaging>
 	<name>OPush Parent Project</name>
 	<url>http://www.obm.org/</url>	
-	<version>3.2.0</version>
+	<version>3.2.0-SNAPSHOT</version>
 
 	<inceptionYear>2000</inceptionYear>
 	<organization>
@@ -21,8 +21,8 @@
 	<properties>
 		<obm.version>3.1.2</obm.version>
 		<opush.release>3.2.0</opush.release>
-		<opush.version>${opush.release}</opush.version>
-		<opush.packaging.version>${opush.release}</opush.packaging.version>
+		<opush.version>${opush.release}-SNAPSHOT</opush.version>
+		<opush.packaging.version>${opush.release}~rc4~git${mvngit.commit.committer.date}.${mvngit.commit.abbrev}</opush.packaging.version>
 		<opush.packaging.release>1</opush.packaging.release>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
