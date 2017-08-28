@@ -31,40 +31,56 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
-import org.obm.push.configuration.CassandraConfiguration;
-
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.WriteType;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.RetryPolicy;
+import org.obm.push.configuration.CassandraConfiguration;
 
 public class RetryNTimesRetryPolicy implements RetryPolicy {
 
-	private final int maxNbRetry;
+  private final int maxNbRetry;
 
-	public RetryNTimesRetryPolicy(CassandraConfiguration cassandraConfiguration) {
-		this.maxNbRetry = cassandraConfiguration.maxRetries();
-	}
+  public RetryNTimesRetryPolicy(CassandraConfiguration cassandraConfiguration) {
+    this.maxNbRetry = cassandraConfiguration.maxRetries();
+  }
 
-	@Override
-	public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
-		return retry(cl, nbRetry);
-	}
+  @Override
+  public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
+    return retry(cl, nbRetry);
+  }
 
-	@Override
-	public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType, int requiredAcks, int receivedAcks, int nbRetry) {
-		return retry(cl, nbRetry);
-	}
+  @Override
+  public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType, int requiredAcks, int receivedAcks, int nbRetry) {
+    return retry(cl, nbRetry);
+  }
 
-	@Override
-	public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
-		return retry(cl, nbRetry);
-	}
+  @Override
+  public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
+    return retry(cl, nbRetry);
+  }
 
-	private RetryDecision retry(ConsistencyLevel cl, int nbRetry) {
-		if (nbRetry >= maxNbRetry) {
-			return RetryDecision.rethrow();
-		}
-		return RetryDecision.retry(cl);
-	}
+  @Override
+  public RetryDecision onRequestError(Statement statement, ConsistencyLevel consistencyLevel, DriverException e, int nbRetry) {
+    return retry(consistencyLevel, nbRetry);
+  }
+
+  @Override
+  public void init(Cluster cluster) {
+
+  }
+
+  @Override
+  public void close() {
+
+  }
+
+  private RetryDecision retry(ConsistencyLevel cl, int nbRetry) {
+    if (nbRetry >= maxNbRetry) {
+      return RetryDecision.rethrow();
+    }
+    return RetryDecision.retry(cl);
+  }
 }
