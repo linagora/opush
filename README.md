@@ -1,3 +1,5 @@
+![Archived](https://img.shields.io/badge/Current_Status-archived-blue?style=flat)
+
 ## HOW TO BUILD A VERSION
 Assume that we are building the 3.0.0~beta2 version.
 
