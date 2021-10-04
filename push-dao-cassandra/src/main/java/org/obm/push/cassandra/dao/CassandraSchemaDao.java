@@ -31,18 +31,17 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra.dao;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.desc;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.obm.push.cassandra.dao.CassandraStructure.Schema.TABLE;
-import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.DATE;
-import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.ID;
-import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.VERSION;
-
-import java.util.Iterator;
-import java.util.List;
-
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import org.obm.breakdownduration.bean.Watch;
 import org.obm.push.bean.BreakdownGroups;
 import org.obm.push.bean.migration.NoVersionException;
@@ -55,87 +54,88 @@ import org.obm.push.store.SchemaDao;
 import org.obm.sync.date.DateProvider;
 import org.slf4j.Logger;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.Select;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.desc;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.DATE;
+import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.ID;
+import static org.obm.push.cassandra.dao.CassandraStructure.Schema.Columns.VERSION;
+import static org.obm.push.cassandra.dao.CassandraStructure.Schema.TABLE;
 
 @Singleton
 @Watch(BreakdownGroups.CASSANDRA)
 public class CassandraSchemaDao extends AbstractCassandraDao implements CassandraDao, SchemaDao {
 
-	private static final int SINGLE_ROW_ID = 1;
-	private static final int ONE_RESULT = 1;
-	
-	private final CassandraService cassandraService;
-	private final DateProvider dateProvider;
+  private static final int SINGLE_ROW_ID = 1;
+  private static final int ONE_RESULT = 1;
 
-	@Inject
-	@VisibleForTesting public CassandraSchemaDao(Provider<Session> sessionProvider, JSONService jsonService, 
-			@Named(LoggerModule.CASSANDRA)Logger logger,
-			CassandraService cassandraService,
-			DateProvider dateProvider) {
-		super(sessionProvider, jsonService, logger);
-		this.cassandraService = cassandraService;
-		this.dateProvider = dateProvider;
-	}
+  private final CassandraService cassandraService;
+  private final DateProvider dateProvider;
 
-	@Override
-	public VersionUpdate getCurrentVersion() {
-		cassandraService.errorIfNoTable(TABLE.get());
-		Select query = select(VERSION, DATE).from(TABLE.get())
-				.where(eq(ID, SINGLE_ROW_ID))
-				.limit(ONE_RESULT)
-				.orderBy(desc(VERSION));
-		logger.debug("perform getCurrentVersion request {}", query.getQueryString());
-		
-		ResultSet resultSet = getSession().execute(query);
-		if (resultSet.isExhausted()) {
-			throw new NoVersionException();
-		}
-		
-		VersionUpdate schemaUpdate = rowToSchemaUpdate(resultSet.one());
-		logger.debug("Current version found {}", schemaUpdate);
-		return schemaUpdate;
-	}
+  @Inject
+  @VisibleForTesting
+  public CassandraSchemaDao(Provider<Session> sessionProvider, JSONService jsonService,
+                            @Named(LoggerModule.CASSANDRA) Logger logger,
+                            CassandraService cassandraService,
+                            DateProvider dateProvider) {
+    super(sessionProvider, jsonService, logger);
+    this.cassandraService = cassandraService;
+    this.dateProvider = dateProvider;
+  }
 
-	@Override
-	public List<VersionUpdate> getHistory() {
-		cassandraService.errorIfNoTable(TABLE.get());
-		Select query = select(VERSION, DATE).from(TABLE.get())
-				.where(eq(ID, SINGLE_ROW_ID))
-				.orderBy(desc(VERSION));
-		logger.debug("perform getHistory request {}", query.getQueryString());
-		
-		ImmutableList.Builder<VersionUpdate> historyBuilder = ImmutableList.builder();
-		Iterator<Row> results = getSession().execute(query).iterator();
-		while (results.hasNext()) {
-			historyBuilder.add(rowToSchemaUpdate(results.next()));
-		}
-		return historyBuilder.build();
-	}
+  @Override
+  public VersionUpdate getCurrentVersion() {
+    cassandraService.errorIfNoTable(TABLE.get());
+    Select query = select(VERSION, DATE).from(TABLE.get())
+        .where(eq(ID, SINGLE_ROW_ID))
+        .limit(ONE_RESULT)
+        .orderBy(desc(VERSION));
+    logger.debug("perform getCurrentVersion request {}", query.getQueryString());
 
-	@Override
-	public void updateVersion(Version target) {
-		cassandraService.errorIfNoTable(TABLE.get());
-		Insert query = insertInto(TABLE.get())
-				.value(ID, SINGLE_ROW_ID)
-				.value(VERSION, target.get())
-				.value(DATE, dateProvider.getDate());
-		logger.debug("perform updateVersion request {}", query.getQueryString());
-		getSession().execute(query);
-	}
+    ResultSet resultSet = getSession().execute(query);
+    if (resultSet.isExhausted()) {
+      throw new NoVersionException();
+    }
 
-	private VersionUpdate rowToSchemaUpdate(Row schemaUpdateRow) {
-		return VersionUpdate
-				.version(Version.of(schemaUpdateRow.getInt(VERSION)))
-				.date(schemaUpdateRow.getDate(DATE));
-	}
+    VersionUpdate schemaUpdate = rowToSchemaUpdate(resultSet.one());
+    logger.debug("Current version found {}", schemaUpdate);
+    return schemaUpdate;
+  }
+
+  @Override
+  public List<VersionUpdate> getHistory() {
+    cassandraService.errorIfNoTable(TABLE.get());
+    Select query = select(VERSION, DATE).from(TABLE.get())
+        .where(eq(ID, SINGLE_ROW_ID))
+        .orderBy(desc(VERSION));
+    logger.debug("perform getHistory request {}", query.getQueryString());
+
+    ImmutableList.Builder<VersionUpdate> historyBuilder = ImmutableList.builder();
+    Iterator<Row> results = getSession().execute(query).iterator();
+    while (results.hasNext()) {
+      historyBuilder.add(rowToSchemaUpdate(results.next()));
+    }
+    return historyBuilder.build();
+  }
+
+  @Override
+  public void updateVersion(Version target) {
+    cassandraService.errorIfNoTable(TABLE.get());
+    Insert query = insertInto(TABLE.get())
+        .value(ID, SINGLE_ROW_ID)
+        .value(VERSION, target.get())
+        .value(DATE, dateProvider.getDate());
+    logger.debug("perform updateVersion request {}", query.getQueryString());
+    getSession().execute(query);
+  }
+
+  private VersionUpdate rowToSchemaUpdate(Row schemaUpdateRow) {
+    return VersionUpdate
+        .version(Version.of(schemaUpdateRow.getInt(VERSION)))
+        .date(schemaUpdateRow.getTimestamp(DATE));
+  }
 }

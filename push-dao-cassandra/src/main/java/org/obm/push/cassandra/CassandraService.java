@@ -59,9 +59,9 @@ public class CassandraService {
 	}
 	
 	public void errorIfNoTable(String tableName) {
-		Where query = select("columnfamily_name").from("System", "schema_columnfamilies")
+		Where query = select("table_name").from("system_schema", "tables")
 			.where(eq("keyspace_name", configuration.keyspace()))
-			.and(eq("columnfamily_name", tableName));
+			.and(eq("table_name", tableName));
 		ResultSet resultSet = sessionProvider.get().execute(query);
 		if (resultSet.isExhausted()) {
 			throw new NoTableException(tableName);

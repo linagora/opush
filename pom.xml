@@ -36,7 +36,7 @@
 		<cassandra-unit.version>2.0.2.3-lng1</cassandra-unit.version>
 		<cucumber.version>1.2.2</cucumber.version>
 		<easymock.version>3.3.1</easymock.version>
-		<guava.version>16.0</guava.version>
+		<guava.version>16.0.1</guava.version>
 		<guice.version>3.0</guice.version>
 		<httpclient.version>4.4</httpclient.version>
 		<jackson.version>2.3.2</jackson.version>

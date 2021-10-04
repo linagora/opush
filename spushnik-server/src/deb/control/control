@@ -5,7 +5,7 @@ Priority: optional
 Architecture: all
 Build-Depends: java-sdk
 Maintainer: Matthieu Baechler <mbaechler@linagora.com>
-Depends: openjdk-7-jre-headless
+Depends: openjdk-7-jre-headless|openjdk-8-jre-headless
 Replaces: spushnik ( << 2.6 )
 Conflicts: obm-jetty, jetty
 Priority: optional

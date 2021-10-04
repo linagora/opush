@@ -4,7 +4,7 @@ Section: net
 Priority: optional
 Architecture: all
 Build-Depends: java-sdk
-Depends: obm-conf|opush-conf, openjdk-7-jre-headless
+Depends: obm-conf|opush-conf, openjdk-7-jre-headless|openjdk-8-jre-headless
 Provides: obm-opush
 Replaces: obm-opush ( << 2.6 )
 Conflicts: obm-jetty, jetty

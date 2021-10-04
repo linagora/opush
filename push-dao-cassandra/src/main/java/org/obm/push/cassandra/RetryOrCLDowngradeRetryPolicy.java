@@ -31,45 +31,61 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.cassandra;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.WriteType;
+import com.datastax.driver.core.exceptions.DriverException;
+import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
+import com.datastax.driver.core.policies.RetryPolicy;
 import org.obm.push.configuration.CassandraConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.WriteType;
-import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
-import com.datastax.driver.core.policies.RetryPolicy;
-
 public class RetryOrCLDowngradeRetryPolicy implements RetryPolicy {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RetryOrCLDowngradeRetryPolicy.class);
-	
-	private final int maxNbRetry;
-	private final RetryPolicy readAndWriteRetryPolicy;
+  private static final Logger LOGGER = LoggerFactory.getLogger(RetryOrCLDowngradeRetryPolicy.class);
 
-	public RetryOrCLDowngradeRetryPolicy(CassandraConfiguration cassandraConfiguration, RetryPolicy readAndWriteRetryPolicy) {
-		this.maxNbRetry = cassandraConfiguration.maxRetries();
-		this.readAndWriteRetryPolicy = readAndWriteRetryPolicy;
-	}
+  private final int maxNbRetry;
+  private final RetryPolicy readAndWriteRetryPolicy;
 
-	@Override
-	public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
-		return readAndWriteRetryPolicy.onReadTimeout(statement, cl, requiredResponses, receivedResponses, dataRetrieved, nbRetry);
-	}
+  public RetryOrCLDowngradeRetryPolicy(CassandraConfiguration cassandraConfiguration, RetryPolicy readAndWriteRetryPolicy) {
+    this.maxNbRetry = cassandraConfiguration.maxRetries();
+    this.readAndWriteRetryPolicy = readAndWriteRetryPolicy;
+  }
 
-	@Override
-	public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType, int requiredAcks, int receivedAcks, int nbRetry) {
-		return readAndWriteRetryPolicy.onWriteTimeout(statement, cl, writeType, requiredAcks, receivedAcks, nbRetry);
-	}
+  @Override
+  public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
+    return readAndWriteRetryPolicy.onReadTimeout(statement, cl, requiredResponses, receivedResponses, dataRetrieved, nbRetry);
+  }
 
-	@Override
-	public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
-		if (nbRetry >= maxNbRetry) {
-			return RetryDecision.rethrow();
-		}
-		LOGGER.warn("Opush is downgrading the consistency-level of a Cassandra request as it cannot reach enough replicas to get the QUORUM. " + 
-				"A 'nodetool repair' might be done on each node when your cluster gets back to a healthy state. Read http://docs.obm.org/opush/ for more information");
-		return DowngradingConsistencyRetryPolicy.INSTANCE.onUnavailable(statement, cl, requiredReplica, aliveReplica, 0);
-	}
+  @Override
+  public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType, int requiredAcks, int receivedAcks, int nbRetry) {
+    return readAndWriteRetryPolicy.onWriteTimeout(statement, cl, writeType, requiredAcks, receivedAcks, nbRetry);
+  }
+
+  @Override
+  public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
+    if (nbRetry >= maxNbRetry) {
+      return RetryDecision.rethrow();
+    }
+    LOGGER.warn("Opush is downgrading the consistency-level of a Cassandra request as it cannot reach enough replicas to get the QUORUM. " +
+        "A 'nodetool repair' might be done on each node when your cluster gets back to a healthy state. Read http://docs.obm.org/opush/ for more information");
+    return DowngradingConsistencyRetryPolicy.INSTANCE.onUnavailable(statement, cl, requiredReplica, aliveReplica, 0);
+  }
+
+  @Override
+  public RetryDecision onRequestError(Statement statement, ConsistencyLevel cl, DriverException e, int nbRetry) {
+    return readAndWriteRetryPolicy.onRequestError(statement, cl, e, nbRetry);
+  }
+
+  @Override
+  public void init(Cluster cluster) {
+
+  }
+
+  @Override
+  public void close() {
+
+  }
 }
